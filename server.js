@@ -63,7 +63,6 @@ app.use(
 );
 
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, "LSPD")));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -82,6 +81,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(express.static(path.join(__dirname, "LSPD")));
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
