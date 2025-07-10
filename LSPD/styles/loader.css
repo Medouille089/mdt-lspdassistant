@@ -1,0 +1,30 @@
+.loader-overlay {
+    display: none; /* Masqué par défaut */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4); /* flou de fond */
+    backdrop-filter: blur(2px); /* effet de flou */
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader-spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid rgba(255, 255, 255, 0.2);
+    border-top: 6px solid var(--main-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    background-color: var(--embed-bg);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

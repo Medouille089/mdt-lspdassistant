@@ -1,0 +1,156 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(#F1F3FF, #CBD4FF);
+    margin: 0;
+    padding: 40px;
+}
+
+.convocation-container {
+    max-width: 900px;
+    margin: auto;
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 40px 50px 100px;
+    position: relative;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border: 4px solid #0b1b5a;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid #0b1b5a;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+.header img {
+    height: 70px;
+}
+
+.header-title {
+    text-align: center;
+    flex: 1;
+    color: #0b1b5a;
+}
+
+.header-title h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.header-title h2 {
+    margin: 4px 0 0;
+    font-size: 16px;
+    color: #444;
+    text-transform: uppercase;
+}
+
+.section-title {
+    color: #0b1b5a;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    font-size: 18px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+
+.content p {
+    margin-bottom: 20px;
+    font-size: 15px;
+}
+
+.content input,
+.content textarea,
+.content select {
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #c5cbd5;
+    border-radius: 8px;
+    background-color: #f9fafc;
+    margin-top: 5px;
+}
+
+.content input[readonly] {
+    background-color: #eef1f5;
+    color: #555;
+}
+
+.content textarea {
+    resize: vertical;
+    height: 120px;
+}
+
+.signature {
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+
+}
+
+.signature label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #0b1b5a;
+}
+
+.signature-block {
+    border-radius: 6px;
+    flex: 1 1 45%;
+}
+
+.signature-block input {
+    width: 100%;
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-color: #eef1f5;
+    color: #555;
+}
+
+.signature-block select {
+    width: 100%;
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-color: #eef1f5;
+    color: #555;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.send-button {
+    background-color: #0b1b5a;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.send-button:hover {
+    background-color: #1a2c7a;
+}
+
+.footer-logo {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    height: 120px;
+    opacity: 1;
+    pointer-events: none;
+    z-index: 0;
+}

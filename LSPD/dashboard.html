@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Dashboard - LSPD</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css" />
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: sans-serif;
+        }
+
+        #message {
+            min-height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            text-align: center;
+            color: #000000;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+            background-color: #ffffff;
+            min-height: 100vh;
+            color: #000000;
+        }
+
+        /* Overlay full screen au dessus */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #0b1b5a;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            font-weight: bold;
+            z-index: 9999;
+            /* on cache par défaut */
+            opacity: 0;
+            pointer-events: none;
+            flex-direction: column;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* Overlay visible */
+        #overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+
+        /* Animation du rideau qui "monte" (effet translateY) */
+        #overlay.hide {
+            animation: curtainUp 1s forwards;
+        }
+
+        @keyframes curtainUp {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-100%);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="overlay">
+        <span id="overlayMessage"></span>
+    </div>
+
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Dashboard</h1>
+        <div id="message"></div>
+    </div>
+
+    <!-- Le script externe pour ta sidebar -->
+    <script src="scripts/loadSidebar.js"></script>
+
+    <!-- Ton script pour fetch l'utilisateur et gérer l'overlay -->
+    <script>
+        async function fetchUser() {
+            try {
+                const res = await fetch('/api/user');
+                if (!res.ok) throw new Error('Non connecté');
+                const user = await res.json();
+
+                document.getElementById('message').innerHTML = `Bonjour&nbsp;<strong>${user.username}</strong>`;
+                document.getElementById('overlayMessage').innerHTML = `Bonjour&nbsp;<strong>${user.username}</strong>`;
+
+                const now = Date.now();
+                const lastSeen = localStorage.getItem('overlayLastSeen');
+                const delay = 3600000;
+
+                if (!lastSeen || now - lastSeen > delay) {
+                    showOverlay();
+                    localStorage.setItem('overlayLastSeen', now);
+                }
+            } catch (error) {
+                document.getElementById('message').textContent = 'Bonjour invité';
+            }
+        }
+
+
+        function showOverlay() {
+            const overlay = document.getElementById('overlay');
+            overlay.classList.add('show');
+
+            setTimeout(() => {
+                overlay.classList.add('hide');
+            }, 2000);
+
+            overlay.addEventListener('animationend', () => {
+                overlay.classList.remove('show', 'hide');
+                overlay.style.display = 'none';
+            }, { once: true });
+        }
+
+        fetchUser();
+    </script>
+</body>
+
+</html>

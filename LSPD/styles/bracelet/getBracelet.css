@@ -1,0 +1,131 @@
+/* Reset et styles globaux */
+body {
+    margin: 0;
+    padding: 20px;
+    background: #2f3e57;
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Conteneur principal */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #1e2a44;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Filtres */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filters>* {
+    flex: 1 1 200px;
+    min-width: 150px;
+}
+
+input[type="text"],
+input[type="date"] {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: none;
+    font-size: 16px;
+}
+
+/* Tableau */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #344863;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+thead {
+    background: #1d284a;
+}
+
+thead th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: default;
+    color: #fff;
+}
+
+tbody tr {
+    cursor: pointer;
+    transition: background 0.25s;
+}
+
+tbody tr:hover {
+    background: #2a3b67;
+}
+
+tbody td {
+    padding: 12px 15px;
+    border-top: 1px solid #2f3e57;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+    user-select: none;
+}
+
+.pagination button {
+    background: #1d284a;
+    border: none;
+    color: #fff;
+    margin: 0 5px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #344863;
+}
+
+.pagination button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 650px) {
+    .filters {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    thead th,
+    tbody td {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .pagination button {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+}

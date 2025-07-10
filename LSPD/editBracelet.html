@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Modifier Bracelet - Maître</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/bracelet/bracelet.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+</head>
+
+<body>
+
+    <div class="main-container">
+
+        <div id="sidebar-container"></div>
+        <h1>Modifier le bracelet <span id="id_brac_title"></span></h1>
+
+        <form id="editForm" class="embed-form">
+            <div class="embed-header">
+                <img src="https://i.ibb.co/DDQWSHmZ/assistant.png" alt="Thumbnail">
+                <div class="embed-title">Modifier le bracelet électronique <span id="id_brac_title"></span></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_brac">ID Bracelet</label>
+                    <input type="text" id="id_brac" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="nom">Nom</label>
+                    <input type="text" id="nom" required />
+                </div>
+                <div class="form-group">
+                    <label for="prenom">Prénom</label>
+                    <input type="text" id="prenom" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="motif">Motif</label>
+                <input type="text" id="motif" placeholder="Entrez le motif" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tel">Téléphone</label>
+                <input type="text" id="tel" maxlength="14" required />
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dateDebut">Date début</label>
+                    <input type="date" id="dateDebut" required />
+                </div>
+                <div class="form-group">
+                    <label for="dateFin">Date fin</label>
+                    <input type="date" id="dateFin" required />
+                </div>
+            </div>
+
+            <div class="embed-footer">
+                <div class="embed-footer-left">
+                    <img src="https://i.ibb.co/DDQWSHmZ/assistant.png" alt="footer-icon">
+                    <span>LSPD Assistant</span>
+                </div>
+                <div id="timestamp"></div>
+            </div>
+
+            <button type="submit">Modifier</button>
+            <button id="deleteBtn" type="button" style="background-color:#c0392b; margin-top:10px;">Supprimer</button>
+
+            <div class="loader-overlay" id="loaderOverlay">
+                <div class="loader-spinner"></div>
+            </div>
+        </form>
+    </div>
+    <script src="scripts/bracelet/editBracelet.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+
+</body>
+
+</html>

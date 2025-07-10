@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Rapport d'incident - LSPD</title>
+  <link rel="stylesheet" href="styles/incident/incident.css">
+</head>
+
+<body>
+
+  <div class="form-container">
+    <div class="header">
+      <img src="data/images/lspd.png" alt="Logo LSPD">
+      <div class="header-text">
+        <div class="header-title">LOS SANTOS POLICE DEPARTMENT</div>
+        <div class="header-sub">RAPPORT D'INCIDENT</div>
+      </div>
+      <div style="width: 60px;"></div>
+    </div>
+
+    <form>
+      <div class="row">
+        <div>
+          <label for="date">DATE DE L'INCIDENT</label>
+          <input type="date" id="date" name="date">
+        </div>
+        <div>
+          <label for="heure">HEURE DE L'INCIDENT</label>
+          <input type="time" id="heure" name="heure">
+        </div>
+      </div>
+
+      <label for="officier">OFFICIER RÉDACTEUR</label>
+      <input type="text" id="officier" name="officier">
+
+      <label for="recit">RÉCIT</label>
+      <textarea id="recit" name="recit"></textarea>
+
+      <label for="pieces">PIÈCES JOINTES (Images)</label>
+      <input type="file" id="pieces" name="pieces" accept="image/*" multiple onchange="previewAttachments(event)">
+      <div class="attachments-preview" id="attachmentsPreview"></div>
+
+      <label for="implique">OFFICIER IMPLIQUÉ</label>
+      <input type="text" id="implique" name="implique">
+
+      <div class="row">
+        <div>
+          <label for="type">TYPE DE RAPPORT</label>
+          <input type="text" id="type" name="type">
+        </div>
+        <div>
+          <label for="lieu">LIEU DE L'INCIDENT</label>
+          <input type="text" id="lieu" name="lieu">
+        </div>
+      </div>
+
+      <label for="signature">SIGNATURE OFFICIER</label>
+      <input type="file" id="signature" name="signature" accept="image/*" onchange="previewSignature(event)">
+      <div class="signature-preview" id="signaturePreview"></div>
+
+      <div class="submit-button">
+        <button type="submit">Envoyer</button>
+      </div>
+    </form>
+
+    <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo">
+  </div>
+
+  <script src="scripts/incident/incident.js"></script>
+
+</body>
+
+</html>
