@@ -477,9 +477,9 @@ app.put('/api/formulaires/:id', async (req, res) => {
           .addFields(
             { name: 'Nom', value: nom || '—', inline: true },
             { name: 'Prénom', value: prenom || '—', inline: true },
-            { name: 'Téléphone', value: tel || '—', inline: true },
             { name: 'Date de création', value: dateDebutFormatted, inline: true },
-            { name: 'Motif', value: motif || '—', inline: false }
+            { name: 'Motif', value: motif || '—', inline: false },
+            { name: 'Téléphone', value: tel || '—', inline: true }
           )
           .setColor(0x0b1b5a)
           .setFooter({
