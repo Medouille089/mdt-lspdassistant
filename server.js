@@ -9,7 +9,8 @@ const fetch = require("node-fetch");
 const { Pool } = require("pg");
 const cron = require("node-cron");
 const axios = require("axios");
-const { Client, GatewayIntentBits, ActivityType } = require("discord.js");
+const { Client, GatewayIntentBits, ActivityType, EmbedBuilder } = require("discord.js");
+const { threadId } = require("worker_threads");
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -27,7 +28,8 @@ const {
   DISCORD_WEBHOOK_LOGS,
   DATABASE_URL,
   SUPERVISOR_ROLE_ID,
-  THREAD_ID
+  THREAD_ID,
+  ARCHIVE_TAG
 } = process.env;
 
 // === PostgreSQL pool ===
@@ -61,15 +63,15 @@ app.use(
 );
 
 app.use(bodyParser.json());
-
-
-
 app.use(express.static(path.join(__dirname, "LSPD")));
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use((req, res, next) => {
-  const publicPaths = ['/login', '/callback', '/logout'];
+  const publicPaths = ['/login', '/callback', '/logout', '/bracelet'];
+
+  // Autorise les requêtes internes (ex : create-post)
+  if (req.headers['x-internal'] === 'true') return next();
 
   if (publicPaths.includes(req.path)) return next();
 
@@ -79,6 +81,7 @@ app.use((req, res, next) => {
 
   next();
 });
+
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
@@ -150,7 +153,7 @@ async function sendLoginLog(userId, action) {
     timestamp: new Date().toISOString(),
     footer: {
       text: "LSPD Assistant",
-      icon_url: "https://ibb.co/jkP2vqW2"
+      icon_url: "https://i.ibb.co/DDQWSHmZ/assistant.png"
     },
   };
 
@@ -235,13 +238,13 @@ app.get('/api/webhook-url', (req, res) => {
 
 // Route POST – Enregistrement d’un nouveau bracelet
 app.post('/api/formulaire', checkAuth, async (req, res) => {
-  const { nom, prenom, tel, motif, dateDebut, dateFin } = req.body;
+  const { nom, prenom, tel, motif, dateDebut } = req.body;
   const user = req.user;
   if (!user) {
     return res.status(401).json({ error: "Utilisateur non connecté" });
   }
 
-  console.log('Données reçues:', { nom, prenom, tel, motif, dateDebut, dateFin });
+  console.log('Données reçues:', { nom, prenom, tel, motif, dateDebut });
 
   try {
     // Log récupération IDs
@@ -261,18 +264,22 @@ app.post('/api/formulaire', checkAuth, async (req, res) => {
 
     // Insertion dans bracelets
     await pool.query(`
-      INSERT INTO bracelets (nom, prenom, tel, date_debut, date_fin, id_brac, motif)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-    `, [nom, prenom, tel, dateDebut, dateFin, id_brac, motif]);
+      INSERT INTO bracelets (nom, prenom, tel, date_debut, id_brac, motif)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [nom, prenom, tel, dateDebut, id_brac, motif]);
 
     console.log('Insertion en base OK');
 
     // Appel interne POST /api/create-post
     const response = await fetch(`http://localhost:${port}/api/create-post`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id_brac, nom, prenom, tel, motif, dateDebut, dateFin }),
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal": "true"
+      },
+      body: JSON.stringify({ id_brac, nom, prenom, tel, motif, dateDebut })
     });
+
 
     console.log('Réponse POST create-post:', response.status);
 
@@ -284,15 +291,21 @@ app.post('/api/formulaire', checkAuth, async (req, res) => {
         [data.threadId, id_brac]
       );
       console.log('Mise à jour thread ID OK');
+
+      var threadId = data.threadId;
     }
+    const mentionThread = threadId ? `<#${threadId}>` : 'Thread inconnu';
 
     // Webhook logs
     if (process.env.DISCORD_WEBHOOK_LOGS) {
       const embedLog = {
         color: 0x0b1b5a,
-        description: `<@${user.id}> a ajouté un nouveau bracelet - ${id_brac}`,
+        description: `<@${user.id}> a ajouté un nouveau bracelet - ${mentionThread} (${id_brac})`,
         timestamp: new Date().toISOString(),
-        footer: { text: "LSPD Assistant" },
+        footer: {
+          text: "LSPD Assistant",
+          icon_url: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+        },
       };
       await fetch(process.env.DISCORD_WEBHOOK_LOGS, {
         method: "POST",
@@ -309,13 +322,14 @@ app.post('/api/formulaire', checkAuth, async (req, res) => {
   }
 });
 
-app.use(express.json());
+
+(express.json());
 app.post('/api/create-post', async (req, res) => {
   console.log("POST /api/create-post reçu avec body:", req.body);
-  const { id_brac, nom, prenom, tel, motif, dateDebut, dateFin } = req.body;
+  const { id_brac, nom, prenom, tel, motif, dateDebut } = req.body;
 
   try {
-    const formattedDateDebut = formatDate(dateDebut); // Format JJ/MM/AAAA
+    const formattedDateDebut = formatDate(dateDebut);
     const threadTitle = `${id_brac} - ${nom} ${prenom} - ${formattedDateDebut}`;
 
     const embedPayload = {
@@ -329,8 +343,8 @@ app.post('/api/create-post', async (req, res) => {
           { name: "Motif", value: motif, inline: true },
           { name: "Téléphone", value: tel, inline: false },
           {
-            name: "Période",
-            value: `Du **${formattedDateDebut}** au **${formatDate(dateFin)}**`,
+            name: "Date de création",
+            value: `**${formattedDateDebut}**`,
             inline: false
           }
         ],
@@ -385,7 +399,7 @@ function formatDate(dateStr) {
 // Route GET – Récupère tous les bracelets actifs
 app.get('/api/formulaires', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, id_brac, nom, prenom, tel, date_debut, date_fin, motif FROM bracelets ORDER BY id DESC');
+    const result = await pool.query('SELECT id, id_brac, nom, prenom, tel, date_debut, motif FROM bracelets ORDER BY id DESC');
     res.json(result.rows.map(row => ({
       id: row.id,
       id_brac: row.id_brac,
@@ -394,7 +408,6 @@ app.get('/api/formulaires', async (req, res) => {
       tel: row.tel,
       motif: row.motif,
       dateDebut: row.date_debut.toLocaleDateString('fr-CA'),
-      dateFin: row.date_fin.toLocaleDateString('fr-CA'),
     })));
   } catch (err) {
     console.error('Erreur GET /api/formulaires:', err);
@@ -405,19 +418,91 @@ app.get('/api/formulaires', async (req, res) => {
 // Route PUT – Met à jour un bracelet existant
 app.put('/api/formulaires/:id', async (req, res) => {
   const id = req.params.id;
-  const { nom, prenom, tel, dateDebut, dateFin } = req.body;
+  const { nom, prenom, tel, dateDebut, motif } = req.body;
 
   try {
-    await pool.query(
-      'UPDATE bracelets SET nom=$1, prenom=$2, tel=$3, date_debut=$4, date_fin=$5, motif=$6 WHERE id=$7',
-      [nom, prenom, tel, dateDebut, dateFin, motif, id]
+    // 1. Récupérer les données actuelles
+    const { rows } = await pool.query(
+      'SELECT id_thread, id_brac, nom AS old_nom, prenom AS old_prenom, date_debut AS old_date_debut FROM bracelets WHERE id = $1',
+      [id]
     );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Bracelet non trouvé' });
+    }
+
+    const { id_thread: threadId, id_brac, old_nom, old_prenom, old_date_debut } = rows[0];
+
+    // 2. Mettre à jour le bracelet
+    await pool.query(
+      'UPDATE bracelets SET nom=$1, prenom=$2, tel=$3, date_debut=$4, motif=$5 WHERE id=$6',
+      [nom, prenom, tel, dateDebut, motif, id]
+    );
+
+    // Fonction pour formater une date en JJ/MM/AAAA
+    function formatDateFR(dateStr) {
+      if (!dateStr) return '—';
+      const date = new Date(dateStr);
+      const dd = String(date.getDate()).padStart(2, '0');
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const yyyy = date.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    const dateDebutFormatted = formatDateFR(dateDebut);
+    const oldDateFormatted = formatDateFR(old_date_debut);
+
+    // 3. Mettre à jour le thread s'il existe et que threadId est valide
+    if (threadId) {
+      const thread = await bot.channels.fetch(threadId);
+      if (thread && thread.isThread()) {
+
+        // 🔍 Vérifier s’il faut renommer le thread
+        const shouldRename = (
+          nom !== old_nom ||
+          prenom !== old_prenom ||
+          dateDebutFormatted !== oldDateFormatted
+        );
+
+        if (shouldRename) {
+          const newThreadName = `${id_brac} - ${nom} ${prenom} - ${dateDebutFormatted}`;
+          await thread.setName(newThreadName);
+          console.log(`🔄 Thread renommé : ${newThreadName}`);
+        }
+
+        // ✅ Envoyer l'embed de modification
+        const embed = new EmbedBuilder()
+          .setTitle(`Bracelet modifié`)
+          .setDescription(`Le bracelet \`${id_brac}\` a été mis à jour.`)
+          .addFields(
+            { name: 'Nom', value: nom || '—', inline: true },
+            { name: 'Prénom', value: prenom || '—', inline: true },
+            { name: 'Téléphone', value: tel || '—', inline: true },
+            { name: 'Date de création', value: dateDebutFormatted, inline: true },
+            { name: 'Motif', value: motif || '—', inline: false }
+          )
+          .setColor(0x0b1b5a)
+          .setFooter({
+            text: "LSPD Assistant",
+            iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+          })
+          .setTimestamp();
+
+        await thread.send({ embeds: [embed] });
+      } else {
+        console.warn(`Thread ${threadId} introuvable ou non valide.`);
+      }
+    } else {
+      console.warn(`Pas de threadId pour le bracelet ${id_brac}`);
+    }
+
     res.sendStatus(200);
   } catch (err) {
     console.error('Erreur PUT /api/formulaires/:id:', err);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
 
 // Route DELETE – Supprime un bracelet actif et le transfère dans l'historique
 app.delete('/api/formulaires/:id', async (req, res) => {
@@ -435,15 +520,57 @@ app.delete('/api/formulaires/:id', async (req, res) => {
 
     const data = rows[0];
 
+    // Insérer dans historique
     await client.query(`
-      INSERT INTO historiqueBracelets (nom, prenom, tel, date_debut, date_fin, id_brac, motif)
+      INSERT INTO historiqueBracelets (nom, prenom, tel, date_debut, id_brac, motif, id_thread)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-    `, [data.nom, data.prenom, data.tel, data.date_debut, data.date_fin, data.id_brac, data.motif]);
+    `, [data.nom, data.prenom, data.tel, data.date_debut, data.id_brac, data.motif, data.id_thread]);
 
+    // Supprimer de bracelets
     await client.query("DELETE FROM bracelets WHERE id = $1", [id]);
 
+    // Commit avant de faire appels Discord pour éviter deadlock si problème Discord
     await client.query('COMMIT');
-    res.json({ message: 'Transféré dans l’historique' });
+
+    // Si thread Discord existe, on ajoute le tag et envoie un embed
+    if (data.id_thread && ARCHIVE_TAG) {
+      try {
+        const thread = await bot.channels.fetch(data.id_thread);
+        if (thread && thread.isThread()) {
+          // Ajouter le tag archive
+          await thread.setAppliedTags([ARCHIVE_TAG]);
+
+          // Envoyer embed
+          const embed = new EmbedBuilder()
+            .setTitle('Bracelet archivé')
+            .setDescription(`Le bracelet \`${data.id_brac}\` a été archivé.`)
+            .addFields(
+              { name: 'Nom', value: data.nom || '—', inline: true },
+              { name: 'Prénom', value: data.prenom || '—', inline: true },
+              { name: 'Téléphone', value: data.tel || '—', inline: true },
+              { name: 'Date de création', value: data.date_debut ? new Date(data.date_debut).toLocaleDateString('fr-FR') : '—', inline: true },
+              { name: 'Motif', value: data.motif || '—', inline: false }
+            )
+            .setColor(0xff0000) // rouge pour archivage
+            .setFooter({
+              text: "LSPD Assistant",
+              iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+            })
+            .setTimestamp();
+
+          await thread.send({ embeds: [embed] });
+        } else {
+          console.warn(`Thread ${data.id_thread} introuvable ou non valide.`);
+        }
+      } catch (discordErr) {
+        console.error('Erreur Discord lors archivage:', discordErr);
+      }
+    } else {
+      if (!data.id_thread) console.warn('Pas de threadId pour ce bracelet.');
+      if (!ARCHIVE_TAG) console.warn('ARCHIVE_TAG non défini dans .env');
+    }
+
+    res.json({ message: 'Transféré dans l’historique et archivé' });
 
   } catch (err) {
     await client.query('ROLLBACK');
@@ -465,7 +592,6 @@ app.get('/api/historique', async (req, res) => {
       tel: row.tel,
       motif: row.motif,
       dateDebut: new Date(row.date_debut).toLocaleDateString('fr-CA'),
-      dateFin: new Date(row.date_fin).toLocaleDateString('fr-CA'),
       id_brac: row.id_brac
     }));
     res.json(data);
@@ -523,51 +649,6 @@ async function envoyerWebhookArchivage(nombre, ids) {
     console.error("[WEBHOOK] Échec de l'envoi :", err.message);
   }
 }
-
-// Fonction qui archive automatiquement les bracelets expirés
-async function archiverBraceletsExpirés() {
-  const now = new Date();
-  const parisOffset = new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" });
-  const todayParis = new Date(parisOffset);
-
-  // Mise à minuit heure de Paris
-  todayParis.setHours(0, 0, 0, 0);
-
-  const { rows: expired } = await pool.query(`
-  SELECT * FROM bracelets
-  WHERE date_fin < $1
-`, [todayParis]);
-
-  const archivedIds = [];
-
-  for (const data of expired) {
-    await pool.query(`
-      INSERT INTO historiqueBracelets (nom, prenom, tel, date_debut, date_fin, id_brac, motif)
-      VALUES ($1, $2, $3, $4, $5, $6)
-    `, [data.nom, data.prenom, data.tel, data.date_debut, data.date_fin, data.id_brac, data.motif]);
-
-    await pool.query(`DELETE FROM bracelets WHERE id = $1`, [data.id]);
-    archivedIds.push(data.id_brac);
-  }
-
-  if (archivedIds.length > 0) {
-    await envoyerWebhookArchivage(archivedIds.length, archivedIds);
-  }
-
-  return archivedIds.length;
-}
-
-// Tâche CRON – Exécution chaque jour à minuit pour archiver automatiquement
-cron.schedule('0 0 * * *', async () => {
-  try {
-    const count = await archiverBraceletsExpirés();
-    console.log(`[CRON] ${count} bracelet(s) archivé(s) à minuit.`);
-  } catch (err) {
-    console.error('[CRON] Erreur archivage automatique :', err);
-  }
-}, {
-  timezone: "Europe/Paris"
-});
 
 // === Serveur ===
 app.listen(port, () => {

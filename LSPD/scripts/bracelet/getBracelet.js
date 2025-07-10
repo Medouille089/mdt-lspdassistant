@@ -46,7 +46,7 @@ function applyFilters() {
         // Filtre date entre dateStart et dateEnd
         // On compare les dates en ISO format "yyyy-mm-dd"
         const startOk = dateStart ? item.dateDebut >= dateStart : true;
-        const endOk = dateEnd ? item.dateFin <= dateEnd : true;
+        const endOk = dateEnd ? item.dateDebut <= dateEnd : true;
 
         return textMatch && startOk && endOk;
     });
@@ -76,7 +76,6 @@ function renderTable() {
                     <td>${item.nom}</td>
                     <td>${item.prenom}</td>
                     <td>${formatDate(item.dateDebut)}</td>
-                    <td>${formatDate(item.dateFin)}</td>
                 `;
         tr.addEventListener('click', () => {
             window.location.href = `editBracelet.html?id=${item.id}`;

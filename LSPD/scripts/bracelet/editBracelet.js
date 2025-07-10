@@ -11,23 +11,6 @@ const prenomInput = document.getElementById('prenom');
 const motifInput = document.getElementById('motif');
 const telInput = document.getElementById('tel');
 const dateDebutInput = document.getElementById('dateDebut');
-const dateFinInput = document.getElementById('dateFin');
-
-dateDebutInput.addEventListener('change', () => {
-    const debut = dateDebutInput.value;
-    if (dateFinInput.value && dateFinInput.value < debut) {
-        dateFinInput.value = debut;
-    }
-    dateFinInput.min = debut;
-});
-
-dateFinInput.addEventListener('change', () => {
-    const fin = dateFinInput.value;
-    if (dateDebutInput.value && dateDebutInput.value > fin) {
-        dateDebutInput.value = fin;
-    }
-    dateDebutInput.max = fin;
-});
 
 telInput.addEventListener('input', function () {
     let x = this.value.replace(/\D/g, '').slice(0, 10);
@@ -39,7 +22,6 @@ telInput.addEventListener('input', function () {
 
 const today = new Date().toISOString().split('T')[0];
 document.getElementById('dateDebut').min = today;
-document.getElementById('dateFin').min = today;
 document.getElementById('dateDebut').value = today;
 
 const timestampDiv = document.getElementById("timestamp");
@@ -66,7 +48,6 @@ async function loadBracelet() {
         motifInput.value = bracelet.motif;
         telInput.value = bracelet.tel;
         dateDebutInput.value = bracelet.dateDebut;
-        dateFinInput.value = bracelet.dateFin;
 
         document.getElementById('id_brac_title').textContent = `- ${bracelet.id_brac}`;
 
@@ -79,64 +60,19 @@ async function loadBracelet() {
 document.getElementById('editForm').addEventListener('submit', async e => {
     e.preventDefault();
 
-    const id_brac = document.getElementById('id_brac').value;
     const nom = nomInput.value.trim();
     const prenom = prenomInput.value.trim();
     const tel = telInput.value.trim();
-    const motif = motif.value.trim();
+    const motif = motifInput.value.trim();
     const dateDebut = dateDebutInput.value;
-    const dateFin = dateFinInput.value;
-    const dateDebutForDisplay = formatDateForDisplay(dateDebut);
-    const dateFinForDisplay = formatDateForDisplay(dateFin);
-    const webhookRes = await fetch('/api/webhook-url');
-    const webhookData = await webhookRes.json();
-    const webhookUrl = webhookData.url;
-    const imageUrl = "https://i.ibb.co/DDQWSHmZ/assistant.png";
-
-    const payload = {
-        embeds: [{
-            title: "Bracelet modifié",
-            color: 0x0b1b5a,
-            fields: [
-                { name: "ID Bracelet", value: id_brac, inline: true },
-                { name: "Nom", value: nom, inline: true },
-                { name: "Prénom", value: prenom, inline: true },
-                { name: "Motif", value: motif, inline: true },
-                { name: "Téléphone", value: tel, inline: false },
-                {
-                    name: "Période",
-                    value: `Du **${dateDebutForDisplay}** au **${dateFinForDisplay}**`,
-                    inline: false
-                }
-            ],
-            footer: {
-                text: "LSPD Assistant",
-                icon_url: imageUrl
-            },
-            thumbnail: {
-                url: imageUrl
-            },
-            timestamp: new Date().toISOString()
-        }]
-    };
 
     try {
         document.getElementById('loaderOverlay').style.display = 'flex';
 
-        const webhookRes = await fetch('/api/webhook-url');
-        const webhookData = await webhookRes.json();
-        const webhookUrl = webhookData.url;
-
-        await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
         const res = await fetch('/api/formulaires/' + id, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nom, prenom, tel, motif, dateDebut, dateFin })
+            body: JSON.stringify({ nom, prenom, tel, motif, dateDebut })
         });
         if (!res.ok) throw new Error('Erreur mise à jour');
 

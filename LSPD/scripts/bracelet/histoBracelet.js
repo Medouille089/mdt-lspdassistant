@@ -46,7 +46,7 @@ function applyFilters() {
         // Filtre date entre dateStart et dateEnd
         // Dates au format ISO "yyyy-mm-dd"
         const startOk = dateStart ? item.dateDebut >= dateStart : true;
-        const endOk = dateEnd ? item.dateFin <= dateEnd : true;
+        const endOk = dateEnd ? item.dateDebut <= dateEnd : true;
 
         return textMatch && startOk && endOk;
     });
@@ -77,7 +77,6 @@ function renderTable() {
             <td>${item.prenom}</td>
             <td>${item.tel}</td>
             <td>${formatDate(item.dateDebut)}</td>
-            <td>${formatDate(item.dateFin)}</td>
         `;
         tableBody.appendChild(tr);
     });

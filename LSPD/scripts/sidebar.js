@@ -20,21 +20,20 @@ document.querySelectorAll(".dropdown-toggle").forEach((dropdownToggle) => {
     const menu = dropdown.querySelector(".dropdown-menu");
     const isOpen = dropdown.classList.contains("open");
 
-    closeAllDropdowns(); // Close all open dropdowns
-    toggleDropdown(dropdown, menu, !isOpen); // Toggle current dropdown visibility
+    closeAllDropdowns();
+    toggleDropdown(dropdown, menu, !isOpen); 
   });
 });
 
-// Attach click event to sidebar toggle buttons
 document.querySelectorAll(".sidebar-toggler, .sidebar-menu-button").forEach((button) => {
   button.addEventListener("click", () => {
-    closeAllDropdowns(); // Close all open dropdowns
+    closeAllDropdowns();
 
     const sidebar = document.querySelector(".sidebar");
     const body = document.body;
 
-    sidebar.classList.toggle("collapsed"); // Toggle sidebar
-    body.classList.toggle("collapsed");    // Sync class on body for layout shift
+    sidebar.classList.toggle("collapsed");
+    body.classList.toggle("collapsed");   
   });
 });
 
@@ -117,14 +116,12 @@ async function fetchUser() {
       }
     });
 
-    // **Cacher l'élément onlySupervisor si isSupervisor = false**
     const supervisorElement = document.getElementById('onlySupervisor');
     if (supervisorElement) {
       supervisorElement.style.display = user.isSupervisor ? '' : 'none';
     }
 
   } catch (error) {
-    // En cas d'erreur (ex : non connecté), on cache le profil et le menu supervisor
     const container = document.getElementById('userProfile');
     if (container) container.style.display = 'none';
 

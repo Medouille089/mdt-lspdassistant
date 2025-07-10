@@ -22,35 +22,10 @@ telInput.addEventListener('input', function () {
 });
 
 const dateDebutInput = document.getElementById('dateDebut');
-const dateFinInput = document.getElementById('dateFin');
 const today = new Date().toISOString().split('T')[0];
 
 dateDebutInput.min = today;
-dateFinInput.min = today;
 dateDebutInput.value = today;
-dateFinInput.value = today;
-
-// Initialisation pour que les contraintes soient actives dès le départ
-dateFinInput.min = dateDebutInput.value;
-dateDebutInput.max = dateFinInput.value;
-
-// Gestion cohérente entre dateDebut et dateFin
-dateDebutInput.addEventListener('change', () => {
-    const debut = dateDebutInput.value;
-    if (dateFinInput.value < debut) {
-        dateFinInput.value = debut;
-    }
-    dateFinInput.min = debut;
-});
-
-dateFinInput.addEventListener('change', () => {
-    const fin = dateFinInput.value;
-    if (dateDebutInput.value > fin) {
-        dateDebutInput.value = fin;
-    }
-    dateDebutInput.max = fin;
-});
-
 
 const timestampDiv = document.getElementById("timestamp");
 const now = new Date();
@@ -68,11 +43,8 @@ document.getElementById('lspdForm').addEventListener('submit', async function (e
     const tel = document.getElementById('tel').value;
     const motif = document.getElementById('motif').value;
     const dateDebutRaw = document.getElementById('dateDebut').value;
-    const dateFinRaw = document.getElementById('dateFin').value;
     const dateDebutForDB = dateDebutRaw; // format YYYY-MM-DD
-    const dateFinForDB = dateFinRaw;
     const dateDebutForDisplay = formatDateForDisplay(dateDebutRaw);
-    const dateFinForDisplay = formatDateForDisplay(dateFinRaw);
     const webhookRes = await fetch('/api/webhook-url');
     const webhookData = await webhookRes.json();
     const webhookUrl = webhookData.webhook;
@@ -91,8 +63,8 @@ document.getElementById('lspdForm').addEventListener('submit', async function (e
                 { name: "Motif", value: motif, inline: true },
                 { name: "Téléphone", value: tel, inline: false },
                 {
-                    name: "Période",
-                    value: `Du **${dateDebutForDisplay}** au **${dateFinForDisplay}**`,
+                    name: "Date de création",
+                    value: `**${dateDebutForDisplay}**`,
                     inline: false
                 }
             ],
@@ -108,20 +80,6 @@ document.getElementById('lspdForm').addEventListener('submit', async function (e
     };
 
     try {
-        await fetch('/api/create-post', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id_brac,
-                nom,
-                prenom,
-                tel,
-                motif,
-                dateDebut: dateDebutForDB,
-                dateFin: dateFinForDB
-            })
-        });
-
         await fetch('/api/formulaire', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -133,7 +91,6 @@ document.getElementById('lspdForm').addEventListener('submit', async function (e
                 motif,
                 tel,
                 dateDebut: dateDebutForDB,
-                dateFin: dateFinForDB
             })
         });
 
@@ -141,7 +98,7 @@ document.getElementById('lspdForm').addEventListener('submit', async function (e
         alert("Erreur : " + err.message);
     } finally {
         document.getElementById('loaderOverlay').style.display = 'none';
-        // setTimeout(() => location.reload(), 500);
+        setTimeout(() => location.reload(), 500);
     }
 });
 
