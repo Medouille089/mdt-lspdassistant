@@ -18,25 +18,52 @@ router.get('/callback', (req, res, next) => {
   async (req, res) => {
     try {
       const config = await getConfig();
+      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id } = config;
 
-      const REQUIRED_ROLE_ID = config.required_role_id;
-      const LOGS_CHANNEL = config.logs_channel;
+      const guild = await bot.guilds.fetch(GUILD_ID);
+      guild.members.cache.delete(req.user.id);
+      const member = await guild.members.fetch(req.user.id);
 
-      const hasRole = req.user.guild_member?.roles.includes(REQUIRED_ROLE_ID);
-      const action = hasRole
+      const roleIds = member.roles.cache.map(r => r.id);
+
+      // ➕ Récupérer les noms de rôles pour le grade
+      const guildRoles = await guild.roles.fetch();
+
+      const HIGH_GRADE_ROLE_ID = "1393306975722410135";
+      const LOW_GRADE_ROLE_ID = "1392518028847222896";
+
+      let grade = "Agent";
+
+      if (roleIds.includes(HIGH_GRADE_ROLE_ID)) {
+        const highRole = guildRoles.get(HIGH_GRADE_ROLE_ID);
+        grade = highRole?.name || "Grade Supérieur";
+      } else if (roleIds.includes(LOW_GRADE_ROLE_ID)) {
+        const lowRole = guildRoles.get(LOW_GRADE_ROLE_ID);
+        grade = lowRole?.name || "Grade Moyen";
+      }
+
+      // ➕ Ajout du grade et rôles enrichis dans req.user
+      req.user.grade = grade;
+      req.user.roles = roleIds;
+      req.user.isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
+      req.user.isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
+
+      const hasRequiredRole = roleIds.includes(required_role_id);
+
+      const action = hasRequiredRole
         ? "s'est connecté(e) avec succès"
-        : `a tenté(e) de se connecter sans le rôle <@&${REQUIRED_ROLE_ID}>`;
+        : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}>`;
 
-      if (LOGS_CHANNEL) {
-        const logsChannel = await bot.channels.fetch(LOGS_CHANNEL);
+      if (logs_channel) {
+        const logsChannel = await bot.channels.fetch(logs_channel);
         if (logsChannel && logsChannel.isTextBased()) {
           const embed = new EmbedBuilder()
-            .setTitle('⚠️Connexion utilisateur')
-            .setColor(hasRole ? 0x0b1b5a : 0x0b1b5a)
+            .setTitle('⚠️ Connexion utilisateur')
+            .setColor(hasRequiredRole ? 0x0b1b5a : 0xdb4437)
             .setDescription(`<@${req.user.id}> ${action}`)
             .addFields({
-              name: "ID's",
-              value: `> <@${req.user.id}> (\`${req.user.id}\`)`,
+              name: "Grade",
+              value: `> ${grade}`,
               inline: false
             })
             .setFooter({ text: 'LSPD Assistant', iconURL: 'https://i.ibb.co/DDQWSHmZ/assistant.png' })

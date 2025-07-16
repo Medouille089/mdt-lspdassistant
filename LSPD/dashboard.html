@@ -83,12 +83,21 @@
 <body>
     <div id="overlay">
         <span id="overlayMessage"></span>
+        <div id="overlayGrade" style="font-size: 0.5em; font-weight: normal; margin-top: 10px;"></div>
     </div>
+
 
     <div class="main-container">
         <div id="sidebar-container"></div>
         <h1>Dashboard</h1>
-        <div id="message"></div>
+        <div id="message">
+            <!-- injecté dynamiquement -->
+            <div>
+                <div id="messageUsername"></div>
+                <div id="messageGrade" style="font-size: 0.8em; color: #555;"></div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Le script externe pour ta sidebar -->
@@ -102,8 +111,13 @@
                 if (!res.ok) throw new Error('Non connecté');
                 const user = await res.json();
 
-                document.getElementById('message').innerHTML = `Bonjour&nbsp;<strong>${user.username}</strong>`;
-                document.getElementById('overlayMessage').innerHTML = `Bonjour&nbsp;<strong>${user.username}</strong>`;
+                // Message principal
+                document.getElementById('messageUsername').innerHTML = `Bonjour <strong>${user.username}</strong>`;
+                document.getElementById('messageGrade').textContent = user.grade || '';
+
+                // Overlay
+                document.getElementById('overlayMessage').innerHTML = `Bonjour <strong>${user.username}</strong>`;
+                document.getElementById('overlayGrade').textContent = user.grade || '';
 
                 const now = Date.now();
                 const lastSeen = localStorage.getItem('overlayLastSeen');
@@ -117,7 +131,6 @@
                 document.getElementById('message').textContent = 'Bonjour invité';
             }
         }
-
 
         function showOverlay() {
             const overlay = document.getElementById('overlay');

@@ -13,6 +13,11 @@ body {
   background: linear-gradient(#F1F3FF, #CBD4FF);
 }
 
+#noHover:hover {
+  background-color: #0b1b5a;
+  color: #ffffff;
+}
+
 .sidebar {
   position: fixed;
   top: 0;

@@ -32,7 +32,8 @@ router.get('/api/user', checkAuth, async (req, res) => {
       discriminator: user.discriminator,
       roles: roleIds,
       isSupervisor,
-      isCommandStaff
+      isCommandStaff,
+      grade: user.grade
     });
 
   } catch (err) {
@@ -40,7 +41,5 @@ router.get('/api/user', checkAuth, async (req, res) => {
     res.status(500).json({ error: 'Impossible de récupérer le membre.' });
   }
 });
-
-
 
 module.exports = router;

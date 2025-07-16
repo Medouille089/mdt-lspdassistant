@@ -6,67 +6,67 @@
   <title>Convocation Officielle - LSPD Assistant</title>
   <link rel="stylesheet" href="styles/convocation/convocation.css">
   <link rel="stylesheet" href="styles/sidebar.css">
+  <link rel="stylesheet" href="styles/colors.css">
 </head>
 
 <body>
   <div class="main-container">
 
     <div id="sidebar-container"></div>
-
+    <h1>Convocation</h1>
     <div class="convocation-container">
       <div class="header">
         <img src="data/images/lspd.png" alt="Logo LSPD">
         <div class="header-title">
-          <h1>LOS SANTOS POLICE DEPARTMENT</h1>
-          <h2>Convocation Officielle</h2>
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3>Convocation Officielle</h3>
         </div>
         <div style="width: 70px;"></div>
       </div>
 
       <div class="content">
         <div class="section-title">Informations du Citoyen</div>
-        <p><label>Nom du citoyen :<br><input type="text" placeholder="Nom du citoyen"></label></p>
-        <p><label>Date :<br><input type="date"></label></p>
-        <p><label>Heure :<br><input type="time"></label></p>
+
+        <div class="inline-fields">
+          <p><label>Nom :<br><input type="text" placeholder="Nom"></label></p>
+          <p><label>Prénom :<br><input type="text" placeholder="Prénom"></label></p>
+          <p><label>Date :<br><input type="date"></label></p>
+          <p><label>Heure :<br><input type="time"></label></p>
+        </div>
+
         <p><label>Lieu :<br><input type="text" value="Mission Row Police Department" readonly></label></p>
 
         <div class="section-title">Motif de la convocation</div>
         <p><textarea placeholder="Décrire le motif de la convocation..."></textarea></p>
 
-        <p>Merci de vous présenter muni(e) de votre pièce d'identité. En cas d'empêchement, veuillez contacter nos
-          services dans les plus brefs délais.</p>
+        <p class="fixed-paragraph">
+          Merci de vous présenter muni(e) de votre pièce d'identité. En cas d'empêchement, veuillez contacter nos
+          services dans les plus brefs délais.
+        </p>
       </div>
 
       <div class="signature">
         <div class="signature-block">
-          <label for="officier">Officier en charge :</label>
-          <input type="text" id="officier" placeholder="Nom de l'officier">
+          <label for="officier">Agent en charge :</label>
+          <input type="text" id="officier" readonly>
         </div>
         <div class="signature-block">
-          <label for="grade">Grade :</label>
-          <select id="grade">
-            <option value="">Sélectionner un grade</option>
-            <option>Officer I</option>
-            <option>Officer II</option>
-            <option>Senior Lead Officer</option>
-            <option>Sergeant I</option>
-            <option>Sergeant II</option>
-            <option>Lieutenant</option>
-            <option>Captain</option>
-            <option>Commander</option>
-            <option>Deputy Chief</option>
-            <option>Chief of Police</option>
-          </select>
+          <p><label for="grade">Grade :</label>
+            <input type="text" id="grade" readonly>
+          </p>
         </div>
       </div>
 
-      <div class="button-container">
-        <button class="send-button">ENVOYER LA CONVOCATION</button>
+      <div class="image-container">
+        <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo">
       </div>
 
-      <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo">
+    </div>
+    <div class="button-container">
+      <button class="send-button">ENVOYER LA CONVOCATION</button>
     </div>
   </div>
+
   <script src="scripts/convocation/convocation.js"></script>
   <script src="scripts/loadSidebar.js"></script>
 </body>

@@ -87,7 +87,7 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
         if (conf.logs_channel) {
             const logsChannel = await bot.channels.fetch(conf.logs_channel);
 
-            if (logsChannel && logsChannel.isTextBased()) {
+            if (logsChannel?.isTextBased()) {
                 const embedLog = new EmbedBuilder()
                     .setColor(0x0b1b5a)
                     .setTitle(`Nouveau bracelet - ${id_brac}`)
@@ -214,7 +214,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
         // Mise à jour du thread Discord s'il existe
         if (threadId) {
             const thread = await bot.channels.fetch(threadId);
-            if (thread && thread.isThread()) {
+            if (thread?.isThread()) {
                 const shouldRename = (
                     nom !== old_nom ||
                     prenom !== old_prenom ||
@@ -255,7 +255,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
                 const conf = await config.getConfig();
                 if (conf.logs_channel) {
                     const logsChannel = await bot.channels.fetch(conf.logs_channel);
-                    if (logsChannel && logsChannel.isTextBased()) {
+                    if (logsChannel?.isTextBased()) {
                         const embedLog = new EmbedBuilder()
                             .setColor(0x0b1b5a)
                             .setTitle(`Bracelet modifié - ${id_brac}`)
@@ -317,7 +317,7 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
         if (data.id_thread && conf.archive_tag) {
             try {
                 const thread = await bot.channels.fetch(data.id_thread);
-                if (thread && thread.isThread()) {
+                if (thread?.isThread()) {
                     await thread.setAppliedTags([conf.archive_tag]);
 
                     const embed = new EmbedBuilder()
@@ -347,7 +347,7 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
                     // Log archivage dans LOGS_CHANNEL
                     if (conf.logs_channel) {
                         const logsChannel = await bot.channels.fetch(conf.logs_channel);
-                        if (logsChannel && logsChannel.isTextBased()) {
+                        if (logsChannel?.isTextBased()) {
                             // Ici, on définit mentionThread correctement
                             const mentionThread = data.id_thread ? `<#${data.id_thread}>` : 'Thread inconnu';
 
@@ -445,7 +445,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
         }
 
         const thread = await bot.channels.fetch(data.id_thread);
-        if (!thread || !thread.isThread()) {
+        if (!thread?.isThread()) {
             return res.status(404).json({ error: 'Thread Discord introuvable ou invalide' });
         }
 

@@ -37,11 +37,15 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const braceletRoutes = require("./routes/bracelet");
 const configRoutes = require("./config/setup");
+const formUploadRoute = require("./routes/formupload");
+const agentsRoutes = require("./routes/agents");
 
 app.use(configRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(braceletRoutes);
+app.use(formUploadRoute);
+app.use(agentsRoutes);
 
 // Serveur de fichiers statiques
 app.use(express.static(path.join(__dirname, "LSPD")));

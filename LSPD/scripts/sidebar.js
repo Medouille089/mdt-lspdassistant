@@ -65,7 +65,10 @@ async function fetchUser() {
     container.innerHTML = `
       <div id="profileBox" style="display: flex; align-items: center; cursor: pointer; gap: 10px;">
         <img src="${avatarUrl}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid #FFFFFF;">
-        <div style="font-weight: 700; color: #FFFFFF; font-size: ${fontSize};">${user.username}</div>
+        <div style="display: flex; flex-direction: column; color: #FFFFFF;">
+          <div style="font-weight: 700; font-size: ${fontSize};">${user.username}</div>
+          <div style="font-weight: 500; font-size: 0.8rem; color: #CCCCCC;">${user.grade}</div>
+        </div>
       </div>
       <div id="profileMenu" style="
         display: block;
