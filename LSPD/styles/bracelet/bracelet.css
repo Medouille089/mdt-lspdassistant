@@ -45,7 +45,7 @@ body {
 
 label {
     display: block;
-    color: var(--accent);
+    color: white;
     font-weight: bold;
     margin-bottom: 5px;
 }
@@ -63,7 +63,7 @@ input {
 
 
 input:focus {
-    outline: 2px solid var(--accent);
+    outline: 2px solid white;
 }
 
 button {
@@ -73,13 +73,39 @@ button {
     background-color: var(--main-color);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 16px;
     cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 button:hover {
-    background-color: #0f1a33;
+    color: #151A2D;
+    background: #EEF2FF;
+}
+
+#deleteBtn {
+    background-color: #c0392b;
+    margin-top: 10px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#deleteBtn:hover {
+    color: #151A2D;
+    background: #EEF2FF;
+}
+
+#pointerBtn {
+    background-color: #2ECC71;
+    margin-top: 10px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-radius: 8px;
+}
+
+#pointerBtn:hover {
+    color: #151A2D;
+    background: #EEF2FF;
 }
 
 .embed-footer {
@@ -107,4 +133,84 @@ button:hover {
     .form-row {
         flex-direction: column;
     }
+}
+
+
+
+
+
+
+.custom-confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.custom-confirm-box {
+    background: white;
+    color: #0b1b5a;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.custom-confirm-buttons {
+    display: flex;
+    justify-content: space-around;
+    gap: 7px;
+}
+
+.btn {
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: 700;
+    min-width: 100px;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    color: #151A2D;
+    background: #EEF2FF;
+}
+
+.btn-blue {
+    background-color: #0b1b5a;
+    color: white;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-blue:hover {
+    background: #07113a;
+    color: white;
+}
+
+.btn-red {
+    background-color: #d32f2f;
+    color: white;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-red:hover {
+    background: #7e1c1c;
+    color: white;
+}
+
+p {
+    margin: 0 0 10px 0 !important;
 }

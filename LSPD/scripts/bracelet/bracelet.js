@@ -33,6 +33,40 @@ const timeStr = now.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-di
 const dateStr = now.toLocaleDateString("fr-FR");
 timestampDiv.textContent = `${dateStr} à ${timeStr}`;
 
+function showAnimation(type = 'success') {
+    return new Promise((resolve) => {
+        const container = document.getElementById('feedbackAnimation');
+        container.innerHTML = ''; // reset
+
+        const content = document.createElement('div');
+        content.className = 'feedback-inner';
+
+        if (type === 'success') {
+            content.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+                    <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
+                    <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
+                </svg>
+                <p class="success">Bracelet soumis avec succès!</p>
+            `;
+        } else {
+            content.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+                    <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
+                    <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+                    <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
+                </svg>
+                <p class="error">Erreur lors de la soumission du bracelet</p>
+            `;
+        }
+
+
+        container.appendChild(content);
+        container.style.display = 'flex';
+
+        setTimeout(() => resolve(), 1800);
+    });
+}
 
 document.getElementById('lspdForm').addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -79,6 +113,8 @@ document.getElementById('lspdForm').addEventListener('submit', async function (e
         }]
     };
 
+    let hasError = false;
+
     try {
         await fetch('/api/formulaire', {
             method: 'POST',
@@ -95,13 +131,24 @@ document.getElementById('lspdForm').addEventListener('submit', async function (e
         });
 
     } catch (err) {
+        hasError = true;
+        document.getElementById('loaderOverlay').style.display = 'none';
+        await showAnimation('error');
         alert("Erreur : " + err.message);
     } finally {
-        document.getElementById('loaderOverlay').style.display = 'none';
-        setTimeout(() => location.reload(), 500);
+        if (!hasError) {
+            document.getElementById('loaderOverlay').style.display = 'none';
+            await showAnimation('success');
+
+            const container = document.getElementById('feedbackAnimation');
+            container.classList.add('fade-out');
+
+            container.addEventListener('transitionend', () => {
+                location.reload();
+            }, { once: true });
+        }
     }
 });
-
 
 function formatDateForDisplay(dateStr) {
     const date = new Date(dateStr);
@@ -110,3 +157,4 @@ function formatDateForDisplay(dateStr) {
     const y = date.getFullYear();
     return `${d}/${m}/${y}`;
 }
+

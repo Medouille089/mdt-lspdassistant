@@ -3,11 +3,13 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Modifier Bracelet - Maître</title>
+    <title>Modifier Bracelet - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/bracelet/bracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/checkmark.css">
 </head>
 
 <body>
@@ -50,7 +52,7 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="dateDebut">Date début</label>
+                    <label for="dateDebut">Date d'activation</label>
                     <input type="date" id="dateDebut" required />
                 </div>
             </div>
@@ -63,14 +65,37 @@
                 <div id="timestamp"></div>
             </div>
 
+            <button id="pointerBtn" type="button">Pointer</button>
             <button type="submit">Modifier</button>
-            <button id="deleteBtn" type="button" style="background-color:#c0392b; margin-top:10px;">Supprimer</button>
+            <button id="deleteBtn" class="onlySupervisor" type="button">Supprimer</button>
 
             <div class="loader-overlay" id="loaderOverlay">
                 <div class="loader-spinner"></div>
             </div>
         </form>
     </div>
+
+    <div id="customConfirmDelete" class="custom-confirm-overlay" style="display:none;">
+        <div class="custom-confirm-box">
+            <p>Êtes-vous sûr de vouloir supprimer ce bracelet ?</p>
+            <div class="custom-confirm-buttons">
+                <button id="cancelDeleteBtn" class="btn btn-blue">Annuler</button>
+                <button id="confirmDeleteBtn" class="btn btn-red">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customConfirmModify" class="custom-confirm-overlay" style="display:none;">
+        <div class="custom-confirm-box">
+            <p>Confirmer la modification du bracelet ?</p>
+            <div class="custom-confirm-buttons">
+                <button id="cancelModifyBtn" class="btn btn-blue">Annuler</button>
+                <button id="confirmModifyBtn" class="btn btn-red">Confirmer</button>
+            </div>
+        </div>
+    </div>
+    <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+
     <script src="scripts/bracelet/editBracelet.js"></script>
     <script src="scripts/loadSidebar.js"></script>
 

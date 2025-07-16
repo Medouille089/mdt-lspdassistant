@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Accès interdit</title>
+    <link rel="stylesheet" href="styles/bracelet/bracelet.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <style>
+        body {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100vh;
+        }
+
+        .container {
+            height: 75vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        .error-card {
+            background: linear-gradient(135deg, #8a9eff, #5c6bc0);
+            border-radius: 8px;
+            padding: 25px 75px;
+            max-width: 550px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+
+        <div id="sidebar-container"></div>
+            <h1>Accès interdit</h1>
+        <div class="container">
+            <div class="error-card">
+                <p>Tient tient tient</p>
+                <p>Tu n'as rien à faire ici</p>
+                <button onclick="window.location.href='/dashboard.html'" style="max-width: 450px;">Revenir en lieu sûr</button>
+            </div>
+        </div>
+        <script src="scripts/loadSidebar.js"></script>
+    </div>
+</body>
+
+</html>

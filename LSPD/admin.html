@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - LSPD Assistant</title>
+  <link rel="stylesheet" href="styles/sidebar.css">
+  <link rel="stylesheet" href="styles/colors.css">
+  <style></style>
+</head>
+
+<body>
+  <div class="main-container">
+
+    <div id="sidebar-container"></div>
+
+    <h1>Pannel configuration</h1>
+
+    <form id="configForm">
+      <label>Rôle command staff: <input type="text" name="commandstaff_id"></label><br>
+      <label>Rôle supervisor: <input type="text" name="supervisor_role_id"></label><br>
+      <label>Rôle requis: <input type="text" name="required_role_id"></label><br>
+      <label>ID Thread bracelets: <input type="text" name="thread_id"></label><br>
+      <label>ID Archive bracelets: <input type="text" name="archive_tag"></label><br>
+      <label>Salon logs: <input type="text" name="logs_channel"></label><br>
+
+      <button type="submit">Sauvegarder</button>
+    </form>
+
+    <div id="statusMessage" style="margin-top:10px;"></div>
+
+    <script>
+      async function loadConfig() {
+        try {
+          const res = await fetch('/api/config');
+          const config = await res.json();
+
+          for (const key in config) {
+            const input = document.querySelector(`[name="${key}"]`);
+            if (input) input.value = config[key];
+          }
+        } catch (err) {
+          document.getElementById('statusMessage').textContent = '❌ Erreur lors du chargement de la config.';
+          console.error(err);
+        }
+      }
+
+      document.getElementById('configForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const data = Object.fromEntries(new FormData(e.target).entries());
+
+        try {
+          const res = await fetch('/api/config', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            document.getElementById('statusMessage').textContent = "✅ Config mise à jour.";
+          } else {
+            document.getElementById('statusMessage').textContent = `❌ ${result.error || 'Erreur inconnue'}`;
+          }
+        } catch (err) {
+          document.getElementById('statusMessage').textContent = "❌ Requête échouée.";
+          console.error(err);
+        }
+      });
+
+      loadConfig();
+    </script>
+    <script src="scripts/loadSidebar.js"></script>
+
+</body>
+
+</html>

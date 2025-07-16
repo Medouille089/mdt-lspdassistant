@@ -21,7 +21,7 @@ document.querySelectorAll(".dropdown-toggle").forEach((dropdownToggle) => {
     const isOpen = dropdown.classList.contains("open");
 
     closeAllDropdowns();
-    toggleDropdown(dropdown, menu, !isOpen); 
+    toggleDropdown(dropdown, menu, !isOpen);
   });
 });
 
@@ -33,7 +33,7 @@ document.querySelectorAll(".sidebar-toggler, .sidebar-menu-button").forEach((but
     const body = document.body;
 
     sidebar.classList.toggle("collapsed");
-    body.classList.toggle("collapsed");   
+    body.classList.toggle("collapsed");
   });
 });
 
@@ -79,11 +79,9 @@ async function fetchUser() {
         right: 0;
         z-index: 10;
       ">
-        Déconnexion
       </div>
     `;
 
-    // Gestion menu déconnexion
     const profileBox = document.getElementById('profileBox');
     const profileMenu = document.getElementById('profileMenu');
 
@@ -116,17 +114,26 @@ async function fetchUser() {
       }
     });
 
-    const supervisorElement = document.getElementById('onlySupervisor');
-    if (supervisorElement) {
-      supervisorElement.style.display = user.isSupervisor ? '' : 'none';
-    }
+    document.querySelectorAll('.onlySupervisor').forEach(el => {
+      el.style.display = user.isSupervisor ? '' : 'none';
+    });
+
+    document.querySelectorAll('.onlyCommandStaff').forEach(el => {
+      el.style.display = user.isCommandStaff ? '' : 'none';
+    });
+
 
   } catch (error) {
     const container = document.getElementById('userProfile');
     if (container) container.style.display = 'none';
 
-    const supervisorElement = document.getElementById('onlySupervisor');
-    if (supervisorElement) supervisorElement.style.display = 'none';
+    document.querySelectorAll('.onlySupervisor').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    document.querySelectorAll('.onlyCommandStaff').forEach(el => {
+      el.style.display = 'none';
+    });
   }
 }
 
