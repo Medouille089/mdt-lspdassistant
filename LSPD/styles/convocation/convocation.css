@@ -56,14 +56,14 @@ body::before {
     color: #0b1b5a;
 }
 
-.header-title h1 {
+.header-title h2 {
     margin: 0;
     font-size: 26px;
     font-weight: bold;
     letter-spacing: 1px;
 }
 
-.header-title h2 {
+.header-title h3 {
     margin: 4px 0 0;
     font-size: 16px;
     color: #444;
@@ -95,6 +95,24 @@ body::before {
     border-radius: 8px;
     background-color: #f9fafc;
     margin-top: 5px;
+}
+
+.content-input-replacement {
+  width: 100%;
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid #c5cbd5;
+  border-radius: 8px;
+  background-color: #f9fafc;
+  margin-top: 5px;
+
+  /* Pour que ça ressemble bien à un input : */
+  display: inline-block;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif; /* adapte selon ta police */
+  color: #000; /* couleur texte */
+  min-height: 44px; /* hauteur approximative input */
+  line-height: 1.2;
 }
 
 .content input[readonly] {
@@ -185,6 +203,10 @@ body::before {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+}
+
+#motif-input {
+    height: 100px;
 }
 
 .inline-fields p {

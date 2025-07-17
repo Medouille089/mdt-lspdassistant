@@ -5,6 +5,16 @@ const { loadConfig, getConfig, getBot } = require("./config");
 
 const { EmbedBuilder } = require("discord.js");
 
+// Fonction utilitaire pour fetch un channel avec gestion d'erreur
+async function safeFetchChannel(bot, channelId) {
+  try {
+    return await bot.channels.fetch(channelId);
+  } catch (err) {
+    console.error(`Impossible de récupérer le salon ${channelId}:`, err.message);
+    return null;
+  }
+}
+
 // GET config
 router.get("/api/config", async (req, res) => {
   try {
@@ -28,6 +38,7 @@ router.put("/api/config", async (req, res) => {
     archive_tag,
     logs_channel,
     commandstaff_id,
+    convocation_id,
   } = req.body;
 
   try {
@@ -41,7 +52,8 @@ router.put("/api/config", async (req, res) => {
         thread_id = $3,
         archive_tag = $4,
         logs_channel = $5,
-        commandstaff_id = $6
+        commandstaff_id = $6,
+        convocation_id = $7
        WHERE id = 1 RETURNING *`,
       [
         required_role_id,
@@ -50,6 +62,7 @@ router.put("/api/config", async (req, res) => {
         archive_tag,
         logs_channel,
         commandstaff_id,
+        convocation_id,
       ]
     );
 
@@ -60,9 +73,15 @@ router.put("/api/config", async (req, res) => {
 
     if (conf.logs_channel && req.user) {
       const bot = getBot();
-      const logsChannel = await bot.channels.fetch(conf.logs_channel);
 
-      if (oldConfig.required_role_id !== required_role_id) {
+      // Récupération sécurisée du salon logs
+      const logsChannel = await safeFetchChannel(bot, conf.logs_channel);
+      if (!logsChannel) {
+        console.warn(`Salon logs introuvable (ID: ${conf.logs_channel}), aucun log ne sera envoyé.`);
+      }
+
+      // Log rôle requis
+      if (oldConfig.required_role_id !== required_role_id && logsChannel) {
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
           .setTitle("Rôle requis modifié")
@@ -81,7 +100,8 @@ router.put("/api/config", async (req, res) => {
         await logsChannel.send({ embeds: [embed] });
       }
 
-      if (oldConfig.supervisor_role_id !== supervisor_role_id) {
+      // Log rôle superviseur
+      if (oldConfig.supervisor_role_id !== supervisor_role_id && logsChannel) {
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
           .setTitle("Rôle Superviseur modifié")
@@ -100,7 +120,8 @@ router.put("/api/config", async (req, res) => {
         await logsChannel.send({ embeds: [embed] });
       }
 
-      if (oldConfig.thread_id !== thread_id) {
+      // Log thread_id
+      if (oldConfig.thread_id !== thread_id && logsChannel) {
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
           .setTitle("🔧 Thread ID Bracelets modifié")
@@ -119,7 +140,8 @@ router.put("/api/config", async (req, res) => {
         await logsChannel.send({ embeds: [embed] });
       }
 
-      if (oldConfig.archive_tag !== archive_tag) {
+      // Log archive_tag
+      if (oldConfig.archive_tag !== archive_tag && logsChannel) {
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
           .setTitle("Tag d'archives bracelets modifié")
@@ -138,7 +160,8 @@ router.put("/api/config", async (req, res) => {
         await logsChannel.send({ embeds: [embed] });
       }
 
-      if (oldConfig.logs_channel !== logs_channel) {
+      // Log logs_channel
+      if (oldConfig.logs_channel !== logs_channel && logsChannel) {
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
           .setTitle("Salon des logs modifié")
@@ -157,7 +180,8 @@ router.put("/api/config", async (req, res) => {
         await logsChannel.send({ embeds: [embed] });
       }
 
-      if (oldConfig.commandstaff_id !== commandstaff_id) {
+      // Log rôle command staff
+      if (oldConfig.commandstaff_id !== commandstaff_id && logsChannel) {
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
           .setTitle("Rôle Command Staff modifié")
@@ -174,6 +198,48 @@ router.put("/api/config", async (req, res) => {
           .setTimestamp();
 
         await logsChannel.send({ embeds: [embed] });
+      }
+
+      // Log rôle convocation (avec safe fetch)
+      if (oldConfig.convocation_id !== convocation_id) {
+        const convocationChannel = await safeFetchChannel(bot, convocation_id);
+
+        if (convocationChannel) {
+          const embed = new EmbedBuilder()
+            .setColor(0xFF0000)
+            .setTitle("Salon Convocation modifié")
+            .setDescription(`<@${req.user.id}> a modifié la configuration du salon convocation`)
+            .addFields({
+              name: "ID's",
+              value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> Avant: <#${oldConfig.convocation_id}> (\`${oldConfig.convocation_id}\`)\n> Après: <#${convocation_id}> (\`${convocation_id}\`)`,
+              inline: false,
+            })
+            .setFooter({
+              text: "LSPD Assistant",
+              iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png",
+            })
+            .setTimestamp();
+
+          await convocationChannel.send({ embeds: [embed] });
+        } else if (logsChannel) {
+          // Si le salon convocation n'existe pas, on log quand même dans logsChannel
+          const embed = new EmbedBuilder()
+            .setColor(0xFF0000)
+            .setTitle("Salon Convocation modifié")
+            .setDescription(`<@${req.user.id}> a modifié la configuration du salon convocation`)
+            .addFields({
+              name: "ID's",
+              value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> Avant: <#${oldConfig.convocation_id}> (\`${oldConfig.convocation_id}\`)\n> Après: <#${convocation_id}> (\`${convocation_id}\`)`,
+              inline: false,
+            })
+            .setFooter({
+              text: "LSPD Assistant",
+              iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png",
+            })
+            .setTimestamp();
+
+          await logsChannel.send({ embeds: [embed] });
+        }
       }
     }
 

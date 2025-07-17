@@ -6,8 +6,8 @@ const bot = new Client({
 });
 
 async function startBot() {
-  await loadConfig(); // Charger config avant getConfig
-  const config = getConfig(); // Config chargée
+  await loadConfig(); 
+  const config = getConfig(); 
 
   const TOKEN = process.env.TOKEN;
   await bot.login(TOKEN);
@@ -20,7 +20,7 @@ async function startBot() {
     });
   });
 
-  setBot(bot); // Stocke l’instance du bot
+  setBot(bot);
 }
 
 startBot();
