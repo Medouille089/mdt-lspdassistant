@@ -56,14 +56,14 @@ router.get('/callback', (req, res, next) => {
 
       if (logs_channel) {
         const logsChannel = await bot.channels.fetch(logs_channel);
-        if (logsChannel && logsChannel.isTextBased()) {
+        if (logsChannel?.isTextBased()) {
           const embed = new EmbedBuilder()
             .setTitle('⚠️ Connexion utilisateur')
             .setColor(hasRequiredRole ? 0x0b1b5a : 0xdb4437)
             .setDescription(`<@${req.user.id}> ${action}`)
             .addFields({
-              name: "Grade",
-              value: `> ${grade}`,
+              name: "ID's",
+              value: `> <@${req.user.id}> (\`${req.user.id}\`)`,
               inline: false
             })
             .setFooter({ text: 'LSPD Assistant', iconURL: 'https://i.ibb.co/DDQWSHmZ/assistant.png' })

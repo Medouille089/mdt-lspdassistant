@@ -1,8 +1,28 @@
+html,
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0fa;
+    height: 100%;
     margin: 0;
-    padding: 0;
+    padding: 40px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+    z-index: 0;
+    background: none;
+    /* on enlève le fond ici */
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    /* reste fixe pendant le scroll */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    /* derrière tout */
+    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .form-container {

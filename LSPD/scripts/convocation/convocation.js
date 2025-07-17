@@ -11,3 +11,24 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("grade").value = "";
     });
 });
+
+document.querySelector('.send-button').addEventListener('click', async () => {
+  const container = document.querySelector('.convocation-container');
+
+  const canvas = await html2canvas(container, { scale: 2 }); // qualité HD
+  const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+
+  const formData = new FormData();
+  formData.append('image', imageBlob, 'convocation.png');
+
+  const response = await fetch('/upload-convocation', {
+    method: 'POST',
+    body: formData
+  });
+
+  if (response.ok) {
+    alert('Convocation envoyée avec succès sur Discord !');
+  } else {
+    alert('Échec de l\'envoi.');
+  }
+});

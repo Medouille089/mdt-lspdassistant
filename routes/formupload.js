@@ -3,13 +3,15 @@ const router = express.Router();
 const multer = require("multer");
 const { EmbedBuilder } = require("discord.js");
 const bot = require("../config/bot");
-const { getConfig } = require("../config/config");
-const path = require("path");
 const fs = require("fs");
 
-const upload = multer({ dest: "uploads/" });
+// Multer pour stocker sur disque (uploads/)
+const diskUpload = multer({ dest: "uploads/" });
 
-router.post("/send-embed", upload.array("images"), async (req, res) => {
+// Multer pour stockage en mémoire (buffer)
+const memoryUpload = multer();
+
+router.post("/send-embed", diskUpload.array("images"), async (req, res) => {
   const { nom, prenom } = req.body;
   const files = req.files; // tableau d'images
 
@@ -41,14 +43,41 @@ router.post("/send-embed", upload.array("images"), async (req, res) => {
       files: attachments,
     });
 
-    // Nettoyage
-    files.forEach(file => fs.unlink(file.path, () => {}));
+    // Nettoyage : suppression des fichiers du disque après envoi
+    files.forEach(file => fs.unlink(file.path, err => {
+      if (err) console.error("Erreur suppression fichier :", err);
+    }));
 
     res.json({ message: "Embed avec images envoyé avec succès." });
 
   } catch (err) {
     console.error("Erreur envoi embed:", err);
     res.status(500).json({ message: "Erreur lors de l'envoi du message." });
+  }
+});
+
+router.post('/upload-convocation', memoryUpload.single('image'), async (req, res) => {
+  try {
+    if (!req.file?.buffer) {
+      return res.status(400).send('Aucune image reçue');
+    }
+
+    const channelId = '1394971904489558116';
+    const channel = await bot.channels.fetch(channelId);
+    if (!channel) return res.status(404).send('Salon introuvable');
+
+    await channel.send({
+      content: '📩 Nouvelle convocation officielle :',
+      files: [{
+        attachment: req.file.buffer,
+        name: 'convocation.png'
+      }]
+    });
+
+    res.status(200).send('Image envoyée avec succès !');
+  } catch (error) {
+    console.error('Erreur envoi convocation :', error);
+    res.status(500).send('Erreur serveur');
   }
 });
 

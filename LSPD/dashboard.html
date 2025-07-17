@@ -106,29 +106,26 @@
     <!-- Ton script pour fetch l'utilisateur et gérer l'overlay -->
     <script>
         async function fetchUser() {
-            try {
-                const res = await fetch('/api/user');
-                if (!res.ok) throw new Error('Non connecté');
-                const user = await res.json();
 
-                // Message principal
-                document.getElementById('messageUsername').innerHTML = `Bonjour <strong>${user.username}</strong>`;
-                document.getElementById('messageGrade').textContent = user.grade || '';
+            const res = await fetch('/api/user');
+            if (!res.ok) throw new Error('Non connecté');
+            const user = await res.json();
 
-                // Overlay
-                document.getElementById('overlayMessage').innerHTML = `Bonjour <strong>${user.username}</strong>`;
-                document.getElementById('overlayGrade').textContent = user.grade || '';
+            // Message principal
+            document.getElementById('messageUsername').innerHTML = `Bonjour <strong>${user.username}</strong>`;
+            document.getElementById('messageGrade').textContent = user.grade || '';
 
-                const now = Date.now();
-                const lastSeen = localStorage.getItem('overlayLastSeen');
-                const delay = 3600000;
+            // Overlay
+            document.getElementById('overlayMessage').innerHTML = `Bonjour <strong>${user.username}</strong>`;
+            document.getElementById('overlayGrade').textContent = user.grade || '';
 
-                if (!lastSeen || now - lastSeen > delay) {
-                    showOverlay();
-                    localStorage.setItem('overlayLastSeen', now);
-                }
-            } catch (error) {
-                document.getElementById('message').textContent = 'Bonjour invité';
+            const now = Date.now();
+            const lastSeen = localStorage.getItem('overlayLastSeen');
+            const delay = 3600000;
+
+            if (!lastSeen || now - lastSeen > delay) {
+                showOverlay();
+                localStorage.setItem('overlayLastSeen', now);
             }
         }
 
