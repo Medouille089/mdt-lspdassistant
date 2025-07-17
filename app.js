@@ -26,7 +26,7 @@ app.use((req, res, next) => {
   const publicPaths = ['/login', '/callback', '/logout', '/bracelet'];
   if (req.headers['x-internal'] === 'true') return next();
   if (publicPaths.includes(req.path)) return next();
-  if (!req.isAuthenticated || !req.isAuthenticated()) {
+  if (!req.isAuthenticated?.()) {
     return res.redirect('/login');
   }
   next();
