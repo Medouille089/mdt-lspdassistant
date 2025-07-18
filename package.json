@@ -23,6 +23,8 @@
     "nodemon": "^2.0.22"
   },
   "dependencies": {
-    "multer": "^2.0.1"
+    "multer": "^2.0.1",
+    "pdfkit": "^0.17.1",
+    "puppeteer": "^24.14.0"
   }
 }

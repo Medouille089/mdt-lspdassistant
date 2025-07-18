@@ -99,7 +99,7 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
                     })
                     .setFooter({
                         text: "LSPD Assistant",
-                        iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+                        iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
                     })
                     .setTimestamp();
 
@@ -142,10 +142,10 @@ router.post('/api/create-post', async (req, res) => {
                 ],
                 footer: {
                     text: "LSPD Assistant",
-                    icon_url: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+                    icon_url: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
                 },
                 thumbnail: {
-                    url: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+                    url: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
                 },
                 timestamp: new Date().toISOString()
             }]
@@ -244,9 +244,9 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
                     )
                     .setFooter({
                         text: "LSPD Assistant",
-                        iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+                        iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
                     })
-                    .setThumbnail("https://i.ibb.co/DDQWSHmZ/assistant.png")
+                    .setThumbnail(bot.user.displayAvatarURL({ extension: 'png', size: 256 }))
                     .setTimestamp();
 
                 await thread.send({ embeds: [embed] });
@@ -267,7 +267,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
                             })
                             .setFooter({
                                 text: "LSPD Assistant",
-                                iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+                                iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
                             })
                             .setTimestamp();
 
@@ -289,34 +289,38 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
 router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
     const id = req.params.id;
 
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN');
+    // Récupérer client Discord ET connexion PG séparément
+    const clientDiscord = config.getBot();
+    const dbClient = await pool.connect();
 
-        const { rows } = await client.query("SELECT * FROM bracelets WHERE id = $1", [id]);
+    try {
+        await dbClient.query('BEGIN');
+
+        const { rows } = await dbClient.query("SELECT * FROM bracelets WHERE id = $1", [id]);
         if (rows.length === 0) {
-            await client.query('ROLLBACK');
+            await dbClient.query('ROLLBACK');
             return res.status(404).json({ error: 'Non trouvé' });
         }
 
         const data = rows[0];
 
         // Insérer dans historique
-        await client.query(
+        await dbClient.query(
             `INSERT INTO historiqueBracelets (nom, prenom, tel, date_debut, id_brac, motif, id_thread)
             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [data.nom, data.prenom, data.tel, data.date_debut, data.id_brac, data.motif, data.id_thread]);
+            [data.nom, data.prenom, data.tel, data.date_debut, data.id_brac, data.motif, data.id_thread]
+        );
 
         // Supprimer de bracelets
-        await client.query("DELETE FROM bracelets WHERE id = $1", [id]);
+        await dbClient.query("DELETE FROM bracelets WHERE id = $1", [id]);
 
-        await client.query('COMMIT');
+        await dbClient.query('COMMIT');
 
-        // Si thread Discord existe, on ajoute le tag et envoie un embed
+        // Gestion thread Discord
         const conf = await config.getConfig();
         if (data.id_thread && conf.archive_tag) {
             try {
-                const thread = await bot.channels.fetch(data.id_thread);
+                const thread = await clientDiscord.channels.fetch(data.id_thread);
                 if (thread?.isThread()) {
                     await thread.setAppliedTags([conf.archive_tag]);
 
@@ -337,18 +341,17 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
                         )
                         .setFooter({
                             text: "LSPD Assistant",
-                            iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+                            iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
                         })
-                        .setThumbnail("https://i.ibb.co/DDQWSHmZ/assistant.png")
+                        .setThumbnail(clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 }))
                         .setTimestamp();
 
                     await thread.send({ embeds: [embed] });
 
                     // Log archivage dans LOGS_CHANNEL
                     if (conf.logs_channel) {
-                        const logsChannel = await bot.channels.fetch(conf.logs_channel);
+                        const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
                         if (logsChannel?.isTextBased()) {
-                            // Ici, on définit mentionThread correctement
                             const mentionThread = data.id_thread ? `<#${data.id_thread}>` : 'Thread inconnu';
 
                             const embedLog = new EmbedBuilder()
@@ -362,7 +365,7 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
                                 })
                                 .setFooter({
                                     text: "LSPD Assistant",
-                                    iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+                                    iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
                                 })
                                 .setTimestamp();
                             await logsChannel.send({ embeds: [embedLog] });
@@ -378,13 +381,14 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
 
         res.sendStatus(200);
     } catch (e) {
-        await client.query('ROLLBACK');
+        await dbClient.query('ROLLBACK');
         console.error("Erreur DELETE /api/formulaires/:id:", e);
         res.status(500).json({ error: "Erreur serveur" });
     } finally {
-        client.release();
+        dbClient.release();
     }
 });
+
 
 // Route GET – Récupère tout l’historique des bracelets archivés
 router.get('/api/historique', async (req, res) => {
@@ -469,9 +473,9 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
             )
             .setFooter({
                 text: "LSPD Assistant",
-                iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+                iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
             })
-            .setThumbnail("https://i.ibb.co/DDQWSHmZ/assistant.png")
+            .setThumbnail(bot.user.displayAvatarURL({ extension: 'png', size: 256 }))
             .setTimestamp();
 
         await thread.send({ embeds: [embed] });

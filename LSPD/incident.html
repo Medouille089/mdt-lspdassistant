@@ -2,79 +2,90 @@
 <html lang="fr">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Rapport d'incident - LSPD Assistant</title>
-  <link rel="stylesheet" href="styles/incident/incident.css">
-  <link rel="stylesheet" href="styles/sidebar.css">
-  <link rel="stylesheet" href="styles/colors.css">
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/incident/incident.css" />
 </head>
 
 <body>
   <div class="main-container">
-
     <div id="sidebar-container"></div>
     <h1>Rapport d'incident</h1>
-    <div class="form-container">
+    <div class="incident-container">
+
       <div class="header">
-        <img src="data/images/lspd.png" alt="Logo LSPD">
-        <div class="header-text">
-          <div class="header-title">LOS SANTOS POLICE DEPARTMENT</div>
-          <div class="header-sub">RAPPORT D'INCIDENT</div>
+        <img src="data/images/lspd.png" alt="Logo LSPD" />
+        <div class="header-title">
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3>RAPPORT D'INCIDENT</h3>
         </div>
         <div style="width: 60px;"></div>
       </div>
 
       <form>
-        <div class="row">
+        <div class="inline-fields">
           <div>
-            <label for="date">DATE DE L'INCIDENT</label>
-            <input type="date" id="date" name="date">
+            <label for="date">Date de l'incident</label>
+            <input type="date" id="date" name="date" />
           </div>
           <div>
-            <label for="heure">HEURE DE L'INCIDENT</label>
-            <input type="time" id="heure" name="heure">
+            <label for="heure">Heure de l'incident</label>
+            <input type="time" id="heure" name="heure" />
           </div>
         </div>
 
-        <label for="officier">OFFICIER RÉDACTEUR</label>
-        <input type="text" id="officier" name="officier">
+        <div class="inline-fields">
+          <div>
+            <label for="officier">Agent rédacteur</label>
+            <input type="text" id="officier" name="officier" readonly />
+          </div>
+          <div>
+            <label for="grade">Grade</label>
+            <input type="text" id="grade" name="grade" readonly />
+          </div>
+        </div>
 
-        <label for="recit">RÉCIT</label>
+        <label for="recit">Récit</label>
         <textarea id="recit" name="recit"></textarea>
 
-        <label for="pieces">PIÈCES JOINTES (Images)</label>
-        <input type="file" id="pieces" name="pieces" accept="image/*" multiple onchange="previewAttachments(event)">
-        <div class="attachments-preview" id="attachmentsPreview"></div>
+        <label for="implique">Matricules des officiers impliqués</label>
+        <input type="text" id="implique" name="implique" />
 
-        <label for="implique">OFFICIER IMPLIQUÉ</label>
-        <input type="text" id="implique" name="implique">
-
-        <div class="row">
+        <div class="inline-fields">
           <div>
-            <label for="type">TYPE DE RAPPORT</label>
-            <input type="text" id="type" name="type">
+            <label for="type">Type de rapport</label>
+            <input type="text" id="type" name="type" value="RAPPORT D'INCIDENT" readonly />
           </div>
           <div>
-            <label for="lieu">LIEU DE L'INCIDENT</label>
-            <input type="text" id="lieu" name="lieu">
+            <label for="lieu">Lieu de l'incident</label>
+            <input type="text" id="lieu" name="lieu" />
           </div>
         </div>
 
-        <label for="signature">SIGNATURE OFFICIER</label>
-        <input type="file" id="signature" name="signature" accept="image/*" onchange="previewSignature(event)">
-        <div class="signature-preview" id="signaturePreview"></div>
-
-        <div class="submit-button">
-          <button type="submit">Envoyer</button>
+        <label for="pieces">Pièces jointes (Images)</label>
+        <div class="file-upload-wrapper">
+          <label for="pieces" class="custom-file-upload">
+            Sélectionner des fichiers
+          </label>
+          <input type="file" id="pieces" name="pieces" accept="image/*" multiple />
         </div>
       </form>
-
-      <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo">
+      <div class="image-container">
+        <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo" />
+      </div>
     </div>
+    <div class="button-container">
+      <button type="submit" class="send-button">Envoyer le rapport d'incident</button>
+    </div>
+    <div class="attachments-preview" id="attachmentsPreview"></div>
   </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="scripts/incident/incident.js"></script>
   <script src="scripts/loadSidebar.js"></script>
-
 </body>
 
 </html>

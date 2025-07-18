@@ -58,7 +58,7 @@ router.post('/upload-convocation', memoryUpload.single('image'), async (req, res
       })
       .setFooter({
         text: "LSPD Assistant",
-        iconURL: "https://i.ibb.co/DDQWSHmZ/assistant.png"
+        iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
       })
       .setTimestamp();
 

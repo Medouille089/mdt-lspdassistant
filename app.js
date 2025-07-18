@@ -8,7 +8,7 @@ const { SESSION_SECRET } = require("./config/env");
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Middlewares de session et parser
+// Middleware session
 app.use(
   session({
     secret: SESSION_SECRET,
@@ -17,11 +17,15 @@ app.use(
   })
 );
 
-app.use(bodyParser.json());
+// Body parser
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+// Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Middleware global pour autoriser les requêtes publiques/internes
+// Auth guard
 app.use((req, res, next) => {
   const publicPaths = ['/login', '/callback', '/logout', '/bracelet'];
   if (req.headers['x-internal'] === 'true') return next();
@@ -32,13 +36,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Déclaration des routes
+// Routes
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const braceletRoutes = require("./routes/bracelet");
 const configRoutes = require("./config/setup");
 const convocationRoute = require("./routes/convocation");
 const agentsRoutes = require("./routes/agents");
+const incidentsRoute = require("./routes/incidents");
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -46,11 +51,13 @@ app.use(userRoutes);
 app.use(braceletRoutes);
 app.use(convocationRoute);
 app.use(agentsRoutes);
+app.use(incidentsRoute);
 
-// Serveur de fichiers statiques
+// Static frontend
 app.use(express.static(path.join(__dirname, "LSPD")));
 
-// Démarrage du serveur
+// Start server
 app.listen(port, () => {
+  console.clear();
   console.log(`🚀 Serveur démarré sur http://localhost:${port}`);
 });

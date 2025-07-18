@@ -66,7 +66,7 @@ router.get('/callback', (req, res, next) => {
               value: `> <@${req.user.id}> (\`${req.user.id}\`)`,
               inline: false
             })
-            .setFooter({ text: 'LSPD Assistant', iconURL: 'https://i.ibb.co/DDQWSHmZ/assistant.png' })
+            .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
             .setTimestamp();
 
           await logsChannel.send({ embeds: [embed] });
