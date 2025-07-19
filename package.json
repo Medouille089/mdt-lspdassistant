@@ -23,8 +23,17 @@
     "nodemon": "^2.0.22"
   },
   "dependencies": {
-    "multer": "^2.0.1",
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "multer": "^2.0.2",
+    "node-fetch": "^2.7.0",
+    "passport": "^0.7.0",
+    "passport-discord": "^0.1.4",
+    "passport-oauth2": "^1.8.0",
     "pdfkit": "^0.17.1",
+    "pg": "^8.16.3",
     "puppeteer": "^24.14.0"
   }
 }
