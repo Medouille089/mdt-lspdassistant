@@ -12,6 +12,10 @@ const {
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/api/incident", upload.array("pieces"), async (req, res) => {
+  const bot = getBot();
+  const forumChannelId = "1395696002702381076";
+  const logsChannelId = "1393165514527866970"; // ← À remplacer
+
   try {
     const {
       date, heure, officier,
@@ -19,8 +23,6 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
     } = req.body;
     const files = req.files;
 
-    const bot = getBot();
-    const forumChannelId = "1395696002702381076";
     const forum = await bot.channels.fetch(forumChannelId);
     const botUser = await bot.user;
 
@@ -53,7 +55,7 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
       .setColor(0x0b1b5a)
       .setTimestamp();
 
-    // Créer le thread avec le message initial (l'embed)
+    // Créer le thread avec le message initial
     const thread = await forum.threads.create({
       name: `${incidentId} - ${formattedDate}`,
       message: {
@@ -62,7 +64,7 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
       autoArchiveDuration: 1440,
     });
 
-    // Envoyer les fichiers si y'en a
+    // Envoyer les fichiers si présents
     if (files?.length > 0) {
       for (const file of files) {
         const attachment = new AttachmentBuilder(file.buffer, {
@@ -81,6 +83,29 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
       incidentId, date, heure, officier,
       recit, implique, type, lieu, thread.id
     ]);
+
+    // ➕ Embed log Discord pour la création de rapport
+    const logsChannel = await bot.channels.fetch(logsChannelId);
+    if (logsChannel?.isTextBased()) {
+      const embedLog = new EmbedBuilder()
+        .setColor(0x0b1b5a)
+        .setTitle(`Nouveau rapport d'incident - ${incidentId}`)
+        .setDescription(`**${officier}** a créé un nouveau rapport - <#${thread.id}> \`${incidentId}\``)
+        .addFields({
+          name: "ID's",
+          value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${req.user?.id || 'ID inconnu'}\`) \n> <#${thread.id}> (\`${thread.id}\`)`,
+          inline: false
+        })
+        .setFooter({
+          text: "LSPD Assistant",
+          iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 })
+        })
+        .setTimestamp();
+
+      await logsChannel.send({ embeds: [embedLog] });
+      console.log('Log création rapport envoyé');
+    }
+
 
     res.json({ message: "Rapport enregistré et envoyé !" });
 

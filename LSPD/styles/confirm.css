@@ -1,0 +1,30 @@
+#feedbackAnimation {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+}
+
+.feedback-inner {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.feedback-inner svg {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 15px;
+}
+
+.feedback-inner p {
+  font-size: 1.1rem;
+  color: #0b1b5a;
+  font-weight: bold;
+}

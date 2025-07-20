@@ -6,6 +6,8 @@
   <title>Rapport d'incident - LSPD Assistant</title>
   <link rel="stylesheet" href="styles/sidebar.css" />
   <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
   <link rel="stylesheet" href="styles/incident/incident.css" />
 </head>
 
@@ -81,7 +83,11 @@
     </div>
     <div class="attachments-preview" id="attachmentsPreview"></div>
   </div>
-
+  <div class="loader-overlay" id="loaderOverlay">
+    <div class="loader-spinner"></div>
+  </div>
+  </div>
+  <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="scripts/incident/incident.js"></script>

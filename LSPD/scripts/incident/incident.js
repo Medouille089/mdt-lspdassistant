@@ -100,54 +100,56 @@ async function waitForImagesToLoad(container) {
 
 document.querySelector(".send-button").addEventListener("click", async (e) => {
   e.preventDefault();
+  let hasError = false;
+
+  const loader = document.getElementById("loaderOverlay");
 
   const originalContainer = document.querySelector(".incident-container");
   if (!originalContainer) return alert("Erreur : div .incident-container introuvable.");
   if (originalContainer.offsetWidth === 0 || originalContainer.offsetHeight === 0)
     return alert("Erreur : la div .incident-container est invisible ou a une taille nulle.");
 
-  const clone = originalContainer.cloneNode(true);
-
-  // Supprimer les éléments inutiles
-  const uploadLabel = clone.querySelector('label[for="pieces"]');
-  const uploadWrapper = clone.querySelector('.file-upload-wrapper');
-  const attachmentsPreview = clone.querySelector('.attachments-preview');
-  if (uploadLabel) uploadLabel.remove();
-  if (uploadWrapper) uploadWrapper.remove();
-  if (attachmentsPreview) attachmentsPreview.remove();
-
-  // Appliquer style manuel pour PDF
-  clone.style.backgroundColor = "#fff";
-  clone.style.padding = "40px 50px 100px";
-  clone.style.border = "none";
-  clone.style.boxShadow = "none";
-
-  // Appliquer style inline aux inputs/textarea/select
-  const fields = clone.querySelectorAll('input, textarea, select');
-  fields.forEach(el => {
-    el.style.backgroundColor = "#f9fafc";
-    el.style.border = "1px solid #c5cbd5";
-    el.style.borderRadius = "8px";
-    el.style.color = "#0b1b5a";
-    el.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-    el.style.fontSize = "15px";
-    el.style.padding = "10px";
-    el.style.boxShadow = "none";
-    el.style.resize = "none";
-    el.style.width = "100%";
-  });
-
-  document.body.appendChild(clone);
-  await waitForImagesToLoad(clone);
-
-  const canvas = await html2canvas(clone, { backgroundColor: "#fff" });
-  document.body.removeChild(clone);
-
-  if (!canvas) return alert("Erreur : html2canvas n’a pas généré de canvas.");
-  const imgData = canvas.toDataURL("image/png");
-  if (!imgData || imgData === "data:,") return alert("Erreur : image vide générée !");
-
   try {
+    loader.style.display = "flex";
+
+    const clone = originalContainer.cloneNode(true);
+
+    const uploadLabel = clone.querySelector('label[for="pieces"]');
+    const uploadWrapper = clone.querySelector(".file-upload-wrapper");
+    const attachmentsPreview = clone.querySelector(".attachments-preview");
+    if (uploadLabel) uploadLabel.remove();
+    if (uploadWrapper) uploadWrapper.remove();
+    if (attachmentsPreview) attachmentsPreview.remove();
+
+    clone.style.backgroundColor = "#fff";
+    clone.style.padding = "40px 50px 100px";
+    clone.style.border = "none";
+    clone.style.boxShadow = "none";
+
+    const fields = clone.querySelectorAll("input, textarea, select");
+    fields.forEach((el) => {
+      el.style.backgroundColor = "#f9fafc";
+      el.style.border = "1px solid #c5cbd5";
+      el.style.borderRadius = "8px";
+      el.style.color = "#0b1b5a";
+      el.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+      el.style.fontSize = "15px";
+      el.style.padding = "10px";
+      el.style.boxShadow = "none";
+      el.style.resize = "none";
+      el.style.width = "100%";
+    });
+
+    document.body.appendChild(clone);
+    await waitForImagesToLoad(clone);
+
+    const canvas = await html2canvas(clone, { backgroundColor: "#fff" });
+    document.body.removeChild(clone);
+
+    if (!canvas) throw new Error("html2canvas n’a pas généré de canvas.");
+    const imgData = canvas.toDataURL("image/png");
+    if (!imgData || imgData === "data:,") throw new Error("image vide générée !");
+
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
     const imgProps = pdf.getImageProperties(imgData);
@@ -184,19 +186,63 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     });
 
     const result = await res.json();
-    alert(result.message || "Rapport envoyé !");
-  } catch (error) {
-    console.error("Erreur jsPDF :", error);
-    alert("Erreur lors de la génération du PDF : " + error.message);
+    if (!res.ok) throw new Error(result.message || "Erreur lors de la soumission.");
+  } catch (err) {
+    hasError = true;
+    loader.style.display = 'none';
+    await showAnimation('error');
+    alert("Erreur : " + err.message);
+  } finally {
+    if (!hasError) {
+      loader.style.display = 'none';
+      await showAnimation('success');
+
+      const container = document.getElementById('feedbackAnimation');
+      container.classList.add('fade-out');
+
+      container.addEventListener('transitionend', () => {
+        location.reload();
+      }, { once: true });
+    }
   }
 });
 
 document.getElementById('implique').addEventListener('input', function (e) {
   let input = e.target.value.replace(/\D/g, '');
   let formatted = input.match(/.{1,2}/g);
-  if (formatted) {
-    e.target.value = formatted.join(', ');
-  } else {
-    e.target.value = '';
-  }
+  e.target.value = formatted ? formatted.join(', ') : '';
 });
+
+function showAnimation(type = 'success') {
+  return new Promise((resolve) => {
+    const container = document.getElementById('feedbackAnimation');
+    container.innerHTML = '';
+
+    const content = document.createElement('div');
+    content.className = 'feedback-inner';
+
+    if (type === 'success') {
+      content.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+          <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
+          <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" points="100.2,40.2 51.5,88.8 29.8,67.5"/>
+        </svg>
+        <p class="success">Rapport d'incident soumis avec succès!</p>
+      `;
+    } else {
+      content.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+          <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
+          <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+          <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
+        </svg>
+        <p class="error">Erreur lors de la soumission du rapport d'incident</p>
+      `;
+    }
+
+    container.appendChild(content);
+    container.style.display = 'flex';
+
+    setTimeout(() => resolve(), 1800);
+  });
+}
