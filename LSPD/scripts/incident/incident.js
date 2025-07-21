@@ -166,6 +166,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     formData.append("implique", document.getElementById("implique").value);
     formData.append("type", document.getElementById("type").value);
     formData.append("lieu", document.getElementById("lieu").value);
+    formData.append("grade", document.getElementById("grade").value);
     formData.append("pieces", pdfBlob, "rapport.pdf");
 
     const files = document.getElementById("pieces").files;

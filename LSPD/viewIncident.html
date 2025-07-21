@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Rapport d'incident - LSPD Assistant</title>
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css">
+    <link rel="stylesheet" href="styles/incident/incident.css" />
+</head>
+
+<body>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Rapport d'incident</h1>
+        <div class="incident-container">
+
+            <div class="header">
+                <img src="data/images/lspd.png" alt="Logo LSPD" />
+                <div class="header-title">
+                    <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+                    <h3>RAPPORT D'INCIDENT</h3>
+                </div>
+                <div style="width: 60px;"></div>
+            </div>
+
+            <form>
+                <div class="inline-fields">
+                    <div>
+                        <label for="date">Date de l'incident</label>
+                        <input type="date" id="date" name="date" readonly />
+                    </div>
+                    <div>
+                        <label for="heure">Heure de l'incident</label>
+                        <input type="time" id="heure" name="heure" readonly />
+                    </div>
+                </div>
+
+                <div class="inline-fields">
+                    <div>
+                        <label for="officier">Agent rédacteur</label>
+                        <input type="text" id="officier" name="officier" readonly />
+                    </div>
+                    <div>
+                        <label for="grade">Grade</label>
+                        <input type="text" id="grade" name="grade" readonly />
+                    </div>
+                </div>
+
+                <label for="recit">Récit</label>
+                <textarea id="recit" name="recit" readonly disabled></textarea>
+
+                <label for="implique">Matricules des officiers impliqués</label>
+                <input type="text" id="implique" name="implique" readonly />
+
+                <div class="inline-fields">
+                    <div>
+                        <label for="type">Type de rapport</label>
+                        <input type="text" id="type" name="type" readonly />
+                    </div>
+                    <div>
+                        <label for="lieu">Lieu de l'incident</label>
+                        <input type="text" id="lieu" name="lieu" readonly />
+                    </div>
+                </div>
+
+                <label>Pièces jointes :</label>
+                <div id="incidents-container"></div>
+            </form>
+
+            <div class="image-container">
+                <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo" />
+            </div>
+        </div>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+    <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+    <div class="loader-spinner"></div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        if (!id) {
+            showAnimation('error').then(() => {
+                window.location.href = 'getIncident.html';
+            });
+        }
+
+        const officierInput = document.getElementById('officier');
+        const gradeInput = document.getElementById('grade');
+        const dateInput = document.getElementById('date');
+        const heureInput = document.getElementById('heure');
+        const recitInput = document.getElementById('recit');
+        const impliqueInput = document.getElementById('implique');
+        const typeInput = document.getElementById('type');
+        const lieuInput = document.getElementById('lieu');
+
+        async function loadIncidentDetail() {
+            const loader = document.getElementById('loaderOverlay');
+            loader.style.display = 'flex'; 
+            try {
+                const res = await fetch('/api/getIncident');
+                if (!res.ok) throw new Error('Erreur chargement');
+                const incidents = await res.json();
+                const incident = incidents.find(i => i.id == id);
+                if (!incident) throw new Error('Incident non trouvé');
+
+                officierInput.value = incident.officier || '';
+                gradeInput.value = incident.grade || '';
+                dateInput.value = incident.date || '';
+                heureInput.value = incident.heure || '';
+                recitInput.value = incident.recit || '';
+                impliqueInput.value = incident.implique || '';
+                typeInput.value = incident.type || '';
+                lieuInput.value = incident.lieu || '';
+
+                const container = document.getElementById('incidents-container');
+                container.innerHTML = '';
+
+                if (incident.images && incident.images.length > 0) {
+                    // Créer toutes les images
+                    const imgElements = incident.images.map(url => {
+                        const img = document.createElement('img');
+                        img.src = url;
+                        img.alt = 'Pièce jointe';
+                        img.style.maxWidth = '200px';
+                        img.style.margin = '5px';
+                        container.appendChild(img);
+                        return img;
+                    });
+
+                    // Attendre que toutes les images soient chargées (ou erreurs)
+                    await Promise.all(imgElements.map(img => new Promise((resolve) => {
+                        if (img.complete) {
+                            resolve();
+                        } else {
+                            img.onload = () => resolve();
+                            img.onerror = () => resolve();
+                        }
+                    })));
+
+                } else {
+                    container.textContent = 'Aucune pièce jointe disponible.';
+                }
+
+            } catch (err) {
+                console.error(err);
+            } finally {
+                loader.style.display = 'none'; 
+            }
+        }
+
+        loadIncidentDetail();
+
+    </script>
+</body>
+
+</html>
