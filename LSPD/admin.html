@@ -6,7 +6,97 @@
   <title>Admin - LSPD Assistant</title>
   <link rel="stylesheet" href="styles/sidebar.css">
   <link rel="stylesheet" href="styles/colors.css">
-  <style></style>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      position: relative;
+      z-index: 0;
+      background: none;
+      /* on enlève le fond ici */
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      background: linear-gradient(#F1F3FF, #CBD4FF);
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    form label {
+      display: block;
+      font-weight: 600;
+      font-size: 14px;
+      color: #0b1b5a;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    form input[type="text"],
+    form input[type="date"],
+    form input[type="time"],
+    form textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 15px;
+      border: 1px solid #c5cbd5;
+      border-radius: 8px;
+      background-color: #f9fafc;
+      resize: none;
+      box-sizing: border-box;
+      color: #0b1b5a;
+      transition: border-color 0.2s ease;
+    }
+
+    form input[type="text"]:focus,
+    form input[type="date"]:focus,
+    form input[type="time"]:focus,
+    form textarea:focus {
+      border-color: #0b1b5a;
+      outline: none;
+      background-color: #eef1f5;
+    }
+
+    fieldset {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      font-size: 15px;
+      color: #0b1b5a;
+      border-color: #0b1b5a;
+      border-radius: 8px;
+    }
+
+    legend {
+      font-weight: bold;
+    }
+
+    label {
+      display: block;
+      margin: 0.5rem 0;
+    }
+
+    .btn-save {
+      padding: 1rem 3rem;
+      font-size: 100%;
+      background-color: #0b1b5a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    btn-save:hover {
+      background-color: #08123a;
+    }
+  </style>
 </head>
 
 <body>
@@ -17,15 +107,36 @@
     <h1>Pannel configuration</h1>
 
     <form id="configForm">
-      <label>Rôle command staff: <input type="text" name="commandstaff_id"></label><br>
-      <label>Rôle supervisor: <input type="text" name="supervisor_role_id"></label><br>
-      <label>Rôle requis: <input type="text" name="required_role_id"></label><br>
-      <label>ID Thread bracelets: <input type="text" name="thread_id"></label><br>
-      <label>ID Archive bracelets: <input type="text" name="archive_tag"></label><br>
-      <label>Salon logs: <input type="text" name="logs_channel"></label><br>
-      <label>Salon convocations: <input type="text" name="convocation_id"></label><br>
+      <!-- Catégorie : Rôles -->
+      <fieldset>
+        <legend>&nbsp;&nbsp;Rôles&nbsp;&nbsp;</legend>
+        <label>Rôle command staff : <input type="text" name="commandstaff_id"></label><br>
+        <label>Rôle supervisor : <input type="text" name="supervisor_role_id"></label><br>
+        <label>Rôle requis : <input type="text" name="required_role_id"></label><br>
+      </fieldset>
 
-      <button type="submit">Sauvegarder</button>
+      <!-- Catégorie : Bracelets -->
+      <fieldset>
+        <legend>&nbsp;&nbsp;Bracelets&nbsp;&nbsp;</legend>
+        <label>ID Archive bracelets : <input type="text" name="archive_tag"></label><br>
+        <label>Salon Thread bracelets : <input type="text" name="thread_id"></label><br>
+      </fieldset>
+
+      <!-- Catégorie : Incidents -->
+      <fieldset>
+        <legend>&nbsp;&nbsp;Incidents&nbsp;&nbsp;</legend>
+        <label>Salon Thread incidents : <input type="text" name="incident_thread_id"></label><br>
+      </fieldset>
+
+      <!-- Autres -->
+      <fieldset>
+        <legend>&nbsp;&nbsp;Autres&nbsp;&nbsp;</legend>
+        <label>Salon logs : <input type="text" name="logs_channel"></label><br>
+        <label>Salon convocations : <input type="text" name="convocation_id"></label><br>
+      </fieldset>
+
+      <br>
+      <button class="btn-save" type="submit">Sauvegarder</button>
     </form>
 
     <div id="statusMessage" style="margin-top:10px;"></div>

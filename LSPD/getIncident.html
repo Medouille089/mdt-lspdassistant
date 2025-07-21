@@ -8,16 +8,17 @@
     <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
 </head>
 
 <body>
     <div class="main-container">
 
         <div id="sidebar-container"></div>
-        <h1>Liste des breacelets actifs</h1>
+        <h1>Liste des rapports d'incidents</h1>
         <div class="container">
             <div class="filters">
-                <input type="text" id="searchInput" placeholder="Recherche par ID, nom, prénom..." autocomplete="off" />
+                <input type="text" id="searchInput" placeholder="Rechercher" autocomplete="off" />
                 <input type="date" id="dateStart" />
                 <input type="date" id="dateEnd" />
             </div>
@@ -26,7 +27,7 @@
                 <thead>
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>ID Incident</th>
                             <th>Officier</th>
                             <th>Date</th>
                             <th>Heure</th>
@@ -42,6 +43,9 @@
                 <!-- Pagination buttons -->
             </div>
         </div>
+    </div>
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-spinner"></div>
     </div>
     <script src="scripts/incident/getIncident.js"></script>
     <script src="scripts/loadSidebar.js"></script>

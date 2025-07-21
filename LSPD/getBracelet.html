@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
 </head>
 
 <body>
@@ -17,7 +18,7 @@
         <h1>Liste des breacelets actifs</h1>
         <div class="container">
             <div class="filters">
-                <input type="text" id="searchInput" placeholder="Recherche par ID, nom, prénom..." autocomplete="off" />
+                <input type="text" id="searchInput" placeholder="Rechercher" autocomplete="off" />
                 <input type="date" id="dateStart" />
                 <input type="date" id="dateEnd" />
             </div>
@@ -40,6 +41,9 @@
                 <!-- Pagination buttons -->
             </div>
         </div>
+    </div>
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
     </div>
     <script src="scripts/bracelet/getBracelet.js"></script>
     <script src="scripts/loadSidebar.js"></script>

@@ -20,23 +20,26 @@ function formatDate(dateStr) {
 
 // Charge les données depuis l'API
 async function loadIncidents() {
+    const loader = document.getElementById('loaderOverlay');
+    loader.style.display = 'flex';
+
     try {
         const res = await fetch(API_URL);
         if (!res.ok) throw new Error('Erreur chargement');
         incidents = await res.json();
 
-        // Trier incidents par ID numérique décroissant
         incidents.sort((a, b) => {
-            // extraire la partie numérique (ex: "INC0012" -> 12)
             const numA = parseInt(a.id.replace(/\D/g, ''), 10);
             const numB = parseInt(b.id.replace(/\D/g, ''), 10);
-            return numB - numA; // décroissant
+            return numB - numA;
         });
 
         applyFilters();
     } catch (e) {
         tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#f66;">Erreur de chargement.</td></tr>`;
         console.error(e);
+    } finally {
+        loader.style.display = 'none';
     }
 }
 

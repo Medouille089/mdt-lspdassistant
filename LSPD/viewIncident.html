@@ -2,13 +2,55 @@
 <html lang="fr">
 
 <head>
+    <title></title>
     <meta charset="UTF-8" />
-    <title>Rapport d'incident - LSPD Assistant</title>
     <link rel="stylesheet" href="styles/sidebar.css" />
     <link rel="stylesheet" href="styles/colors.css" />
     <link rel="stylesheet" href="styles/loader.css" />
     <link rel="stylesheet" href="styles/checkmark.css">
     <link rel="stylesheet" href="styles/incident/incident.css" />
+    <style>
+        input,
+        textarea {
+            cursor: text;
+        }
+
+        #fullscreenOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        #fullscreenOverlay img {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        #fullscreenClose {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 32px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 10000;
+            background: none;
+            border: none;
+        }
+
+        #fullscreenClose:hover {
+            color: #ccc;
+        }
+    </style>
 </head>
 
 <body>
@@ -21,7 +63,7 @@
                 <img src="data/images/lspd.png" alt="Logo LSPD" />
                 <div class="header-title">
                     <h2>LOS SANTOS POLICE DEPARTMENT</h2>
-                    <h3>RAPPORT D'INCIDENT</h3>
+                    <h3 class="title">RAPPORT D'INCIDENT</h3>
                 </div>
                 <div style="width: 60px;"></div>
             </div>
@@ -75,21 +117,41 @@
             </div>
         </div>
     </div>
+    <div id="fullscreenOverlay">
+        <button id="fullscreenClose">&times;</button>
+        <img id="fullscreenImage" src="" alt="Aperçu" />
+    </div>
 
     <div class="loader-overlay" id="loaderOverlay">
         <div class="loader-spinner"></div>
     </div>
     <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
-    <div class="loader-spinner"></div>
 
     <script src="scripts/loadSidebar.js"></script>
     <script>
+
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
         if (!id) {
             showAnimation('error').then(() => {
                 window.location.href = 'getIncident.html';
             });
+        }
+
+        if (id) {
+            document.title = `Rapport d'incident - ${id}`;
+        } else {
+            document.title = "Rapport d'incident - Aucun ID";
+        }
+
+        if (id) {
+            document.title = `Rapport d'incident - ${id}`;
+            const titres = document.querySelectorAll('h1, h3');
+            titres.forEach(el => {
+                el.textContent = `RAPPORT D'INCIDENT - ${id}`;
+            });
+        } else {
+            document.title = "Rapport d'incident - Aucun ID";
         }
 
         const officierInput = document.getElementById('officier');
@@ -101,9 +163,40 @@
         const typeInput = document.getElementById('type');
         const lieuInput = document.getElementById('lieu');
 
+        // Fonction d'affichage plein écran
+        function enableFullscreenOnImages() {
+            const overlay = document.getElementById('fullscreenOverlay');
+            const fullscreenImg = document.getElementById('fullscreenImage');
+            const closeBtn = document.getElementById('fullscreenClose');
+
+            document.querySelectorAll('#incidents-container img').forEach(img => {
+                img.style.cursor = 'zoom-in';
+                img.addEventListener('click', () => {
+                    fullscreenImg.src = img.src;
+                    overlay.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+
+            closeBtn.addEventListener('click', () => {
+                overlay.style.display = 'none';
+                fullscreenImg.src = '';
+                document.body.style.overflow = '';
+            });
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.style.display = 'none';
+                    fullscreenImg.src = '';
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+
+        // Chargement des informations depuis la bdd
         async function loadIncidentDetail() {
             const loader = document.getElementById('loaderOverlay');
-            loader.style.display = 'flex'; 
+            loader.style.display = 'flex';
             try {
                 const res = await fetch('/api/getIncident');
                 if (!res.ok) throw new Error('Erreur chargement');
@@ -145,6 +238,8 @@
                         }
                     })));
 
+                    enableFullscreenOnImages();
+
                 } else {
                     container.textContent = 'Aucune pièce jointe disponible.';
                 }
@@ -152,7 +247,7 @@
             } catch (err) {
                 console.error(err);
             } finally {
-                loader.style.display = 'none'; 
+                loader.style.display = 'none';
             }
         }
 

@@ -20,6 +20,8 @@ function formatDate(dateStr) {
 
 // Charge les données depuis l'API
 async function loadHistorique() {
+    const loader = document.getElementById('loaderOverlay');
+    loader.style.display = 'flex';
     try {
         const res = await fetch(API_URL);
         if (!res.ok) throw new Error('Erreur chargement');
@@ -28,6 +30,8 @@ async function loadHistorique() {
     } catch (e) {
         tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#f66;">Erreur de chargement.</td></tr>`;
         console.error(e);
+    } finally {
+        loader.style.display = 'none';
     }
 }
 

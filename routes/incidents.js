@@ -2,18 +2,19 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const pool = require("../config/db");
+const config = require("../config/config");
 const { getBot } = require("../config/config");
 const { AttachmentBuilder, EmbedBuilder, ChannelType } = require("discord.js");
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/api/incident", upload.array("pieces"), async (req, res) => {
   const bot = getBot();
-  const forumChannelId = "1395696002702381076";
-  const logsChannelId = "1393165514527866970";
-
+  const conf = await config.getConfig();
+  const forumChannelId = conf.incident_thread_id;
+  const logsChannelId = conf.logs_channel;
   try {
     const {
-      date, heure, officier, grade,  // <- ajoute grade ici
+      date, heure, officier, grade,
       recit, implique, type, lieu
     } = req.body;
     const files = req.files;
@@ -36,11 +37,10 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
         { name: "Date", value: formattedDate, inline: true },
         { name: "Heure", value: heure, inline: true },
         { name: "Officier rédacteur", value: officier, inline: true },
-        { name: "Grade", value: grade || "Non précisé", inline: true },  // affiche grade dans le message
+        { name: "Grade", value: grade || "Non précisé", inline: true }, 
         { name: "Officiers impliqués", value: implique || "Aucun" },
         { name: "Type", value: type || "Non précisé", inline: true },
         { name: "Lieu", value: lieu || "Non précisé", inline: true },
-        { name: "Récit", value: recit || "Aucun récit fourni" }
       )
       .setFooter({
         text: "LSPD Assistant",
@@ -64,7 +64,6 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
       }
     }
 
-    // Ajout de grade dans l'INSERT
     await pool.query(`
       INSERT INTO incidents 
       (incident_id, date_incident, heure_incident, officier_redacteur, grade, recit, officier_implique, type_rapport, lieu_incident, discord_thread_id)
@@ -95,7 +94,10 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
       console.log('Log création rapport envoyé');
     }
 
-    res.json({ message: "Rapport enregistré et envoyé !" });
+    res.json({ 
+      message: "Rapport enregistré et envoyé !",
+      incidentId: incidentId
+    });
 
   } catch (err) {
     console.error("Erreur API /api/incident :", err);
@@ -159,7 +161,6 @@ router.get('/api/getIncident', async (req, res) => {
       };
     }));
 
-    // ✅ UNE seule réponse ici
     res.json(withImages);
 
   } catch (err) {
