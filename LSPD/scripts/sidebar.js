@@ -127,6 +127,8 @@ async function fetchUser() {
 
 
   } catch (error) {
+    console.error('An error occurred while processing the user profile:', error);
+
     const container = document.getElementById('userProfile');
     if (container) container.style.display = 'none';
 
@@ -137,6 +139,13 @@ async function fetchUser() {
     document.querySelectorAll('.onlyCommandStaff').forEach(el => {
       el.style.display = 'none';
     });
+
+    // Optionally, show a user-friendly message
+    const errorBanner = document.getElementById('errorBanner');
+    if (errorBanner) {
+      errorBanner.textContent = 'An unexpected error occurred.';
+      errorBanner.style.display = 'block';
+    }
   }
 }
 
