@@ -431,6 +431,7 @@ router.get('/api/next-id-brac', async (req, res) => {
 
 router.post('/api/formulaires/pointer/:id', async (req, res) => {
     const id = req.params.id;
+    const { userName } =  req.body
 
     try {
         const { rows } = await pool.query(
@@ -472,7 +473,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
                 { name: "Heure", value: heureStr, inline: true }
             )
             .setFooter({
-                text: "LSPD Assistant",
+                text: userName,
                 iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
             })
             .setThumbnail(bot.user.displayAvatarURL({ extension: 'png', size: 256 }))
