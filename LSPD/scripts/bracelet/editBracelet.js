@@ -141,17 +141,12 @@ confirmModifyBtn.addEventListener('click', async () => {
 document.getElementById('pointerBtn').addEventListener('click', async () => {
     try {
         loaderOverlay.style.display = 'flex';
-        const resUser = await fetch('/api/user');
-        if (!resUser.ok) throw new Error('Non connecté');
-        const user = await resUser.json();
-        const userName = user.username
 
         const res = await fetch('/api/formulaires/pointer/' + id, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({userName})
         });
 
         
