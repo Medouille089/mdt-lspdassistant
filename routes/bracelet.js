@@ -432,7 +432,9 @@ router.get('/api/next-id-brac', async (req, res) => {
 router.post('/api/formulaires/pointer/:id', async (req, res) => {
     const id = req.params.id;
 
+    const clientDiscord = config.getBot();
     try {
+        const conf = await config.getConfig();
         const { rows } = await pool.query(
             'SELECT id_thread, id_brac, nom, prenom FROM bracelets WHERE id = $1',
             [id]
@@ -469,16 +471,40 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
                 { name: "Nom", value: data.nom || '—', inline: true },
                 { name: "Prénom", value: data.prenom || '—', inline: true },
                 { name: "Date", value: dateStr, inline: true },
-                { name: "Heure", value: heureStr, inline: true }
+                { name: "Heure", value: heureStr, inline: true },
+                { name: "Pointé par", value: `<@${req.user.id}>`, inline: false }
             )
             .setFooter({
-                text: "LSPD Assistant",
+                text: `${req.member.displayName}`,
                 iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
             })
             .setThumbnail(bot.user.displayAvatarURL({ extension: 'png', size: 256 }))
             .setTimestamp();
 
         await thread.send({ embeds: [embed] });
+
+        if (conf.logs_channel) {
+            const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
+            if (logsChannel?.isTextBased()) {
+                const mentionThread = data.id_thread ? `<#${data.id_thread}>` : 'Thread inconnu';
+
+                const embedLog = new EmbedBuilder()
+                    .setColor(0x0b1b5a)
+                    .setTitle(`Bracelet pointé - ${data.id_brac}`)
+                    .setDescription(`<@${req.user.id}> a pointé le bracelet - ${mentionThread} \`${data.id_brac}\``)
+                    .addFields({
+                        name: "ID's",
+                        value: `> <@${req.user.id}> (${req.user.id}) \n > ${mentionThread} (\`${data.id_thread}\`)`,
+                        inline: false
+                    })
+                    .setFooter({
+                        text: "LSPD Assistant",
+                        iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
+                    })
+                    .setTimestamp();
+                await logsChannel.send({ embeds: [embedLog] });
+            }
+        }
 
         res.json({ message: 'Pointage envoyé dans le thread Discord.' });
     } catch (err) {
