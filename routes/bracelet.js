@@ -435,7 +435,6 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
     
     const clientDiscord = config.getBot();
 
-    const clientDiscord = config.getBot();
     try {
         const conf = await config.getConfig();
         const { rows } = await pool.query(
@@ -485,31 +484,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
             .setTimestamp();
 
         await thread.send({ embeds: [embed] });
-        const conf = await config.getConfig();
         // Log axrchivage dans LOGS_CHANNEL
-        if (conf.logs_channel) {
-            const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
-            if (logsChannel?.isTextBased()) {
-                const mentionThread = data.id_thread ? `<#${data.id_thread}>` : 'Thread inconnu';
-
-                const embedLog = new EmbedBuilder()
-                    .setColor(0x0b1b5a)
-                    .setTitle(`Bracelet pointé - ${data.id_brac}`)
-                    .setDescription(`<@${req.user.id}> a pointé le bracelet - ${mentionThread} \`${data.id_brac}\``)
-                    .addFields({
-                        name: "ID's",
-                        value: `> <@${req.user.id}> (\`${req.user.id}\`) \n > ${mentionThread} (\`${data.id_thread}\`)`,
-                        inline: false
-                    })
-                    .setFooter({
-                        text: "LSPD Assistant",
-                        iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
-                    })
-                    .setTimestamp();
-                await logsChannel.send({ embeds: [embedLog] });
-            }
-        }
-
         if (conf.logs_channel) {
             const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
             if (logsChannel?.isTextBased()) {
