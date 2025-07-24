@@ -116,7 +116,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
 
     const uploadLabel = clone.querySelector('label[for="pieces"]');
     const uploadWrapper = clone.querySelector(".file-upload-wrapper");
-    const attachmentsPreview = clone.querySelector(".attachments-preview");
+    const attachmentsPreview = clone.querySelector(".attachmentsPreview");
     if (uploadLabel) uploadLabel.remove();
     if (uploadWrapper) uploadWrapper.remove();
     if (attachmentsPreview) attachmentsPreview.remove();
