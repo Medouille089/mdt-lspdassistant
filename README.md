@@ -33,4 +33,4 @@ Ce projet est sous licence MIT. Consultez le fichier `LICENSE` pour plus d'infor
 ---
 
 ## Auteurs
-- **Développé par** : `Medouille` & `RyZzen`
+- **Développé par** : `Medouille` & `RyZzen` & `Porka (Kelyan)`
