@@ -44,13 +44,17 @@ document.querySelector('.send-button').addEventListener('click', async () => {
 
   // Forcer la largeur de la convocation-container
   const originalWidth = container.style.width;
+  const originalBorder = container.style.border;
+
   container.style.width = "900px";
+  container.style.border = "none";
 
   const canvas = await html2canvas(container, { scale: 2 });
   const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 
-  // Restaurer la largeur originale
+  // Restaurer la largeur et la bordure originale
   container.style.width = originalWidth;
+  container.style.border = originalBorder;
 
   // Rétablir les inputs
   dateFormatted.parentNode.replaceChild(dateInput, dateFormatted);
@@ -68,6 +72,7 @@ document.querySelector('.send-button').addEventListener('click', async () => {
     method: 'POST',
     body: formData
   });
+
 
   if (response.ok) {
     alert('Convocation envoyée avec succès sur Discord !');

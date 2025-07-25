@@ -38,7 +38,7 @@ router.put("/api/config", async (req, res) => {
     archive_tag,
     logs_channel,
     commandstaff_id,
-    convocation_id,
+    convocation_thread_id,
     incident_thread_id,
   } = req.body;
 
@@ -54,7 +54,7 @@ router.put("/api/config", async (req, res) => {
         archive_tag = $4,
         logs_channel = $5,
         commandstaff_id = $6,
-        convocation_id = $7,
+        convocation_thread_id = $7,
         incident_thread_id = $8
        WHERE id = 1 RETURNING *`,
       [
@@ -64,7 +64,7 @@ router.put("/api/config", async (req, res) => {
         archive_tag,
         logs_channel,
         commandstaff_id,
-        convocation_id,
+        convocation_thread_id,
         incident_thread_id,
       ]
     );
@@ -203,28 +203,24 @@ router.put("/api/config", async (req, res) => {
         await logsChannel.send({ embeds: [embed] });
       }
 
-      // Log convocation_id (avec safe fetch)
-      if (oldConfig.convocation_id !== convocation_id) {
-        const convocationChannel = await safeFetchChannel(bot, convocation_id);
+      // Log convocation_thread_id (avec safe fetch)
+      if (oldConfig.convocation_thread_id !== convocation_thread_id && logsChannel) {
+        const embed = new EmbedBuilder()
+          .setColor(0xFF0000)
+          .setTitle("🔧 Thread ID Convocation modifié")
+          .setDescription(`<@${req.user.id}> a modifié la configuration de l'ID du thread des convocations`)
+          .addFields({
+            name: "ID's",
+            value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> Avant: <#${oldConfig.convocation_thread_id}> (\`${oldConfig.convocation_thread_id}\`)\n> Après: <#${convocation_thread_id}> (\`${convocation_thread_id}\`)`,
+            inline: false,
+          })
+          .setFooter({
+            text: "LSPD Assistant",
+            iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }),
+          })
+          .setTimestamp();
 
-        if (convocationChannel) {
-          const embed = new EmbedBuilder()
-            .setColor(0xFF0000)
-            .setTitle("Salon Convocation modifié")
-            .setDescription(`<@${req.user.id}> a modifié la configuration du salon convocation`)
-            .addFields({
-              name: "ID's",
-              value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> Avant: <#${oldConfig.convocation_id}> (\`${oldConfig.convocation_id}\`)\n> Après: <#${convocation_id}> (\`${convocation_id}\`)`,
-              inline: false,
-            })
-            .setFooter({
-              text: "LSPD Assistant",
-              iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }),
-            })
-            .setTimestamp();
-
-          await convocationChannel.send({ embeds: [embed] });
-        }
+        await logsChannel.send({ embeds: [embed] });
       }
 
       // Log incident_thread_id (avec safe fetch)
