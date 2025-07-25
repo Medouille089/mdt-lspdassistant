@@ -37,7 +37,7 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
         { name: "Date", value: formattedDate, inline: true },
         { name: "Heure", value: heure, inline: true },
         { name: "Officier rédacteur", value: officier, inline: true },
-        { name: "Grade", value: grade || "Non précisé", inline: true }, 
+        { name: "Grade", value: grade || "Non précisé", inline: true },
         { name: "Officiers impliqués", value: implique || "Aucun" },
         { name: "Type", value: type || "Non précisé", inline: true },
         { name: "Lieu", value: lieu || "Non précisé", inline: true },
@@ -94,7 +94,7 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
       console.log('Log création rapport envoyé');
     }
 
-    res.json({ 
+    res.json({
       message: "Rapport enregistré et envoyé !",
       incidentId: incidentId
     });
