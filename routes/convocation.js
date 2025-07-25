@@ -13,7 +13,7 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
   const user = req.user;
   const imageFile = req.file;
 
-  const { nom, prenom, date, heure } = req.body;
+  const { nom, prenom } = req.body;
   if (!imageFile) return res.status(400).json({ error: "Aucune image reçue." });
 
   try {
@@ -32,24 +32,14 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
     const botUser = bot.user;
     const nomComplet = `${nom || "Inconnu"} ${prenom || ""}`.trim();
 
-    const displayDate = date
-      ? date.split("-").reverse().join("/")
-      : "—";
-    const displayHeure = heure
-      ? heure.split(":").join("h")
-      : "—";
-
+    // Si user vient d'un middleware d'auth, on peut fetch Member du serveur si besoin
     try {
-      const guild = await bot.guilds.fetch(conf.guild_id);
-      const member = await guild.members.fetch(user.id);
 
       const embed = new EmbedBuilder()
-        .setTitle("📄 Nouvelle convocation")
+        .setTitle("Nouvelle convocation")
         .addFields(
           { name: "Personne concernée", value: nomComplet, inline: true },
-          { name: "Envoyée par", value: `<@${member.id}>`, inline: false },
-          { name: "Date", value: displayDate, inline: true },
-          { name: "Heure", value: displayHeure, inline: true }
+          { name: "Envoyée par", value: `<@${req.user.id}>`, inline: false }
         )
         .setColor(0x0b1b5a)
         .setThumbnail(botUser.displayAvatarURL({ extension: 'png' }))
@@ -82,10 +72,10 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
         const embedLog = new EmbedBuilder()
           .setColor(0x0b1b5a)
           .setTitle(`Nouvelle convocation - ${nomComplet}`)
-          .setDescription(`**<@${member.id}>** a envoyé une convocation - <#${convocationThread.id}>`)
+          .setDescription(`<@${req.user.id}> a envoyé une convocation - <#${convocationThread.id}>`)
           .addFields({
             name: "ID's",
-            value: `> <@${member.id}> (\`${member.id}\`) \n> <#${convocationThread.id}> (\`${convocationThread.id}\`)`
+            value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${user?.id || 'ID inconnu'}\`) \n> <#${convocationThread.id}> (\`${convocationThread.id}\`)`
           })
           .setFooter({
             text: "LSPD Assistant",
@@ -108,7 +98,5 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
     res.status(500).json({ error: "Erreur lors du traitement de la requête." });
   }
 });
-
-
 
 module.exports = router;
