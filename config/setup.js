@@ -40,6 +40,7 @@ router.put("/api/config", async (req, res) => {
     commandstaff_id,
     convocation_id,
     incident_thread_id,
+    arrestation_thread_id, // Ajout du champ arrestation_thread_id
   } = req.body;
 
   try {
@@ -55,7 +56,8 @@ router.put("/api/config", async (req, res) => {
         logs_channel = $5,
         commandstaff_id = $6,
         convocation_id = $7,
-        incident_thread_id = $8
+        incident_thread_id = $8,
+        arrestation_thread_id = $9
        WHERE id = 1 RETURNING *`,
       [
         required_role_id,
@@ -66,6 +68,7 @@ router.put("/api/config", async (req, res) => {
         commandstaff_id,
         convocation_id,
         incident_thread_id,
+        arrestation_thread_id
       ]
     );
 

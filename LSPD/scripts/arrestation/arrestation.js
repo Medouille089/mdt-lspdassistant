@@ -11,24 +11,156 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("grade").value = "";
     });
 
-  const now = new Date();
-  const formatterDate = new Intl.DateTimeFormat('fr-CA', { timeZone: 'Europe/Paris' });
-  const formatterTime = new Intl.DateTimeFormat('fr-FR', {
-    timeZone: 'Europe/Paris', hour12: false, hour: '2-digit', minute: '2-digit'
+});
+
+function ajouterElement() {
+  const input = document.getElementById('accusations-input');
+  const texte = input.value.trim();
+  if (texte) {
+    const ul = document.getElementById('listAccusations');
+    const li = document.createElement('li');
+    li.textContent = " - " + texte;
+    li.addEventListener('click', function () {
+      li.remove();
+    });
+    ul.appendChild(li);
+    input.value = '';
+    input.focus();
+  }
+};
+
+// Permet l'ajout avec la touche Entrée
+document.getElementById('accusations-input').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') {
+    console.log("fsfffd")
+    ajouterElement();
+  }
+})
+
+function supprimerElement(li) {
+  const ul = document.getElementById("listAccusations");
+  document.removeChild(li)
+}
+
+
+
+const telInput = document.getElementById('tel');
+telInput.addEventListener('input', function () {
+  let x = this.value.replace(/\D/g, '').slice(0, 10);
+  if (x.length >= 1) x = '(' + x;
+  if (x.length >= 4) x = x.slice(0, 4) + ') ' + x.slice(4);
+  if (x.length >= 9) x = x.slice(0, 9) + '-' + x.slice(9);
+  this.value = x;
+});
+function setupImagePicker(id) {
+  const fileInput = document.getElementById(`fileInput${id}`);
+  const customButton = document.getElementById(`customButton${id}`);
+  const addLabel = document.getElementById(`addImage${id}`)
+  const preview = document.getElementById(`preview${id}`);
+  // get div by data-id attribute
+  const dataDiv = document.querySelector(`div[data-id="${id}"]`);
+
+  fileInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        addLabel.style.display = 'none';
+
+
+      };
+      reader.readAsDataURL(file);
+    }
   });
 
-  const dateInput = document.getElementById("date");
-  if (dateInput) dateInput.value = formatterDate.format(now);
+  preview.addEventListener('click', function () {
+    fileInput.click();
+  });
 
-  const heureInput = document.getElementById("heure");
-  if (heureInput) {
-    const heureParts = formatterTime.formatToParts(now);
-    const heure = heureParts.filter(p => p.type === 'hour' || p.type === 'minute')
-      .map(p => p.value.padStart(2, '0'))
-      .join(':');
-    heureInput.value = heure;
+  dataDiv.addEventListener('click', function () {
+    fileInput.click();
+  });
+}
+
+setupImagePicker(1)
+setupImagePicker(2)
+// 1. Le tableau de base
+const items = [
+  "Pomme", "Banane", "Abricot", "Cerise",
+  "Datte", "Figue", "Groseille",
+  "Kiwi", "Mangue", "Orange",
+  "Papaye", "Poire"
+];
+
+// 2. Initialisation sur chaque conteneur
+function initSelectBox(container, items) {
+  const isMultiple = container.dataset.multiple !== undefined;
+  let selected = [];
+  const selectedEl = container.querySelector('.selected-items');
+  const inputEl = container.querySelector('.search-input');
+  const listEl = container.querySelector('.options-list');
+
+  // 3. Affiche la liste filtrée
+  function renderOptions(regex) {
+    listEl.innerHTML = '';
+    items
+      .filter(item => regex.test(item))
+      .forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        li.addEventListener('click', () => toggle(item));
+        listEl.appendChild(li);
+      });
   }
-});
+
+  // 4. Sélectionne ou désélectionne un item
+  function toggle(item) {
+    const idx = selected.indexOf(item);
+
+    if (isMultiple) {
+      idx < 0 ? selected.push(item) : selected.splice(idx, 1);
+    } else {
+      selected = idx < 0 ? [item] : [];
+      inputEl.value = '';
+      renderOptions(/.*/);
+    }
+
+    renderSelected();
+  }
+
+  // 5. Met à jour les étiquettes affichées
+  function renderSelected() {
+    selectedEl.innerHTML = '';
+    selected.forEach(item => {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = item + ' ×';
+      tag.addEventListener('click', () => toggle(item));
+      selectedEl.appendChild(tag);
+    });
+  }
+
+  // 6. Filtrage regex au fil de la frappe
+  inputEl.addEventListener('input', () => {
+    try {
+      const regex = new RegExp(inputEl.value, 'i');
+      renderOptions(regex);
+    } catch {
+      listEl.innerHTML = '';
+    }
+  });
+
+  // 7. Premier rendu
+  renderOptions(/.*/);
+  renderSelected();
+}
+
+// 8. Lancement pour tous les widgets
+document
+  .querySelectorAll('.select-box')
+  .forEach(box => initSelectBox(box, items));
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -109,6 +241,28 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
   if (originalContainer.offsetWidth === 0 || originalContainer.offsetHeight === 0)
     return alert("Erreur : la div .incident-container est invisible ou a une taille nulle.");
 
+  // check if all required fields are filled
+  const requiredFields = [
+    "date", "name", "profession", "DDN", "address", "tel",
+    "droits", "entreecellule", "sortiecellule",
+    "officier", "grade", "lieu", "motifArrestation", "circonstances"
+  ];
+  for (const field of requiredFields) {
+    const el = document.getElementById(field);
+    if (!el || !el.value.trim()) {
+      console.log("Champ manquant:", field, el);
+      alert("Veuillez remplir tous les champs obligatoires: " + field);
+      el.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        el.focus();
+        console.log("Focus appliqué sur:", field, "ReadOnly:", el.readOnly, "Disabled:", el.disabled);
+      }, 100);
+      return;
+    }
+  }
+
+
+
   try {
     loader.style.display = "flex";
 
@@ -117,16 +271,51 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     const uploadLabel = clone.querySelector('label[for="pieces"]');
     const uploadWrapper = clone.querySelector(".file-upload-wrapper");
     const attachmentsPreview = clone.querySelector(".attachmentsPreview");
-    const addInput = clone.querySelector(".addInput")
+    const addInput = clone.querySelector(".addInput");
+    const searchInput = clone.querySelector(".search-input");
+    const listOptions = clone.querySelector(".options-list");
     if (uploadLabel) uploadLabel.remove();
     if (uploadWrapper) uploadWrapper.remove();
     if (attachmentsPreview) attachmentsPreview.remove();
-    if (addInput) addInput.remove()
+    if (addInput) addInput.remove();
+    if (searchInput) searchInput.remove();
+    if (listOptions) listOptions.remove();
+
+
 
     clone.style.backgroundColor = "#fff";
     clone.style.padding = "40px 50px 100px";
     clone.style.border = "none";
     clone.style.boxShadow = "none";
+
+    // replace all checkboxes with "Oui" or "Non" in pdf
+    const checkboxes = clone.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+      const label = document.createElement('span');
+      label.style.display = "none"; // Masquer le label original
+      checkbox.parentNode.insertBefore(label, checkbox);
+      if (checkbox.checked) {
+        label.textContent = "Oui";
+      } else {
+        label.textContent = "Non";
+      }
+      checkbox.remove();
+      label.style.display = "inline-block";
+      label.style.marginRight = "10px";
+      label.style.fontWeight = "bold";
+      label.style.color = "#0b1b5a";
+      label.style.fontSize = "16px";
+    });
+
+    // Replace select boxes with selected items in pdf
+    const singleSelect = clone.querySelector('#singleSelect');
+    singleSelect.querySelectorAll('.selected-items').forEach(selectedItems => {
+      const selectedText = Array.from(selectedItems.children)
+        .map(item => item.textContent.replace(' ×', ''))
+        .join(', ');
+      selectedItems.style.marginBottom = "0px";
+      selectedItems.textContent = selectedText || "Aucun sélectionné";
+    });
 
     const fields = clone.querySelectorAll("input, textarea, select");
     fields.forEach((el) => {
@@ -142,34 +331,93 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
       el.style.width = "100%";
     });
 
+    // Gérer les sauts de page pour la génération PDF
+    const pageBreaks = clone.querySelectorAll('.page-break');
+    pageBreaks.forEach(pageBreak => {
+      pageBreak.style.pageBreakAfter = 'always';
+      pageBreak.style.breakAfter = 'page';
+      pageBreak.style.height = '0';
+      pageBreak.style.margin = '0';
+      pageBreak.style.padding = '0';
+      pageBreak.style.display = 'block';
+      pageBreak.style.clear = 'both';
+
+      // Forcer un espace pour le saut de page
+      pageBreak.style.minHeight = '25vh';
+      pageBreak.style.backgroundColor = 'transparent';
+      pageBreak.style.border = 'none';
+    });
+
     document.body.appendChild(clone);
     await waitForImagesToLoad(clone);
 
-    const canvas = await html2canvas(clone, { backgroundColor: "#fff" });
+    const canvas = await html2canvas(clone, {
+      backgroundColor: "#fff",
+      height: clone.scrollHeight,
+      width: clone.scrollWidth,
+      useCORS: true,
+      scale: 1
+    });
     document.body.removeChild(clone);
 
-    if (!canvas) throw new Error("html2canvas n’a pas généré de canvas.");
+    if (!canvas) throw new Error("html2canvas n'a pas généré de canvas.");
     const imgData = canvas.toDataURL("image/png");
     if (!imgData || imgData === "data:,") throw new Error("image vide générée !");
 
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
+    const pdf = new jsPDF('p', 'mm', 'a4');
     const imgProps = pdf.getImageProperties(imgData);
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    // Si le contenu dépasse une page, le diviser automatiquement
+    if (pdfHeight > pageHeight) {
+      let position = 0;
+      let pageNumber = 0;
+
+      while (position < pdfHeight) {
+        if (pageNumber > 0) {
+          pdf.addPage();
+        }
+        pdf.addImage(imgData, "PNG", 0, -position, pdfWidth, pdfHeight);
+        position += pageHeight;
+        pageNumber++;
+      }
+    } else {
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    }
+
     const pdfBlob = pdf.output("blob");
 
     const formData = new FormData();
     formData.append("date", document.getElementById("date").value);
-    formData.append("heure", document.getElementById("heure").value);
-    formData.append("officier", document.getElementById("officier").value);
-    formData.append("recit", document.getElementById("recit").value);
-    formData.append("implique", document.getElementById("implique").value);
-    formData.append("type", document.getElementById("type").value);
-    formData.append("lieu", document.getElementById("lieu").value);
+    formData.append("name", document.getElementById("name").value);
+    formData.append("fileInput1", document.getElementById("fileInput1").files[0]);
+    formData.append("fileInput2", document.getElementById("fileInput2").files[0]);
+    formData.append("profession", document.getElementById("profession").value);
+    formData.append("DDN", document.getElementById("DDN").value);
+    formData.append("address", document.getElementById("address").value);
+    formData.append("tel", document.getElementById("tel").value);
+    formData.append("droits", document.getElementById("droits").value);
+    formData.append("entreecellule", document.getElementById("entreecellule").value);
+    formData.append("sortiecellule", document.getElementById("sortiecellule").value);
+    formData.append("bracelet", document.getElementById("selectedBracelet").textContent.replace(' ×', '') || "");
+    formData.append("miranda", document.getElementById("miranda").checked);
+    formData.append("avocat", document.getElementById("avocat").checked);
+    formData.append("nourriture", document.getElementById("nourriture").checked);
+    formData.append("ems", document.getElementById("ems").checked);
+    formData.append("avocatName", document.getElementById("avocatName").value);
+    formData.append("officer", document.getElementById("officier").value);
     formData.append("grade", document.getElementById("grade").value);
-    formData.append("pieces", pdfBlob, "Rapport d'incident.pdf");
+    formData.append("lieu", document.getElementById("lieu").value);
+    formData.append("motifArrestation", document.getElementById("motifArrestation").value);
+    formData.append("circonstances", document.getElementById("circonstances").value);
+    formData.append("arme", document.getElementById("arme").value);
+    formData.append("uof", document.getElementById("uof").checked);
+    const listAccusations = document.getElementById("listAccusations");
+    formData.append("accusations", JSON.stringify(Array.from(listAccusations.children).map(li => li.textContent.trim())));
+    formData.append("pieces", pdfBlob, "Rapport d'arrestation.pdf");
 
     const files = document.getElementById("pieces").files;
     for (const file of files) {
@@ -183,7 +431,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
       }
     }
 
-    const res = await fetch("/api/incident", {
+    const res = await fetch("/api/arrestation", {
       method: "POST",
       body: formData,
     });
