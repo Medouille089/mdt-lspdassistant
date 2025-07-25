@@ -143,8 +143,13 @@ document.getElementById('pointerBtn').addEventListener('click', async () => {
         loaderOverlay.style.display = 'flex';
 
         const res = await fetch('/api/formulaires/pointer/' + id, {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+            },
         });
+
+        
         if (!res.ok) throw new Error('Erreur pointage');
         loaderOverlay.style.display = 'none';
 

@@ -44,11 +44,13 @@ const configRoutes = require("./config/setup");
 const convocationRoute = require("./routes/convocation");
 const agentsRoutes = require("./routes/agents");
 const incidentsRoute = require("./routes/incidents");
+const arrestationRoute = require("./routes/arrestation");
 
 app.use(configRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(braceletRoutes);
+app.use(arrestationRoute);
 app.use(convocationRoute);
 app.use(agentsRoutes);
 app.use(incidentsRoute);
