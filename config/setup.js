@@ -40,7 +40,7 @@ router.put("/api/config", async (req, res) => {
     commandstaff_id,
     convocation_thread_id,
     incident_thread_id,
-    arrestation_thread_id, // Ajout du champ arrestation_thread_id
+    arrestation_thread_id, 
   } = req.body;
 
   try {
@@ -55,7 +55,7 @@ router.put("/api/config", async (req, res) => {
         archive_tag = $4,
         logs_channel = $5,
         commandstaff_id = $6,
-        convocation_id = $7,
+        convocation_thread_id = $7,
         incident_thread_id = $8,
         arrestation_thread_id = $9
        WHERE id = 1 RETURNING *`,
@@ -215,6 +215,26 @@ router.put("/api/config", async (req, res) => {
           .addFields({
             name: "ID's",
             value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> Avant: <#${oldConfig.convocation_thread_id}> (\`${oldConfig.convocation_thread_id}\`)\n> Après: <#${convocation_thread_id}> (\`${convocation_thread_id}\`)`,
+            inline: false,
+          })
+          .setFooter({
+            text: "LSPD Assistant",
+            iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }),
+          })
+          .setTimestamp();
+
+        await logsChannel.send({ embeds: [embed] });
+      }
+
+      // Log convocation_thread_id (avec safe fetch)
+      if (oldConfig.arrestation_thread_id !== arrestation_thread_id && logsChannel) {
+        const embed = new EmbedBuilder()
+          .setColor(0xFF0000)
+          .setTitle("🔧 Thread ID Arrestation modifié")
+          .setDescription(`<@${req.user.id}> a modifié la configuration de l'ID du thread des arrestations`)
+          .addFields({
+            name: "ID's",
+            value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> Avant: <#${oldConfig.arrestation_thread_id}> (\`${oldConfig.arrestation_thread_id}\`)\n> Après: <#${arrestation_thread_id}> (\`${arrestation_thread_id}\`)`,
             inline: false,
           })
           .setFooter({
