@@ -1,216 +1,159 @@
+/* Corps - on reprend le background dégradé et couleurs de la 2e DA */
 body {
     margin: 0;
-    padding: 0;
-    background: #2f3e57;
-    font-family: 'Segoe UI', sans-serif;
-    color: #fff;
-}
-
-.embed-form {
-    max-width: 600px;
-    margin: 40px auto;
-    background: var(--embed-bg);
-    border-left: 5px solid var(--main-color);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    padding: 40px; /* padding 2e DA */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     position: relative;
+    z-index: 0;
+    background: none;
+    color: #0b1b5a; /* couleur texte 2e DA */
 }
 
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1;
+    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+/* Container .embed-form - on remplace les couleurs de fond, bordure, ombre */
+.embed-form {
+    max-width: 900px; /* largeur 2e DA */
+    margin: auto;
+    background: #ffffff; /* fond clair 2e DA */
+    border-left: none; /* on vire la bordure gauche colorée */
+    border-radius: 15px; /* border radius 2e DA */
+    padding: 40px 50px 100px; /* padding 2e DA */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); /* ombre 2e DA */
+    position: relative;
+    border: 4px solid #0b1b5a; /* bordure globale 2e DA */
+    color: #0b1b5a; /* couleur texte container */
+}
+
+/* Header */
 .embed-header {
     display: flex;
     align-items: center;
-    margin-bottom: 20px;
+    justify-content: space-between; /* comme la 2e DA .header */
+    border-bottom: 3px solid #0b1b5a; /* bordure bottom */
+    padding-bottom: 15px;
+    margin-bottom: 30px;
 }
 
+/* Image dans header */
 .embed-header img {
-    height: 50px;
+    height: 70px; /* taille image 2e DA */
     margin-right: 15px;
 }
 
+/* Titre */
 .embed-title {
-    font-size: 20px;
+    font-size: 26px;
     font-weight: bold;
-}
-
-.form-row {
-    display: flex;
-    gap: 10px;
-}
-
-.form-group {
+    color: #0b1b5a;
     flex: 1;
-    margin-bottom: 15px;
+    text-align: center;
+    letter-spacing: 1px;
 }
 
+/* Labels */
 label {
-    display: block;
-    color: white;
-    font-weight: bold;
+    color: #0b1b5a; /* texte label 2e DA */
+    font-weight: 600;
     margin-bottom: 5px;
 }
 
+/* Inputs */
 input {
     width: 100%;
     padding: 10px;
     box-sizing: border-box;
-    border-radius: 6px;
-    border: none;
-    background: #232428;
-    color: #fff;
+    border-radius: 8px;
+    border: 1px solid #c5cbd5;
+    background-color: #f9fafc;
+    color: #0b1b5a;
     font-size: 15px;
 }
 
-
+/* Inputs focus */
 input:focus {
-    outline: 2px solid white;
+    outline: 2px solid #0b1b5a;
 }
 
+/* Buttons */
 button {
     width: 100%;
     padding: 12px;
     margin-top: 10px;
-    background-color: var(--main-color);
+    background-color: #0b1b5a;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 button:hover {
-    color: #151A2D;
-    background: #EEF2FF;
+    background-color: #1a2c7a;
+    color: white;
 }
 
+/* Boutons spécifiques */
 #deleteBtn {
-    background-color: #c0392b;
-    margin-top: 10px;
-    border-radius: 8px;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: #d32f2f;
+    border-radius: 6px;
 }
 
 #deleteBtn:hover {
-    color: #151A2D;
-    background: #EEF2FF;
+    background-color: #7e1c1c;
+    color: white;
 }
 
 #pointerBtn {
-    background-color: #2ECC71;
-    margin-top: 10px;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    border-radius: 8px;
+    background-color: #2ecc71;
+    border-radius: 6px;
 }
 
 #pointerBtn:hover {
-    color: #151A2D;
-    background: #EEF2FF;
+    background-color: #27ae60;
+    color: white;
 }
 
+/* Footer */
 .embed-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 25px;
-    font-size: 12px;
-    color: #bbb;
-    border-top: 1px solid #444;
+    color: #444;
+    border-top: 1px solid #ccc;
     padding-top: 10px;
-}
-
-.embed-footer-left {
+    font-size: 12px;
+    margin-bottom: 25px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
 }
 
+/* Footer image */
 .embed-footer img {
     height: 20px;
     margin-right: 5px;
 }
 
+/* Responsive remains same */
 @media (max-width: 600px) {
     .form-row {
         flex-direction: column;
     }
 }
 
-
-
-
-
-
-.custom-confirm-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+.form-row {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
+    gap: 15px;
 }
 
-.custom-confirm-box {
-    background: white;
-    color: #0b1b5a;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
-    text-align: center;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-.custom-confirm-buttons {
-    display: flex;
-    justify-content: space-around;
-    gap: 7px;
-}
-
-.btn {
-    padding: 12px 20px;
-    font-size: 1rem;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    font-weight: 700;
-    min-width: 100px;
-    transition: background-color 0.3s ease;
-}
-
-.btn:hover {
-    color: #151A2D;
-    background: #EEF2FF;
-}
-
-.btn-blue {
-    background-color: #0b1b5a;
-    color: white;
-    border-radius: 8px;
-    transition: background-color 0.3s ease;
-}
-
-.btn-blue:hover {
-    background: #07113a;
-    color: white;
-}
-
-.btn-red {
-    background-color: #d32f2f;
-    color: white;
-    border-radius: 8px;
-    transition: background-color 0.3s ease;
-}
-
-.btn-red:hover {
-    background: #7e1c1c;
-    color: white;
-}
-
-p {
-    margin: 0 0 10px 0 !important;
+.form-group {
+    flex: 1;
+    min-width: 0; /* utile pour éviter les débordements */
 }

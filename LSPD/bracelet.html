@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/checkmark.css">
+    <link rel="stylesheet" href="styles/warning.css">
 </head>
 
 <body>
@@ -17,6 +18,13 @@
 
         <div id="sidebar-container"></div>
         <h1>Nouveau bracelet</h1>
+        <div class="warning-modern">
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern">
+            <span>Merci de bien vérifier les informations avant de soumettre le bracelet</span>
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern">
+        </div>
         <form id="lspdForm" class="embed-form">
             <div class="embed-header">
                 <img src="https://i.ibb.co/DDQWSHmZ/assistant.png" alt="Thumbnail">
@@ -48,11 +56,9 @@
                 <input type="text" id="motif" placeholder="Entrez le motif" required>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="dateDebut">Date d'activation</label>
-                    <input type="date" id="dateDebut" required>
-                </div>
+            <div class="form-group">
+                <label for="dateDebut">Date d'activation</label>
+                <input type="date" id="dateDebut" required>
             </div>
 
             <div class="embed-footer">

@@ -11,28 +11,127 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("grade").value = "";
     });
 
+  // Charger les accusations depuis la DB
+  loadAccusations();
 });
 
+// Fonction pour charger les accusations
+async function loadAccusations() {
+  try {
+    // Pour l'instant, on utilise une liste par défaut
+    // Plus tard, remplacez cette partie par un fetch vers votre API
+    const accusations = await getAccusationsFromDB();
+
+    const select = document.getElementById('accusations-input');
+
+    // Vider les options existantes (sauf la première)
+    while (select.children.length > 1) {
+      select.removeChild(select.lastChild);
+    }
+
+    // Ajouter les nouvelles options
+    accusations.forEach(accusation => {
+      const option = document.createElement('option');
+      option.value = accusation.value || accusation;
+      option.textContent = accusation.label || accusation;
+      select.appendChild(option);
+    });
+
+  } catch (error) {
+    console.error("Erreur lors du chargement des accusations:", error);
+    // En cas d'erreur, utiliser la liste par défaut
+    loadDefaultAccusations();
+  }
+}
+
+async function getAccusationsFromDB() {
+  // TODO: Remplacer par un vrai fetch vers votre API
+  // return fetch('/api/accusations').then(res => res.json());
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([
+        "Vol de véhicule",
+        "Agression",
+        "Port d'arme illégal",
+        "Trafic de drogue",
+        "Résistance à arrestation",
+        "Conduite en état d'ivresse",
+        "Excès de vitesse",
+        "Vandalisme",
+        "Trouble à l'ordre public",
+        "Faux et usage de faux",
+        "Homicide",
+        "Tentative d'homicide",
+        "Vol à main armée",
+        "Cambriolage",
+        "Menaces",
+        "Harcèlement",
+        "Conduite sans permis",
+        "Fuite de contrôle",
+        "Non-respect des ordres",
+        "Détérioration de biens publics"
+      ]);
+    }, 100);
+  });
+}
+
+// Fonction de fallback avec la liste par défaut
+function loadDefaultAccusations() {
+  const accusations = [
+    "Vol de véhicule",
+    "Agression",
+    "Port d'arme illégal",
+    "Trafic de drogue",
+    "Résistance à arrestation",
+    "Conduite en état d'ivresse",
+    "Excès de vitesse",
+    "Vandalisme",
+    "Trouble à l'ordre public",
+    "Faux et usage de faux"
+  ];
+
+  const select = document.getElementById('accusations-input');
+  accusations.forEach(accusation => {
+    const option = document.createElement('option');
+    option.value = accusation;
+    option.textContent = accusation;
+    select.appendChild(option);
+  });
+}
+
 function ajouterElement() {
-  const input = document.getElementById('accusations-input');
-  const texte = input.value.trim();
-  if (texte) {
+  const select = document.getElementById('accusations-input');
+  const texte = select.value.trim();
+  if (texte && texte !== "") {
     const ul = document.getElementById('listAccusations');
+
+    // Vérifier si l'accusation n'est pas déjà dans la liste
+    const existingItems = Array.from(ul.children).map(li => li.textContent.trim().replace(' - ', ''));
+    if (existingItems.includes(texte)) {
+      alert("Cette accusation est déjà dans la liste !");
+      return;
+    }
+
     const li = document.createElement('li');
     li.textContent = " - " + texte;
     li.addEventListener('click', function () {
       li.remove();
     });
     ul.appendChild(li);
-    input.value = '';
-    input.focus();
+
+    // Remettre le select à la valeur par défaut
+    select.value = "";
+    select.focus();
+  } else {
+    alert("Veuillez sélectionner une accusation !");
   }
 };
 
-// Permet l'ajout avec la touche Entrée
+// Permet l'ajout avec la touche Entrée sur le select
 document.getElementById('accusations-input').addEventListener('keydown', function (e) {
   if (e.key === 'Enter') {
-    console.log("fsfffd")
+    console.log("Ajout par Entrée")
     ajouterElement();
   }
 })
@@ -478,7 +577,7 @@ function showAnimation(type = 'success') {
           <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
           <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" points="100.2,40.2 51.5,88.8 29.8,67.5"/>
         </svg>
-        <p class="success">Rapport d'incident soumis avec succès!</p>
+        <p class="success">Rapport d'arrestation soumis avec succès!</p>
       `;
     } else {
       content.innerHTML = `
@@ -487,7 +586,7 @@ function showAnimation(type = 'success') {
           <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
           <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
         </svg>
-        <p class="error">Erreur lors de la soumission du rapport d'incident</p>
+        <p class="error">Erreur lors de la soumission du rapport d'arrestation</p>
       `;
     }
 

@@ -436,6 +436,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
     const clientDiscord = config.getBot();
 
     try {
+        const conf = await config.getConfig();
         const { rows } = await pool.query(
             'SELECT id_thread, id_brac, nom, prenom FROM bracelets WHERE id = $1',
             [id]
@@ -483,7 +484,6 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
             .setTimestamp();
 
         await thread.send({ embeds: [embed] });
-        const conf = await config.getConfig();
         // Log axrchivage dans LOGS_CHANNEL
         if (conf.logs_channel) {
             const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
@@ -496,7 +496,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
                     .setDescription(`<@${req.user.id}> a pointé le bracelet - ${mentionThread} \`${data.id_brac}\``)
                     .addFields({
                         name: "ID's",
-                        value: `> <@${req.user.id}> (\`${req.user.id}\`) \n > ${mentionThread} (\`${data.id_thread}\`)`,
+                        value: `> <@${req.user.id}> (${req.user.id}) \n > ${mentionThread} (\`${data.id_thread}\`)`,
                         inline: false
                     })
                     .setFooter({
