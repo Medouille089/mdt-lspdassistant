@@ -478,7 +478,7 @@ function showAnimation(type = 'success') {
           <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
           <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" points="100.2,40.2 51.5,88.8 29.8,67.5"/>
         </svg>
-        <p class="success">Rapport d'incident soumis avec succès!</p>
+        <p class="success">Rapport d'arrestation soumis avec succès!</p>
       `;
     } else {
       content.innerHTML = `
@@ -487,7 +487,7 @@ function showAnimation(type = 'success') {
           <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
           <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
         </svg>
-        <p class="error">Erreur lors de la soumission du rapport d'incident</p>
+        <p class="error">Erreur lors de la soumission du rapport d'arrestation</p>
       `;
     }
 

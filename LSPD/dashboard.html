@@ -6,78 +6,7 @@
     <title>Dashboard - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/sidebar.css" />
-
-    <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            font-family: sans-serif;
-        }
-
-        #message {
-            min-height: 80vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2em;
-            text-align: center;
-            color: #000000;
-        }
-
-        .main-container {
-            position: relative;
-            z-index: 1;
-            min-height: 100vh;
-            color: #000000;
-        }
-
-        /* Overlay full screen au dessus */
-        #overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #0b1b5a;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 3em;
-            font-weight: bold;
-            z-index: 9999;
-            /* on cache par défaut */
-            opacity: 0;
-            pointer-events: none;
-            flex-direction: column;
-            padding: 20px;
-            text-align: center;
-        }
-
-        /* Overlay visible */
-        #overlay.show {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-
-        /* Animation du rideau qui "monte" (effet translateY) */
-        #overlay.hide {
-            animation: curtainUp 1s forwards;
-        }
-
-        @keyframes curtainUp {
-            from {
-                transform: translateY(0);
-            }
-
-            to {
-                transform: translateY(-100%);
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles/dashboard.css" />
 </head>
 
 <body>
@@ -86,65 +15,86 @@
         <div id="overlayGrade" style="font-size: 0.5em; font-weight: normal; margin-top: 10px;"></div>
     </div>
 
-
     <div class="main-container">
         <div id="sidebar-container"></div>
         <h1>Dashboard</h1>
-        <div id="message">
-            <!-- injecté dynamiquement -->
-            <div>
-                <div id="messageUsername"></div>
-                <div id="messageGrade" style="font-size: 0.8em; color: #555;"></div>
+
+        <div class="dashboard-container">
+            <!-- Top widgets -->
+            <div class="stats-cards">
+                <div class="card stat">
+                    <div class="title">Interventions</div>
+                    <div class="number">34</div>
+                    <div class="info">+4 aujourd'hui</div>
+                </div>
+                <div class="card stat">
+                    <div class="title">Patrouilles</div>
+                    <div class="number">12</div>
+                    <div class="info">+1 agent actif</div>
+                </div>
+                <div class="card stat">
+                    <div class="title">Bracelets</div>
+                    <div class="number blink-red">5</div>
+                    <div class="info">Actifs</div>
+                </div>
+            </div>
+
+            <!-- Middle section -->
+            <div class="middle-section">
+                <div class="card chart">
+                    <h3>Activité Hebdomadaire</h3>
+                    <div class="chart-placeholder">[Graphique ici]</div>
+                </div>
+
+                <div class="right-panel">
+                    <div class="card profile-summary">
+                        <h4>Agents connectés</h4>
+                        <ul>
+                            <li>Sgt. Brooks</li>
+                            <li>Off. Reyes</li>
+                            <li>Lt. Davis</li>
+                        </ul>
+                    </div>
+                    <div class="card small-alert">
+                        <h4>Alertes</h4>
+                        <p>2 demandes de renfort</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom section -->
+            <div class="card full-width">
+                <h3>Derniers rapports</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Agent</th>
+                            <th>Type</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>24/07</td>
+                            <td>D. Smith</td>
+                            <td>Interpellation</td>
+                            <td>Validé</td>
+                        </tr>
+                        <tr>
+                            <td>24/07</td>
+                            <td>C. Moore</td>
+                            <td>Patrouille</td>
+                            <td>En cours</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-
     </div>
 
-    <!-- Le script externe pour ta sidebar -->
     <script src="scripts/loadSidebar.js"></script>
-
-    <!-- Ton script pour fetch l'utilisateur et gérer l'overlay -->
-    <script>
-        async function fetchUser() {
-
-            const res = await fetch('/api/user');
-            if (!res.ok) throw new Error('Non connecté');
-            const user = await res.json();
-
-            // Message principal
-            document.getElementById('messageUsername').innerHTML = `Bonjour <strong>${user.username}</strong>`;
-            document.getElementById('messageGrade').textContent = user.grade || '';
-
-            // Overlay
-            document.getElementById('overlayMessage').innerHTML = `Bonjour <strong>${user.username}</strong>`;
-            document.getElementById('overlayGrade').textContent = user.grade || '';
-
-            const now = Date.now();
-            const lastSeen = localStorage.getItem('overlayLastSeen');
-            const delay = 3600000;
-
-            if (!lastSeen || now - lastSeen > delay) {
-                showOverlay();
-                localStorage.setItem('overlayLastSeen', now);
-            }
-        }
-
-        function showOverlay() {
-            const overlay = document.getElementById('overlay');
-            overlay.classList.add('show');
-
-            setTimeout(() => {
-                overlay.classList.add('hide');
-            }, 2000);
-
-            overlay.addEventListener('animationend', () => {
-                overlay.classList.remove('show', 'hide');
-                overlay.style.display = 'none';
-            }, { once: true });
-        }
-
-        fetchUser();
-    </script>
+    <script src="scripts/dashboard.js"></script>
 </body>
 
 </html>

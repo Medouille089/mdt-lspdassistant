@@ -190,7 +190,7 @@ router.put("/api/config", async (req, res) => {
       if (oldConfig.commandstaff_id !== commandstaff_id && logsChannel) {
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
-          .setTitle("Rôle Command Staff modifié")
+          .setTitle("🔧 Rôle Command Staff modifié")
           .setDescription(`<@${req.user.id}> a modifié la configuration du rôle command staff`)
           .addFields({
             name: "ID's",
@@ -210,7 +210,7 @@ router.put("/api/config", async (req, res) => {
       if (oldConfig.convocation_thread_id !== convocation_thread_id && logsChannel) {
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
-          .setTitle("🔧 Thread ID Convocation modifié")
+          .setTitle("Thread ID Convocation modifié")
           .setDescription(`<@${req.user.id}> a modifié la configuration de l'ID du thread des convocations`)
           .addFields({
             name: "ID's",
@@ -230,7 +230,7 @@ router.put("/api/config", async (req, res) => {
       if (oldConfig.arrestation_thread_id !== arrestation_thread_id && logsChannel) {
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
-          .setTitle("🔧 Thread ID Arrestation modifié")
+          .setTitle("Thread ID Arrestation modifié")
           .setDescription(`<@${req.user.id}> a modifié la configuration de l'ID du thread des arrestations`)
           .addFields({
             name: "ID's",
@@ -250,7 +250,7 @@ router.put("/api/config", async (req, res) => {
       if (oldConfig.incident_thread_id !== incident_thread_id && logsChannel) {
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
-          .setTitle("🔧 Thread ID Incidents modifié")
+          .setTitle("Thread ID Incidents modifié")
           .setDescription(`<@${req.user.id}> a modifié la configuration de l'ID du thread des incidents`)
           .addFields({
             name: "ID's",

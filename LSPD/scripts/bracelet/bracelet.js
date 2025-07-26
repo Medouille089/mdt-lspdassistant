@@ -1,3 +1,8 @@
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('loaderOverlay').style.display = 'flex';
+    getNextIdBrac();
+});
+
 async function getNextIdBrac() {
     try {
         const res = await fetch('/api/next-id-brac');
@@ -7,6 +12,8 @@ async function getNextIdBrac() {
     } catch (err) {
         console.error(err);
         document.getElementById('id_brac').value = "Erreur";
+    } finally {
+        document.getElementById('loaderOverlay').style.display = 'none';
     }
 }
 
