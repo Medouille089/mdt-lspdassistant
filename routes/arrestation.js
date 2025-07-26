@@ -31,7 +31,6 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
         const { rows } = await pool.query("SELECT COUNT(*) FROM lspd_arrestations");
         const count = parseInt(rows[0].count, 10) + 1;
         const arrestationId = `ART${count.toString().padStart(4, "0")}`;
-        // date is given in format '2000-03-13T12:23'
         const dividedDate = date.split('T');
         const [yyyy, mm, dd] = dividedDate[0].split("-");
         const [hh, min] = dividedDate[1].split(":");
@@ -46,8 +45,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
                 { name: "Individu", value: name, inline: true },
                 { name: "Officier rédacteur", value: officer, inline: true },
                 { name: "Avocat", value: avocatName || "Non précisé", inline: true },
-                { name: "Officiers impliqués", value: implique || "Aucun" },
-                { name: "Accusations", value: JSON.parse(accusations || "[]").map(a => a.texte).join(", ") || "Aucune", inline: true },
+                { name: "Accusations", value: JSON.parse(accusations || "[]").map(a => a).join("\n") || "Aucune", inline: true },
                 { name: "Lieu", value: lieu || "Non précisé", inline: true },
             )
             .setFooter({

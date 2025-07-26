@@ -124,10 +124,107 @@ form input[type="date"]:focus,
 form input[type="time"]:focus,
 form input[type="datetime-local"]:focus,
 form .select-box:focus,
-form textarea:focus {
+form textarea:focus,
+form select:focus {
     border-color: #0b1b5a;
     outline: none;
     background-color: #eef1f5;
+}
+
+#accusations-input {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    border: 1px solid #c5cbd5;
+    border-radius: 8px;
+    background-color: #f9fafc;
+    color: #0b1b5a;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+
+    /* Style moderne pour la flèche */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b1b5a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 45px;
+}
+
+#accusations-input:hover {
+    border-color: #0b1b5a;
+    background-color: #eef1f5;
+    box-shadow: 0 2px 8px rgba(11, 27, 90, 0.1);
+}
+
+#accusations-input:focus {
+    border-color: #0b1b5a;
+    background-color: #eef1f5;
+    box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
+}
+
+/* Styles pour les options du select */
+#accusations-input option {
+    background-color: #fff;
+    color: #0b1b5a;
+    padding: 10px 15px;
+    font-size: 15px;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+#accusations-input option:hover {
+    background-color: #f0f4ff;
+}
+
+#accusations-input option[value=""] {
+    color: #666;
+    font-style: italic;
+}
+
+/* Style pour le bouton Ajouter */
+.addInput input[type="button"] {
+    padding: 12px 20px;
+    background-color: #0b1b5a;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: auto;
+    min-height: 45px;
+    box-sizing: border-box;
+}
+
+.addInput input[type="button"]:hover {
+    background-color: #15256b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(11, 27, 90, 0.2);
+}
+
+.addInput input[type="button"]:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(11, 27, 90, 0.2);
+}
+
+.addInput.inline-fields {
+    align-items: end;
+    margin-bottom: 20px;
+}
+
+.addInput.inline-fields>div:first-child {
+    flex: 2;
+}
+
+.addInput.inline-fields>div:last-child {
+    flex: 0 0 auto;
+    margin-left: 10px;
 }
 
 form textarea {
@@ -135,7 +232,6 @@ form textarea {
     padding-top: 15px;
 }
 
-/* Align date & heure and type & lieu in same row */
 .inline-fields {
     display: flex;
     gap: 20px;
@@ -148,8 +244,73 @@ form textarea {
 }
 
 
+#listAccusations {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0 20px 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    min-height: 60px;
+    max-height: 300px;
+    overflow-y: auto;
+}
 
-/* Bouton */
+#listAccusations:empty::before {
+    content: "Aucune accusation sélectionnée";
+    display: block;
+    padding: 20px;
+    text-align: center;
+    color: #64748b;
+    font-style: italic;
+    font-size: 14px;
+}
+
+#listAccusations li {
+    padding: 12px 16px;
+    margin: 0;
+    background-color: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    color: #0b1b5a;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    border-left: 4px solid #0b1b5a;
+}
+
+#listAccusations li:last-child {
+    border-bottom: none;
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+#listAccusations li:first-child {
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+}
+
+#listAccusations li:hover {
+    background-color: #fee2e2;
+    border-left-color: #dc2626;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
+}
+
+#listAccusations li:hover::after {
+    content: "✕ Cliquer pour supprimer";
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #dc2626;
+    font-weight: bold;
+    background-color: rgba(220, 38, 38, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
 .button-container {
     margin-top: 40px;
     text-align: center;
@@ -315,7 +476,6 @@ form img {
 }
 
 input[type="button"] {
-    width: 20%;
     padding: 10px;
     font-size: 15px;
     border: 1px solid #c5cbd5;
@@ -338,7 +498,7 @@ form ul {
 }
 
 form ul>li {
-    width: 50%;
+    width: calc(100% - 3px);
 }
 
 form ul>li:hover {

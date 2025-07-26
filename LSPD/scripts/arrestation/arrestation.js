@@ -11,28 +11,127 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("grade").value = "";
     });
 
+  // Charger les accusations depuis la DB
+  loadAccusations();
 });
 
+// Fonction pour charger les accusations
+async function loadAccusations() {
+  try {
+    // Pour l'instant, on utilise une liste par défaut
+    // Plus tard, remplacez cette partie par un fetch vers votre API
+    const accusations = await getAccusationsFromDB();
+
+    const select = document.getElementById('accusations-input');
+
+    // Vider les options existantes (sauf la première)
+    while (select.children.length > 1) {
+      select.removeChild(select.lastChild);
+    }
+
+    // Ajouter les nouvelles options
+    accusations.forEach(accusation => {
+      const option = document.createElement('option');
+      option.value = accusation.value || accusation;
+      option.textContent = accusation.label || accusation;
+      select.appendChild(option);
+    });
+
+  } catch (error) {
+    console.error("Erreur lors du chargement des accusations:", error);
+    // En cas d'erreur, utiliser la liste par défaut
+    loadDefaultAccusations();
+  }
+}
+
+async function getAccusationsFromDB() {
+  // TODO: Remplacer par un vrai fetch vers votre API
+  // return fetch('/api/accusations').then(res => res.json());
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([
+        "Vol de véhicule",
+        "Agression",
+        "Port d'arme illégal",
+        "Trafic de drogue",
+        "Résistance à arrestation",
+        "Conduite en état d'ivresse",
+        "Excès de vitesse",
+        "Vandalisme",
+        "Trouble à l'ordre public",
+        "Faux et usage de faux",
+        "Homicide",
+        "Tentative d'homicide",
+        "Vol à main armée",
+        "Cambriolage",
+        "Menaces",
+        "Harcèlement",
+        "Conduite sans permis",
+        "Fuite de contrôle",
+        "Non-respect des ordres",
+        "Détérioration de biens publics"
+      ]);
+    }, 100);
+  });
+}
+
+// Fonction de fallback avec la liste par défaut
+function loadDefaultAccusations() {
+  const accusations = [
+    "Vol de véhicule",
+    "Agression",
+    "Port d'arme illégal",
+    "Trafic de drogue",
+    "Résistance à arrestation",
+    "Conduite en état d'ivresse",
+    "Excès de vitesse",
+    "Vandalisme",
+    "Trouble à l'ordre public",
+    "Faux et usage de faux"
+  ];
+
+  const select = document.getElementById('accusations-input');
+  accusations.forEach(accusation => {
+    const option = document.createElement('option');
+    option.value = accusation;
+    option.textContent = accusation;
+    select.appendChild(option);
+  });
+}
+
 function ajouterElement() {
-  const input = document.getElementById('accusations-input');
-  const texte = input.value.trim();
-  if (texte) {
+  const select = document.getElementById('accusations-input');
+  const texte = select.value.trim();
+  if (texte && texte !== "") {
     const ul = document.getElementById('listAccusations');
+
+    // Vérifier si l'accusation n'est pas déjà dans la liste
+    const existingItems = Array.from(ul.children).map(li => li.textContent.trim().replace(' - ', ''));
+    if (existingItems.includes(texte)) {
+      alert("Cette accusation est déjà dans la liste !");
+      return;
+    }
+
     const li = document.createElement('li');
     li.textContent = " - " + texte;
     li.addEventListener('click', function () {
       li.remove();
     });
     ul.appendChild(li);
-    input.value = '';
-    input.focus();
+
+    // Remettre le select à la valeur par défaut
+    select.value = "";
+    select.focus();
+  } else {
+    alert("Veuillez sélectionner une accusation !");
   }
 };
 
-// Permet l'ajout avec la touche Entrée
+// Permet l'ajout avec la touche Entrée sur le select
 document.getElementById('accusations-input').addEventListener('keydown', function (e) {
   if (e.key === 'Enter') {
-    console.log("fsfffd")
+    console.log("Ajout par Entrée")
     ajouterElement();
   }
 })
