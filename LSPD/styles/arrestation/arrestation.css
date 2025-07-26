@@ -251,15 +251,12 @@ form textarea {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     background-color: #f8fafc;
-    min-height: 60px;
-    max-height: 300px;
-    overflow-y: auto;
 }
 
 #listAccusations:empty::before {
     content: "Aucune accusation sélectionnée";
     display: block;
-    padding: 20px;
+    padding: 16px;
     text-align: center;
     color: #64748b;
     font-style: italic;

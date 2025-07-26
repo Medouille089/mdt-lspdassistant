@@ -45,7 +45,7 @@ async function loadAccusations() {
 }
 
 async function getAccusationsFromDB() {
-  // TODO: Remplacer par un vrai fetch vers votre API
+  // TODO: Remplacer par un vrai fetch vers notre API
   // return fetch('/api/accusations').then(res => res.json());
 
   return new Promise((resolve) => {
@@ -76,7 +76,6 @@ async function getAccusationsFromDB() {
   });
 }
 
-// Fonction de fallback avec la liste par défaut
 function loadDefaultAccusations() {
   const accusations = [
     "Vol de véhicule",
@@ -106,7 +105,6 @@ function ajouterElement() {
   if (texte && texte !== "") {
     const ul = document.getElementById('listAccusations');
 
-    // Vérifier si l'accusation n'est pas déjà dans la liste
     const existingItems = Array.from(ul.children).map(li => li.textContent.trim().replace(' - ', ''));
     if (existingItems.includes(texte)) {
       alert("Cette accusation est déjà dans la liste !");
@@ -120,7 +118,6 @@ function ajouterElement() {
     });
     ul.appendChild(li);
 
-    // Remettre le select à la valeur par défaut
     select.value = "";
     select.focus();
   } else {
@@ -128,7 +125,6 @@ function ajouterElement() {
   }
 };
 
-// Permet l'ajout avec la touche Entrée sur le select
 document.getElementById('accusations-input').addEventListener('keydown', function (e) {
   if (e.key === 'Enter') {
     console.log("Ajout par Entrée")
