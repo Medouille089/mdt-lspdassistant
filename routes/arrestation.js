@@ -167,6 +167,7 @@ router.get('/api/getArrestation', async (req, res) => {
                         msg.attachments.forEach(att => {
                             if (att.contentType?.startsWith("image/")) {
                                 images.push(att.url);
+                                console.log(images)
                             }
                         });
                     });

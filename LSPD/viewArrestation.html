@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Rapport d'arrestation - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/arrestation/viewArrestation.css" />
+</head>
+
+<body>
+  <div class="main-container">
+    <div id="sidebar-container"></div>
+    <h1>Rapport d'arrestation</h1>
+    <div class="incident-container">
+
+      <div class="header">
+        <img src="data/images/lspd.png" alt="Logo LSPD" />
+        <div class="header-title">
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3>DOSSIER D'ARRESTATION </h3>
+        </div>
+        <div style="width: 60px;"></div>
+      </div>
+
+      <form>
+        <input type="text" id="grade" name="grade" style="display: none;" />
+        <div class="inline-fields">
+          <div>
+            <label for="date">Date et heure de rédaction</label>
+            <input type="datetime-local" id="date" name="date" readonly />
+          </div>
+          <div>
+            <label for="name">Nom de l'individu</label>
+            <input type="text" name="name" id="name" readonly />
+          </div>
+        </div>
+
+        <div class="inline-fields">
+          <div>
+            <label for="none" id="customButton1">Image de la personne masqué</label>
+            <div class="image-picker" data-id="1">
+              <img id="preview1" src="" alt="Aperçu de l'image">
+            </div>
+          </div>
+          <div>
+            <label for="none" id="customButton2">Image de la personne masqué</label>
+            <div class="image-picker" data-id="2">
+              <img id="preview2" src="" alt="Aperçu de l'image">
+            </div>
+          </div>
+        </div>
+        <label for="inline-fields-4-infos">Informations personnelles du suspect</label>
+        <div class="inline-fields-4 border">
+          <div>
+            <label for="profession">Profession</label>
+            <input type="text" id="profession" name="profession" readonly />
+          </div>
+          <div>
+            <label for="DDN">Date de naissance</label>
+            <input type="date" id="DDN" name="DDN" readonly />
+          </div>
+          <div>
+            <label for="address">Adresse</label>
+            <input type="text" id="address" name="address" readonly />
+          </div>
+          <div>
+            <label for="tel">Numéro de téléphone</label>
+            <input type="text" id="tel" placeholder="(000) 000-0000" maxlength="14" readonly>
+          </div>
+        </div>
+        <div class="inline-fields-4 ">
+          <div>
+            <label for="droits">Lecture des droits</label>
+            <input type="time" id="droits" name="droits" readonly />
+          </div>
+          <div>
+            <label for="entreecellule">Entrée cellule</label>
+            <input type="time" id="entreecellule" name="entreecellule" readonly />
+          </div>
+          <div>
+            <label for="sortiecellule">Sortie Cellule</label>
+            <input type="time" id="sortiecellule" name="sortiecellule" readonly />
+          </div>
+          <div>
+            <label for="bracelet">Bracelet associé</label>
+            <input type="text" id="bracelet" name="bracelet" readonly />
+          </div>
+        </div>
+        <div class="inline-fields-4 ">
+          <div>
+            <label for="miranda">Droit miranda</label>
+            <span id="miranda"></span>
+          </div>
+          <div>
+            <label for="avocat">Avocat</label>
+            <span id="avocat"></span>
+          </div>
+          <div>
+            <label for="nourriture">Nourriture</label>
+            <span id="nourriture"></span>
+          </div>
+          <div>
+            <label for="ems">EMS</label>
+            <span id="ems"></span>
+          </div>
+        </div>
+        <div class="inline-fields">
+          <div>
+            <label for="avocatName">Nom avocat</label>
+            <input type="text" id="avocatName" name="avocatName" readonly />
+          </div>
+          <div>
+            <label for="officier">Agent rédacteur</label>
+            <input type="text" id="officier" name="officier" readonly />
+          </div>
+        </div>
+        <div class="inline-fields-3">
+          <div>
+            <label for="lieu">Lieu</label>
+            <input type="text" id="lieu" name="lieu" readonly />
+          </div>
+          <div>
+            <label for="motifArrestation">Motif d'arrestation</label>
+            <input type="text" id="motifArrestation" name="motifArrestation" readonly />
+          </div>
+          <div>
+            <label for="circonstances">Circonstance d'arrestation</label>
+            <input type="text" id="circonstances" name="circonstances" readonly />
+          </div>
+        </div>
+        <div class="page-break"></div>
+        <label for="inline-fields-4-infos">Informations annexes</label>
+        <div class="inline-fields border">
+          <div>
+            <label for="arme">Arme</label>
+            <input type="text" id="arme" name="arme" readonly />
+          </div>
+          <div>
+            <label for="uof">Utilisation de la force</label>
+            <span id="uof"></span>
+          </div>
+        </div>
+        <label for="inline-fields-4-infos">Chef(s) d'accusation(s)</label>
+        <ul id="listAccusations"></ul>
+        <label for="pieces">Pièces jointes (Images)</label>
+        <div id="incident-container"></div>
+      </form>
+      <div class="image-container">
+        <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo" />
+      </div>
+    </div>
+    <div class="attachments-preview" id="attachmentsPreview"></div>
+  </div>
+  <div class="loader-overlay" id="loaderOverlay">
+    <div class="loader-spinner"></div>
+  </div>
+  </div>
+  <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+    integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="scripts/arrestation/viewArrestation.js"></script>
+  <script src="scripts/loadSidebar.js"></script>
+</body>
+
+</html>
