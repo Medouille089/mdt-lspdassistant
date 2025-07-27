@@ -230,3 +230,25 @@ tbody td {
     border-top: 1px solid #2f3e57;
     color: #fff;
 }
+
+.connected-agents-list {
+  max-height: 200px; 
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #0b1b5a transparent;
+}
+
+/* Scrollbar personnalisée pour Chrome, Edge, Safari */
+.connected-agents-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.connected-agents-list::-webkit-scrollbar-track {
+  background: #0b1b5a;
+}
+
+.connected-agents-list::-webkit-scrollbar-thumb {
+  background-color: #0b1b5a;
+  border-radius: 4px;
+}
