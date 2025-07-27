@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Liste Bracelets - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+</head>
+
+<body>
+    <div class="main-container">
+
+        <div id="sidebar-container"></div>
+        <h1>Liste des rapports d'incidents</h1>
+        <div class="container">
+            <div class="filters">
+                <input type="text" id="searchInput" placeholder="Rechercher" autocomplete="off" />
+                <input type="date" id="dateStart" />
+                <input type="date" id="dateEnd" />
+            </div>
+
+            <table id="braceletTable" aria-label="Liste des bracelets">
+                <thead>
+                    <thead>
+                        <tr>
+                            <th>ID Incident</th>
+                            <th>Individu impliqué</th>  
+                            <th>Officier</th>
+                            <th>Date</th>
+                            <th>Heure</th>
+                            
+                        </tr>
+                    </thead>
+                <tbody>
+                    <!-- Dynamique -->
+                </tbody>
+            </table>
+
+            <div class="pagination" id="pagination">
+                <!-- Pagination buttons -->
+            </div>
+        </div>
+    </div>
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-spinner"></div>
+    </div>
+    <script src="scripts/arrestation/getArrestation.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+
+</body>
+
+</html>

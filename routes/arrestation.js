@@ -74,15 +74,15 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
       INSERT INTO lspd_arrestations
       (arrestation_id, date_arrestation, profession, ddn, address, tel, droits,
        entree_cellule, sortie_cellule, bracelet, miranda, avocat, nourriture, ems,
-       avocatname, officer, grade, lieu, motifarrestation, circonstances, arme, uof, accusations, discord_thread_id)
-      VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+       avocatname, officer, grade, lieu, motifarrestation, circonstances, arme, uof, accusations, discord_thread_id, name)
+      VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
     `, [
             arrestationId, date, profession, DDN, address, tel, droits,
             entreecellule, sortiecellule, bracelet, miranda,
             avocat, nourriture, ems,
             avocatName, officer, grade, lieu,
             motifArrestation, circonstances, arme, uof,
-            JSON.stringify(JSON.parse(accusations || "[]")), thread.id
+            JSON.stringify(JSON.parse(accusations || "[]")), thread.id, name
         ]);
 
         const logsChannel = await bot.channels.fetch(logsChannelId);
@@ -117,69 +117,101 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
     }
 });
 
-// router.get('/api/getIncident', async (req, res) => {
-//     try {
-//         const result = await pool.query(`
-//       SELECT 
-//         incident_id,
-//         date_incident,
-//         heure_incident,
-//         officier_redacteur,
-//         grade,
-//         recit,
-//         officier_implique,
-//         type_rapport,
-//         lieu_incident,
-//         discord_thread_id
-//       FROM incidents
-//       ORDER BY date_incident DESC, heure_incident DESC
-//     `);
+router.get('/api/getArrestation', async (req, res) => {
+    try {
+        const result = await pool.query(`
+      SELECT
+        name,
+        date_arrestation,
+        profession,
+        ddn,
+        address,
+        tel,
+        droits,
+        entree_cellule,
+        sortie_cellule,
+        bracelet,
+        miranda,
+        avocat,
+        nourriture,
+        ems,
+        avocatname,
+        officer,
+        grade,
+        lieu,
+        motifarrestation,
+        circonstances,
+        arme,
+        uof,
+        accusations,
+        discord_thread_id,
+        arrestation_id
+      FROM lspd_arrestations
+      ORDER BY date_arrestation
+    `);
+    console.log("Récupération des arrestations :", result.rows.length);
+    console.log(result.rows);
 
-//         const bot = getBot(); // Assure-toi que le bot est prêt
+        const bot = getBot(); // Assure-toi que le bot est prêt
 
-//         const withImages = await Promise.all(result.rows.map(async row => {
-//             let images = [];
+        const withImages = await Promise.all(result.rows.map(async row => {
+            let images = [];
 
-//             try {
-//                 const thread = await bot.channels.fetch(row.discord_thread_id);
+            try {
+                const thread = await bot.channels.fetch(row.discord_thread_id);
 
-//                 if (thread?.isThread()) {
-//                     const messages = await thread.messages.fetch({ limit: 100 });
+                if (thread?.isThread()) {
+                    const messages = await thread.messages.fetch({ limit: 100 });
 
-//                     messages.forEach(msg => {
-//                         msg.attachments.forEach(att => {
-//                             if (att.contentType?.startsWith("image/")) {
-//                                 images.push(att.url);
-//                             }
-//                         });
-//                     });
-//                 }
-//             } catch (err) {
-//                 console.error(`Erreur lors de la récupération des images du thread ${row.discord_thread_id}:`, err);
-//             }
+                    messages.forEach(msg => {
+                        msg.attachments.forEach(att => {
+                            if (att.contentType?.startsWith("image/")) {
+                                images.push(att.url);
+                            }
+                        });
+                    });
+                }
+            } catch (err) {
+                console.error(`Erreur lors de la récupération des images du thread ${row.discord_thread_id}:`, err);
+            }
 
-//             return {
-//                 id: row.incident_id,
-//                 date: row.date_incident.toISOString().split('T')[0],
-//                 heure: row.heure_incident,
-//                 officier: row.officier_redacteur,
-//                 grade: row.grade,
-//                 recit: row.recit,
-//                 implique: row.officier_implique,
-//                 type: row.type_rapport,
-//                 lieu: row.lieu_incident,
-//                 threadId: row.discord_thread_id,
-//                 images
-//             };
-//         }));
+            return {
+                name: row.name,
+                date: row.date_arrestation,
+                profession: row.profession,
+                ddn: row.ddn,
+                address: row.address,
+                tel: row.tel,
+                droits: row.droits,
+                entree_cellule: row.entree_cellule,
+                sortie_cellule: row.sortie_cellule,
+                bracelet: row.bracelet,
+                miranda: row.miranda,
+                avocat: row.avocat,
+                nourriture: row.nourriture,
+                ems: row.ems,
+                avocatName: row.avocatname,
+                officer: row.officer,
+                grade: row.grade,
+                lieu: row.lieu,
+                motifArrestation: row.motifarrestation,
+                circonstances: row.circonstances,
+                arme: row.arme,
+                uof: row.uof,
+                accusations: row.accusations,
+                threadId: row.discord_thread_id,
+                arrestationId: row.arrestation_id,
+                images: images
+            };
+        }));
 
-//         res.json(withImages);
+        res.json(withImages);
 
-//     } catch (err) {
-//         console.error('Erreur GET /api/incidents :', err);
-//         res.status(500).json({ error: 'Erreur serveur' });
-//     }
-// });
+    } catch (err) {
+        console.error('Erreur GET /api/getArrestation :', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
 
 
 module.exports = router;

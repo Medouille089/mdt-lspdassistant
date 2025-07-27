@@ -15,21 +15,18 @@ document.addEventListener("DOMContentLoaded", () => {
   loadAccusations();
 });
 
-// Fonction pour charger les accusations
 async function loadAccusations() {
   try {
     // Pour l'instant, on utilise une liste par défaut
-    // Plus tard, remplacez cette partie par un fetch vers votre API
+    // Plus tard, remplacez cette partie par un fetch vers notre API
     const accusations = await getAccusationsFromDB();
 
     const select = document.getElementById('accusations-input');
 
-    // Vider les options existantes (sauf la première)
     while (select.children.length > 1) {
       select.removeChild(select.lastChild);
     }
 
-    // Ajouter les nouvelles options
     accusations.forEach(accusation => {
       const option = document.createElement('option');
       option.value = accusation.value || accusation;
@@ -39,7 +36,7 @@ async function loadAccusations() {
 
   } catch (error) {
     console.error("Erreur lors du chargement des accusations:", error);
-    // En cas d'erreur, utiliser la liste par défaut
+    
     loadDefaultAccusations();
   }
 }
