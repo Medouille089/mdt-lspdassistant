@@ -1,10 +1,10 @@
 const express = require("express");
 const path = require("path");
+require('./utils/liveUsersCleaner');
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const passport = require("./config/passport");
 const { SESSION_SECRET } = require("./config/env");
-
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -45,6 +45,8 @@ const convocationRoute = require("./routes/convocation");
 const agentsRoutes = require("./routes/agents");
 const incidentsRoute = require("./routes/incidents");
 const arrestationRoute = require("./routes/arrestation");
+const dashboardRoute = require("./routes/dashboard");
+const liveUsersRoute = require('./routes/liveUsers');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -54,6 +56,8 @@ app.use(arrestationRoute);
 app.use(convocationRoute);
 app.use(agentsRoutes);
 app.use(incidentsRoute);
+app.use(dashboardRoute);
+app.use(liveUsersRoute);
 
 // Static frontend
 app.use(express.static(path.join(__dirname, "LSPD")));

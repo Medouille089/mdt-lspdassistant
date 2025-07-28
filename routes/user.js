@@ -5,6 +5,7 @@ const bot = require("../config/bot");
 const { GUILD_ID } = require("../config/env");
 const { getConfig } = require("../config/config");
 const path = require("path");
+const pool = require('../config/db');
 
 router.get('/api/user', checkAuth, async (req, res) => {
   const user = req.user;
@@ -22,6 +23,14 @@ router.get('/api/user', checkAuth, async (req, res) => {
 
     const isSupervisor = supervisorRoleId ? roleIds.includes(supervisorRoleId) : false;
     const isCommandStaff = commandStaffRoleId ? roleIds.includes(commandStaffRoleId) : false;
+
+    // Upsert lspd_live_users pour dire que l'utilisateur est connecté
+    await pool.query(`
+      INSERT INTO lspd_live_users (user_id, display_name, last_seen)
+      VALUES ($1, $2, NOW())
+      ON CONFLICT (user_id)
+      DO UPDATE SET display_name = $2, last_seen = NOW()
+    `, [user.id, member.displayName || user.username]);
 
     res.set('Cache-Control', 'no-store');
 
@@ -41,5 +50,6 @@ router.get('/api/user', checkAuth, async (req, res) => {
     res.status(500).json({ error: 'Impossible de récupérer le membre.' });
   }
 });
+
 
 module.exports = router;
