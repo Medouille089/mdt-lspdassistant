@@ -10,20 +10,13 @@
   <link rel="stylesheet" href="styles/loader.css" />
   <link rel="stylesheet" href="styles/checkmark.css">
   <link rel="stylesheet" href="styles/warning.css">
-  <link rel="stylesheet" href="styles/arrestation/arrestation.css" />
+  <link rel="stylesheet" href="styles/arrestation/viewArrestation.css" />
 </head>
 
 <body>
   <div class="main-container">
     <div id="sidebar-container"></div>
     <h1>Rapport d'arrestation</h1>
-    <div class="warning-modern">
-      <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
-        class="warning-icon-modern">
-      <span>Merci de bien vérifier les informations avant de soumettre le rapport d'arrestation</span>
-      <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
-        class="warning-icon-modern">
-    </div>
     <div class="incident-container">
 
       <div class="header">
@@ -40,11 +33,11 @@
         <div class="inline-fields">
           <div>
             <label for="date">Date et heure de rédaction</label>
-            <input type="datetime-local" id="date" name="date" required />
+            <input type="datetime-local" id="date" name="date" readonly />
           </div>
           <div>
             <label for="name">Nom de l'individu</label>
-            <input type="text" name="name" id="name" required />
+            <input type="text" name="name" id="name" readonly />
           </div>
         </div>
 
@@ -52,17 +45,13 @@
           <div>
             <label for="none" id="customButton1">Image de la personne masqué</label>
             <div class="image-picker" data-id="1">
-              <label for="fileInput1" class="addImage" id="addImage1">+</label>
-              <input type="file" name="mask" id="fileInput1" accept="image/*" required>
-              <img id="preview1" src="" alt="Aperçu de l'image" style="display: none;">
+              <img id="preview1" src="" alt="Aperçu de l'image">
             </div>
           </div>
           <div>
             <label for="none" id="customButton2">Image de la personne masqué</label>
             <div class="image-picker" data-id="2">
-              <label for="fileInput2" class="addImage" id="addImage2">+</label>
-              <input type="file" name="mask" id="fileInput2" accept="image/*" required>
-              <img id="preview2" src="" alt="Aperçu de l'image" style="display: none;">
+              <img id="preview2" src="" alt="Aperçu de l'image">
             </div>
           </div>
         </div>
@@ -70,77 +59,61 @@
         <div class="inline-fields-4 border">
           <div>
             <label for="profession">Profession</label>
-            <input type="text" id="profession" name="profession" required />
+            <input type="text" id="profession" name="profession" readonly />
           </div>
           <div>
             <label for="DDN">Date de naissance</label>
-            <input type="date" id="DDN" name="DDN" required />
+            <input type="date" id="DDN" name="DDN" readonly />
           </div>
           <div>
             <label for="address">Adresse</label>
-            <input type="text" id="address" name="address" required />
+            <input type="text" id="address" name="address" readonly />
           </div>
           <div>
             <label for="tel">Numéro de téléphone</label>
-            <input type="text" id="tel" placeholder="(000) 000-0000" maxlength="14" required>
+            <input type="text" id="tel" placeholder="(000) 000-0000" maxlength="14" readonly>
           </div>
         </div>
         <div class="inline-fields-4 ">
           <div>
             <label for="droits">Lecture des droits</label>
-            <input type="time" id="droits" name="droits" required />
+            <input type="time" id="droits" name="droits" readonly />
           </div>
           <div>
             <label for="entreecellule">Entrée cellule</label>
-            <input type="time" id="entreecellule" name="entreecellule" required />
+            <input type="time" id="entreecellule" name="entreecellule" readonly />
           </div>
           <div>
             <label for="sortiecellule">Sortie Cellule</label>
-            <input type="time" id="sortiecellule" name="sortiecellule" required />
+            <input type="time" id="sortiecellule" name="sortiecellule" readonly />
           </div>
           <div>
             <label for="bracelet">Bracelet associé</label>
-            <div class="select-box select-bracelet" id="singleSelect">
-              <div class="selected-items" id="selectedBracelet"></div>
-              <input type="text" class="search-input" placeholder="Rechercher" />
-              <ul class="options-list"></ul>
-            </div>
+            <input type="text" id="bracelet" name="bracelet" readonly />
           </div>
         </div>
         <div class="inline-fields-4 ">
           <div>
             <label for="miranda">Droit miranda</label>
-            <div class="checkbox-wrapper-34">
-              <input class='tgl tgl-ios' id='miranda' type='checkbox'>
-              <label class='tgl-btn' for='miranda'></label>
-            </div>
+            <span id="miranda"></span>
           </div>
           <div>
             <label for="avocat">Avocat</label>
-            <div class="checkbox-wrapper-34">
-              <input class='tgl tgl-ios' id='avocat' type='checkbox'>
-              <label class='tgl-btn' for='avocat'></label>
-            </div>
+            <span id="avocat"></span>
           </div>
           <div>
             <label for="nourriture">Nourriture</label>
-            <div class="checkbox-wrapper-34">
-              <input class='tgl tgl-ios' id='nourriture' type='checkbox'>
-              <label class='tgl-btn' for='nourriture'></label>
-            </div>
+            <span id="nourriture"></span>
           </div>
           <div>
             <label for="ems">EMS</label>
-            <div class="checkbox-wrapper-34">
-              <input class='tgl tgl-ios' id='ems' type='checkbox'>
-              <label class='tgl-btn' for='ems'></label>
-            </div>
+            <span id="ems"></span>
           </div>
         </div>
         <div class="inline-fields">
           <div>
             <label for="avocatName">Nom avocat</label>
-            <input type="text" id="avocatName" name="avocatName" required />
+            <input type="text" id="avocatName" name="avocatName" readonly />
           </div>
           <div>
             <label for="officier">Agent rédacteur</label>
@@ -150,15 +123,15 @@
         <div class="inline-fields-3">
           <div>
             <label for="lieu">Lieu</label>
-            <input type="text" id="lieu" name="lieu" required />
+            <input type="text" id="lieu" name="lieu" readonly />
           </div>
           <div>
             <label for="motifArrestation">Motif d'arrestation</label>
-            <input type="text" id="motifArrestation" name="motifArrestation" required />
+            <input type="text" id="motifArrestation" name="motifArrestation" readonly />
           </div>
           <div>
             <label for="circonstances">Circonstance d'arrestation</label>
-            <input type="text" id="circonstances" name="circonstances" required />
+            <input type="text" id="circonstances" name="circonstances" readonly />
           </div>
         </div>
         <div class="page-break"></div>
@@ -166,42 +139,21 @@
         <div class="inline-fields border">
           <div>
             <label for="arme">Arme</label>
-            <input type="text" id="arme" name="DDN" required />
+            <input type="text" id="arme" name="arme" readonly />
           </div>
           <div>
             <label for="uof">Utilisation de la force</label>
-            <div class="checkbox-wrapper-34" style="margin-top: 1em;">
-              <input class='tgl tgl-ios' id='uof' type='checkbox'>
-              <label class='tgl-btn' for='uof'></label>
-            </div>
+            <span id="uof"></span>
           </div>
         </div>
         <label for="inline-fields-4-infos">Chef(s) d'accusation(s)</label>
         <ul id="listAccusations"></ul>
-        <div class="inline-fields addInput" style="margin-top: 5px;">
-          <div>
-            <select id="accusations-input" name="accusations-input">
-              <option value="">-- Sélectionner une accusation --</option>
-            </select>
-          </div>
-          <div>
-            <input type="button" onclick="ajouterElement()" value="Ajouter">
-          </div>
-        </div>
         <label for="pieces">Pièces jointes (Images)</label>
-        <div class="file-upload-wrapper">
-          <label for="pieces" class="custom-file-upload">
-            Sélectionner des fichiers
-          </label>
-          <input type="file" id="pieces" name="pieces" accept="image/*" multiple />
-        </div>
+        <div id="incident-container"></div>
       </form>
       <div class="image-container">
         <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo" />
       </div>
-    </div>
-    <div class="button-container">
-      <button type="submit" class="send-button">Envoyer le rapport d'arrestation</button>
     </div>
     <div class="attachments-preview" id="attachmentsPreview"></div>
   </div>
@@ -215,7 +167,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
     integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="scripts/arrestation/arrestation.js"></script>
+  <script src="scripts/arrestation/viewArrestation.js"></script>
   <script src="scripts/loadSidebar.js"></script>
 </body>
 

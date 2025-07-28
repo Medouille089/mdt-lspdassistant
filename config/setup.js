@@ -40,7 +40,8 @@ router.put("/api/config", async (req, res) => {
     commandstaff_id,
     convocation_thread_id,
     incident_thread_id,
-    arrestation_thread_id, 
+    arrestation_thread_id,
+    situations_thread_id,
   } = req.body;
 
   try {
@@ -57,7 +58,8 @@ router.put("/api/config", async (req, res) => {
         commandstaff_id = $6,
         convocation_thread_id = $7,
         incident_thread_id = $8,
-        arrestation_thread_id = $9
+        arrestation_thread_id = $9,
+        situations_thread_id = $10
        WHERE id = 1 RETURNING *`,
       [
         required_role_id,
@@ -68,7 +70,8 @@ router.put("/api/config", async (req, res) => {
         commandstaff_id,
         convocation_thread_id,
         incident_thread_id,
-        arrestation_thread_id
+        arrestation_thread_id,
+        situations_thread_id
       ]
     );
 
