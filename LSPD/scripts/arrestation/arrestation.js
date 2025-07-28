@@ -13,40 +13,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Charger les accusations depuis la DB
   loadAccusations();
+
+  // Charger les bracelets depuis la DB
+  loadBracelets();
 });
 
-// Fonction pour charger les accusations
 async function loadAccusations() {
   try {
     // Pour l'instant, on utilise une liste par défaut
-    // Plus tard, remplacez cette partie par un fetch vers votre API
+    // Plus tard, remplacez cette partie par un fetch vers notre API
     const accusations = await getAccusationsFromDB();
 
     const select = document.getElementById('accusations-input');
 
-    // Vider les options existantes (sauf la première)
     while (select.children.length > 1) {
       select.removeChild(select.lastChild);
     }
 
-    // Ajouter les nouvelles options
+
     accusations.forEach(accusation => {
       const option = document.createElement('option');
-      option.value = accusation.value || accusation;
-      option.textContent = accusation.label || accusation;
+      option.value = accusation.chef_accusation || accusation;
+      option.textContent = accusation.chef_accusation || accusation;
+      option.accusation = accusation;
       select.appendChild(option);
     });
 
   } catch (error) {
     console.error("Erreur lors du chargement des accusations:", error);
-    // En cas d'erreur, utiliser la liste par défaut
+
     loadDefaultAccusations();
   }
 }
 
 async function getAccusationsFromDB() {
   // TODO: Remplacer par un vrai fetch vers notre API
-  // return fetch('/api/accusations').then(res => res.json());
+  return fetch('/api/getDelits').then(res => res.json());
 
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -95,6 +97,7 @@ function loadDefaultAccusations() {
     const option = document.createElement('option');
     option.value = accusation;
     option.textContent = accusation;
+    option.accusation = accusation;
     select.appendChild(option);
   });
 }
@@ -105,14 +108,16 @@ function ajouterElement() {
   if (texte && texte !== "") {
     const ul = document.getElementById('listAccusations');
 
-    const existingItems = Array.from(ul.children).map(li => li.textContent.trim().replace(' - ', ''));
-    if (existingItems.includes(texte)) {
+    const existingItems = Array.from(ul.children).map(li => {
+      return li.accusation;
+    });
+    if (existingItems.includes(select.selectedOptions[0].accusation)) {
       alert("Cette accusation est déjà dans la liste !");
       return;
     }
-
     const li = document.createElement('li');
-    li.textContent = " - " + texte;
+    li.textContent = " - " + texte + " | " + select.selectedOptions[0].accusation.type + " | " + select.selectedOptions[0].accusation.amende;
+    li.accusation = select.selectedOptions[0].accusation;
     li.addEventListener('click', function () {
       li.remove();
     });
@@ -127,7 +132,6 @@ function ajouterElement() {
 
 document.getElementById('accusations-input').addEventListener('keydown', function (e) {
   if (e.key === 'Enter') {
-    console.log("Ajout par Entrée")
     ajouterElement();
   }
 })
@@ -181,13 +185,22 @@ function setupImagePicker(id) {
 
 setupImagePicker(1)
 setupImagePicker(2)
-// 1. Le tableau de base
-const items = [
-  "Pomme", "Banane", "Abricot", "Cerise",
-  "Datte", "Figue", "Groseille",
-  "Kiwi", "Mangue", "Orange",
-  "Papaye", "Poire"
-];
+
+let braceletItems = [];
+
+async function loadBracelets() {
+  try {
+    const response = await fetch('/api/formulaires');
+    braceletItems = await response.json();
+    document.querySelectorAll('.select-bracelet').forEach(box => initSelectBox(box, braceletItems));
+  } catch (err) {
+    console.error("Erreur chargement des bracelets :", err);
+    braceletItems = ["Bracelet-001", "Bracelet-002", "Bracelet-003"];
+
+    document.querySelectorAll('.select-bracelet').forEach(box => initSelectBox(box, braceletItems));
+  }
+}
+
 
 // 2. Initialisation sur chaque conteneur
 function initSelectBox(container, items) {
@@ -204,8 +217,8 @@ function initSelectBox(container, items) {
       .filter(item => regex.test(item))
       .forEach(item => {
         const li = document.createElement('li');
-        li.textContent = item;
-        li.addEventListener('click', () => toggle(item));
+        li.textContent = item.id_brac;
+        li.addEventListener('click', () => toggle(item.id_brac));
         listEl.appendChild(li);
       });
   }
@@ -251,11 +264,6 @@ function initSelectBox(container, items) {
   renderOptions(/.*/);
   renderSelected();
 }
-
-// 8. Lancement pour tous les widgets
-document
-  .querySelectorAll('.select-box')
-  .forEach(box => initSelectBox(box, items));
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -345,12 +353,10 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
   for (const field of requiredFields) {
     const el = document.getElementById(field);
     if (!el || !el.value.trim()) {
-      console.log("Champ manquant:", field, el);
       alert("Veuillez remplir tous les champs obligatoires: " + field);
       el.scrollIntoView({ behavior: 'smooth' });
       setTimeout(() => {
         el.focus();
-        console.log("Focus appliqué sur:", field, "ReadOnly:", el.readOnly, "Disabled:", el.disabled);
       }, 100);
       return;
     }
