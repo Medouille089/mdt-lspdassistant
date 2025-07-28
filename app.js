@@ -46,7 +46,10 @@ const agentsRoutes = require("./routes/agents");
 const incidentsRoute = require("./routes/incidents");
 const arrestationRoute = require("./routes/arrestation");
 const delitsRoute = require("./routes/delits");
-
+const dashboardRoute = require("./routes/dashboard");
+const liveUsersRoute = require('./routes/liveUsers');
+const pointeuse = require('./routes/pointeuse');
+const setupPointeuse = require('./config/setupPointeuse');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -57,6 +60,10 @@ app.use(convocationRoute);
 app.use(agentsRoutes);
 app.use(incidentsRoute);
 app.use(delitsRoute);
+app.use(dashboardRoute);
+app.use(liveUsersRoute);
+app.use(pointeuse);
+app.use(setupPointeuse);
 
 // Static frontend
 app.use(express.static(path.join(__dirname, "LSPD")));
