@@ -13,7 +13,6 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
     const forumChannelId = conf.arrestation_thread_id;
     const logsChannelId = conf.logs_channel;
     try {
-        console.log(req.body)
         const {
             date, name, fileInput1, fileInput2, profession,
             DDN, address, tel, droits,
@@ -90,7 +89,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
             const embedLog = new EmbedBuilder()
                 .setColor(0x0b1b5a)
                 .setTitle(`Nouveau rapport d'arrestation - ${arrestationId}`)
-                .setDescription(`<@${req.user?.id || 'Utilisateur inconnu'}> a créé un nouveau rapport - <#${thread.id}> \`${arrestationId}\``)
+                .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a créé un nouveau rapport - <#${thread.id}> \`${arrestationId}\``)
                 .addFields({
                     name: "ID's",
                     value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${req.user?.id || 'ID inconnu'}\`) \n> <#${thread.id}> (\`${thread.id}\`)`,
@@ -149,8 +148,6 @@ router.get('/api/getArrestation', async (req, res) => {
       FROM lspd_arrestations
       ORDER BY date_arrestation
     `);
-    console.log("Récupération des arrestations :", result.rows.length);
-    console.log(result.rows);
 
         const bot = getBot(); // Assure-toi que le bot est prêt
 
@@ -167,7 +164,6 @@ router.get('/api/getArrestation', async (req, res) => {
                         msg.attachments.forEach(att => {
                             if (att.contentType?.startsWith("image/")) {
                                 images.push(att.url);
-                                console.log(images)
                             }
                         });
                     });

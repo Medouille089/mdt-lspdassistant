@@ -81,7 +81,7 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
         .setDescription(`<@${req.user?.id}> a créé un nouveau rapport - <#${thread.id}> \`${incidentId}\``)
         .addFields({
           name: "ID's",
-          value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${req.user?.id || 'ID inconnu'}\`) \n> <#${thread.id}> (\`${thread.id}\`)`,
+          value: `> ${req.user?.id || 'Utilisateur inconnu'}> (\`${req.user?.id || 'ID inconnu'}\`) \n> <#${thread.id}> (\`${thread.id}\`)`,
           inline: false
         })
         .setFooter({

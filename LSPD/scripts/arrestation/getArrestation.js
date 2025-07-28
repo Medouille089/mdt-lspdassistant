@@ -27,13 +27,12 @@ async function loadArrestations() {
         const res = await fetch(API_URL);
         if (!res.ok) throw new Error('Erreur chargement');
         arrestations = await res.json();
-        console.log(arrestations);
 
-        arrestations.sort((a, b) => {
-            const numA = parseInt(a.id.replace(/\D/g, ''), 10);
-            const numB = parseInt(b.id.replace(/\D/g, ''), 10);
-            return numB - numA;
-        });
+        // arrestations.sort((a, b) => {
+        //     const numA = parseInt(a.id.replace(/\D/g, ''), 10);
+        //     const numB = parseInt(b.id.replace(/\D/g, ''), 10);
+        //     return numB - numA;
+        // });
 
         applyFilters();
     } catch (e) {
@@ -51,7 +50,6 @@ function applyFilters() {
     const dateEnd = dateEndInput.value;
 
     filteredArrestations = arrestations.filter(item => {
-        console.log(item);
         const textMatch =
             (item.id?.toLowerCase().includes(search)) ||
             (item.officer?.toLowerCase().includes(search));
@@ -62,7 +60,6 @@ function applyFilters() {
         return textMatch && startOk && endOk;
     });
 
-    console.log(filteredArrestations)
     currentPage = 1;
     renderTable();
     renderPagination();

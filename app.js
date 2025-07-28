@@ -45,6 +45,8 @@ const convocationRoute = require("./routes/convocation");
 const agentsRoutes = require("./routes/agents");
 const incidentsRoute = require("./routes/incidents");
 const arrestationRoute = require("./routes/arrestation");
+const delitsRoute = require("./routes/delits");
+
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -54,6 +56,7 @@ app.use(arrestationRoute);
 app.use(convocationRoute);
 app.use(agentsRoutes);
 app.use(incidentsRoute);
+app.use(delitsRoute);
 
 // Static frontend
 app.use(express.static(path.join(__dirname, "LSPD")));
