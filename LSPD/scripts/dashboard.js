@@ -1,25 +1,51 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const loader = document.getElementById('loaderOverlay');
+    if (loader) loader.style.display = 'flex';
+
+    fetchUser()
+        .then(loadDashboardStats)
+        .finally(() => {
+            if (loader) loader.style.display = 'none';
+        })
+        .catch(err => {
+            console.error("Erreur initialisation dashboard :", err);
+        });
+});
+
 async function fetchUser() {
-    const res = await fetch('/api/user');
-    if (!res.ok) throw new Error('Non connecté');
-    const user = await res.json();
+    try {
+        const res = await fetch('/api/user');
+        if (!res.ok) throw new Error('Non connecté');
+        const user = await res.json();
 
-    document.getElementById('messageUsername').innerHTML = `Bonjour <strong>${user.username}</strong>`;
-    document.getElementById('messageGrade').textContent = user.grade || '';
-    document.getElementById('overlayMessage').innerHTML = `Bonjour <strong>${user.username}</strong>`;
-    document.getElementById('overlayGrade').textContent = user.grade || '';
+        // Safely update DOM
+        const usernameEl = document.getElementById('messageUsername');
+        const gradeEl = document.getElementById('messageGrade');
+        const overlayMsg = document.getElementById('overlayMessage');
+        const overlayGrade = document.getElementById('overlayGrade');
 
-    const now = Date.now();
-    const lastSeen = localStorage.getItem('overlayLastSeen');
-    const delay = 3600000;
+        if (usernameEl) usernameEl.innerHTML = `Bonjour <strong>${user.username}</strong>`;
+        if (gradeEl) gradeEl.textContent = user.grade || '';
+        if (overlayMsg) overlayMsg.innerHTML = `Bonjour <strong>${user.username}</strong>`;
+        if (overlayGrade) overlayGrade.textContent = user.grade || '';
 
-    if (!lastSeen || now - lastSeen > delay) {
-        showOverlay();
-        localStorage.setItem('overlayLastSeen', now);
+        const now = Date.now();
+        const lastSeen = localStorage.getItem('overlayLastSeen');
+        const delay = 3600000;
+
+        if (!lastSeen || now - lastSeen > delay) {
+            showOverlay();
+            localStorage.setItem('overlayLastSeen', now);
+        }
+    } catch (err) {
+        console.error("Erreur fetchUser:", err);
     }
 }
 
 function showOverlay() {
     const overlay = document.getElementById('overlay');
+    if (!overlay) return;
+
     overlay.classList.add('show');
 
     setTimeout(() => {
@@ -32,4 +58,68 @@ function showOverlay() {
     }, { once: true });
 }
 
-fetchUser();
+async function loadDashboardStats() {
+    try {
+        const res = await fetch('/api/dashboard');
+        const data = await res.json();
+
+        const braceletEl = document.getElementById('braceletCount');
+        if (braceletEl) braceletEl.textContent = data.braceletCount;
+
+        const interventionCount = document.getElementById('interventionCount');
+        const interventionInfo = document.getElementById('interventionInfo');
+        if (interventionCount) interventionCount.textContent = data.interventionsToday;
+        if (interventionInfo) interventionInfo.textContent = `+${data.interventionsToday} aujourd'hui`;
+
+        const tbody = document.getElementById('rapportsTbody');
+        if (tbody) {
+            tbody.innerHTML = ''; // reset
+            data.latestReports.forEach(report => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                <td>${report.id}</td>
+                <td>${report.date}</td>
+                <td>${report.agent}</td>
+                <td>${report.type}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+    } catch (err) {
+        console.error("Erreur chargement dashboard :", err);
+    }
+}
+
+fetchUser().then(loadDashboardStats).catch(err => {
+    console.error("Erreur initialisation dashboard :", err);
+});
+
+async function fetchConnectedAgents() {
+  try {
+    const response = await fetch('/api/connected-agents', { cache: "no-store" });
+    if (!response.ok) throw new Error('Erreur fetch agents connectés');
+    const data = await response.json();
+
+    const listEl = document.getElementById('connectedAgentsList');
+    listEl.innerHTML = '';
+
+    if (data.agents.length === 0) {
+      listEl.innerHTML = '<li>Aucun agent connecté</li>';
+      return;
+    }
+
+    data.agents.forEach(agent => {
+      const li = document.createElement('li');
+      li.textContent = agent.display_name;
+      listEl.appendChild(li);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Rafraîchir toutes les 30s
+fetchConnectedAgents();
+setInterval(fetchConnectedAgents, 30000);
+

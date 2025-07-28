@@ -7,12 +7,20 @@
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/sidebar.css" />
     <link rel="stylesheet" href="styles/dashboard.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
 </head>
 
 <body>
+    <!-- Overlay de bienvenue -->
     <div id="overlay">
         <span id="overlayMessage"></span>
         <div id="overlayGrade" style="font-size: 0.5em; font-weight: normal; margin-top: 10px;"></div>
+    </div>
+
+    <!-- Élément caché pour affichage utilisateur -->
+    <div style="display:none;">
+        <span id="messageUsername"></span>
+        <span id="messageGrade"></span>
     </div>
 
     <div class="main-container">
@@ -22,20 +30,20 @@
         <div class="dashboard-container">
             <!-- Top widgets -->
             <div class="stats-cards">
-                <div class="card stat">
-                    <div class="title">Interventions</div>
-                    <div class="number">34</div>
-                    <div class="info">+4 aujourd'hui</div>
+                <div class="card stat" id="interventionCard">
+                    <div class="title">Rapports</div>
+                    <div class="number" id="interventionCount">0</div>
+                    <div class="info" id="interventionInfo">+0 aujourd'hui</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat" id="patrouilleCard">
                     <div class="title">Patrouilles</div>
-                    <div class="number">12</div>
-                    <div class="info">+1 agent actif</div>
+                    <div class="number" id="patrouilleCount">12</div>
+                    <div class="info" id="patrouilleInfo">+1 agent actif</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat" id="braceletCard">
                     <div class="title">Bracelets</div>
-                    <div class="number blink-red">5</div>
-                    <div class="info">Actifs</div>
+                    <div class="number blink-red" id="braceletCount">0</div>
+                    <div class="info" id="braceletInfo">Actifs</div>
                 </div>
             </div>
 
@@ -49,16 +57,11 @@
                 <div class="right-panel">
                     <div class="card profile-summary">
                         <h4>Agents connectés</h4>
-                        <ul>
-                            <li>Sgt. Brooks</li>
-                            <li>Off. Reyes</li>
-                            <li>Lt. Davis</li>
+                        <ul id="connectedAgentsList" class="connected-agents-list">
+                            <!-- Liste dynamique -->
                         </ul>
                     </div>
-                    <div class="card small-alert">
-                        <h4>Alertes</h4>
-                        <p>2 demandes de renfort</p>
-                    </div>
+
                 </div>
             </div>
 
@@ -68,31 +71,22 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>ID</th>
                             <th>Date</th>
                             <th>Agent</th>
                             <th>Type</th>
-                            <th>Statut</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>24/07</td>
-                            <td>D. Smith</td>
-                            <td>Interpellation</td>
-                            <td>Validé</td>
-                        </tr>
-                        <tr>
-                            <td>24/07</td>
-                            <td>C. Moore</td>
-                            <td>Patrouille</td>
-                            <td>En cours</td>
-                        </tr>
+                    <tbody id="rapportsTbody">
+                        <!-- Rempli dynamiquement -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/dashboard.js"></script>
 </body>
