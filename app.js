@@ -51,6 +51,7 @@ const liveUsersRoute = require('./routes/liveUsers');
 const pointeuse = require('./routes/pointeuse');
 const setupPointeuse = require('./config/setupPointeuse');
 
+
 app.use(configRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
