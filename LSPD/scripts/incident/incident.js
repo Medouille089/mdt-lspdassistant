@@ -28,6 +28,8 @@ document.addEventListener("DOMContentLoaded", () => {
       .join(':');
     heureInput.value = heure;
   }
+
+  loadSituations();
 });
 
 function fileToBase64(file) {
@@ -83,6 +85,89 @@ async function previewAttachments(event) {
       }
     }
   }
+}
+
+let situationItems = [];
+
+async function loadSituations() {
+  try {
+    const response = await fetch('/api/getSituations');
+    situationItems = await response.json();
+    console.log("Situations chargées :", situationItems);
+    document.querySelectorAll('.select-situations').forEach(box => initSelectBox(box, situationItems));
+  } catch (err) {
+    console.error("Erreur chargement des situations :", err);
+    situationItems = ["Situation-001", "Situation-002", "Situation-003"];
+
+    document.querySelectorAll('.select-situations').forEach(box => initSelectBox(box, situationItems));
+  }
+}
+
+
+// 2. Initialisation sur chaque conteneur
+function initSelectBox(container, items) {
+  const isMultiple = container.dataset.multiple !== undefined;
+  let selected = [];
+  const selectedEl = container.querySelector('.selected-items');
+  const inputEl = container.querySelector('.search-input');
+  const listEl = container.querySelector('.options-list');
+
+  // 3. Affiche la liste filtrée
+  function renderOptions(regex) {
+    listEl.innerHTML = '';
+    items
+      .filter(item => regex.test(item.name))
+      .forEach(item => {
+        console.log()
+        const li = document.createElement('li');
+        li.textContent = item.name;
+        li.situation = item;
+        li.addEventListener('click', () => toggle(item));
+        listEl.appendChild(li);
+      });
+  }
+
+  // 4. Sélectionne ou désélectionne un item
+  function toggle(item) {
+    const idx = selected.indexOf(item);
+
+    if (isMultiple) {
+      idx < 0 ? selected.push(item) : selected.splice(idx, 1);
+    } else {
+      selected = idx < 0 ? [item] : [];
+      inputEl.value = '';
+      renderOptions(/.*/);
+    }
+
+    renderSelected();
+  }
+
+  // 5. Met à jour les étiquettes affichées
+  function renderSelected() {
+    selectedEl.innerHTML = '';
+    selected.forEach(item => {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.situation = item;
+      tag.textContent = item.name + ' ×';
+      tag.addEventListener('click', () => toggle(item));
+      selectedEl.appendChild(tag);
+    });
+  }
+
+  // 6. Filtrage regex au fil de la frappe
+  inputEl.addEventListener('input', () => {
+    try {
+      const regex = new RegExp(inputEl.value, 'i');
+      renderOptions(regex);
+    } catch {
+      listEl.innerHTML = '';
+    }
+  });
+
+  // 7. Premier rendu
+  renderOptions(/.*/);
+  renderSelected();
 }
 
 document.getElementById("pieces").addEventListener("change", previewAttachments);
@@ -167,6 +252,10 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     formData.append("type", document.getElementById("type").value);
     formData.append("lieu", document.getElementById("lieu").value);
     formData.append("grade", document.getElementById("grade").value);
+    // Get selected situations
+    const selectedSituations = Array.from(document.querySelectorAll('.select-situations .tag'))
+      .map(tag => tag.situation);
+    formData.append("situations", JSON.stringify(selectedSituations));
     formData.append("pieces", pdfBlob, "Rapport d'incident.pdf");
 
     const files = document.getElementById("pieces").files;

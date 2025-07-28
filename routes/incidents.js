@@ -7,19 +7,77 @@ const { getBot } = require("../config/config");
 const { AttachmentBuilder, EmbedBuilder, ChannelType } = require("discord.js");
 const upload = multer({ storage: multer.memoryStorage() });
 
+async function createOrGetThread(forum, situationsChannel, situationsArray, data) {
+  const { incidentId, formattedDate, officier, embed, recit } = data;
+
+  try {
+    if (situationsArray && situationsArray.length > 0) {
+      console.log("Tentative de récupération du thread situation:", situationsArray);
+
+      const activeThreads = await situationsChannel.threads.fetch();
+
+      for (const situationData of situationsArray) {
+        if (situationData.id) {
+          const existingThread = activeThreads.threads.get(situationData.id);
+          if (existingThread) {
+            console.log(`Thread situation trouvé: ${existingThread.name} (${existingThread.id})`);
+
+            return existingThread;
+          }
+        }
+      }
+
+      console.log("Aucun thread situation valide trouvé, création d'un nouveau thread dans le forum incidents");
+    }
+
+    const newThread = await forum.threads.create({
+      name: `${incidentId} - ${formattedDate} - ${officier}`,
+      message: {
+        embeds: [embed],
+        content: `**Récit des faits :**\n${recit || 'Aucun récit fourni'}`
+      }
+    });
+
+    console.log(`Nouveau thread créé dans incidents: ${newThread.name} (${newThread.id})`);
+    return newThread;
+
+  } catch (error) {
+    console.error("Erreur lors de la gestion du thread:", error);
+
+    const fallbackThread = await forum.threads.create({
+      name: `${incidentId} - ${formattedDate} - ${officier}`,
+      message: {
+        embeds: [embed],
+        content: `**Récit des faits :**\n${recit || 'Aucun récit fourni'}`
+      }
+    });
+
+    console.log(`Thread fallback créé: ${fallbackThread.name} (${fallbackThread.id})`);
+    return fallbackThread;
+  }
+}
+
 router.post("/api/incident", upload.array("pieces"), async (req, res) => {
   const bot = getBot();
   const conf = await config.getConfig();
+  const situationForumChannelId = conf.situations_thread_id;
   const forumChannelId = conf.incident_thread_id;
   const logsChannelId = conf.logs_channel;
   try {
     const {
       date, heure, officier, grade,
-      recit, implique, type, lieu
+      recit, implique, type, lieu, situations
     } = req.body;
     const files = req.files;
+    const situationsArray = JSON.parse(situations || "[]");
+
+    console.log("Données reçues:");
+    console.log("- situations (raw):", situations);
+    console.log("- situationsArray (parsed):", situationsArray);
+    console.log("- Type de situationsArray:", Array.isArray(situationsArray) ? 'Array' : typeof situationsArray);
 
     const forum = await bot.channels.fetch(forumChannelId);
+    const situationsChannel = await bot.channels.fetch(situationForumChannelId);
     const botUser = await bot.user;
 
     const { rows } = await pool.query("SELECT COUNT(*) FROM incidents");
@@ -49,11 +107,15 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
       .setColor(0x0b1b5a)
       .setTimestamp();
 
-    const thread = await forum.threads.create({
-      name: `${incidentId} - ${formattedDate}`,
-      message: { embeds: [embed] },
-      autoArchiveDuration: 1440,
+    const thread = await createOrGetThread(forum, situationsChannel, situationsArray, {
+      incidentId,
+      formattedDate,
+      officier,
+      embed,
+      recit
     });
+
+    console.log(`Thread utilisé : ${thread.id}`);
 
     if (files?.length > 0) {
       for (const file of files) {
@@ -165,6 +227,31 @@ router.get('/api/getIncident', async (req, res) => {
 
   } catch (err) {
     console.error('Erreur GET /api/incidents :', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+router.get('/api/getSituations', async (req, res) => {
+  const bot = getBot();
+  try {
+    const conf = await config.getConfig();
+    const forumChannelId = conf.situations_thread_id;
+    const forum = await bot.channels.fetch(forumChannelId);
+
+    const activeThreads = await forum.threads.fetch();
+
+    const situations = Array.from(activeThreads.threads.values()).map(thread => ({
+      id: thread.id,
+      name: thread.name,
+      createdTimestamp: thread.createdTimestamp,
+      messageCount: thread.messageCount,
+      archived: thread.archived,
+      locked: thread.locked
+    }));
+
+    res.json(situations);
+  } catch (err) {
+    console.error('Erreur GET /api/getSituations :', err);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

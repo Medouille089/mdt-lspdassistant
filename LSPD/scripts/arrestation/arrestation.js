@@ -192,14 +192,15 @@ async function loadBracelets() {
   try {
     const response = await fetch('/api/formulaires');
     braceletItems = await response.json();
-    document.querySelectorAll('.select-box').forEach(box => initSelectBox(box, braceletItems));
+    document.querySelectorAll('.select-bracelet').forEach(box => initSelectBox(box, braceletItems));
   } catch (err) {
     console.error("Erreur chargement des bracelets :", err);
     braceletItems = ["Bracelet-001", "Bracelet-002", "Bracelet-003"];
 
-    document.querySelectorAll('.select-box').forEach(box => initSelectBox(box, braceletItems));
+    document.querySelectorAll('.select-bracelet').forEach(box => initSelectBox(box, braceletItems));
   }
 }
+
 
 // 2. Initialisation sur chaque conteneur
 function initSelectBox(container, items) {
