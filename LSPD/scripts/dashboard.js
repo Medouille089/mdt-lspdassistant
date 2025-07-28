@@ -85,6 +85,18 @@ async function loadDashboardStats() {
                 tbody.appendChild(tr);
             });
         }
+      
+        // --- Nouvelle partie pour récupérer et afficher le salaire de la semaine ---
+        const weekRes = await fetch('/pointeuse/semaine');
+        if (weekRes.ok) {
+            const weekData = await weekRes.json();
+            const patrouilleCount = document.getElementById('patrouilleCount');
+            if (patrouilleCount) {
+                patrouilleCount.textContent = `${weekData.currentWeek.totalSalary.toFixed(2)} $`;
+            }
+        } else {
+            console.warn('Impossible de récupérer le salaire de la semaine');
+        }
 
     } catch (err) {
         console.error("Erreur chargement dashboard :", err);

@@ -123,12 +123,12 @@ body::before {
     /* Pastel orange */
 }
 
-.card.stat:nth-child(2) {
+.card.stat:nth-child(3) {
     background: linear-gradient(135deg, #D5F5E3, #A2D9CE);
     /* Pastel vert-bleu */
 }
 
-.card.stat:nth-child(3) {
+.card.stat:nth-child(2) {
     background: linear-gradient(135deg, #FADBD8, #F5B7B1);
     /* Pastel rouge-rose */
 }

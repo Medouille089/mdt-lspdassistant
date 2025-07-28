@@ -1,0 +1,181 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+    z-index: 0;
+    background: none;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    /* derrière tout */
+    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+/* Container général */
+.main-container {
+  border-radius: 8px;
+}
+
+/* Titres */
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-weight: 700;
+  color: #e0e7ff;
+}
+
+h2 {
+  text-align: center;
+  margin: 60px 0 25px;
+  padding: 6px 0;
+  background-color: #0b1b5a;
+  color: #eef2ff;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.4rem;
+}
+
+/* Bouton démarrer/arrêter */
+#btn-start-stop {
+  display: block;
+  margin: 0 auto;
+  padding: 14px 40px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #eef2ff;
+  background-color: #0b1b5a;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#btn-start-stop:hover {
+  background-color: #08123a;
+}
+
+/* Status texte */
+#status {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #0b1b5a;
+}
+
+/* Tableaux */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #344863;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 1rem;
+  color: #eef2ff;
+}
+
+thead {
+  background: #1d284a;
+}
+
+thead th {
+  padding: 14px 20px;
+  text-align: left;
+  font-weight: 600;
+  cursor: default;
+  user-select: none;
+  border-bottom: 2px solid #22335a;
+}
+
+tbody tr {
+  transition: background-color 0.25s ease;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #2e3b5b;
+}
+
+tbody td {
+  padding: 12px 20px;
+  vertical-align: middle;
+}
+
+/* Paragraphs sous tableaux */
+p, ul {
+  text-align: center;
+  color: #d0d7ff;
+  margin-top: 8px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Liste 3 dernières semaines */
+#last-weeks-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 0;
+}
+
+p {
+    color: #0b1b5a;
+}
+
+#last-weeks-list li {
+  background-color: #1f2c4f;
+  margin: 6px auto;
+  max-width: 600px;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 500;
+  box-shadow: inset 0 0 10px rgba(255,255,255,0.05);
+}
+
+/* Table input amélioré (si jamais) */
+input[type="text"],
+input[type="date"], 
+input[type="number"] {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  font-size: 1rem;
+  color: #0b1b5a;
+  background-color: #eef2ff;
+  box-sizing: border-box;
+  transition: box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus {
+  outline: none;
+  box-shadow: 0 0 8px #0b1b5a;
+}
+
+/* Boutons dans tableaux (rôles, etc) */
+button {
+  padding: 0.3rem 1.1rem;
+  font-size: 0.95rem;
+  background-color: #0b1b5a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #08123a;
+}
