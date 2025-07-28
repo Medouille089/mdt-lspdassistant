@@ -256,5 +256,53 @@ router.get('/api/getSituations', async (req, res) => {
   }
 });
 
+router.put('/api/updateIncident', async (req, res) => {
+  const { incidentId, date, heure, officier, grade, recit, implique, type, lieu, situations } = req.body;
+  const situationsArray = JSON.parse(situations || "[]");
+  const files = req.files;
+  try {
+    await pool.query(`
+      UPDATE incidents 
+      SET date_incident = $1, heure_incident = $2, officier_redacteur = $3, grade = $4, recit = $5, 
+          officier_implique = $6, type_rapport = $7, lieu_incident = $8
+      WHERE incident_id = $9
+    `, [date, heure, officier, grade, recit, implique, type, lieu, incidentId]);
+
+    // Update situations if provided
+    if (situationsArray && situationsArray.length > 0) {
+      const forumChannelId = (await config.getConfig()).situations_thread_id;
+      const forum = await getBot().channels.fetch(forumChannelId);
+
+      const thread = await createOrGetThread(forum, null, situationsArray, {
+        incidentId,
+        formattedDate: date,
+        officier,
+        embed: null,
+        recit
+      });
+
+      // Get the bot message in the thread
+      const botUser = await getBot().user;
+      const botMessage = await thread.messages.fetch({ limit: 1, before: thread.lastMessageId });
+      // Check if the message have pdf file and edit the message to put the new pdf from files
+      if (botMessage && botMessage.attachments.size > 0) {
+        const attachment = botMessage.attachments.first();
+        if (attachment.contentType === 'application/pdf') {
+          await botMessage.edit({
+            files: files.map(file => new AttachmentBuilder(file.buffer, { name: file.originalname }))
+          });
+        }
+      }
+
+
+      console.log(`Thread mis à jour : ${thread.id}`);
+    }
+
+    res.json({ message: "Incident mis à jour avec succès." });
+  } catch (err) {
+    console.error('Erreur PUT /api/updateIncident :', err);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour de l’incident.' });
+  }
+});
 
 module.exports = router;
