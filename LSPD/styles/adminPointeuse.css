@@ -1,0 +1,145 @@
+/* Reset et styles globaux */
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.main-container h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  margin-top: 60px;
+  color: #EEF2FF;
+  background-color: #0b1b5a;
+  padding: 5px;
+}
+
+/* Conteneur principal */
+.container {
+    background: #1e2a44;    
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Filtres */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filters>* {
+    flex: 1 1 200px;
+    min-width: 150px;
+}
+
+input[type="text"],
+input[type="date"], 
+input[type="number"] {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: none;
+    font-size: 16px;
+}
+
+/* Tableau */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #344863;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+thead {
+    background: #1d284a;
+}
+
+thead th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: default;
+    color: #fff;
+}
+
+tbody tr {
+    transition: background 0.25s;
+}
+
+tbody td {
+    padding: 12px 15px;
+    border-top: 1px solid #2f3e57;
+}
+
+button {
+    padding: 0.25rem 1rem;
+    font-size: 100%;
+    background-color: #0b1b5a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #08123a;
+}
+
+#add-role-form {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  background: #344863;
+  padding: 15px 20px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  margin:  auto;
+}
+
+#add-role-form input[type="text"],
+#add-role-form input[type="number"] {
+  min-width: 120px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: #fff;
+  color: #064273;
+  transition: border-color 0.3s ease;
+}
+
+#add-role-form input[type="text"]::placeholder,
+#add-role-form input[type="number"]::placeholder {
+  color: #064273;
+  opacity: 0.75;
+}
+
+#add-role-form button {
+  padding: 12px 30px;
+  background-color: #0b1b5a;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  flex-shrink: 0;
+}
+
+#add-role-form button:hover {
+  background-color: #032a4d;
+  border-color: #032a4d;
+}

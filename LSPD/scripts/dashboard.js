@@ -86,6 +86,18 @@ async function loadDashboardStats() {
             });
         }
 
+        // --- Nouvelle partie pour récupérer et afficher le salaire de la semaine ---
+        const weekRes = await fetch('/pointeuse/semaine');
+        if (weekRes.ok) {
+            const weekData = await weekRes.json();
+            const patrouilleCount = document.getElementById('patrouilleCount');
+            if (patrouilleCount) {
+                patrouilleCount.textContent = `${weekData.currentWeek.totalSalary.toFixed(2)} $`;
+            }
+        } else {
+            console.warn('Impossible de récupérer le salaire de la semaine');
+        }
+
     } catch (err) {
         console.error("Erreur chargement dashboard :", err);
     }
@@ -96,27 +108,27 @@ fetchUser().then(loadDashboardStats).catch(err => {
 });
 
 async function fetchConnectedAgents() {
-  try {
-    const response = await fetch('/api/connected-agents', { cache: "no-store" });
-    if (!response.ok) throw new Error('Erreur fetch agents connectés');
-    const data = await response.json();
+    try {
+        const response = await fetch('/api/connected-agents', { cache: "no-store" });
+        if (!response.ok) throw new Error('Erreur fetch agents connectés');
+        const data = await response.json();
 
-    const listEl = document.getElementById('connectedAgentsList');
-    listEl.innerHTML = '';
+        const listEl = document.getElementById('connectedAgentsList');
+        listEl.innerHTML = '';
 
-    if (data.agents.length === 0) {
-      listEl.innerHTML = '<li>Aucun agent connecté</li>';
-      return;
+        if (data.agents.length === 0) {
+            listEl.innerHTML = '<li>Aucun agent connecté</li>';
+            return;
+        }
+
+        data.agents.forEach(agent => {
+            const li = document.createElement('li');
+            li.textContent = agent.display_name;
+            listEl.appendChild(li);
+        });
+    } catch (err) {
+        console.error(err);
     }
-
-    data.agents.forEach(agent => {
-      const li = document.createElement('li');
-      li.textContent = agent.display_name;
-      listEl.appendChild(li);
-    });
-  } catch (err) {
-    console.error(err);
-  }
 }
 
 // Rafraîchir toutes les 30s
