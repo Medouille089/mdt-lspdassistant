@@ -8,7 +8,8 @@ const { EmbedBuilder } = require("discord.js");
 
 function getHighestRankedRole(userRoles, configRoles) {
   const matched = configRoles.filter(r => userRoles.includes(r.discord_role_id));
-  return matched.sort((a, b) => a.rank - b.rank)[0];
+  return matched.sort((a, b) => b.rank - a.rank)[0];
+
 }
 
 router.post("/pointeuse/start", async (req, res) => {
@@ -77,18 +78,23 @@ router.post("/pointeuse/start", async (req, res) => {
 
 router.post("/pointeuse/stop", async (req, res) => {
   try {
-    const { id } = req.user;
+    const idDiscord = req.user.id; // C'est une string, ne la transforme pas en BigInt JS
     const conf = await config.getConfig();
     const result = await pool.query(`
-      SELECT p.*, c.salary_rate FROM lspd_pointage p
-      JOIN lspd_config_pointage c ON p.discord_role_id = c.discord_role_id
-      WHERE p.id_discord = $1 AND p.end_time IS NULL
-    `, [id]);
+  SELECT p.*, c.salary_rate 
+  FROM lspd_pointage p
+  JOIN lspd_config_pointage c ON p.discord_role_id = c.discord_role_id
+  WHERE p.id_discord = $1 AND p.end_time IS NULL
+`, [idDiscord]);
 
-    if (!result.rows.length) return res.status(400).json({ error: "Aucun pointage en cours" });
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: "Aucun pointage en cours" });
+    }
 
     const row = result.rows[0];
 
+    // Calcul durée et salaire
     const start = DateTime.fromJSDate(row.start_time, { zone: "Europe/Paris" });
     const end = DateTime.now().setZone("Europe/Paris");
 
@@ -96,27 +102,29 @@ router.post("/pointeuse/stop", async (req, res) => {
     const earned = +(durationHours * row.salary_rate).toFixed(2);
     const nowParis = end.toJSDate();
 
+    // Update avec la bonne ID (integer, pas de souci ici)
     await pool.query(`
       UPDATE lspd_pointage
       SET end_time = $1, salary_earned = $2
       WHERE id = $3
     `, [nowParis, earned, row.id]);
 
+    // Log Discord (si configuré)
     if (conf.logs_channel) {
       try {
         const clientDiscord = getBot();
         const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
 
         if (logsChannel?.isTextBased()) {
-          const nowFormatted = DateTime.now().setZone("Europe/Paris").toFormat("dd/MM/yyyy - HH:mm");
+          const nowFormatted = end.toFormat("dd/MM/yyyy - HH:mm");
 
           const embedLog = new EmbedBuilder()
             .setColor(0x0b1b5a)
             .setTitle("Pointeuse arrêtée")
-            .setDescription(`<@${req.user.id}> a arrêté sa pointeuse - \`${nowFormatted}\``)
+            .setDescription(`<@${idDiscord}> a arrêté sa pointeuse - \`${nowFormatted}\``)
             .addFields({
               name: "ID's",
-              value: `> <@${req.user.id}> (\`${req.user.id}\`)`,
+              value: `> <@${idDiscord}> (\`${idDiscord}\`)`,
               inline: false
             })
             .setFooter({
@@ -148,11 +156,14 @@ router.get("/pointeuse/historique", async (req, res) => {
   try {
     const { id } = req.user;
 
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT p.*, c.role_name FROM lspd_pointage p
       JOIN lspd_config_pointage c ON p.discord_role_id = c.discord_role_id
       WHERE id_discord = $1 ORDER BY start_time DESC
-    `, [id]);
+      `,
+      [id]
+    );
 
     // Convertit les timestamps en heure de Paris dans la réponse JSON
     const formatted = result.rows.map(row => {
@@ -287,6 +298,7 @@ router.get("/admin/pointeuses-actives", async (req, res) => {
 router.post("/admin/pointeuse/stop/:discordId", async (req, res) => {
   try {
     const { discordId } = req.params;
+    const adminDiscordId = req.user.id;
     const conf = await config.getConfig();
 
     const result = await pool.query(`
@@ -323,7 +335,12 @@ router.post("/admin/pointeuse/stop/:discordId", async (req, res) => {
           const embedLog = new EmbedBuilder()
             .setColor(0x0b1b5a)
             .setTitle("Pointeuse arrêtée (Admin)")
-            .setDescription(`⛔ Pointeuse stoppée pour <@${discordId}> par un administrateur - \`${nowFormatted}\``)
+            .setDescription(`⛔ Pointeuse stoppée pour <@${discordId}> par <@${adminDiscordId}> - \`${nowFormatted}\``)
+            .addFields({
+              name: "ID's",
+              value: `> <@${discordId}> (\`${discordId}\`)\n> <@${adminDiscordId}> (\`${adminDiscordId}\`)`,
+              inline: false,
+            })
             .setFooter({
               text: "LSPD Assistant",
               iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })

@@ -70,8 +70,15 @@ bot.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
+function pluralize(count, zeroIsPlural = false) {
+  if (count === 1) return ""; // pas de s si 1
+  if (count === 0 && zeroIsPlural) return "s"; // si 0 et qu'on veut s, on met s
+  if (count > 1) return "s"; // pluriel normal
+  return ""; // par défaut pas de s
+}
+
 // 🔁 Fonction pour obtenir les données dynamiques
-async function getPresenceMessages() {
+async function getPresenceMessages(zeroPlural = false) {
   try {
     const res1 = await db.query("SELECT COUNT(*) FROM bracelets");
     const nb_brac = parseInt(res1.rows[0].count);
@@ -90,15 +97,15 @@ async function getPresenceMessages() {
     return [
       { name: "Assister le LSPD", type: ActivityType.Playing },
       {
-        name: `${nb_brac} bracelets actif${nb_brac > 1 ? "s" : ""}`,
+        name: `${nb_brac} bracelet${pluralize(nb_brac, zeroPlural)} actif${pluralize(nb_brac, zeroPlural)}`,
         type: ActivityType.Watching,
       },
       {
-        name: `${rapports} rapports`,
+        name: `${rapports} rapport${pluralize(rapports, zeroPlural)}`,
         type: ActivityType.Watching,
       },
       {
-        name: `${lspdUsers} personne${lspdUsers > 1 ? "s" : ""} connecté${lspdUsers > 1 ? "s" : ""}`,
+        name: `${lspdUsers} personne${pluralize(lspdUsers, zeroPlural)} connecté${pluralize(lspdUsers, zeroPlural)}`,
         type: ActivityType.Watching,
       }
     ];
