@@ -5,6 +5,9 @@ const bodyParser = require("body-parser");
 const session = require("express-session");
 const passport = require("./config/passport");
 const { SESSION_SECRET } = require("./config/env");
+const { startOvertimeScheduler } = require("./utils/rappelPointeuse");
+
+
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -51,7 +54,6 @@ const liveUsersRoute = require('./routes/liveUsers');
 const pointeuse = require('./routes/pointeuse');
 const setupPointeuse = require('./config/setupPointeuse');
 
-
 app.use(configRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
@@ -74,3 +76,5 @@ app.listen(port, () => {
   console.clear();
   console.log(`🚀 Serveur démarré sur http://localhost:${port}`);
 });
+
+startOvertimeScheduler();

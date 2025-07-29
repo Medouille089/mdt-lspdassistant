@@ -55,6 +55,26 @@
       </thead>
       <tbody id="users-salary-body"></tbody>
     </table>
+
+    <h2>Pointeuses actives</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nom Discord</th>
+          <th>ID</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="active-pointeuses-body"></tbody>
+    </table>
+
+    <h2>Heure d'alerte pointeuse</h2>
+    <div style="margin-bottom:1em;">
+      <input type="time" id="alertTime" />
+      <button id="saveAlertTimeBtn" style="margin-left:0.5em;">Sauvegarder</button>
+      <span id="alertTimeStatus" style="margin-left:1em;color:green;display:none;">✔️ Sauvegardé</span>
+    </div>
+
   </div>
   <div class="loader-overlay" id="loaderOverlay">
     <div class="loader-spinner"></div>

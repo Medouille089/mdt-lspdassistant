@@ -42,6 +42,7 @@ router.put("/api/config", async (req, res) => {
     incident_thread_id,
     arrestation_thread_id,
     situations_thread_id,
+    pointeuse_alert,
   } = req.body;
 
   try {
@@ -59,7 +60,8 @@ router.put("/api/config", async (req, res) => {
         convocation_thread_id = $7,
         incident_thread_id = $8,
         arrestation_thread_id = $9,
-        situations_thread_id = $10
+        situations_thread_id = $10,
+        pointeuse_alert = $11
        WHERE id = 1 RETURNING *`,
       [
         required_role_id,
@@ -71,7 +73,8 @@ router.put("/api/config", async (req, res) => {
         convocation_thread_id,
         incident_thread_id,
         arrestation_thread_id,
-        situations_thread_id
+        situations_thread_id,
+        pointeuse_alert
       ]
     );
 
@@ -178,6 +181,26 @@ router.put("/api/config", async (req, res) => {
           .addFields({
             name: "ID's",
             value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> Avant: <#${oldConfig.logs_channel}> (\`${oldConfig.logs_channel}\`)\n> Après: <#${logs_channel}> (\`${logs_channel}\`)`,
+            inline: false,
+          })
+          .setFooter({
+            text: "LSPD Assistant",
+            iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }),
+          })
+          .setTimestamp();
+
+        await logsChannel.send({ embeds: [embed] });
+      }
+
+      // Log pointeuse_alert
+      if (oldConfig.pointeuse_alert !== pointeuse_alert && logsChannel) {
+        const embed = new EmbedBuilder()
+          .setColor(0xFF0000)
+          .setTitle("Salon rappel pointeuse modifié")
+          .setDescription(`<@${req.user.id}> a modifié la configuration du salon du rappel des pointeuses`)
+          .addFields({
+            name: "ID's",
+            value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> Avant: <#${oldConfig.pointeuse_alert}> (\`${oldConfig.pointeuse_alert}\`)\n> Après: <#${pointeuse_alert}> (\`${pointeuse_alert}\`)`,
             inline: false,
           })
           .setFooter({

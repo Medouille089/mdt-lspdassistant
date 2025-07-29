@@ -137,5 +137,150 @@ document.getElementById('add-role-form').addEventListener('submit', async e => {
     await loadRoles();
 });
 
+async function loadAlertTime() {
+  try {
+    const res = await fetch('/config/pointeuse/heure');
+    if (!res.ok) throw new Error("Erreur chargement heure");
+    const data = await res.json();
+    if (data.heure_pointeuse_alerte) {
+      document.getElementById('alertTime').value = data.heure_pointeuse_alerte;
+    }
+  } catch (err) {
+    console.warn("Impossible de charger l'heure d'alerte :", err);
+  }
+}
+
+async function saveAlertTime() {
+  const btn = document.getElementById('saveAlertTimeBtn');
+  const status = document.getElementById('alertTimeStatus');
+  const heure = document.getElementById('alertTime').value;
+
+  if (!heure) {
+    alert("Veuillez sélectionner une heure valide.");
+    return;
+  }
+
+  btn.disabled = true;
+  status.style.display = 'none';
+
+  try {
+    const res = await fetch('/config/pointeuse/heure', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ heure }),
+    });
+    if (!res.ok) throw new Error("Erreur sauvegarde heure");
+
+    status.style.display = 'inline';
+    setTimeout(() => {
+      status.style.display = 'none';
+    }, 2000);
+  } catch (err) {
+    alert("Erreur lors de la sauvegarde de l'heure.");
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('saveAlertTimeBtn').addEventListener('click', e => {
+  e.preventDefault();
+  saveAlertTime();
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Ton code existant de chargement
+  const loader = document.getElementById('loaderOverlay');
+  if (loader) loader.style.display = 'flex';
+
+  try {
+    await loadRoles();
+    await loadUsersWithSalary();
+    await loadAlertTime();   // Charge aussi l'heure d'alerte
+  } catch (err) {
+    console.error("Erreur initialisation dashboard :", err);
+  } finally {
+    if (loader) loader.style.display = 'none';
+  }
+});
+
+
+
+
+
+
+
+
+async function getDisplayName(discordId) {
+  try {
+    const res = await fetch(`/api/user/${discordId}`);
+    if (!res.ok) return discordId; // fallback à l'id si erreur
+    const data = await res.json();
+    return data.displayName || discordId;
+  } catch {
+    return discordId;
+  }
+}
+
+async function loadActivePointeuses() {
+  const res = await fetch("/admin/pointeuses-actives");
+  if (!res.ok) {
+    alert("Erreur lors du chargement des pointeuses actives");
+    return;
+  }
+  const data = await res.json();
+
+  const tbody = document.getElementById("active-pointeuses-body");
+  tbody.innerHTML = "";
+
+  // Récupérer les displayNames pour chaque user (parallélisation)
+  const usersWithDisplayName = await Promise.all(
+    data.map(async (user) => {
+      const displayName = await getDisplayName(user.discord_id);
+      return { ...user, displayName };
+    })
+  );
+
+  // Construire la table
+  usersWithDisplayName.forEach(user => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${user.displayName}</td>
+      <td>${user.discord_id}</td>
+      <td><button onclick="forceStopPointeuse('${user.discord_id}')">⛔ Forcer arrêt</button></td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+async function forceStopPointeuse(discordId) {
+  if (!confirm("Êtes-vous sûr de vouloir forcer l'arrêt de cette pointeuse ?")) return;
+
+  const res = await fetch(`/admin/pointeuse/stop/${discordId}`, {
+    method: "POST"
+  });
+
+  if (res.ok) {
+    alert("Pointeuse arrêtée !");
+    loadActivePointeuses();
+  } else {
+    const err = await res.json();
+    alert("Erreur : " + err.error);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  loadActivePointeuses();
+});
+
+
+
+
+
+
+
+
 loadRoles();
 loadUsersWithSalary();

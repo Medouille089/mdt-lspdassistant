@@ -20,7 +20,7 @@
 
         <h2>Semaine en cours</h2>
         <p><strong>Semaine en cours :</strong> <span id="current-week-range"></span></p>
-        <p>Total gagné : <span id="current-week-total">Chargement...</span> €</p>
+        <p>Total gagné : <span id="current-week-total">Chargement...</span> $</p>
 
         <h2>Historique des pointages (semaine en cours)</h2>
         <table>
@@ -30,7 +30,7 @@
                     <th>Fin</th>
                     <th>Rôle</th>
                     <th>Durée (h)</th>
-                    <th>Gains (€)</th>
+                    <th>Gains ($)</th>
                 </tr>
             </thead>
             <tbody id="weekly-history-body">
@@ -54,7 +54,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             const loader = document.getElementById('loaderOverlay');
             if (loader) loader.style.display = 'flex';
-
             checkStatus()
                 .finally(() => {
                     if (loader) loader.style.display = 'none';
@@ -117,7 +116,7 @@
                 } else {
                     data.last3Weeks.forEach(week => {
                         const li = document.createElement('li');
-                        li.textContent = `Semaine du ${DateTime.fromISO(week.weekStart).toLocaleString(DateTime.DATE_MED)} : ${week.totalSalary.toFixed(2)} €`;
+                        li.textContent = `Semaine du ${DateTime.fromISO(week.weekStart).toLocaleString(DateTime.DATE_MED)} : ${week.totalSalary.toFixed(2)} $`;
                         ul.appendChild(li);
                     });
                 }
@@ -170,7 +169,7 @@
             }
 
             alert(isRunning
-                ? `Pointage arrêté. Vous avez gagné ${data.earned ? data.earned.toFixed(2) : '?'} €`
+                ? `Pointage arrêté. Vous avez gagné ${data.earned ? data.earned.toFixed(2) : '?'} $`
                 : `Pointage démarré avec le rôle : ${data.role_used}`);
 
             await checkStatus();
