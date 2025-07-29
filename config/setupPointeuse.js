@@ -1,8 +1,51 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("../config/db");
-const { getBot } = require("../config/config")
+const pool = require("./db");
 const { DateTime } = require("luxon");
+const { EmbedBuilder } = require("discord.js");
+const conf = require("./config");
+const { getBot } = require("./config");
+
+// ✅ GET - Récupère l'heure de fin de pointage
+router.get("/config/pointeuse/heure", async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT heure_pointeuse_alerte FROM configlspd LIMIT 1`);
+    if (result.rows.length === 0) return res.status(404).json({ error: "Pas de config trouvée" });
+    res.json({ heure_pointeuse_alerte: result.rows[0].heure_pointeuse_alerte });
+  } catch (err) {
+    console.error("Erreur GET /config/pointeuse/heure:", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// ✅ POST - Met à jour l'heure de fin de pointage et log si elle change
+router.post("/config/pointeuse/heure", async (req, res) => {
+  try {
+    const { heure } = req.body; // format attendu "HH:mm"
+    if (!heure || !/^\d{2}:\d{2}$/.test(heure)) {
+      return res.status(400).json({ error: "Heure invalide, format attendu HH:mm" });
+    }
+
+    // Récupère l'ancienne heure
+    const oldRes = await pool.query(`SELECT heure_pointeuse_alerte FROM configlspd WHERE id = 1`);
+    const oldHeure = oldRes.rows.length ? oldRes.rows[0].heure_pointeuse_alerte : null;
+
+    // Met à jour la nouvelle heure
+    await pool.query(`
+      UPDATE configlspd SET heure_pointeuse_alerte = $1 WHERE id = 1
+    `, [heure]);
+
+    // Log seulement si elle a changé
+    if (oldHeure !== heure && oldHeure !== null) {
+      await logHeurePointeuseChange(oldHeure, heure, req.user?.id || "Inconnu");
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Erreur POST /config/pointeuse/heure:", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
 
 // ✅ GET - Liste tous les rôles config LSPD
 router.get("/config/pointeuse", async (req, res) => {
@@ -17,38 +60,13 @@ router.get("/config/pointeuse", async (req, res) => {
   }
 });
 
-// ✅ POST - Ajoute ou met à jour un rôle
-router.post("/config/pointeuse", async (req, res) => {
-  try {
-    const { role_id, role_name, salary_rate, rank } = req.body;
-
-    if (!role_id || !role_name || !salary_rate || rank === undefined) {
-      return res.status(400).json({ error: "Champs manquants" });
-    }
-
-    await pool.query(`
-      INSERT INTO lspd_config_pointage (discord_role_id, role_name, salary_rate, rank)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (discord_role_id)
-      DO UPDATE SET role_name = $2, salary_rate = $3, rank = $4
-    `, [role_id, role_name, salary_rate, rank]);
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Erreur POST /config/pointeuse:", err);
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-});
-
 // ✅ DELETE - Supprime un rôle
 router.delete("/config/pointeuse/:role_id", async (req, res) => {
   try {
     const { role_id } = req.params;
-
     await pool.query(`
       DELETE FROM lspd_config_pointage WHERE discord_role_id = $1
     `, [role_id]);
-
     res.json({ success: true });
   } catch (err) {
     console.error("Erreur DELETE /config/pointeuse:", err);
@@ -56,19 +74,15 @@ router.delete("/config/pointeuse/:role_id", async (req, res) => {
   }
 });
 
-// ✅ GET - Liste des utilisateurs avec leur total de salaire
+// ✅ GET - Liste des utilisateurs avec leurs salaires hebdo
 router.get("/admin/pointeuse/users", async (req, res) => {
   try {
-    // Dates limites semaine courante
     const nowParis = DateTime.now().setZone("Europe/Paris");
     const startOfWeek = nowParis.startOf("week").startOf("day").toISO();
     const endOfWeek = nowParis.endOf("week").endOf("day").toISO();
-
-    // Dates limites semaine précédente
     const startOfLastWeek = nowParis.minus({ weeks: 1 }).startOf("week").startOf("day").toISO();
     const endOfLastWeek = nowParis.minus({ weeks: 1 }).endOf("week").endOf("day").toISO();
 
-    // On récupère pour chaque utilisateur le salaire gagné cette semaine et la semaine dernière
     const result = await pool.query(`
       SELECT
         id_discord,
@@ -81,7 +95,6 @@ router.get("/admin/pointeuse/users", async (req, res) => {
 
     const guild = getBot().guilds.cache.first();
 
-    // Ajout display_name en récupérant les membres Discord
     const usersWithNames = await Promise.all(
       result.rows.map(async row => {
         try {
@@ -110,7 +123,7 @@ router.get("/admin/pointeuse/users", async (req, res) => {
   }
 });
 
-// ✅ DELETE - Supprime toutes les lignes d’un utilisateur
+// ✅ DELETE - Supprime tous les pointages d’un utilisateur
 router.delete("/admin/pointeuse/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -121,5 +134,37 @@ router.delete("/admin/pointeuse/users/:id", async (req, res) => {
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
+
+// ✅ LOG - Changement d'heure de fin de pointage
+async function logHeurePointeuseChange(oldHeure, newHeure, userId) {
+  const bot = getBot();
+
+  // 🔄 Récupération du salon log depuis la BDD
+  const res = await pool.query(`
+    SELECT logs_channel FROM configlspd WHERE id = 1
+  `);
+  if (!res.rows.length || !res.rows[0].logs_channel) return;
+
+  const logChannelId = res.rows[0].logs_channel;
+  const logsChannel = await bot.channels.fetch(logChannelId);
+  if (!logsChannel?.isTextBased()) return;
+
+  const embed = new EmbedBuilder()
+    .setColor(0xFF0000)
+    .setTitle("Heure fin pointage modifiée")
+    .setDescription(`<@${userId}> a modifié l'heure de la fin de pointage.`)
+    .addFields({
+      name: "ID's",
+      value: `> <@${userId}> (\`${userId}\`)\n> Avant : \`${oldHeure}\`\n> Après : \`${newHeure}\``,
+      inline: false,
+    })
+    .setFooter({
+      text: "LSPD Assistant",
+      iconURL: bot.user.displayAvatarURL({ extension: "png", size: 256 }),
+    })
+    .setTimestamp();
+
+  await logsChannel.send({ embeds: [embed] });
+}
 
 module.exports = router;

@@ -1,8 +1,10 @@
 const express = require("express");
+const config = require("../config/config");
 const router = express.Router();
 const pool = require("../config/db");
 const { getBot } = require("../config/config");
 const { DateTime } = require("luxon");
+const { EmbedBuilder } = require("discord.js");
 
 function getHighestRankedRole(userRoles, configRoles) {
   const matched = configRoles.filter(r => userRoles.includes(r.discord_role_id));
@@ -11,6 +13,7 @@ function getHighestRankedRole(userRoles, configRoles) {
 
 router.post("/pointeuse/start", async (req, res) => {
   try {
+    const conf = await config.getConfig();
     const { id } = req.user;
     const member = await getBot().guilds.cache.first().members.fetch(id);
     const userRoles = member.roles.cache.map(r => r.id);
@@ -35,6 +38,35 @@ router.post("/pointeuse/start", async (req, res) => {
       INSERT INTO lspd_pointage (id_discord, discord_role_id, start_time)
       VALUES ($1, $2, $3)
     `, [id, topRole.discord_role_id, nowParis]);
+    if (conf.logs_channel) {
+      try {
+        const clientDiscord = getBot();
+        const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
+
+        if (logsChannel?.isTextBased()) {
+          const nowFormatted = DateTime.now().setZone("Europe/Paris").toFormat("dd/MM/yyyy - HH:mm");
+
+          const embedLog = new EmbedBuilder()
+            .setColor(0x0b1b5a)
+            .setTitle("Pointeuse lancée")
+            .setDescription(`<@${req.user.id}> a lancé sa pointeuse - \`${nowFormatted}\``)
+            .addFields({
+              name: "ID's",
+              value: `> <@${req.user.id}> (\`${req.user.id}\`)`,
+              inline: false
+            })
+            .setFooter({
+              text: "LSPD Assistant",
+              iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
+            })
+            .setTimestamp();
+
+          await logsChannel.send({ embeds: [embedLog] });
+        }
+      } catch (err) {
+        console.error("Erreur lors de l'envoi du log Discord :", err);
+      }
+    }
 
     res.json({ success: true, role_used: topRole.role_name, start_time: nowParis });
   } catch (err) {
@@ -46,7 +78,7 @@ router.post("/pointeuse/start", async (req, res) => {
 router.post("/pointeuse/stop", async (req, res) => {
   try {
     const { id } = req.user;
-
+    const conf = await config.getConfig();
     const result = await pool.query(`
       SELECT p.*, c.salary_rate FROM lspd_pointage p
       JOIN lspd_config_pointage c ON p.discord_role_id = c.discord_role_id
@@ -69,6 +101,36 @@ router.post("/pointeuse/stop", async (req, res) => {
       SET end_time = $1, salary_earned = $2
       WHERE id = $3
     `, [nowParis, earned, row.id]);
+
+    if (conf.logs_channel) {
+      try {
+        const clientDiscord = getBot();
+        const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
+
+        if (logsChannel?.isTextBased()) {
+          const nowFormatted = DateTime.now().setZone("Europe/Paris").toFormat("dd/MM/yyyy - HH:mm");
+
+          const embedLog = new EmbedBuilder()
+            .setColor(0x0b1b5a)
+            .setTitle("Pointeuse arrêtée")
+            .setDescription(`<@${req.user.id}> a arrêté sa pointeuse - \`${nowFormatted}\``)
+            .addFields({
+              name: "ID's",
+              value: `> <@${req.user.id}> (\`${req.user.id}\`)`,
+              inline: false
+            })
+            .setFooter({
+              text: "LSPD Assistant",
+              iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
+            })
+            .setTimestamp();
+
+          await logsChannel.send({ embeds: [embedLog] });
+        }
+      } catch (err) {
+        console.error("Erreur lors de l'envoi du log Discord :", err);
+      }
+    }
 
     res.json({
       success: true,
@@ -179,6 +241,132 @@ router.get("/pointeuse/semaine", async (req, res) => {
     });
   } catch (err) {
     console.error("Erreur /pointeuse/semaine :", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+router.get("/admin/pointeuses-actives", async (req, res) => {
+  try {
+    const pointages = await pool.query(`
+      SELECT id, id_discord, discord_role_id, start_time
+      FROM lspd_pointage
+      WHERE end_time IS NULL
+      ORDER BY start_time ASC
+    `);
+
+    const formatted = pointages.rows.map(row => ({
+      id: row.id,
+      discord_id: row.id_discord,
+      username: `ID: ${row.id_discord}`,
+      start_time: DateTime.fromJSDate(row.start_time).setZone('Europe/Paris').toISO()
+    }));
+
+    res.json(formatted);
+  } catch (err) {
+    console.error("Erreur /admin/pointeuses-actives :", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+router.post("/admin/pointeuse/stop/:discordId", async (req, res) => {
+  try {
+    const { discordId } = req.params;
+    const conf = await config.getConfig();
+
+    const result = await pool.query(`
+      SELECT p.*, c.salary_rate FROM lspd_pointage p
+      JOIN lspd_config_pointage c ON p.discord_role_id = c.discord_role_id
+      WHERE p.id_discord = $1 AND p.end_time IS NULL
+    `, [discordId]);
+
+    if (!result.rows.length) return res.status(400).json({ error: "Aucun pointage en cours pour cet utilisateur" });
+
+    const row = result.rows[0];
+
+    const start = DateTime.fromJSDate(row.start_time, { zone: "Europe/Paris" });
+    const end = DateTime.now().setZone("Europe/Paris");
+
+    const durationHours = end.diff(start, ['hours', 'minutes', 'seconds']).as('hours');
+    const earned = +(durationHours * row.salary_rate).toFixed(2);
+    const nowParis = end.toJSDate();
+
+    await pool.query(`
+      UPDATE lspd_pointage
+      SET end_time = $1, salary_earned = $2
+      WHERE id = $3
+    `, [nowParis, earned, row.id]);
+
+    if (conf.logs_channel) {
+      try {
+        const clientDiscord = getBot();
+        const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
+
+        if (logsChannel?.isTextBased()) {
+          const nowFormatted = end.toFormat("dd/MM/yyyy - HH:mm");
+
+          const embedLog = new EmbedBuilder()
+            .setColor(0x0b1b5a)
+            .setTitle("Pointeuse arrêtée (Admin)")
+            .setDescription(`⛔ Pointeuse stoppée pour <@${discordId}> par un administrateur - \`${nowFormatted}\``)
+            .setFooter({
+              text: "LSPD Assistant",
+              iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
+            })
+            .setTimestamp();
+
+          await logsChannel.send({ embeds: [embedLog] });
+        }
+      } catch (err) {
+        console.error("Erreur log Discord (admin stop) :", err);
+      }
+    }
+
+    res.json({
+      success: true,
+      earned,
+      duration: durationHours.toFixed(2),
+      end_time: nowParis
+    });
+  } catch (err) {
+    console.error("Erreur /admin/pointeuse/stop :", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+router.get('/api/user/:discordId', async (req, res) => {
+  try {
+    const discordId = req.params.discordId;
+    const client = getBot();
+    const guild = client.guilds.cache.first(); // Adapt selon ta config, ou passe l’ID en config
+
+    if (!guild) return res.status(500).json({ error: "Guild introuvable" });
+
+    const member = await guild.members.fetch(discordId).catch(() => null);
+
+    if (!member) {
+      return res.status(404).json({ displayName: null });
+    }
+
+    // renvoie le displayName ou le username si displayName vide
+    res.json({ displayName: member.displayName || member.user.username });
+  } catch (err) {
+    console.error("Erreur API /api/user/:discordId", err);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });

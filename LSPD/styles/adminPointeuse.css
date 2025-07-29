@@ -1,9 +1,25 @@
-/* Reset et styles globaux */
+html,
 body {
+    height: 100%;
     margin: 0;
-    padding: 20px;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
     color: #fff;
+    z-index: 0;
+    background: none;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 h1 {
@@ -143,3 +159,17 @@ button:hover {
   background-color: #032a4d;
   border-color: #032a4d;
 }
+
+#alertTime {
+  min-width: 120px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: #fff;
+  border: none;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+
