@@ -65,7 +65,7 @@ router.delete("/config/pointeuse/:role_id", async (req, res) => {
   try {
     const { role_id } = req.params;
     await pool.query(`
-      DELETE FROM lspd_config_pointage WHERE discord_role_id = $1
+      DELETE FROM lspd_config_pointage WHERE id = $1
     `, [role_id]);
     res.json({ success: true });
   } catch (err) {
@@ -166,5 +166,29 @@ async function logHeurePointeuseChange(oldHeure, newHeure, userId) {
 
   await logsChannel.send({ embeds: [embed] });
 }
+
+// Ajout / Modification
+router.post('/config/pointeuse', async (req, res) => {
+  const { id, discord_role_id, role_name, salary_rate, rank } = req.body;
+  try {
+    if (id) {
+      // Update
+      await pool.query(`
+        UPDATE lspd_config_pointage SET discord_role_id=$1, role_name=$2, salary_rate=$3, rank=$4 WHERE id=$5
+      `, [discord_role_id, role_name, salary_rate, rank, id]);
+    } else {
+      // Insert
+      await pool.query(`
+        INSERT INTO lspd_config_pointage (discord_role_id, role_name, salary_rate, rank)
+        VALUES ($1, $2, $3, $4)
+      `, [discord_role_id, role_name, salary_rate, rank]);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Erreur POST /config/pointeuse:", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
 
 module.exports = router;
