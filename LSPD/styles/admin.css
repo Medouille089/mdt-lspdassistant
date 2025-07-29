@@ -86,3 +86,13 @@ label {
 btn-save:hover {
     background-color: #08123a;
 }
+
+form button[type="button"] {
+    padding: 0.5rem 1.5rem;
+    font-size: 100%;
+    background-color: #0b1b5a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
