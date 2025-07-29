@@ -287,6 +287,7 @@ router.get("/admin/pointeuses-actives", async (req, res) => {
 router.post("/admin/pointeuse/stop/:discordId", async (req, res) => {
   try {
     const { discordId } = req.params;
+    const adminDiscordId = req.user.id;
     const conf = await config.getConfig();
 
     const result = await pool.query(`
@@ -323,7 +324,12 @@ router.post("/admin/pointeuse/stop/:discordId", async (req, res) => {
           const embedLog = new EmbedBuilder()
             .setColor(0x0b1b5a)
             .setTitle("Pointeuse arrêtée (Admin)")
-            .setDescription(`⛔ Pointeuse stoppée pour <@${discordId}> par un administrateur - \`${nowFormatted}\``)
+            .setDescription(`⛔ Pointeuse stoppée pour <@${discordId}> par <@${adminDiscordId}> - \`${nowFormatted}\``)
+            .addFields({
+              name: "ID's",
+              value: `> <@${discordId}> (\`${discordId}\`)\n> <@${adminDiscordId}> (\`${adminDiscordId}\`)`,
+              inline: false,
+            })
             .setFooter({
               text: "LSPD Assistant",
               iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })

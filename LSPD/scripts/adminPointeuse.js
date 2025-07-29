@@ -204,13 +204,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-
-
-
-
-
-
-
 async function getDisplayName(discordId) {
   try {
     const res = await fetch(`/api/user/${discordId}`);
@@ -248,7 +241,7 @@ async function loadActivePointeuses() {
     tr.innerHTML = `
       <td>${user.displayName}</td>
       <td>${user.discord_id}</td>
-      <td><button onclick="forceStopPointeuse('${user.discord_id}')">⛔ Forcer arrêt</button></td>
+      <td><button onclick="forceStopPointeuse('${user.discord_id}')">Forcer arrêt</button></td>
     `;
 
     tbody.appendChild(tr);
@@ -274,13 +267,6 @@ async function forceStopPointeuse(discordId) {
 window.addEventListener("DOMContentLoaded", () => {
   loadActivePointeuses();
 });
-
-
-
-
-
-
-
 
 loadRoles();
 loadUsersWithSalary();
