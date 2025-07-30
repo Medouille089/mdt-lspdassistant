@@ -128,11 +128,11 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
 
     await pool.query(`
       INSERT INTO incidents 
-      (incident_id, date_incident, heure_incident, officier_redacteur, grade, recit, officier_implique, type_rapport, lieu_incident, discord_thread_id)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      (incident_id, date_incident, heure_incident, officier_redacteur, grade, recit, officier_implique, type_rapport, lieu_incident, discord_thread_id, discord_message_id)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
     `, [
       incidentId, date, heure, officier, grade,
-      recit, implique, type, lieu, thread.id
+      recit, implique, type, lieu, thread.id, thread.lastMessageId
     ]);
 
     const logsChannel = await bot.channels.fetch(logsChannelId);
@@ -180,7 +180,8 @@ router.get('/api/getIncident', async (req, res) => {
         officier_implique,
         type_rapport,
         lieu_incident,
-        discord_thread_id
+        discord_thread_id,
+        discord_message_id
       FROM incidents
       ORDER BY date_incident DESC, heure_incident DESC
     `);
@@ -219,6 +220,7 @@ router.get('/api/getIncident', async (req, res) => {
         type: row.type_rapport,
         lieu: row.lieu_incident,
         threadId: row.discord_thread_id,
+        messageId: row.discord_message_id,
         images
       };
     }));
@@ -256,11 +258,20 @@ router.get('/api/getSituations', async (req, res) => {
   }
 });
 
-router.put('/api/updateIncident', async (req, res) => {
-  const { incidentId, date, heure, officier, grade, recit, implique, type, lieu, situations } = req.body;
-  const situationsArray = JSON.parse(situations || "[]");
-  const files = req.files;
+router.put('/api/updateIncident', upload.array('pieces'), async (req, res) => {
+  const conf = await config.getConfig();
+  const bot = getBot();
+  const situationsChannelId = conf.situations_thread_id;
+  const logsChannelId = conf.logs_channel;
   try {
+
+    const { incidentId, date, heure, officier, grade, recit, implique, type, lieu, discord_thread_id, messageId, editBy } = req.body;
+    const files = req.files;
+
+    if (!incidentId) {
+      return res.status(400).json({ error: 'incidentId manquant' });
+    }
+
     await pool.query(`
       UPDATE incidents 
       SET date_incident = $1, heure_incident = $2, officier_redacteur = $3, grade = $4, recit = $5, 
@@ -268,35 +279,52 @@ router.put('/api/updateIncident', async (req, res) => {
       WHERE incident_id = $9
     `, [date, heure, officier, grade, recit, implique, type, lieu, incidentId]);
 
-    // Update situations if provided
-    if (situationsArray && situationsArray.length > 0) {
-      const forumChannelId = (await config.getConfig()).situations_thread_id;
-      const forum = await getBot().channels.fetch(forumChannelId);
+    // Si pas de discord_thread_id, on termine ici
+    if (!discord_thread_id || discord_thread_id === 'null' || discord_thread_id === 'undefined') {
+      console.log("Pas de thread Discord à mettre à jour");
+      return res.json({ message: "Incident mis à jour avec succès (sans Discord)." });
+    }
 
-      const thread = await createOrGetThread(forum, null, situationsArray, {
-        incidentId,
-        formattedDate: date,
-        officier,
-        embed: null,
-        recit
-      });
 
-      // Get the bot message in the thread
-      const botUser = await getBot().user;
-      const botMessage = await thread.messages.fetch({ limit: 1, before: thread.lastMessageId });
-      // Check if the message have pdf file and edit the message to put the new pdf from files
-      if (botMessage && botMessage.attachments.size > 0) {
-        const attachment = botMessage.attachments.first();
-        if (attachment.contentType === 'application/pdf') {
-          await botMessage.edit({
-            files: files.map(file => new AttachmentBuilder(file.buffer, { name: file.originalname }))
-          });
+    const situationsChannel = await getBot().channels.fetch(situationsChannelId);
+    const thread = await situationsChannel.threads.fetch(discord_thread_id);
+    if (!thread) {
+      return res.status(404).json({ error: 'Thread non trouvé ou invalide.' });
+    }
+    console.log(`Thread récupéré : ${thread.name} (${thread.id})`);
+    const botUser = await getBot().user;
+    const botMessage = await thread.messages.fetch(messageId);
+    if (botMessage) {
+      if (files && files.length > 0) {
+        for (const file of files) {
+          const attachment = new AttachmentBuilder(file.buffer, { name: file.originalname });
+          await botMessage.edit({ content: `Modifié par : ${editBy} (|| <@${req.user?.id}> ||)`, files: [attachment] });
         }
       }
-
-
-      console.log(`Thread mis à jour : ${thread.id}`);
     }
+    const logsChannel = await bot.channels.fetch(logsChannelId);
+    if (logsChannel?.isTextBased()) {
+      const embedLog = new EmbedBuilder()
+        .setColor(0x0b1b5a)
+        .setTitle(`Modification d'un rapport d'incident - ${incidentId}`)
+        .setDescription(`<@${req.user?.id}> a modifié le rapport de la situation - <#${thread.id}> \`${incidentId}\` `)
+        .addFields({
+          name: "ID's",
+          value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${req.user?.id || 'ID inconnu'}\`) \n> <#${thread.id}> (\`${thread.id}\`) \n> ${botMessage.url || 'Aucun message ID'} (\`${messageId}\`)`,
+          inline: false
+        })
+        .setFooter({
+          text: "LSPD Assistant",
+          iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 })
+        })
+        .setTimestamp();
+
+      await logsChannel.send({ embeds: [embedLog] });
+      console.log('Log modification rapport envoyé');
+    }
+
+
+    console.log(`Thread mis à jour : ${thread.id}`);
 
     res.json({ message: "Incident mis à jour avec succès." });
   } catch (err) {

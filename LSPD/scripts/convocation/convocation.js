@@ -67,6 +67,13 @@ document.querySelector('.send-button').addEventListener('click', async () => {
   formData.append('image', imageBlob, 'convocation.png');
   formData.append('nom', nom);
   formData.append('prenom', prenom);
+  formData.append('date', dateInput.value);
+  formData.append('heure', heureInput.value);
+  formData.append('officier', document.getElementById('officier').value);
+  formData.append('grade', document.getElementById('grade').value);
+  formData.append('motif', document.getElementById('motif-input').value.trim());
+  formData.append('lieu', document.getElementById('lieu-input').value.trim());
+
 
   const response = await fetch('/upload-convocation', {
     method: 'POST',

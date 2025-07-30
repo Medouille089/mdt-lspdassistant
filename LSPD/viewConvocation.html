@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Convocation - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/convocation/convocation.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/warning.css">
+    <style>
+        .police-box {
+            border: 1px solid black;
+            padding: 10px;
+            margin: 20px auto;
+            text-align: center;
+            width: 100%;
+            font-family: Arial, sans-serif;
+            font-size: 25px;
+            font-weight: bold;
+            background-color: #EEF1F5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Convocation</h1>
+        <div class="convocation-container">
+            <div class="header">
+                <img src="data/images/lspd.png" alt="Logo LSPD">
+                <div class="header-title">
+                    <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+                    <h3>Convocation Officielle</h3>
+                </div>
+                <div style="width: 70px;"></div>
+            </div>
+
+            <div class="content">
+                <div class="section-title">Informations du Citoyen</div>
+                <div class="inline-fields">
+                    <p><label>Nom :<br><input type="text" placeholder="Nom" id="nom-input" readonly></label></p>
+                    <p><label>Prénom :<br><input type="text" placeholder="Prénom" id="prenom-input" readonly></label>
+                    </p>
+                    <p><label>Date :<br><input type="date" id="date-input" readonly></label></p>
+                    <p><label>Heure :<br><input type="time" id="heure-input" readonly></label></p>
+                </div>
+
+                <p><label>Lieu :<br><input type="text" id="lieu-input" value="Mission Row Police Department"
+                            readonly></label>
+                </p>
+
+                <div class="police-box">
+                    Poste de Police de Los Santos<br>
+                    Mission Row<br>
+                    Tél: 911
+                </div>
+
+                <div class="section-title">Motif de la convocation</div>
+                <p><textarea id="motif-input" placeholder="Décrire le motif de la convocation..." readonly></textarea>
+                </p>
+                <p class="fixed-paragraph">
+                    Merci de vous présenter muni(e) de votre pièce d'identité. En cas d'empêchement, veuillez contacter
+                    nos
+                    services dans les plus brefs délais.
+                </p>
+                <p class="fixed-paragraph">
+                    Dans l'hypothèse où la date et l’heure fixées ne vous conviendraient pas, vous pouvez obtenir la
+                    modification
+                    du rendez-vous en téléphonant au numéro mentionné ci-dessus.<br>
+                    Dans le cadre d’espèce qui vous concerne, vous pouvez utilement vous munir des pièces ci-après
+                    désignées :
+                </p>
+                <ul style="margin-left: 20px;">
+                    <li>Carte d’identité</li>
+                    <li>Vos différents Permis</li>
+                    <li>Avocat</li>
+                </ul>
+            </div>
+
+            <div class="signature">
+                <div class="signature-block">
+                    <label for="officier">Agent en charge :</label>
+                    <input type="text" id="officier" readonly>
+                </div>
+                <div class="signature-block">
+                    <label for="grade">Grade :</label>
+                    <input type="text" id="grade" readonly>
+                </div>
+            </div>
+
+            <div class="image-container">
+                <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo">
+            </div>
+        </div>
+    </div>
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+    <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="scripts/convocation/viewConvocation.js"></script>
+</body>
+
+</html>
