@@ -484,6 +484,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
             .setTimestamp();
 
         await thread.send({ embeds: [embed] });
+        
         // Log axrchivage dans LOGS_CHANNEL
         if (conf.logs_channel) {
             const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
