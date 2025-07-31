@@ -126,6 +126,8 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
       }
     }
 
+    thread.setLocked(true);
+
     await pool.query(`
       INSERT INTO incidents 
       (incident_id, date_incident, heure_incident, officier_redacteur, grade, recit, officier_implique, type_rapport, lieu_incident, discord_thread_id, discord_message_id)
