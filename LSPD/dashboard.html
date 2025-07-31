@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles/sidebar.css" />
     <link rel="stylesheet" href="styles/dashboard.css" />
     <link rel="stylesheet" href="styles/loader.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -51,7 +52,7 @@
             <div class="middle-section">
                 <div class="card chart">
                     <h3>Activité Hebdomadaire</h3>
-                    <div class="chart-placeholder">[Graphique ici]</div>
+                    <canvas id="activityChart" height="120"></canvas>
                 </div>
 
                 <div class="right-panel">
@@ -61,7 +62,6 @@
                             <!-- Liste dynamique -->
                         </ul>
                     </div>
-
                 </div>
             </div>
 

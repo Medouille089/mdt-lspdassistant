@@ -17,14 +17,28 @@ router.get('/api/user', checkAuth, async (req, res) => {
     guild.members.cache.delete(user.id); 
     const member = await guild.members.fetch(user.id);
     const roleIds = member.roles.cache.map(role => role.id);
+    const guildRoles = await guild.roles.fetch();
 
     const supervisorRoleId = conf.supervisor_role_id?.trim();
     const commandStaffRoleId = conf.commandstaff_id?.trim();
+    const gradeList = conf.lspd_grades;
 
     const isSupervisor = supervisorRoleId ? roleIds.includes(supervisorRoleId) : false;
     const isCommandStaff = commandStaffRoleId ? roleIds.includes(commandStaffRoleId) : false;
 
-    // Upsert lspd_live_users pour dire que l'utilisateur est connecté
+    let grade = "Agent";
+    for (let i = gradeList.length - 1; i >= 0; i--) {
+      const [roleId] = gradeList[i];
+      if (roleIds.includes(roleId)) {
+        const discordRole = guildRoles.get(roleId);
+        if (discordRole) {
+          grade = discordRole.name;
+          break;
+        }
+      }
+    }
+
+    // 💾 Mettre à jour la présence
     await pool.query(`
       INSERT INTO lspd_live_users (user_id, display_name, last_seen)
       VALUES ($1, $2, NOW())
@@ -42,7 +56,7 @@ router.get('/api/user', checkAuth, async (req, res) => {
       roles: roleIds,
       isSupervisor,
       isCommandStaff,
-      grade: user.grade
+      grade
     });
 
   } catch (err) {
@@ -50,6 +64,5 @@ router.get('/api/user', checkAuth, async (req, res) => {
     res.status(500).json({ error: 'Impossible de récupérer le membre.' });
   }
 });
-
 
 module.exports = router;

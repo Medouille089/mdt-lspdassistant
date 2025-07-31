@@ -61,6 +61,7 @@ const dashboardRoute = require("./routes/dashboard");
 const liveUsersRoute = require('./routes/liveUsers');
 const pointeuse = require('./routes/pointeuse');
 const setupPointeuse = require('./config/setupPointeuse');
+const gradesRoute = require('./config/grades');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -75,6 +76,7 @@ app.use(dashboardRoute);
 app.use(liveUsersRoute);
 app.use(pointeuse);
 app.use(setupPointeuse);
+app.use(gradesRoute);
 
 // Static frontend
 app.use(express.static(path.join(__dirname, "LSPD")));

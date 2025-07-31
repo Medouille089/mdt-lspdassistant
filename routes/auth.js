@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js'); // N'oublie pas d'importer EmbedBuilder
+const { EmbedBuilder } = require('discord.js');
 const express = require("express");
 const router = express.Router();
 const passport = require("../config/passport");
@@ -23,30 +23,14 @@ router.get('/callback', (req, res, next) => {
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
       const member = await guild.members.fetch(req.user.id);
-
       const roleIds = member.roles.cache.map(r => r.id);
 
-      // ➕ Récupérer les noms de rôles pour le grade
-      const guildRoles = await guild.roles.fetch();
+      const isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
+      const isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
 
-      const HIGH_GRADE_ROLE_ID = "1393306975722410135";
-      const LOW_GRADE_ROLE_ID = "1392518028847222896";
-
-      let grade = "Agent";
-
-      if (roleIds.includes(HIGH_GRADE_ROLE_ID)) {
-        const highRole = guildRoles.get(HIGH_GRADE_ROLE_ID);
-        grade = highRole?.name || "Grade Supérieur";
-      } else if (roleIds.includes(LOW_GRADE_ROLE_ID)) {
-        const lowRole = guildRoles.get(LOW_GRADE_ROLE_ID);
-        grade = lowRole?.name || "Grade Moyen";
-      }
-
-      // ➕ Ajout du grade et rôles enrichis dans req.user
-      req.user.grade = grade;
       req.user.roles = roleIds;
-      req.user.isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
-      req.user.isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
+      req.user.isCommandStaff = isCommandStaff;
+      req.user.isSupervisor = isSupervisor;
 
       const hasRequiredRole = roleIds.includes(required_role_id);
 
@@ -54,6 +38,7 @@ router.get('/callback', (req, res, next) => {
         ? "s'est connecté(e) avec succès"
         : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}>`;
 
+      // 📤 Envoi du log de connexion
       if (logs_channel) {
         const logsChannel = await bot.channels.fetch(logs_channel);
         if (logsChannel?.isTextBased()) {
@@ -83,61 +68,11 @@ router.get('/callback', (req, res, next) => {
 
 router.get("/logout", (req, res) => {
   req.logout(() => {
-    res.redirect("/connect.html");
+    res.redirect("/login");
   });
 });
 
-async function checkCommandStaffRole(req, res, next) {
-  try {
-    const config = await getConfig();
-    const commandStaffRoleId = config.commandstaff_id?.trim();
-
-    const user = req.user;
-    if (!user) {
-      return res.status(401).send("Non authentifié");
-    }
-
-    const guild = await bot.guilds.fetch(GUILD_ID);
-    guild.members.cache.delete(user.id); // forcer refresh
-    const member = await guild.members.fetch(user.id);
-    const roleIds = member.roles.cache.map(role => role.id);
-
-    const isCommandStaff = commandStaffRoleId ? roleIds.includes(commandStaffRoleId) : false;
-
-    if (!isCommandStaff) {
-      return res.send(`
-        <!DOCTYPE html>
-        <html lang="fr">
-        <head>
-          <meta charset="UTF-8" />
-          <title>Accès refusé</title>
-          <style>
-            body { font-family: Arial, sans-serif; background: #f8d7da; color: #721c24; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-            .container { background: white; padding: 2rem; border: 2px solid #f5c6cb; border-radius: 10px; text-align: center; }
-            button { margin-top: 1.5rem; padding: 0.5rem 1rem; font-size: 1rem; border: none; background: #007bff; color: white; border-radius: 5px; cursor: pointer; }
-            button:hover { background: #0056b3; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>Tient tient tient</h1>
-            <p>Tu n'as rien à faire ici</p>
-            <button onclick="window.location.href='/dashboard.html'">Revenir en lieu sûr</button>
-          </div>
-        </body>
-        </html>
-      `);
-    }
-
-    next();
-
-  } catch (err) {
-    console.error("Erreur checkCommandStaffRole:", err);
-    res.status(500).send("Erreur serveur");
-  }
-}
-
-const protectedPages = ['admin.html', 'adminPointeuse.html', 'adminMenu.html'];
+const protectedPages = ['admin.html', 'adminPointeuse.html'];
 
 router.get(protectedPages.map(page => `/${page}`), async (req, res, next) => {
   try {
@@ -145,7 +80,7 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res, next) => {
     const commandStaffRoleId = config.commandstaff_id?.trim();
 
     if (!req.user) {
-      return res.status(403).send('Accès refusé - Non authentifié');
+      return res.redirect('/login');
     }
 
     const guild = await bot.guilds.fetch(GUILD_ID);
@@ -157,7 +92,6 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res, next) => {
       return res.redirect('/error.html');
     }
 
-    // Renvoie le fichier demandé dynamiquement
     const requestedPage = req.path.replace('/', '');
     if (!protectedPages.includes(requestedPage)) {
       return res.status(404).send('Page non trouvée');

@@ -18,7 +18,6 @@ async function fetchUser() {
         if (!res.ok) throw new Error('Non connecté');
         const user = await res.json();
 
-        // Safely update DOM
         const usernameEl = document.getElementById('messageUsername');
         const gradeEl = document.getElementById('messageGrade');
         const overlayMsg = document.getElementById('overlayMessage');
@@ -63,30 +62,33 @@ async function loadDashboardStats() {
         const res = await fetch('/api/dashboard');
         const data = await res.json();
 
+        // --- Bracelets ---
         const braceletEl = document.getElementById('braceletCount');
         if (braceletEl) braceletEl.textContent = data.braceletCount;
 
+        // --- Rapports ---
         const interventionCount = document.getElementById('interventionCount');
         const interventionInfo = document.getElementById('interventionInfo');
-        if (interventionCount) interventionCount.textContent = data.interventionsToday;
+        if (interventionCount) interventionCount.textContent = data.totalReports;
         if (interventionInfo) interventionInfo.textContent = `+${data.interventionsToday} aujourd'hui`;
 
+        // --- Derniers rapports ---
         const tbody = document.getElementById('rapportsTbody');
         if (tbody) {
-            tbody.innerHTML = ''; // reset
+            tbody.innerHTML = '';
             data.latestReports.forEach(report => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                <td>${report.id}</td>
-                <td>${report.date}</td>
-                <td>${report.agent}</td>
-                <td>${report.type}</td>
+                    <td>${report.id}</td>
+                    <td>${report.date}</td>
+                    <td>${report.agent}</td>
+                    <td>${report.type}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
-      
-        // --- Nouvelle partie pour récupérer et afficher le salaire de la semaine ---
+
+        // --- Salaire semaine ---
         const weekRes = await fetch('/pointeuse/semaine');
         if (weekRes.ok) {
             const weekData = await weekRes.json();
@@ -131,7 +133,61 @@ async function fetchConnectedAgents() {
   }
 }
 
-// Rafraîchir toutes les 30s
+async function loadActivityChart() {
+  const res = await fetch('/api/activity');
+  const data = await res.json();
+
+  const labels = data.map(d => new Date(d.date).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' }));
+  const incidents = data.map(d => d.incidents);
+  const arrestations = data.map(d => d.arrestations);
+  const bracelets = data.map(d => d.bracelets);
+
+  const ctx = document.getElementById('activityChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Incidents',
+          data: incidents,
+          borderColor: 'rgba(54, 162, 235, 1)',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          tension: 0.3
+        },
+        {
+          label: 'Arrestations',
+          data: arrestations,
+          borderColor: 'rgba(255, 99, 132, 1)',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          tension: 0.3
+        },
+        {
+          label: 'Bracelets',
+          data: bracelets,
+          borderColor: 'rgba(255, 206, 86, 1)',
+          backgroundColor: 'rgba(255, 206, 86, 0.2)',
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadActivityChart();
+});
+
 fetchConnectedAgents();
 setInterval(fetchConnectedAgents, 30000);
 
