@@ -431,8 +431,8 @@ router.get('/api/next-id-brac', async (req, res) => {
 
 router.post('/api/formulaires/pointer/:id', async (req, res) => {
     const id = req.params.id;
-    const user = req.user 
-    
+    const user = req.user
+
     const clientDiscord = config.getBot();
 
     try {
@@ -474,7 +474,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
                 { name: "Prénom", value: data.prenom || '—', inline: true },
                 { name: "Date", value: dateStr, inline: true },
                 { name: "Heure", value: heureStr, inline: true },
-                { name: "Pointé par", value: `<@${user.id}>`, inline: false}
+                { name: "Pointé par", value: `<@${user.id}>`, inline: false }
             )
             .setFooter({
                 text: user.guild_member.nick,
