@@ -11,7 +11,11 @@ const { loadConfig, getConfig, setBot } = require("./config");
 const db = require("./db");
 const fs = require("fs");
 const path = require("path");
+const cron = require("node-cron");
+const moment = require("moment-timezone");
 require("dotenv").config();
+
+const ficheDePresence = require("../discordUtils/ficheDePresence");
 
 const bot = new Client({
   intents: [
@@ -65,19 +69,18 @@ bot.on(Events.InteractionCreate, async (interaction) => {
     console.error(error);
     await interaction.reply({
       content: "❌ Une erreur est survenue lors de l'exécution de la commande.",
-      ephemeral: true,
+      flags : 64 ,
     });
   }
 });
 
 function pluralize(count, zeroIsPlural = false) {
-  if (count === 1) return ""; // pas de s si 1
-  if (count === 0 && zeroIsPlural) return "s"; // si 0 et qu'on veut s, on met s
-  if (count > 1) return "s"; // pluriel normal
-  return ""; // par défaut pas de s
+  if (count === 1) return "";
+  if (count === 0 && zeroIsPlural) return "s";
+  if (count > 1) return "s";
+  return "";
 }
 
-// 🔁 Fonction pour obtenir les données dynamiques
 async function getPresenceMessages(zeroPlural = false) {
   try {
     const res1 = await db.query("SELECT COUNT(*) FROM bracelets");
@@ -107,13 +110,11 @@ async function getPresenceMessages(zeroPlural = false) {
       {
         name: `${lspdUsers} personne${pluralize(lspdUsers, zeroPlural)} connecté${pluralize(lspdUsers, zeroPlural)}`,
         type: ActivityType.Watching,
-      }
+      },
     ];
   } catch (err) {
     console.error("Erreur lors de la récupération des stats :", err);
-    return [
-      { name: "Assister le LSPD", type: ActivityType.Playing },
-    ]; // Fallback
+    return [{ name: "Assister le LSPD", type: ActivityType.Playing }];
   }
 }
 
@@ -129,7 +130,6 @@ async function startBot() {
 
     async function cyclePresence() {
       const activities = await getPresenceMessages();
-
       bot.user.setPresence({
         activities: [activities[index]],
         status: "online",
@@ -138,10 +138,39 @@ async function startBot() {
       index = (index + 1) % activities.length;
     }
 
-    await cyclePresence(); // Première mise à jour immédiate
-    setInterval(cyclePresence, 5000); // Puis toutes les 5 secondes
-
+    await cyclePresence();
+    setInterval(cyclePresence, 5000);
     await registerCommands();
+
+    // Tâche cron qui tourne chaque minute, envoie la fiche principale et rappel si l'heure correspond
+    cron.schedule("* * * * *", async () => {
+      try {
+        const res = await db.query(
+          "SELECT fiche_de_presence_hour, fiche_de_presence_rappel FROM configlspd LIMIT 1"
+        );
+        if (!res.rows.length) return;
+
+        const { fiche_de_presence_hour, fiche_de_presence_rappel } = res.rows[0];
+
+        if (fiche_de_presence_hour && /^\d{2}:\d{2}$/.test(fiche_de_presence_hour)) {
+          const nowParis = moment().tz("Europe/Paris").format("HH:mm");
+          if (nowParis === fiche_de_presence_hour) {
+            console.log("📌 Envoi de la fiche de présence principale à", fiche_de_presence_hour);
+            await ficheDePresence.sendFicheDePresence(bot, false);
+          }
+        }
+
+        if (fiche_de_presence_rappel && /^\d{2}:\d{2}$/.test(fiche_de_presence_rappel)) {
+          const nowParis = moment().tz("Europe/Paris").format("HH:mm");
+          if (nowParis === fiche_de_presence_rappel) {
+            console.log("📌 Envoi du rappel de la fiche de présence à", fiche_de_presence_rappel);
+            await ficheDePresence.sendFicheDePresence(bot, true);
+          }
+        }
+      } catch (e) {
+        console.error("Erreur dans la tâche cron fiche de présence :", e);
+      }
+    });
   });
 
   setBot(bot);

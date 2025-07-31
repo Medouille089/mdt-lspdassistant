@@ -14,7 +14,7 @@ module.exports = {
     if (roleList.length > 4096) {
       return interaction.reply({
         content: "La liste dépasse 4096 caractères, impossible d’afficher tous les rôles dans un embed.",
-        ephemeral: true,
+        flags : 64,
       });
     }
 

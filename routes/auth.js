@@ -137,7 +137,9 @@ async function checkCommandStaffRole(req, res, next) {
   }
 }
 
-router.get('/admin.html', async (req, res) => {
+const protectedPages = ['admin.html', 'adminPointeuse.html'];
+
+router.get(protectedPages.map(page => `/${page}`), async (req, res, next) => {
   try {
     const config = await getConfig();
     const commandStaffRoleId = config.commandstaff_id?.trim();
@@ -155,11 +157,18 @@ router.get('/admin.html', async (req, res) => {
       return res.redirect('/error.html');
     }
 
-    res.sendFile(path.join(__dirname, '../LSPD/admin.html'));
+    // Renvoie le fichier demandé dynamiquement
+    const requestedPage = req.path.replace('/', '');
+    if (!protectedPages.includes(requestedPage)) {
+      return res.status(404).send('Page non trouvée');
+    }
+
+    res.sendFile(path.join(__dirname, `../LSPD/${requestedPage}`));
   } catch (err) {
-    console.error("Erreur admin.html:", err);
+    console.error(`Erreur ${req.path}:`, err);
     res.status(500).send('Erreur serveur');
   }
 });
+
 
 module.exports = router;

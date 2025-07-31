@@ -11,5 +11,4 @@ function cleanOldUsers() {
   });
 }
 
-// Lancer le nettoyage toutes les minutes
 setInterval(cleanOldUsers, 60 * 1000);
