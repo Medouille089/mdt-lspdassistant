@@ -83,7 +83,7 @@ router.get('/callback', (req, res, next) => {
 
 router.get("/logout", (req, res) => {
   req.logout(() => {
-    res.redirect("/login");
+    res.redirect("/connect.html");
   });
 });
 

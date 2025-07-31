@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <title>Connexion - LSPD Assistant</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: url('https://wallpapers.com/images/hd/fivem-ykcvktraxgpoh1r4.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: "Poppins", sans-serif;
+            color: white;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* noir semi-transparent */
+            z-index: 0;
+        }
+
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 1;
+        }
+
+
+        .logo {
+            width: 130px;
+        }
+
+        .slogan {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 35px;
+            font-style: italic;
+            letter-spacing: 1px;
+            color: white;
+        }
+
+        .main-content {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .connect-button {
+            display: flex;
+            align-items: center;
+            /* aligne verticalement le texte et l'image */
+            gap: 10px;
+            /* espace entre logo et texte */
+            padding: 15px 30px;
+            background-color: #0b1b5a;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+        }
+
+        .connect-button img {
+            width: 24px;
+            /* taille plus adaptée que 30px */
+            height: auto;
+            display: block;
+        }
+
+        .connect-button:hover {
+            background-color: #071138;
+            transform: scale(1.05);
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #0b1b5acc, #0b1b5a95);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            /* un peu moins arrondi */
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.6),
+                0 -1px 4px rgba(255, 255, 255, 0.2);
+            user-select: none;
+            z-index: 9999;
+            pointer-events: none;
+            font-family: "Poppins", sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <img src="data/images/lspd.png" alt="LSPD Logo" class="logo" />
+        <div class="slogan">To protect and serve.</div>
+    </div>
+
+    <div class="main-content">
+        <button class="connect-button" onclick="window.location.href='/auth/discord'">
+            <img src="https://upload.wikimedia.org/wikipedia/fr/thumb/4/4f/Discord_Logo_sans_texte.svg/1818px-Discord_Logo_sans_texte.svg.png"
+                alt="">Se connecter à LSPD Assistant
+        </button>
+    </div>
+
+    <div class="watermark">LSPD Assistant</div>
+</body>
+
+</html>
