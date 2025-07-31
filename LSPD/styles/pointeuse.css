@@ -113,7 +113,7 @@ tbody td {
 }
 
 /* Paragraphs sous tableaux */
-p, ul {
+.p, #last-weeks-list {
   text-align: center;
   color: #d0d7ff;
   margin-top: 8px;
@@ -128,7 +128,7 @@ p, ul {
   margin-top: 0;
 }
 
-p {
+.p {
     color: #0b1b5a;
 }
 

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Grades LSPD - Admin</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/sidebar.css">
+  <link rel="stylesheet" href="styles/colors.css">
+  <link rel="stylesheet" href="styles/admin.css">
+  <link rel="stylesheet" href="styles/loader.css">
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+</head>
+
+<body>
+  <div class="main-container">
+
+    <div id="sidebar-container"></div>
+
+    <h1>Gestion des grades LSPD</h1>
+    <div class="warning-modern">
+      <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+        class="warning-icon-modern">
+      <span>Assurez-vous d'entrer les bons ID de rôles Discord pour chaque grade</span>
+      <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+        class="warning-icon-modern">
+    </div>
+
+    <form id="gradesForm">
+      <fieldset>
+        <legend>&nbsp;&nbsp;Grades Discord&nbsp;&nbsp;</legend>
+        <label>Rookie : <input type="text" name="rookie_role_id" /></label><br>
+        <label>Officier I : <input type="text" name="officier_1_role_id" /></label><br>
+        <label>Officier II : <input type="text" name="officier_2_role_id" /></label><br>
+        <label>Officier III : <input type="text" name="officier_3_role_id" /></label><br>
+        <label>SLO : <input type="text" name="slo_role_id" /></label><br>
+        <label>Sergent I : <input type="text" name="sergent_1_role_id" /></label><br>
+        <label>Sergent II : <input type="text" name="sergent_2_role_id" /></label><br>
+        <label>Sergent Chef : <input type="text" name="sergent_chef_role_id" /></label><br>
+        <label>Lieutenant : <input type="text" name="lieutenant_role_id" /></label><br>
+        <label>Lieutenant Chef : <input type="text" name="lieutenant_chef_role_id" /></label><br>
+        <label>Capitaine : <input type="text" name="capitaine_role_id" /></label><br>
+        <label>Commandant : <input type="text" name="commandant_role_id" /></label><br>
+        <label>Chief : <input type="text" name="chief_role_id" /></label><br>
+      </fieldset>
+
+      <br>
+      <button class="btn-save" type="submit">Sauvegarder</button>
+    </form>
+
+    <div id="statusMessage" style="margin-top:10px;"></div>
+    <div class="loader-overlay" id="loaderOverlay">
+      <div class="loader-spinner"></div>
+    </div>
+    <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+
+    <script src="scripts/adminGrades.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+
+  </div>
+</body>
+</html>
