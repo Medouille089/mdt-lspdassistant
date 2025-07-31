@@ -137,7 +137,7 @@ async function checkCommandStaffRole(req, res, next) {
   }
 }
 
-const protectedPages = ['admin.html', 'adminPointeuse.html'];
+const protectedPages = ['admin.html', 'adminPointeuse.html', 'adminMenu.html'];
 
 router.get(protectedPages.map(page => `/${page}`), async (req, res, next) => {
   try {

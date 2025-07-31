@@ -1,26 +1,53 @@
 body {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f6fc;
+    color: #1b2a41;
+    margin: 0;
 }
 
 .container {
-    height: 75vh;
+    min-height: calc(90vh - 140px); /* prend tout l'écran sauf le h1 */
     display: flex;
     justify-content: center;
     align-items: center;
-    text-align: center;
-    flex-direction: column;
+    padding: 20px;
 }
 
 .error-card {
-    background: linear-gradient(135deg, #8a9eff, #5c6bc0);
-    border-radius: 8px;
-    padding: 25px 75px;
+    background-color: #ffffff;
+    border: 1px solid #d0e3f0;
+    border-radius: 16px;
+    padding: 40px;
     max-width: 550px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+    width: 100%;
+    box-shadow: 0 6px 16px rgba(0, 51, 102, 0.08);
+    text-align: center;
+}
+
+.error-card p {
+    font-size: 1.25rem;
+    margin: 15px 0;
+    color: #3b4f68;
+}
+
+.errorBtn {
+    background-color: #0b1b5a;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 25px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.errorBtn:hover {
+    background-color: #07113a;
+    transform: translateY(-2px);
+}
+
+.errorBtn:active {
+    transform: translateY(0);
 }

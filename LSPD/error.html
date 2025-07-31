@@ -15,15 +15,19 @@
 <body>
     <div class="main-container">
         <div id="sidebar-container"></div>
-        <h1>Accès interdit</h1>
+
+        <h1>Accès refusé</h1>
+
         <div class="container">
             <div class="error-card">
-                <p>Tient tient tient</p>
-                <p>Tu n'as rien à faire ici</p>
-                <button onclick="window.location.href='/dashboard.html'" style="max-width: 450px;">Revenir en lieu
-                    sûr</button>
+                <p>Cette page n’est pas accessible avec votre niveau d’autorisation.</p>
+                <p>Si vous pensez que c’est une erreur, merci de contacter un administrateur.</p>
+                <button class="errorBtn" onclick="window.location.href='/dashboard.html'">
+                    Retour au tableau de bord
+                </button>
             </div>
         </div>
+
         <script src="scripts/loadSidebar.js"></script>
     </div>
 </body>
