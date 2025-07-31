@@ -38,6 +38,8 @@ html {
 
 body.collapsed .main-container {
   margin-left: -270px;
+  margin-left: 85px;
+
 }
 
 .main-container {
@@ -48,10 +50,6 @@ body.collapsed .main-container {
   /* Pour ne pas être caché par la sidebar */
   padding: 2rem;
   transition: all 0.3s ease;
-}
-
-body.collapsed .main-container {
-  margin-left: 85px;
 }
 
 .main-container h1 {
@@ -86,20 +84,13 @@ body.collapsed .main-content {
 }
 
 #sidebar-container {
-  flex-shrink: 0;
-}
-
-#sidebar-container {
   width: 250px;
   transition: width 0.3s ease;
+  flex-shrink: 0;
 }
 
 .sidebar.collapsed {
   width: 80px;
-}
-
-.sidebar.collapsed {
-  width: 85px;
 }
 
 .sidebar .sidebar-header {

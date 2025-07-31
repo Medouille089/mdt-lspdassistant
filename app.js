@@ -30,14 +30,22 @@ app.use(passport.session());
 
 // Auth guard
 app.use((req, res, next) => {
-  const publicPaths = ['/login', '/callback', '/logout', '/bracelet'];
-  if (req.headers['x-internal'] === 'true') return next();
+  const publicPaths = ['/login', '/callback', '/logout', '/bracelet', '/connect.html'];
+
+  const isStatic = req.path.match(/\.(html|css|js|png|jpg|jpeg|gif|svg)$/);
+  if (isStatic) return next();
+
   if (publicPaths.includes(req.path)) return next();
+
+  if (req.headers['x-internal'] === 'true') return next();
+
   if (!req.isAuthenticated?.()) {
     return res.redirect('/login');
   }
+
   next();
 });
+
 
 // Routes
 const authRoutes = require("./routes/auth");
@@ -71,10 +79,14 @@ app.use(setupPointeuse);
 // Static frontend
 app.use(express.static(path.join(__dirname, "LSPD")));
 
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "LSPD", "connect.html"));
+});
+
 // Start server
 app.listen(port, () => {
   console.clear();
-  console.log(`🚀 Serveur démarré sur http://localhost:${port}`);
+  console.log(`🚀 Serveur démarré sur http://localhost:${port}/connect.html`);
 });
 
 startOvertimeScheduler();
