@@ -4,7 +4,6 @@ const { checkAuth } = require("../config/middleware");
 const bot = require("../config/bot");
 const { GUILD_ID } = require("../config/env");
 const { getConfig } = require("../config/config");
-const path = require("path");
 const pool = require('../config/db');
 
 router.get('/api/user', checkAuth, async (req, res) => {
@@ -21,11 +20,34 @@ router.get('/api/user', checkAuth, async (req, res) => {
 
     const supervisorRoleId = conf.supervisor_role_id?.trim();
     const commandStaffRoleId = conf.commandstaff_id?.trim();
-    const gradeList = conf.lspd_grades;
 
     const isSupervisor = supervisorRoleId ? roleIds.includes(supervisorRoleId) : false;
     const isCommandStaff = commandStaffRoleId ? roleIds.includes(commandStaffRoleId) : false;
 
+    // ✅ Récupération des grades depuis la base
+    const { rows } = await pool.query('SELECT * FROM lspd_grades LIMIT 1');
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Grades non trouvés.' });
+    }
+
+    const row = rows[0];
+    const gradeList = [
+      [row.rookie_role_id],
+      [row.officier_1_role_id],
+      [row.officier_2_role_id],
+      [row.officier_3_role_id],
+      [row.slo_role_id],
+      [row.sergent_1_role_id],
+      [row.sergent_2_role_id],
+      [row.sergent_chef_role_id],
+      [row.lieutenant_role_id],
+      [row.lieutenant_chef_role_id],
+      [row.capitaine_role_id],
+      [row.commandant_role_id],
+      [row.chief_role_id]
+    ].filter(r => r[0]); // filtre les null
+
+    // 🔎 Déterminer le grade
     let grade = "Agent";
     for (let i = gradeList.length - 1; i >= 0; i--) {
       const [roleId] = gradeList[i];
@@ -48,6 +70,7 @@ router.get('/api/user', checkAuth, async (req, res) => {
 
     res.set('Cache-Control', 'no-store');
 
+    // ✅ Réponse complète avec grade
     res.json({
       id: user.id,
       username: member.displayName || user.username,

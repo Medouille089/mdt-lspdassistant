@@ -7,6 +7,16 @@ const { getConfig } = require("../config/config");
 const { GUILD_ID } = require('../config/env');
 const path = require("path");
 
+
+// Middleware de vérification de session
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/login');
+}
+
+// Authentification avec Discord
 router.get("/login", passport.authenticate("discord"));
 
 router.get('/callback', (req, res, next) => {
@@ -38,7 +48,6 @@ router.get('/callback', (req, res, next) => {
         ? "s'est connecté(e) avec succès"
         : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}>`;
 
-      // 📤 Envoi du log de connexion
       if (logs_channel) {
         const logsChannel = await bot.channels.fetch(logs_channel);
         if (logsChannel?.isTextBased()) {
@@ -66,22 +75,29 @@ router.get('/callback', (req, res, next) => {
   }
 );
 
+// Déconnexion
 router.get("/logout", (req, res) => {
   req.logout(() => {
     res.redirect("/login");
   });
 });
 
+// Liste des pages protégées
 const protectedPages = ['admin.html', 'adminPointeuse.html'];
 
-router.get(protectedPages.map(page => `/${page}`), async (req, res, next) => {
+// Middleware de protection pour /protected et les pages admin
+router.use(['/protected', ...protectedPages.map(page => `/${page}`)], isAuthenticated);
+
+// Route de /protected (exemple basique)
+router.get('/protected', (req, res) => {
+  res.sendFile(path.join(__dirname, '../LSPD/dashboard.html'));
+});
+
+// Routes des pages admin protégées
+router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
   try {
     const config = await getConfig();
     const commandStaffRoleId = config.commandstaff_id?.trim();
-
-    if (!req.user) {
-      return res.redirect('/login');
-    }
 
     const guild = await bot.guilds.fetch(GUILD_ID);
     guild.members.cache.delete(req.user.id); // refresh
@@ -103,6 +119,5 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res, next) => {
     res.status(500).send('Erreur serveur');
   }
 });
-
 
 module.exports = router;

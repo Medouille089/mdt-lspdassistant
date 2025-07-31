@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <title>LSPD Assistant</title>
-    <!-- Linking Google Fonts for Icons -->
+    <!-- Google Fonts for Icons -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet"
@@ -19,16 +19,18 @@
     <button class="sidebar-menu-button">
         <span class="material-symbols-rounded">menu</span>
     </button>
+
     <aside class="sidebar">
         <!-- Sidebar Header -->
         <header class="sidebar-header">
             <a href="#" class="header-logo">
-                <img src="data/images/lspd.png" alt="CodingNepal" />
+                <img src="data/images/lspd.png" alt="LSPD Logo" />
             </a>
             <button class="sidebar-toggler">
                 <span class="material-symbols-rounded">chevron_left</span>
             </button>
         </header>
+
         <nav class="sidebar-nav">
             <!-- Primary Top Nav -->
             <ul class="nav-list primary-nav">
@@ -41,6 +43,7 @@
                         <li class="nav-item"><a class="nav-link dropdown-title">Dashboard</a></li>
                     </ul>
                 </li>
+
                 <li class="nav-item">
                     <a href="pointeuse.html" class="nav-link">
                         <span class="material-symbols-rounded">wallet</span>
@@ -50,6 +53,7 @@
                         <li class="nav-item"><a class="nav-link dropdown-title">Nouveau rapport</a></li>
                     </ul>
                 </li>
+
                 <li class="nav-item">
                     <a href="newRapportMenu.html" class="nav-link">
                         <span class="material-symbols-rounded">add_circle</span>
@@ -59,71 +63,57 @@
                         <li class="nav-item"><a class="nav-link dropdown-title">Pointeuse</a></li>
                     </ul>
                 </li>
-                <!-- Dropdown -->
-                <li class="nav-item dropdown-container">
-                    <a href="#" class="nav-link dropdown-toggle">
-                        <span class="material-symbols-outlined">gavel</span>
-                        <span class="nav-label">Bracelets</span>
-                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
-                    </a>
-                    <!-- Dropdown Menu -->
-                    <ul class="dropdown-menu">
-                        <li class="nav-item"><a class="nav-link dropdown-title">Bracelets</a></li>
-                        <li class="nav-item"><a href="bracelet.html" class="nav-link dropdown-link">Nouveau</a></li>
-                        <li class="nav-item"><a href="getBracelet.html" class="nav-link dropdown-link">Liste</a></li>
-                        <li class="nav-item"><a href="histoBracelet.html" class="nav-link dropdown-link">Archives</a>
-                        </li>
-                    </ul>
-                </li>
-                <!-- Dropdown -->
+
+                <!-- Dropdown Liste -->
                 <li class="nav-item dropdown-container">
                     <a href="#" class="nav-link dropdown-toggle">
                         <span class="material-symbols-rounded">files</span>
-                        <span class="nav-label">Rapports</span>
+                        <span class="nav-label">Liste</span>
                         <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
                     </a>
-                    <!-- Dropdown Menu -->
                     <ul class="dropdown-menu">
-                        <li class="nav-item"><a class="nav-link dropdown-title">Rapports</a></li>
-                        <li class="nav-item"><a href="getIncident.html" class="nav-link dropdown-link">Liste
-                                incidents</a></li>
+                        <li class="nav-item"><a class="nav-link dropdown-title">Liste</a></li>
+                        <li class="nav-item"><a href="getBracelet.html" class="nav-link dropdown-link">Bracelets</a></li>
+                        <li class="nav-item"><a href="getIncident.html" class="nav-link dropdown-link">Incidents</a></li>
+                        <li class="nav-item"><a href="getArrestation.html" class="nav-link dropdown-link">Arrestations</a></li>
+                        <li class="nav-item"><a href="getConvocation.html" class="nav-link dropdown-link">Convocations</a></li>
+                    </ul>
                 </li>
-                <li class="nav-item"><a href="getArrestation.html" class="nav-link dropdown-link">Liste arrestations</a>
+
+                <!-- Dropdown Liste -->
+                <li class="nav-item dropdown-container">
+                    <a href="#" class="nav-link dropdown-toggle">
+                        <span class="material-symbols-rounded">archive</span>
+                        <span class="nav-label">Archives</span>
+                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="nav-item"><a class="nav-link dropdown-title">Liste</a></li>
+                        <li class="nav-item"><a href="histoBracelet.html" class="nav-link dropdown-link">Bracelets</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item onlySupervisor">
+                    <a href="#" class="nav-link">
+                        <span class="material-symbols-rounded">brightness_alert</span>
+                        <span class="nav-label">Sanctions</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="nav-item"><a class="nav-link dropdown-title">Sanctions</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item onlyCommandStaff">
+                    <a href="adminMenu.html" class="nav-link">
+                        <span class="material-symbols-rounded">admin_panel_settings</span>
+                        <span class="nav-label">Admin</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="nav-item"><a class="nav-link dropdown-title">Admin</a></li>
+                    </ul>
                 </li>
             </ul>
-            </li>
 
-            <li class="nav-item dropdown-container">
-                <a href="convocation.html" class="nav-link dropdown-toggle">
-                    <span class="material-symbols-rounded">campaign</span>
-                    <span class="nav-label">Convocations</span>
-                    <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
-                </a>
-                <ul class="dropdown-menu">
-                    <li class="nav-item"><a href="convocation.html" class="nav-link dropdown-link">Nouvelle</a></li>
-                    <li class="nav-item"><a href="getConvocation.html" class="nav-link dropdown-link">Liste</a></li>
-
-                </ul>
-            </li>
-            <li class="nav-item onlyCommandStaff">
-                <a href="adminMenu.html" class="nav-link">
-                    <span class="material-symbols-rounded">admin_panel_settings</span>
-                    <span class="nav-label">Admin</span>
-                </a>
-                <ul class="dropdown-menu">
-                    <li class="nav-item"><a class="nav-link dropdown-title">Admin</a></li>
-                </ul>
-            </li>
-            <li class="nav-item onlySupervisor">
-                <a href="#" class="nav-link">
-                    <span class="material-symbols-rounded">brightness_alert</span>
-                    <span class="nav-label">Sanctions</span>
-                </a>
-                <ul class="dropdown-menu">
-                    <li class="nav-item"><a class="nav-link dropdown-title">Sanctions</a></li>
-                </ul>
-            </li>
-            </ul>
             <!-- Secondary Bottom Nav -->
             <ul class="nav-list secondary-nav">
                 <li class="nav-item">
@@ -147,6 +137,7 @@
     </aside>
 
     <div class="watermark">LSPD Assistant</div>
+
     <!-- Script -->
     <script src="script.js"></script>
 </body>

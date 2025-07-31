@@ -141,6 +141,7 @@ async function loadActivityChart() {
   const incidents = data.map(d => d.incidents);
   const arrestations = data.map(d => d.arrestations);
   const bracelets = data.map(d => d.bracelets);
+  const convocations = data.map(d => d.convocations);
 
   const ctx = document.getElementById('activityChart').getContext('2d');
   new Chart(ctx, {
@@ -166,6 +167,13 @@ async function loadActivityChart() {
           label: 'Bracelets',
           data: bracelets,
           borderColor: 'rgba(255, 206, 86, 1)',
+          backgroundColor: 'rgba(255, 206, 86, 0.2)',
+          tension: 0.3
+        },
+        {
+          label: 'Convocations',
+          data: convocations,
+          borderColor: 'rgba(136, 207, 88, 1)',
           backgroundColor: 'rgba(255, 206, 86, 0.2)',
           tension: 0.3
         }
