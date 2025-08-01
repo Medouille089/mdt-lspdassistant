@@ -112,7 +112,7 @@ router.get('/api/activity', async (req, res) => {
     const startDate = moment().tz('Europe/Paris').subtract(29, 'days').startOf('day');
     const endDate = moment().tz('Europe/Paris').endOf('day');
 
-    const [incidentsRes, arrestationsRes, braceletsRes] = await Promise.all([
+    const [incidentsRes, arrestationsRes, braceletsRes, convocationsRes] = await Promise.all([
       pool.query(`
         SELECT date_incident::date AS date, COUNT(*) 
         FROM incidents 
@@ -135,6 +135,14 @@ router.get('/api/activity', async (req, res) => {
         WHERE date_debut BETWEEN $1 AND $2 
         GROUP BY date 
         ORDER BY date
+      `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
+
+      pool.query(`
+        SELECT date::date AS date, COUNT(*) 
+        FROM lspd_convocations 
+        WHERE date BETWEEN $1 AND $2 
+        GROUP BY date 
+        ORDER BY date
       `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')])
     ]);
 
@@ -142,7 +150,7 @@ router.get('/api/activity', async (req, res) => {
 
     for (let i = 0; i < 30; i++) {
       const d = startDate.clone().add(i, 'days').format('YYYY-MM-DD');
-      mapByDate[d] = { date: d, incidents: 0, arrestations: 0, bracelets: 0 };
+      mapByDate[d] = { date: d, incidents: 0, arrestations: 0, bracelets: 0, convocations: 0 };
     }
 
     incidentsRes.rows.forEach(r => {
@@ -158,6 +166,11 @@ router.get('/api/activity', async (req, res) => {
     braceletsRes.rows.forEach(r => {
       const date = moment(r.date).format('YYYY-MM-DD');
       if (mapByDate[date]) mapByDate[date].bracelets = parseInt(r.count);
+    });
+
+    convocationsRes.rows.forEach(r => {
+      const date = moment(r.date).format('YYYY-MM-DD');
+      if (mapByDate[date]) mapByDate[date].convocations = parseInt(r.count);
     });
 
     const result = Object.values(mapByDate);
