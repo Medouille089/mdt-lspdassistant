@@ -207,8 +207,19 @@ async function loadActivityChart() {
         title: { display: false }
       },
       scales: {
-        y: { beginAtZero: true }
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            callback: function (value) {
+              if (Number.isInteger(value)) {
+                return value;
+              }
+            }
+          }
+        }
       }
+
     }
   });
 }
