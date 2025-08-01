@@ -326,9 +326,6 @@ body.collapsed .main-content {
   /* un peu moins arrondi */
   font-size: 0.85rem;
   font-weight: 600;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.6),
-    0 -1px 4px rgba(255, 255, 255, 0.2);
   user-select: none;
   z-index: 9999;
   pointer-events: none;
