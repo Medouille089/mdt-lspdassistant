@@ -484,7 +484,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
             .setTimestamp();
 
         await thread.send({ embeds: [embed] });
-        
+
         // Log axrchivage dans LOGS_CHANNEL
         if (conf.logs_channel) {
             const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
@@ -494,7 +494,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
                 const embedLog = new EmbedBuilder()
                     .setColor(0x0b1b5a)
                     .setTitle(`Bracelet pointé - ${data.id_brac}`)
-                    .setDescription(`<@${req.user.id}> a pointé le bracelet - ${mentionThread} \`${data.id_brac}\``)
+                    .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a pointé le bracelet - ${mentionThread} \`${data.id_brac}\``)
                     .addFields({
                         name: "ID's",
                         value: `> <@${req.user.id}> (${req.user.id}) \n > ${mentionThread} (\`${data.id_thread}\`)`,

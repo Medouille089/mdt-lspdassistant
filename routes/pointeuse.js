@@ -50,7 +50,7 @@ router.post("/pointeuse/start", async (req, res) => {
           const embedLog = new EmbedBuilder()
             .setColor(0x0b1b5a)
             .setTitle("Pointeuse lancée")
-            .setDescription(`<@${req.user.id}> a lancé sa pointeuse - \`${nowFormatted}\``)
+            .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a lancé sa pointeuse - \`${nowFormatted}\``)
             .addFields({
               name: "ID's",
               value: `> <@${req.user.id}> (\`${req.user.id}\`)`,
@@ -121,7 +121,7 @@ router.post("/pointeuse/stop", async (req, res) => {
           const embedLog = new EmbedBuilder()
             .setColor(0x0b1b5a)
             .setTitle("Pointeuse arrêtée")
-            .setDescription(`<@${idDiscord}> a arrêté sa pointeuse - \`${nowFormatted}\``)
+            .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a arrêté sa pointeuse - \`${nowFormatted}\``)
             .addFields({
               name: "ID's",
               value: `> <@${idDiscord}> (\`${idDiscord}\`)`,

@@ -229,11 +229,11 @@ form textarea {
     max-width: 900px;
     width: 100%;
     margin: 20px auto;
-    background: linear-gradient(135deg, #36393f 0%, #2f3136 100%);
+    background: #ffffff;
     border-radius: 12px;
     padding: 24px;
-    border: 1px solid #202225;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border: 2px solid #0b1b5a;
+    box-shadow: 0 8px 24px rgba(11, 27, 90, 0.15);
     position: relative;
     overflow: hidden;
 }
@@ -245,12 +245,12 @@ form textarea {
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #5865f2 0%, #7983f5 50%, #5865f2 100%);
+    background: linear-gradient(90deg, #0b1b5a 0%, #1a2c7a 50%, #0b1b5a 100%);
     background-size: 200% 100%;
-    animation: discordGlow 3s ease-in-out infinite;
+    animation: lspdGlow 3s ease-in-out infinite;
 }
 
-@keyframes discordGlow {
+@keyframes lspdGlow {
 
     0%,
     100% {
@@ -264,39 +264,39 @@ form textarea {
 
 .situation-container label {
     display: block;
-    color: #dcddde;
+    color: #0b1b5a;
     font-weight: 600;
     font-size: 16px;
     margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Styles pour le select-box custom Discord */
+/* Styles pour le select-box custom cohérent avec le thème LSPD */
 .select-situations {
-    background: #40444b;
-    border: 2px solid #202225;
+    background: #f9fafc;
+    border: 2px solid #c5cbd5;
     border-radius: 8px;
     transition: all 0.2s ease;
     position: relative;
 }
 
 .select-situations:hover {
-    border-color: #5865f2;
-    box-shadow: 0 0 12px rgba(88, 101, 242, 0.3);
+    border-color: #0b1b5a;
+    box-shadow: 0 0 12px rgba(11, 27, 90, 0.2);
 }
 
 .select-situations:focus-within {
-    border-color: #5865f2;
-    box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.2);
+    border-color: #0b1b5a;
+    box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
 }
 
 .select-situations .selected-items {
     min-height: 44px;
     padding: 8px 12px;
     background: transparent;
-    color: #dcddde;
+    color: #0b1b5a;
     font-size: 15px;
     display: flex;
     flex-wrap: wrap;
@@ -306,13 +306,13 @@ form textarea {
 
 .select-situations .selected-items:empty::before {
     content: "Aucune situation sélectionnée";
-    color: #72767d;
+    color: #666;
     font-style: italic;
     font-size: 14px;
 }
 
 .select-situations .tag {
-    background: linear-gradient(135deg, #5865f2 0%, #7983f5 100%);
+    background: linear-gradient(135deg, #0b1b5a 0%, #1a2c7a 100%);
     color: #ffffff;
     padding: 6px 12px;
     border-radius: 20px;
@@ -321,28 +321,28 @@ form textarea {
     cursor: pointer;
     transition: all 0.2s ease;
     border: none;
-    box-shadow: 0 2px 6px rgba(88, 101, 242, 0.3);
+    box-shadow: 0 2px 6px rgba(11, 27, 90, 0.3);
 }
 
 .select-situations .tag:hover {
-    background: linear-gradient(135deg, #4752c4 0%, #6b7ae0 100%);
+    background: linear-gradient(135deg, #1a2c7a 0%, #2d4099 100%);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+    box-shadow: 0 4px 12px rgba(11, 27, 90, 0.4);
 }
 
 .select-situations .search-input {
     width: 100%;
     background: transparent;
     border: none;
-    color: #dcddde;
+    color: #0b1b5a;
     font-size: 15px;
     padding: 12px;
     outline: none;
-    font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .select-situations .search-input::placeholder {
-    color: #72767d;
+    color: #666;
     font-style: italic;
 }
 
@@ -352,9 +352,10 @@ form textarea {
     padding: 0;
     max-height: 200px;
     overflow-y: auto;
-    background: #2f3136;
-    border-top: 1px solid #202225;
+    background: #ffffff;
+    border-top: 1px solid #c5cbd5;
     border-radius: 0 0 6px 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .select-situations .options-list::-webkit-scrollbar {
@@ -362,26 +363,26 @@ form textarea {
 }
 
 .select-situations .options-list::-webkit-scrollbar-track {
-    background: #2f3136;
+    background: #f1f3f4;
 }
 
 .select-situations .options-list::-webkit-scrollbar-thumb {
-    background: #5865f2;
+    background: #0b1b5a;
     border-radius: 4px;
 }
 
 .select-situations .options-list::-webkit-scrollbar-thumb:hover {
-    background: #7983f5;
+    background: #1a2c7a;
 }
 
 .select-situations .options-list li {
     padding: 12px 16px;
     width: calc(100% - 4px);
-    color: #dcddde;
+    color: #0b1b5a;
     cursor: pointer;
     transition: all 0.15s ease;
     font-size: 14px;
-    border-bottom: 1px solid rgba(32, 34, 37, 0.5);
+    border-bottom: 1px solid rgba(197, 203, 213, 0.3);
 }
 
 .select-situations .options-list li:last-child {
@@ -389,13 +390,13 @@ form textarea {
 }
 
 .select-situations .options-list li:hover {
-    background: #5865f2;
+    background: #0b1b5a;
     color: #ffffff;
     transform: translateX(4px);
 }
 
 .select-situations .options-list li:active {
-    background: #4752c4;
+    background: #1a2c7a;
     transform: translateX(2px);
 }
 
