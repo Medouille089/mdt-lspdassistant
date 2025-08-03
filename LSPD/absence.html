@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Déclaration d'absence - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css">
+    <link rel="stylesheet" href="styles/warning.css">
+    <link rel="stylesheet" href="styles/absence/absence.css" />
+</head>
+
+<body>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Déclaration d'absence</h1>
+
+        <div class="warning-modern">
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/info/v15/24px.svg" alt="info icon"
+                class="warning-icon-modern">
+            <span>Merci de déclarer vos absences au moins 24h à l'avance sauf cas d'urgence</span>
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/info/v15/24px.svg" alt="info icon"
+                class="warning-icon-modern">
+        </div>
+
+        <div class="absence-container">
+            <div class="header">
+                <img src="data/images/lspd.png" alt="Logo LSPD" />
+                <div class="header-title">
+                    <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+                    <h3>DÉCLARATION D'ABSENCE</h3>
+                </div>
+                <div style="width: 60px;"></div>
+            </div>
+
+            <form id="absenceForm">
+                <div class="inline-fields">
+                    <div>
+                        <label for="officier">Agent déclarant</label>
+                        <input type="text" id="officier" name="officier" readonly />
+                    </div>
+                    <div>
+                        <label for="grade">Grade</label>
+                        <input type="text" id="grade" name="grade" readonly />
+                    </div>
+                </div>
+
+                <div class="inline-fields">
+                    <div>
+                        <label for="dateDebut">Date de début d'absence</label>
+                        <input type="date" id="dateDebut" name="dateDebut" required />
+                    </div>
+                    <div>
+                        <label for="dateFin">Date de fin d'absence</label>
+                        <input type="date" id="dateFin" name="dateFin" required />
+                    </div>
+                </div>
+
+                <div class="inline-fields">
+                    <div>
+                        <label for="typeAbsence">Type d'absence</label>
+                        <select id="typeAbsence" name="typeAbsence" required>
+                            <option value="">-- Sélectionner un type --</option>
+                            <option value="maladie">Arrêt maladie</option>
+                            <option value="formation">Formation</option>
+                            <option value="personnel">Raison personnelle</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="heureDebut">Heure de début (optionnel)</label>
+                        <input type="time" id="heureDebut" name="heureDebut" />
+                    </div>
+                </div>
+
+                <div class="inline-fields">
+                    <div>
+                        <label for="heureFin">Heure de fin (optionnel)</label>
+                        <input type="time" id="heureFin" name="heureFin" />
+                    </div>
+                    <div>
+                        <label for="urgent">Absence urgente</label>
+                        <div class="checkbox-wrapper-34">
+                            <input class='tgl tgl-ios' id='urgent' type='checkbox'>
+                            <label class='tgl-btn' for='urgent'></label>
+                        </div>
+                    </div>
+                </div>
+
+                <label for="motif">Motif détaillé</label>
+                <textarea id="motif" name="motif" placeholder="Expliquez brièvement le motif de votre absence..."
+                    required></textarea>
+
+                <label for="remplacant">Agent remplaçant (optionnel)</label>
+                <input type="text" id="remplacant" name="remplacant" placeholder="Nom de l'agent qui vous remplace" />
+
+                <label for="commentaires">Commentaires additionnels</label>
+                <textarea id="commentaires" name="commentaires"
+                    placeholder="Informations supplémentaires..."></textarea>
+            </form>
+
+            <div class="image-container">
+                <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo" />
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button type="submit" class="send-button" form="absenceForm">Déclarer l'absence</button>
+        </div>
+    </div>
+
+    <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+
+    <script src="scripts/absence/absence.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+</body>
+
+</html>
