@@ -93,9 +93,6 @@
                 <textarea id="motif" name="motif" placeholder="Expliquez brièvement le motif de votre absence..."
                     required></textarea>
 
-                <label for="remplacant">Agent remplaçant (optionnel)</label>
-                <input type="text" id="remplacant" name="remplacant" placeholder="Nom de l'agent qui vous remplace" />
-
                 <label for="commentaires">Commentaires additionnels</label>
                 <textarea id="commentaires" name="commentaires"
                     placeholder="Informations supplémentaires..."></textarea>
@@ -110,9 +107,10 @@
             <button type="submit" class="send-button" form="absenceForm">Déclarer l'absence</button>
         </div>
     </div>
-
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
     <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
-
     <script src="scripts/absence/absence.js"></script>
     <script src="scripts/loadSidebar.js"></script>
 </body>

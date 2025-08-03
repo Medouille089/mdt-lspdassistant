@@ -76,16 +76,12 @@
                     <label for="filter-status">Statut:</label>
                     <select id="filter-status">
                         <option value="">Tous</option>
-                        <option value="en_attente">En attente</option>
-                        <option value="approuve">Approuvées</option>
-                        <option value="refuse">Refusées</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label for="filter-type">Type:</label>
                     <select id="filter-type">
                         <option value="">Tous</option>
-                        <option value="conge">Congé</option>
                         <option value="maladie">Maladie</option>
                         <option value="formation">Formation</option>
                         <option value="personnel">Personnel</option>
@@ -115,7 +111,21 @@
                 </div>
             </div>
             <div id="calendar-grid" class="calendar-grid">
+
             </div>
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <span class="color-box red"></span>
+                    <span>Maladie</span>
+                </div>
+                <div class="legend-item">
+                    <span class="color-box orange"></span>
+                    <span>Personnel</span>
+                </div>
+                <div class="legend-item">
+                    <span class="color-box green"></span>
+                    <span>Formation</span>
+                </div>
         </section>
 
         <section class="requests-section">

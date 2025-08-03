@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Absences - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css">
+    <link rel="stylesheet" href="styles/absence/mes-absences.css" />
+</head>
+
+<body>
+    <div id="sidebar-container"></div>
+    <div class="main-container">
+        <header class="header">
+            <div class="header-left">
+                <img src="data/images/lspd.png" alt="LSPD Logo" class="logo">
+                <div class="header-title">
+                    <h1>Mes Demandes d'Absence</h1>
+                    <p>Consulter et suivre mes demandes d'absence</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn-secondary" onclick="window.location.href='absence.html'">
+                    Nouvelle Absence
+                </button>
+                <button class="btn-primary" onclick="location.reload()">
+                    Actualiser
+                </button>
+            </div>
+        </header>
+
+        <section class="stats-section">
+            <h2>Mes Statistiques</h2>
+            <div class="stats-grid">
+                <div class="stat-card total">
+                    <div class="stat-icon"></div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="totalAbsences">0</div>
+                        <div class="stat-label">Total demandes</div>
+                    </div>
+                </div>
+                <div class="stat-card approved">
+                    <div class="stat-icon"></div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="approvedAbsences">0</div>
+                        <div class="stat-label">Approuvées</div>
+                    </div>
+                </div>
+                <div class="stat-card pending">
+                    <div class="stat-icon"></div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="pendingAbsences">0</div>
+                        <div class="stat-label">En attente</div>
+                    </div>
+                </div>
+                <div class="stat-card rejected">
+                    <div class="stat-icon"></div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="rejectedAbsences">0</div>
+                        <div class="stat-label">Refusées</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <!-- Toggle entre calendrier et liste -->
+            <div class="view-toggle">
+                <button class="btn-filter active" id="calendarView">📅 Vue Calendrier</button>
+                <button class="btn-filter" id="listView">📋 Vue Liste</button>
+            </div>
+
+            <!-- Vue Calendrier -->
+            <div id="calendar-container" class="view-container">
+                <div class="calendar-header">
+                    <button id="prevMonth" class="btn-nav">❮</button>
+                    <h2 id="currentMonth"></h2>
+                    <button id="nextMonth" class="btn-nav">❯</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Le calendrier sera généré par JavaScript -->
+                </div>
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <span class="legend-color approved"></span>
+                        <span>Approuvée</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color pending"></span>
+                        <span>En attente</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color rejected"></span>
+                        <span>Refusée</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vue Liste -->
+            <div id="list-container" class="view-container" style="display: none;">
+                <div class="filters-section">
+                    <div class="filters">
+                        <select id="statusFilter" class="filter-select">
+                            <option value="">Tous les statuts</option>
+                            <option value="en_attente">En attente</option>
+                            <option value="approuve">Approuvée</option>
+                            <option value="refuse">Refusée</option>
+                        </select>
+                        <select id="typeFilter" class="filter-select">
+                            <option value="">Tous les types</option>
+                            <option value="conge">Congé</option>
+                            <option value="maladie">Maladie</option>
+                            <option value="personnel">Personnel</option>
+                            <option value="formation">Formation</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="absencesList" class="absences-list">
+                    <!-- Les absences seront chargées ici -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal pour détails de l'absence -->
+    <div id="absenceModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Détails de l'absence</h2>
+            <div id="absenceDetails"></div>
+        </div>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <script src="scripts/absence/mes-absences.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+</body>
+
+</html>

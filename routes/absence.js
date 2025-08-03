@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../config/db');
 const { createForumPost } = require('../utils/createForumPost');
 const { getBot, getConfig } = require('../config/config');
+const { checkAuth } = require('../config/middleware');
 
 router.get('/api/absence', async (req, res) => {
     try {
@@ -31,6 +32,41 @@ router.get('/api/absence', async (req, res) => {
         console.error('Erreur lors de la récupération des absences:', error);
         res.status(500).json({
             error: 'Erreur serveur lors de la récupération des absences',
+            details: error.message
+        });
+    }
+});
+
+// Route pour récupérer les absences de l'utilisateur connecté
+router.get('/api/absence/mes-absences', checkAuth, async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                id,
+                officier,
+                grade,
+                date_debut,
+                date_fin,
+                heure_debut,
+                heure_fin,
+                type_absence,
+                motif,
+                justificatif,
+                statut,
+                date_creation,
+                date_modification
+            FROM absences 
+            WHERE officier = $1
+            ORDER BY date_creation DESC
+        `;
+
+        const result = await db.query(query, [req.user?.guild_member.nick]);
+        console.log(`Récupération des absences pour l'utilisateur: ${req.user?.guild_member.nick}`);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des absences utilisateur:', error);
+        res.status(500).json({
+            error: 'Erreur serveur lors de la récupération de vos absences',
             details: error.message
         });
     }

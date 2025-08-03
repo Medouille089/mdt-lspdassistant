@@ -73,7 +73,7 @@ function generateCalendar() {
     calendar.innerHTML = '';
 
     // Headers des jours
-    const dayHeaders = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const dayHeaders = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
     dayHeaders.forEach(day => {
         const header = document.createElement('div');
         header.className = 'calendar-day-header';
@@ -82,13 +82,13 @@ function generateCalendar() {
     });
 
     // Première date du mois
-    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
     const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
 
     // Générer 42 jours (6 semaines)
-    for (let i = 0; i < 42; i++) {
+    for (let i = 1; i < 43; i++) {
         const date = new Date(startDate);
         date.setDate(startDate.getDate() + i);
 

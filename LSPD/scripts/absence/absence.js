@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
+        let hasError = false;
+        const loader = document.getElementById("loaderOverlay");
 
         if (!validateForm()) {
             return;
@@ -34,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         try {
-            showLoader();
+            loader.style.display = "flex";
 
             const response = await fetch('/api/absence', {
                 method: 'POST',
@@ -53,12 +55,62 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(error.message || 'Erreur lors de l\'enregistrement');
             }
         } catch (error) {
+            hasError = true;
             console.error('Erreur:', error);
+            loader.style.display = 'none';
+
+            await showAnimation('error');
             showError('Erreur lors de l\'enregistrement de l\'absence: ' + error.message);
         } finally {
-            hideLoader();
+            if (!hasError) {
+                loader.style.display = 'none';
+                await showAnimation('success');
+
+                const container = document.getElementById('feedbackAnimation');
+                container.classList.add('fade-out');
+
+                container.addEventListener('transitionend', () => {
+                    location.reload();
+                }, { once: true });
+            }
         }
+
+
     });
+
+    function showAnimation(type = 'success') {
+        return new Promise((resolve) => {
+            const container = document.getElementById('feedbackAnimation');
+            container.innerHTML = '';
+
+            const content = document.createElement('div');
+            content.className = 'feedback-inner';
+
+            if (type === 'success') {
+                content.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+          <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
+          <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" points="100.2,40.2 51.5,88.8 29.8,67.5"/>
+        </svg>
+        <p class="success">Absence soumise avec succès!</p>
+      `;
+            } else {
+                content.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+          <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
+          <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+          <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
+        </svg>
+        <p class="error">Erreur lors de la soumission de l'absence</p>
+      `;
+            }
+
+            container.appendChild(content);
+            container.style.display = 'flex';
+
+            setTimeout(() => resolve(), 1800);
+        });
+    }
 
     function validateForm() {
         const officier = document.getElementById('officier').value.trim();
@@ -158,26 +210,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const existingMessages = document.querySelectorAll('.message');
         existingMessages.forEach(msg => msg.remove());
     }
-
-    function showLoader() {
-        const loader = document.createElement('div');
-        loader.id = 'absence-loader';
-        loader.className = 'loader-overlay';
-        loader.innerHTML = `
-            <div class="loader-spinner">
-                <div class="spinner"></div>
-                <p>Enregistrement en cours...</p>
-            </div>
-        `;
-        document.body.appendChild(loader);
-    }
-
-    function hideLoader() {
-        const loader = document.getElementById('absence-loader');
-        if (loader) {
-            loader.remove();
-        }
-    }
 });
 
 const styles = `
@@ -203,42 +235,6 @@ const styles = `
     background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
     border: 2px solid #f44336;
     color: #c62828;
-}
-
-.loader-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.loader-spinner {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    margin: 0 auto 15px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #0b1b5a;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
 }
 
 @keyframes slideInDown {
