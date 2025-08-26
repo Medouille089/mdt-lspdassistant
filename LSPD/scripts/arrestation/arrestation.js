@@ -519,6 +519,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     const listAccusations = document.getElementById("listAccusations");
     formData.append("accusations", JSON.stringify(Array.from(listAccusations.children).map(li => li.textContent.trim())));
     formData.append("pieces", pdfBlob, "Rapport d'arrestation.pdf");
+    // NOM + PRENOM | DATE
 
     const files = document.getElementById("pieces").files;
     for (const file of files) {

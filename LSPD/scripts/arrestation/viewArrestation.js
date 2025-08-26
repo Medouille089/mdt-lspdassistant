@@ -2,6 +2,28 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loaderOverlay').style.display = 'flex';
 });
 
+async function previewAttachments(event) {
+    const files = event.target.files;
+    const preview = document.getElementById('attachmentsPreview');
+    preview.innerHTML = '';
+
+    for (const file of files) {
+        if (file.type.startsWith('image/')) {
+            try {
+                const base64 = await fileToBase64(file);
+                const img = document.createElement('img');
+                img.src = base64;
+                img.classList.add('preview-image');
+                preview.appendChild(img);
+            } catch (e) {
+                console.error("Erreur conversion image :", e);
+            }
+        }
+    }
+}
+
+document.getElementById("incident-container").addEventListener("change", previewAttachments);
+
 const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 if (!id) {
@@ -60,7 +82,8 @@ function enableFullscreenOnImages() {
     const fullscreenImg = document.getElementById('fullscreenImage');
     const closeBtn = document.getElementById('fullscreenClose');
 
-    document.querySelectorAll('#incidents-container img').forEach(img => {
+    document.querySelectorAll('.preview-image').forEach(img => {
+        console.log(img);
         img.style.cursor = 'zoom-in';
         img.addEventListener('click', () => {
             fullscreenImg.src = img.src;
@@ -137,10 +160,14 @@ async function loadIncidentDetail() {
         const container = document.getElementById('incident-container');
         container.innerHTML = '';
         console.log(arrestation.images);
-        
+        const preview = document.getElementById('attachmentsPreview');
+        preview.innerHTML = '';
+
         if (arrestation.images && arrestation.images.length > 0) {
             // Créer toutes les images
             let i = 1;
+            // Reverse l'ordre pour afficher les plus récentes en premier
+            arrestation.images.reverse();
             const imgElements = arrestation.images.map(url => {
                 if (i === 1) {
                     fileInput1.src = url
@@ -152,15 +179,20 @@ async function loadIncidentDetail() {
                     img.alt = 'Pièce jointe';
                     img.style.maxWidth = '200px';
                     img.style.margin = '5px';
+                    img.style.cursor = 'pointer';
+                    img.classList.add('preview-image');
                     container.appendChild(img);
                     return img;
                 }
                 i++;
-                
+
             });
 
+            // List of img elements to wait for
+            const imgContainer = Array.from(document.querySelectorAll('#incident-container img'));
+
             // Attendre que toutes les images soient chargées (ou erreurs)
-            await Promise.all(imgElements.map(img => new Promise((resolve) => {
+            await Promise.all(imgContainer.map(img => new Promise((resolve) => {
                 if (img.complete) {
                     resolve();
                 } else {

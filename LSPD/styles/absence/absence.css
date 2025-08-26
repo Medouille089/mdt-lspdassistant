@@ -1,0 +1,315 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+    z-index: 0;
+    background: none;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.absence-container {
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 15px;
+    padding: 40px 50px 100px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border: 4px solid #0b1b5a;
+    position: relative;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid #0b1b5a;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+.header img {
+    height: 70px;
+}
+
+.header-title {
+    text-align: center;
+    flex: 1;
+}
+
+.header-title h2 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #0b1b5a;
+}
+
+.header-title h3 {
+    margin: 4px 0 0;
+    font-size: 16px;
+    color: #444;
+    text-transform: uppercase;
+}
+
+form label {
+    display: block;
+    font-weight: 600;
+    margin-top: 25px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: #0b1b5a;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+form input[type="text"],
+form input[type="date"],
+form input[type="time"],
+form select,
+form textarea {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    border: 1px solid #c5cbd5;
+    border-radius: 8px;
+    background-color: #f9fafc;
+    resize: none;
+    box-sizing: border-box;
+    color: #0b1b5a;
+    transition: border-color 0.2s ease;
+}
+
+form input[type="text"]:focus,
+form input[type="date"]:focus,
+form input[type="time"]:focus,
+form select:focus,
+form textarea:focus {
+    border-color: #0b1b5a;
+    outline: none;
+    background-color: #eef1f5;
+}
+
+form textarea {
+    height: 120px;
+    padding-top: 15px;
+    resize: vertical;
+}
+
+form select {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b1b5a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 45px;
+}
+
+form select:hover {
+    border-color: #0b1b5a;
+    background-color: #eef1f5;
+}
+
+.inline-fields {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.inline-fields>div {
+    flex: 1 1 45%;
+    min-width: 150px;
+}
+
+.checkbox-wrapper-34 {
+    --blue: #0b1b5a;
+    --g08: #E1E5EB;
+    --g04: #848ea1;
+    margin-top: 10px;
+}
+
+.checkbox-wrapper-34 .tgl {
+    display: none;
+}
+
+.checkbox-wrapper-34 .tgl,
+.checkbox-wrapper-34 .tgl:after,
+.checkbox-wrapper-34 .tgl:before,
+.checkbox-wrapper-34 .tgl *,
+.checkbox-wrapper-34 .tgl *:after,
+.checkbox-wrapper-34 .tgl *:before,
+.checkbox-wrapper-34 .tgl+.tgl-btn {
+    box-sizing: border-box;
+}
+
+.checkbox-wrapper-34 .tgl+.tgl-btn {
+    outline: 0;
+    display: block;
+    width: 57px;
+    height: 27px;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    font-size: 12px;
+    font-weight: 400;
+    color: #fff;
+}
+
+.checkbox-wrapper-34 .tgl+.tgl-btn:after,
+.checkbox-wrapper-34 .tgl+.tgl-btn:before {
+    position: relative;
+    display: block;
+    content: "";
+    width: 44%;
+    height: 100%;
+}
+
+.checkbox-wrapper-34 .tgl+.tgl-btn:after {
+    left: 0;
+}
+
+.checkbox-wrapper-34 .tgl+.tgl-btn:before {
+    display: inline;
+    position: absolute;
+    top: 5px;
+}
+
+.checkbox-wrapper-34 .tgl:checked+.tgl-btn:after {
+    left: 56.5%;
+}
+
+.checkbox-wrapper-34 .tgl-ios+.tgl-btn {
+    background: var(--g08);
+    border-radius: 20rem;
+    padding: 2px;
+    transition: all 0.4s ease;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.checkbox-wrapper-34 .tgl-ios+.tgl-btn:after {
+    border-radius: 2em;
+    background: #fff;
+    transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.checkbox-wrapper-34 .tgl-ios+.tgl-btn:before {
+    content: "Non";
+    left: 28px;
+    color: var(--g04);
+    transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.checkbox-wrapper-34 .tgl-ios:checked+.tgl-btn {
+    background: var(--blue);
+}
+
+.checkbox-wrapper-34 .tgl-ios:checked+.tgl-btn:before {
+    content: "Oui";
+    left: 4px;
+    color: #fff;
+}
+
+.button-container {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.send-button {
+    background-color: #0b1b5a;
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(11, 27, 90, 0.2);
+}
+
+.send-button:hover {
+    background-color: #1a2c7a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(11, 27, 90, 0.3);
+}
+
+.send-button:active {
+    transform: translateY(0);
+}
+
+.footer-logo {
+    height: 120px;
+    opacity: 1;
+    pointer-events: none;
+    z-index: 0;
+    margin-left: auto;
+}
+
+.image-container {
+    margin-top: 40px;
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 20px;
+}
+
+.image-container img {
+    max-width: 150px;
+    height: auto;
+    display: block;
+    margin-right: 35px;
+}
+
+.warning-modern {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 2px solid #2196f3;
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin: 20px auto;
+    max-width: 900px;
+    color: #1565c0;
+    font-weight: 500;
+}
+
+.warning-icon-modern {
+    width: 24px;
+    height: 24px;
+    filter: invert(26%) sepia(89%) saturate(1583%) hue-rotate(204deg) brightness(95%) contrast(101%);
+}
+
+
+@media (max-width: 768px) {
+    .inline-fields {
+        flex-direction: column;
+    }
+
+    .inline-fields>div {
+        flex: 1 1 100%;
+    }
+
+    .absence-container {
+        margin: 10px;
+        padding: 20px 25px 50px;
+    }
+}

@@ -13,7 +13,7 @@ router.get('/api/user', checkAuth, async (req, res) => {
     const conf = await getConfig();
 
     const guild = await bot.guilds.fetch(GUILD_ID);
-    guild.members.cache.delete(user.id); 
+    guild.members.cache.delete(user.id);
     const member = await guild.members.fetch(user.id);
     const roleIds = member.roles.cache.map(role => role.id);
     const guildRoles = await guild.roles.fetch();

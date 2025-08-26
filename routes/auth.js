@@ -54,7 +54,7 @@ router.get('/callback', (req, res, next) => {
           const embed = new EmbedBuilder()
             .setTitle('⚠️ Connexion utilisateur')
             .setColor(hasRequiredRole ? 0x0b1b5a : 0xdb4437)
-            .setDescription(`<@${req.user.id}> ${action}`)
+            .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} ${action}`)
             .addFields({
               name: "ID's",
               value: `> <@${req.user.id}> (\`${req.user.id}\`)`,

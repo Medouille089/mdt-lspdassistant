@@ -88,7 +88,7 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
         const embedLog = new EmbedBuilder()
           .setColor(0x0b1b5a)
           .setTitle(`Nouvelle convocation - ${nomComplet}`)
-          .setDescription(`<@${req.user.id}> a envoyé une convocation - <#${convocationThread.id}>`)
+          .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a envoyé une convocation - <#${convocationThread.id}>`)
           .addFields({
             name: "ID's",
             value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${user?.id || 'ID inconnu'}\`) \n> <#${convocationThread.id}> (\`${convocationThread.id}\`)`

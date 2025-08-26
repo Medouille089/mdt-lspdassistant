@@ -257,6 +257,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
       .map(tag => tag.situation);
     formData.append("situations", JSON.stringify(selectedSituations));
     formData.append("pieces", pdfBlob, "Rapport d'incident.pdf");
+    // RI | LIEU | DATE
 
     const files = document.getElementById("pieces").files;
     for (const file of files) {
