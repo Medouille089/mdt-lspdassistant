@@ -4,6 +4,7 @@ const db = require('../config/db');
 const { createForumPost } = require('../utils/createForumPost');
 const { getBot, getConfig } = require('../config/config');
 const { checkAuth } = require('../config/middleware');
+const { EmbedBuilder } = require("discord.js");
 
 router.get('/api/absence', async (req, res) => {
     try {
@@ -174,20 +175,24 @@ router.post('/api/absence', async (req, res) => {
         const logsChannelId = conf.logs_channel;
 
         try {
-            const discordMessage = {
-                title: `📅 Nouvelle demande d'absence - ${typeAbsence}`,
-                description: `**Agent:** ${officier} (${grade})
-**Période:** Du ${new Date(dateDebut).toLocaleDateString('fr-FR')} au ${new Date(dateFin).toLocaleDateString('fr-FR')}
-**Type:** ${typeAbsence}
-**Motif:** ${motif}
-**Justificatif:** ${justificatif ? 'Oui' : 'Non'}
-**Statut:** En attente de validation`,
-                color: 0x0b1b5a,
-                timestamp: new Date().toISOString(),
-                footer: {
-                    text: `ID Absence: ${nouvelleAbsence.id}`,
-                }
-            };
+            const discordMessage = new EmbedBuilder()
+                .setColor(0x0b1b5a)
+                .setTitle(`Nouvelle demande d'absence`)
+                .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a fait une demande d'absence`)
+                .addFields({
+                    name: "Infos",
+                    value: `> Officier: ${nouvelleAbsence.officier} \n> Grade: ${nouvelleAbsence.grade} \n> Type d'absence: ${nouvelleAbsence.type_absence} \n> Motif: ${nouvelleAbsence.motif}`,
+                    inline: false
+                }, {
+                    name: "ID's",
+                    value: `> <@${req.user.id}> (${req.user.id}) \n`,
+                    inline: false
+                })
+                .setFooter({
+                    text: "LSPD Assistant",
+                    iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
+                })
+                .setTimestamp();
 
             const logsChannel = await bot.channels.fetch(logsChannelId);
             await logsChannel.send({ embeds: [discordMessage] });
@@ -256,19 +261,20 @@ router.put('/api/absence/:id/statut', async (req, res) => {
                 'refuse': 0xff0000
             };
 
-            const discordMessage = {
-                title: `📅 Mise à jour d'absence - ${statutTexte[statut]}`,
-                description: `**Agent:** ${absenceModifiee.officier} (${absenceModifiee.grade})
-**Période:** Du ${new Date(absenceModifiee.date_debut).toLocaleDateString('fr-FR')} au ${new Date(absenceModifiee.date_fin).toLocaleDateString('fr-FR')}
-**Type:** ${absenceModifiee.type_absence}
-**Nouveau statut:** ${statutTexte[statut]}
-${commentaire ? `**Commentaire:** ${commentaire}` : ''}`,
-                color: couleur[statut],
-                timestamp: new Date().toISOString(),
-                footer: {
-                    text: `ID Absence: ${absenceModifiee.id}`,
-                }
-            };
+            const discordMessage = new EmbedBuilder()
+                .setColor(0x0b1b5a)
+                .setTitle(`Bracelet pointé - ${data.id_brac}`)
+                .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a pointé le bracelet - ${mentionThread} \`${data.id_brac}\``)
+                .addFields({
+                    name: "ID's",
+                    value: `> <@${req.user.id}> (${req.user.id}) \n > ${mentionThread} (\`${data.id_thread}\`)`,
+                    inline: false
+                })
+                .setFooter({
+                    text: "LSPD Assistant",
+                    iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
+                })
+                .setTimestamp();
 
             await createForumPost("Demandes d'absences", discordMessage);
         } catch (discordError) {

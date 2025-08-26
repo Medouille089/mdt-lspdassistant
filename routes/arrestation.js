@@ -170,13 +170,15 @@ router.get('/api/getArrestation', async (req, res) => {
 
                 if (thread?.isThread()) {
                     const messages = await thread.messages.fetch({ limit: 100 });
-
+                    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
                     messages.forEach(msg => {
                         msg.attachments.forEach(att => {
                             if (att.contentType?.startsWith("image/")) {
                                 images.push(att.url);
                             }
                         });
+                        const links = msg.content.match(urlRegex);
+                        console.log('Liens trouvés dans le message :', links);
                     });
                 }
             } catch (err) {
