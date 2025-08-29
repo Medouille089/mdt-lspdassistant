@@ -26,7 +26,7 @@ router.get('/callback', (req, res, next) => {
     try {
       const config = await getConfig();
       const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, id_superadmin } = config;
-
+      console.log(commandstaff_id, supervisor_role_id, id_superadmin);
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
       const member = await guild.members.fetch(req.user.id);
@@ -78,6 +78,8 @@ router.get('/callback', (req, res, next) => {
       req.user.isCommandStaff = isCommandStaff;
       req.user.isSupervisor = isSupervisor;
       req.user.isSuperAdmin = isSuperAdmin;
+
+      console.log(req.user.isCommandStaff, req.user.isSupervisor, req.user.isSuperAdmin);
 
       if (logs_channel) {
         const logsChannel = await bot.channels.fetch(logs_channel);

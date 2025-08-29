@@ -118,7 +118,9 @@ async function fetchUser() {
     });
 
     document.querySelectorAll('.onlySupervisor').forEach(el => {
-      el.style.display = (user.isSupervisor || user.isSuperAdmin) ? '' : 'none';
+      console.log(user)
+      el.style.display = (user.isSupervisor || user.isCommandStaff || user.isSuperAdmin) ? "" : 'none';
+
     });
 
     document.querySelectorAll('.onlyCommandStaff').forEach(el => {
