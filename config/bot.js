@@ -58,18 +58,19 @@ async function registerCommands() {
 }
 
 bot.on(Events.InteractionCreate, async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-
+  console.log("test")
+  //if (!interaction.isChatInputCommand()) return;
+  console.log("test2")
   const command = bot.commands.get(interaction.commandName);
   if (!command) return;
-
+  console.log("test3")
   try {
     await command.execute(interaction);
   } catch (error) {
     console.error(error);
     await interaction.reply({
       content: "❌ Une erreur est survenue lors de l'exécution de la commande.",
-      flags : 64 ,
+      flags: 64,
     });
   }
 });

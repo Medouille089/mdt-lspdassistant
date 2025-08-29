@@ -577,6 +577,10 @@ body {
     }
 }
 
+p {
+    margin: 5px 0 5px;
+}
+
 /* Animations */
 @keyframes fadeIn {
     from {
