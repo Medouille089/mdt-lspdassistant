@@ -63,7 +63,7 @@ const pointeuse = require('./routes/pointeuse');
 const setupPointeuse = require('./config/setupPointeuse');
 const gradesRoute = require('./config/grades');
 const absenceRoute = require("./routes/absence");
-
+const sanctionsRoutes = require("./routes/sanctions");
 app.use(configRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
@@ -79,6 +79,7 @@ app.use(pointeuse);
 app.use(setupPointeuse);
 app.use(gradesRoute);
 app.use(absenceRoute);
+app.use(sanctionsRoutes);
 
 // Static frontend
 app.use(express.static(path.join(__dirname, "LSPD")));

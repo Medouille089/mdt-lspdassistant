@@ -1,7 +1,6 @@
 const { getConfig } = require("./config");
-const bot = require("./bot");;
+const bot = require("./bot");
 const GUILD_ID = process.env.GUILD_ID;
-const express = require("express");
 
 async function checkAuth(req, res, next) {
   if (!req.isAuthenticated()) return res.redirect("/login");
@@ -9,11 +8,18 @@ async function checkAuth(req, res, next) {
   try {
     const config = await getConfig();
     const REQUIRED_ROLE_ID = String(config.required_role_id); 
+    const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
 
     const guild = await bot.guilds.fetch(GUILD_ID);
     const member = await guild.members.fetch(req.user.id);
-    const hasRole = member.roles.cache.has(REQUIRED_ROLE_ID);
+    const roleIds = member.roles.cache.map(role => role.id);
 
+    // Super admin bypass
+    if (SUPER_ADMIN_ROLE && roleIds.includes(SUPER_ADMIN_ROLE)) {
+      return next();
+    }
+
+    const hasRole = roleIds.includes(REQUIRED_ROLE_ID);
     if (!hasRole) {
       return res.status(403).send(`
         <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Accès refusé</title></head><body>

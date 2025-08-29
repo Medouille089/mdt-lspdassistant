@@ -118,13 +118,12 @@ async function fetchUser() {
     });
 
     document.querySelectorAll('.onlySupervisor').forEach(el => {
-      el.style.display = user.isSupervisor ? '' : 'none';
+      el.style.display = (user.isSupervisor || user.isSuperAdmin) ? '' : 'none';
     });
 
     document.querySelectorAll('.onlyCommandStaff').forEach(el => {
-      el.style.display = user.isCommandStaff ? '' : 'none';
+      el.style.display = (user.isCommandStaff || user.isSuperAdmin) ? '' : 'none';
     });
-
 
   } catch (error) {
     console.error('An error occurred while processing the user profile:', error);

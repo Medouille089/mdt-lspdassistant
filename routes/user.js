@@ -11,25 +11,32 @@ router.get('/api/user', checkAuth, async (req, res) => {
 
   try {
     const conf = await getConfig();
+    const SUPER_ADMIN_ROLE = conf.id_superadmin ? String(conf.id_superadmin).trim() : null;
 
     const guild = await bot.guilds.fetch(GUILD_ID);
-    guild.members.cache.delete(user.id);
+    guild.members.cache.delete(user.id); 
     const member = await guild.members.fetch(user.id);
     const roleIds = member.roles.cache.map(role => role.id);
-    const guildRoles = await guild.roles.fetch();
 
-    const supervisorRoleId = conf.supervisor_role_id?.trim();
-    const commandStaffRoleId = conf.commandstaff_id?.trim();
+    const isSuperAdmin = SUPER_ADMIN_ROLE ? roleIds.includes(SUPER_ADMIN_ROLE) : false;
 
-    const isSupervisor = supervisorRoleId ? roleIds.includes(supervisorRoleId) : false;
-    const isCommandStaff = commandStaffRoleId ? roleIds.includes(commandStaffRoleId) : false;
-
-    // ✅ Récupération des grades depuis la base
-    const { rows } = await pool.query('SELECT * FROM lspd_grades LIMIT 1');
-    if (!rows.length) {
-      return res.status(404).json({ error: 'Grades non trouvés.' });
+    // Si super-admin, on bypass et ne l’enregistre pas dans la BDD
+    if (isSuperAdmin) {
+      return res.json({
+        id: user.id,
+        username: member.displayName || user.username,
+        avatar: user.avatar,
+        discriminator: user.discriminator,
+        roles: roleIds,
+        isSupervisor: true,
+        isCommandStaff: true,
+        isSuperAdmin: true,
+        grade: "Administrateur"
+      });
     }
 
+    // Récupération des grades depuis la BDD
+    const { rows } = await pool.query('SELECT * FROM lspd_grades LIMIT 1');
     const row = rows[0];
     const gradeList = [
       [row.rookie_role_id],
@@ -45,14 +52,13 @@ router.get('/api/user', checkAuth, async (req, res) => {
       [row.capitaine_role_id],
       [row.commandant_role_id],
       [row.chief_role_id]
-    ].filter(r => r[0]); // filtre les null
+    ].filter(r => r[0]);
 
-    // 🔎 Déterminer le grade
     let grade = "Agent";
     for (let i = gradeList.length - 1; i >= 0; i--) {
       const [roleId] = gradeList[i];
       if (roleIds.includes(roleId)) {
-        const discordRole = guildRoles.get(roleId);
+        const discordRole = guild.roles.cache.get(roleId);
         if (discordRole) {
           grade = discordRole.name;
           break;
@@ -60,7 +66,7 @@ router.get('/api/user', checkAuth, async (req, res) => {
       }
     }
 
-    // 💾 Mettre à jour la présence
+    // 💾 Insère uniquement si pas super-admin
     await pool.query(`
       INSERT INTO lspd_live_users (user_id, display_name, last_seen)
       VALUES ($1, $2, NOW())
@@ -69,16 +75,15 @@ router.get('/api/user', checkAuth, async (req, res) => {
     `, [user.id, member.displayName || user.username]);
 
     res.set('Cache-Control', 'no-store');
-
-    // ✅ Réponse complète avec grade
     res.json({
       id: user.id,
       username: member.displayName || user.username,
       avatar: user.avatar,
       discriminator: user.discriminator,
       roles: roleIds,
-      isSupervisor,
-      isCommandStaff,
+      isSupervisor: false,
+      isCommandStaff: false,
+      isSuperAdmin: false,
       grade
     });
 

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Créer une sanction LSPD</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+    h1 { color: #222; }
+    select, input, textarea, button { display: block; margin: 10px 0; padding: 5px; width: 300px; }
+    textarea { height: 80px; }
+  </style>
+</head>
+<body>
+  <h1>Créer une sanction</h1>
+
+  <label for="agent">Agent :</label>
+  <select id="agent"></select>
+
+  <label for="type">Type de sanction :</label>
+  <select id="type">
+    <option value="Avert 1">Avert 1</option>
+    <option value="Avert 2">Avert 2</option>
+    <option value="Avert 3">Avert 3</option>
+    <option value="Blame 1">Blame 1</option>
+    <option value="Blame 2">Blame 2</option>
+    <option value="Mise à pied">Mise à pied</option>
+    <option value="Convocation">Convocation</option>
+  </select>
+
+  <label for="start_date">De :</label>
+  <input type="date" id="start_date">
+
+  <label for="end_date">À :</label>
+  <input type="date" id="end_date">
+
+  <label for="reason">Raison :</label>
+  <textarea id="reason"></textarea>
+
+  <button id="submit">Appliquer la sanction</button>
+
+  <script>
+    async function loadAgents() {
+      try {
+        const res = await fetch('/api/agents');
+        const agents = await res.json();
+        const select = document.getElementById('agent');
+        select.innerHTML = '';
+        agents.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.discord_id;
+          opt.textContent = a.username;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Erreur chargement agents:", err);
+      }
+    }
+
+    document.getElementById('submit').addEventListener('click', async () => {
+      const player_id = document.getElementById('agent').value;
+      const type = document.getElementById('type').value;
+      const date_from = document.getElementById('start_date').value;
+      const date_end = document.getElementById('end_date').value;
+      const reason = document.getElementById('reason').value;
+
+      if (!player_id || !type || !reason || !date_from) {
+        return alert('Merci de remplir tous les champs obligatoires.');
+      }
+
+      try {
+        const res = await fetch('/api/sanctions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ player_id, type, reason, date_from, date_end })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert('Sanction appliquée !');
+          document.getElementById('reason').value = '';
+          document.getElementById('start_date').value = '';
+          document.getElementById('end_date').value = '';
+        } else {
+          alert('Erreur: ' + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Erreur serveur');
+      }
+    });
+
+    loadAgents();
+  </script>
+</body>
+</html>
+    
