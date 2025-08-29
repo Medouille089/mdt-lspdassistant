@@ -281,13 +281,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
         } else {
+            const statusText = {
+                'en_attente': 'En attente',
+                'approuve': 'Approuvée',
+                'refuse': 'Refusée'
+            };
             details.innerHTML = `
                 <div style="margin-bottom: 20px;">
                     <h3 style="color: #0b1b5a; margin-bottom: 15px;">Absences de la journée (${absences.length})</h3>
                     ${absences.map(absence => `
                         <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
                             <p><strong>Type:</strong> ${absence.type_absence}</p>
-                            <p><strong>Statut:</strong> ${absence.statut}</p>
+                            <p><strong>Statut:</strong> <span class="absence-status ${absence.statut === 'approuve' ? 'approved' : absence.statut === 'en_attente' ? 'pending' : 'rejected'}">${statusText[absence.statut]}</span></p>
                             <p><strong>Motif:</strong> ${absence.motif}</p>
                         </div>
                     `).join('')}

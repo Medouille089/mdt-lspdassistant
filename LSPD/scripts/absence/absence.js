@@ -12,6 +12,23 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById("grade").value = "";
         });
 
+    const dateDebutInput = document.getElementById('dateDebut');
+    const dateFinInput = document.getElementById('dateFin');
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const minDate = `${yyyy}-${mm}-${dd}`;
+    dateDebutInput.setAttribute('min', minDate);
+    dateFinInput.setAttribute('min', minDate);
+
+    dateDebutInput.addEventListener('change', function () {
+        dateFinInput.setAttribute('min', dateDebutInput.value);
+        if (dateFinInput.value < dateDebutInput.value) {
+            dateFinInput.value = dateDebutInput.value;
+        }
+    });
+
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
         let hasError = false;
