@@ -8,6 +8,8 @@ const EMOJIS = {
   absent: "🔴",
 };
 
+const LSPD_ROLE = 1096965866245066801;
+
 /**
  * Envoie la fiche de présence dans le salon configuré.
  * @param {Client} bot 
@@ -69,10 +71,17 @@ async function sendFicheDePresence(bot, isReminder = false) {
       .setThumbnail(bot.user.displayAvatarURL());
 
     // Envoyer le message
-    const message = await channel.send({ embeds: [embed] });
+    const message = await channel.send({ content: `<@&1096965866245066801>`, embeds: [embed] });
+
+    // Ajout du message dans la table
+
 
     // Ajouter réactions que pour le message principal uniquement
     if (!isReminder) {
+      await db.query(
+        "INSERT INTO lspd_presenceig (message_id) VALUES ($1)",
+        [await message.id]
+      );
       await message.react(EMOJIS.present);
       await message.react(EMOJIS.retard);
       await message.react(EMOJIS.absent);
