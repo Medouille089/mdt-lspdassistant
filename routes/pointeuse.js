@@ -270,6 +270,50 @@ router.get("/pointeuse/semaine", async (req, res) => {
 
 
 
+router.get("/admin/users-salaries", async (req, res) => {
+  try {
+    const nowParis = DateTime.now().setZone("Europe/Paris");
+    const startOfWeek = nowParis.startOf("week").startOf("day");
+    const endOfWeek = startOfWeek.plus({ days: 6 }).endOf("day");
+
+    const startOfLastWeek = startOfWeek.minus({ weeks: 1 });
+    const endOfLastWeek = startOfWeek.minus({ seconds: 1 });
+
+    const query = `
+      SELECT p.id_discord,
+             COALESCE(SUM(CASE WHEN p.start_time BETWEEN $1 AND $2 THEN p.salary_earned ELSE 0 END), 0) AS salary_this_week,
+             COALESCE(SUM(CASE WHEN p.start_time BETWEEN $1 AND $2
+                        THEN EXTRACT(EPOCH FROM (COALESCE(p.end_time, NOW()) - p.start_time)) / 3600
+                        ELSE 0 END), 0) AS hours_this_week,
+             COALESCE(SUM(CASE WHEN p.start_time BETWEEN $3 AND $4 THEN p.salary_earned ELSE 0 END), 0) AS salary_last_week,
+             COALESCE(SUM(CASE WHEN p.start_time BETWEEN $3 AND $4
+                        THEN EXTRACT(EPOCH FROM (COALESCE(p.end_time, NOW()) - p.start_time)) / 3600
+                        ELSE 0 END), 0) AS hours_last_week
+      FROM lspd_pointage p
+      GROUP BY p.id_discord
+    `;
+
+    const result = await pool.query(query, [
+      startOfWeek.toISO(),
+      endOfWeek.toISO(),
+      startOfLastWeek.toISO(),
+      endOfLastWeek.toISO(),
+    ]);
+
+    res.json(
+      result.rows.map(r => ({
+        discordId: r.id_discord,
+        salaryThisWeek: parseFloat(r.salary_this_week).toFixed(2),
+        hoursThisWeek: parseFloat(r.hours_this_week).toFixed(2),
+        salaryLastWeek: parseFloat(r.salary_last_week).toFixed(2),
+        hoursLastWeek: parseFloat(r.hours_last_week).toFixed(2),
+      }))
+    );
+  } catch (err) {
+    console.error("Erreur /admin/users-salaries :", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
 
 
 router.get("/admin/pointeuses-actives", async (req, res) => {

@@ -67,8 +67,9 @@ async function deleteRole(roleId) {
 
   await loadRoles();
 }
+
 async function loadUsersWithSalary() {
-  const res = await fetch('/admin/pointeuse/users');
+  const res = await fetch('/admin/users-salaries');
   if (!res.ok) {
     alert("Erreur lors du chargement des utilisateurs");
     return;
@@ -77,22 +78,29 @@ async function loadUsersWithSalary() {
   const tbody = document.getElementById('users-salary-body');
   tbody.innerHTML = '';
 
-  users.forEach(user => {
-  const totalCurrentWeek = Number(user.total_current_week) || 0;
-  const totalLastWeek = Number(user.total_last_week) || 0;
+  for (const user of users) {
+    // Récupère le pseudo Discord
+    const userRes = await fetch(`/api/user/${user.discordId}`);
+    const userData = await userRes.json();
 
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-        <td>${user.display_name}</td>
-        <td>${user.id_discord}</td>
-        <td>${totalCurrentWeek.toFixed(2)} $</td>
-        <td>${totalLastWeek.toFixed(2)} $</td>
-        <td><button onclick="deleteUser('${user.id_discord}')">Supprimer</button></td>
-      `;
-  tbody.appendChild(tr);
-});
+    const salaryThisWeek = Number(user.salaryThisWeek) || 0;
+    const hoursThisWeek = Number(user.hoursThisWeek) || 0;
+    const salaryLastWeek = Number(user.salaryLastWeek) || 0;
+    const hoursLastWeek = Number(user.hoursLastWeek) || 0;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${userData.displayName || "Inconnu"}</td>
+      <td>${user.discordId}</td>
+      <td>${salaryThisWeek.toFixed(2)} $</td>
+      <td>${hoursThisWeek.toFixed(2)} h</td>
+      <td>${salaryLastWeek.toFixed(2)} $</td>
+      <td>${hoursLastWeek.toFixed(2)} h</td>
+      <td><button onclick="deleteUser('${user.discordId}')">Supprimer</button></td>
+    `;
+    tbody.appendChild(tr);
+  }
 }
-
 
 async function deleteUser(userId) {
   if (!confirm("Supprimer toutes les données de cet utilisateur ?")) return;
