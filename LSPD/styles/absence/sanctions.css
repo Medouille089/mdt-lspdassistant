@@ -1,0 +1,87 @@
+/* Sanctions LSPD - Style cohérent projet */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #F1F3FF 0%, #CBD4FF 100%);
+    color: #222;
+    margin: 0;
+    min-height: 100vh;
+}
+
+.main-container {
+    max-width: 600px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(11, 27, 90, 0.10);
+    border: 3px solid #0b1b5a;
+    padding: 32px 40px 24px 40px;
+}
+
+h1 {
+    color: #0b1b5a;
+    font-size: 2rem;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+label {
+    color: #0b1b5a;
+    font-weight: 500;
+    margin-top: 18px;
+    margin-bottom: 6px;
+    display: block;
+}
+
+select,
+input,
+textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 2px solid #CBD4FF;
+    background: #f7f9ff;
+    font-size: 1rem;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+}
+
+select:focus,
+input:focus,
+textarea:focus {
+    border-color: #0b1b5a;
+    outline: none;
+}
+
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+button {
+    background: #0b1b5a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 18px;
+    box-shadow: 0 2px 8px rgba(11, 27, 90, 0.08);
+    transition: background 0.2s;
+    width: 100%;
+}
+
+button:hover {
+    background: #1436a3;
+}
+
+@media (max-width: 700px) {
+    .main-container {
+        padding: 18px 8px;
+    }
+
+    h1 {
+        font-size: 1.3rem;
+    }
+}
