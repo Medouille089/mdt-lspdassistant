@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Présence IG - Admin LSPD</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css">
+    <link rel="stylesheet" href="styles/absence/admin-presence.css" />
+</head>
+
+<body>
+    <div id="sidebar-container"></div>
+    <div class="main-container">
+        <header class="header">
+            <div class="header-left">
+                <img src="data/images/lspd.png" alt="LSPD Logo" class="logo">
+                <div class="header-title">
+                    <h1>Présence IG - Administration</h1>
+                    <p>Suivi des votes de présence IG</p>
+                </div>
+            </div>
+        </header>
+        <section class="content-section">
+            <div id="presence-list">
+            </div>
+        </section>
+    </div>
+    <div class="loader-overlay" id="loaderOverlay" style="display:none;">
+        <div class="loader-spinner"></div>
+    </div>
+    <script src="scripts/presence/admin-presence.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+</body>
+
+</html>

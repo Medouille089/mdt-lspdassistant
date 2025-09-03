@@ -1,0 +1,140 @@
+
+
+body {
+    background: none;
+}
+
+.main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    margin-left: 280px;
+}
+
+.header {
+    background: #fff;
+    border-radius: 15px;
+    padding: 25px 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border: 3px solid #0b1b5a;
+    display: flex;
+    align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.logo {
+    height: 60px;
+}
+
+.header-title h1 {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.header-title p {
+    font-size: 16px;
+    color: #555;
+}
+
+.content-section {
+    background: #fff;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+}
+
+.presence-card {
+    border: 2px solid #0b1b5a;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f7f9ff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.presence-message {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.reactions-list {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 10px;
+}
+
+.reaction-block {
+    background: #e3eaff;
+    border-radius: 8px;
+    padding: 10px 15px;
+    min-width: 120px;
+}
+
+.reaction-title {
+    font-weight: bold;
+    color: #0b1b5a;
+    margin-bottom: 5px;
+}
+
+.voters-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 15px;
+}
+
+p {
+    margin: 0;
+    text-align: left;
+}
+
+.absent-list {
+    margin-top: 10px;
+    background: #ffeaea;
+    border-radius: 8px;
+    padding: 10px 15px;
+}
+
+.absent-title {
+    color: #b30000;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader-spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #0b1b5a;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

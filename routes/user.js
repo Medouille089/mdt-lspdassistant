@@ -14,7 +14,7 @@ router.get('/api/user', checkAuth, async (req, res) => {
     const SUPER_ADMIN_ROLE = conf.id_superadmin ? String(conf.id_superadmin).trim() : null;
 
     const guild = await bot.guilds.fetch(GUILD_ID);
-    guild.members.cache.delete(user.id); 
+    guild.members.cache.delete(user.id);
     const member = await guild.members.fetch(user.id);
     const roleIds = member.roles.cache.map(role => role.id);
 
@@ -81,9 +81,9 @@ router.get('/api/user', checkAuth, async (req, res) => {
       avatar: user.avatar,
       discriminator: user.discriminator,
       roles: roleIds,
-      isSupervisor: false,
-      isCommandStaff: false,
-      isSuperAdmin: false,
+      isSupervisor: user.isSupervisor,
+      isCommandStaff: user.isCommandStaff,
+      isSuperAdmin: user.isSuperAdmin,
       grade
     });
 

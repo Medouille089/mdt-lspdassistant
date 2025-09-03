@@ -6,14 +6,7 @@ const bot = require("../config/bot");
 const { getConfig } = require("../config/config");
 const { GUILD_ID } = require('../config/env');
 const path = require("path");
-
-// Middleware de vérification de session
-function isAuthenticated(req, res, next) {
-  if (req.isAuthenticated && req.isAuthenticated()) {
-    return next();
-  }
-  res.redirect('/login');
-}
+const { checkAuth } = require("../config/middleware"); // ✅ ton middleware
 
 // Authentification avec Discord
 router.get("/login", passport.authenticate("discord"));
@@ -32,53 +25,22 @@ router.get('/callback', (req, res, next) => {
       const member = await guild.members.fetch(req.user.id);
       const roleIds = member.roles.cache.map(r => r.id);
 
-      // Super admin check depuis la config
+      // Super admin check
       const isSuperAdmin = id_superadmin ? roleIds.includes(id_superadmin.trim()) : false;
 
-      // Définir variables pour le log
+      // Vérifie si l’utilisateur a le rôle requis
       const hasRequiredRole = isSuperAdmin ? true : roleIds.includes(required_role_id);
       const action = hasRequiredRole
         ? "s'est connecté(e) avec succès"
         : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}>`;
 
-      // Si super admin -> bypass total
-      if (isSuperAdmin) {
-        req.user.roles = roleIds;
-        req.user.isCommandStaff = true;
-        req.user.isSupervisor = true;
-        req.user.isSuperAdmin = true;
-
-        if (logs_channel) {
-          const logsChannel = await bot.channels.fetch(logs_channel);
-          if (logsChannel?.isTextBased()) {
-            const embed = new EmbedBuilder()
-              .setTitle('⚠️ Connexion utilisateur')
-              .setColor(0x0b1b5a)
-              .setDescription(`${req.user?.guild_member?.nick || 'Utilisateur inconnu'} ${action}`)
-              .addFields({
-                name: "ID's",
-                value: `> <@${req.user.id}> (\`${req.user.id}\`) \n> <@&${id_superadmin}> (\`${id_superadmin}\`)`,
-                inline: false
-              })
-              .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
-              .setTimestamp();
-
-            await logsChannel.send({ embeds: [embed] });
-          }
-        }
-
-        return res.redirect('/protected');
-      }
-
-      // Logique normale
-      const isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
-      const isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
-
+      // Variables de session
       req.user.roles = roleIds;
-      req.user.isCommandStaff = isCommandStaff;
-      req.user.isSupervisor = isSupervisor;
+      req.user.isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
+      req.user.isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
       req.user.isSuperAdmin = isSuperAdmin;
 
+      // Logs
       if (logs_channel) {
         const logsChannel = await bot.channels.fetch(logs_channel);
         if (logsChannel?.isTextBased()) {
@@ -88,7 +50,7 @@ router.get('/callback', (req, res, next) => {
             .setDescription(`${req.user?.guild_member?.nick || 'Utilisateur inconnu'} ${action}`)
             .addFields({
               name: "ID's",
-              value: `> <@${req.user.id}> (\`${req.user.id}\`)`,
+              value: `> <@${req.user.id}> (\`${req.user.id}\`)${isSuperAdmin ? `\n> <@&${id_superadmin}> (\`${id_superadmin}\`)` : ""}`,
               inline: false
             })
             .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
@@ -98,7 +60,19 @@ router.get('/callback', (req, res, next) => {
         }
       }
 
-      res.redirect('/protected');
+      // Bloque si l’utilisateur n’a pas le rôle requis et n’est pas super admin
+      if (!hasRequiredRole) {
+        return res.status(403).send(`
+          <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Accès refusé</title></head><body>
+          <h1>⛔ Accès refusé</h1>
+          <p>Désolé <strong>${req.user.username}</strong>, vous n’avez pas le rôle requis pour accéder à cette page.</p>
+          <a href="/logout">Se déconnecter</a>
+          </body></html>
+        `);
+      }
+
+      return res.redirect('/protected');
+
     } catch (err) {
       console.error("Erreur lors de l'envoi du log de connexion :", err);
       res.redirect('/protected');
@@ -113,9 +87,9 @@ router.get("/logout", (req, res) => {
   });
 });
 
-// Pages protégées
+// Pages protégées avec le middleware checkAuth
 const protectedPages = ['admin.html', 'adminPointeuse.html'];
-router.use(['/protected', ...protectedPages.map(page => `/${page}`)], isAuthenticated);
+router.use(['/protected', ...protectedPages.map(page => `/${page}`)], checkAuth);
 
 // /protected
 router.get('/protected', (req, res) => {
@@ -134,12 +108,13 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
     const member = await guild.members.fetch(req.user.id);
     const roleIds = member.roles.cache.map(role => role.id);
 
-    // Super admin -> bypass
+    // Super admin bypass
     if (id_superadmin && roleIds.includes(id_superadmin)) {
       const requestedPage = req.path.replace('/', '');
       return res.sendFile(path.join(__dirname, `../LSPD/${requestedPage}`));
     }
 
+    // Vérifie le rôle Command Staff
     if (!roleIds.includes(commandStaffRoleId)) {
       return res.redirect('/error.html');
     }

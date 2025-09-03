@@ -64,6 +64,7 @@ const setupPointeuse = require('./config/setupPointeuse');
 const gradesRoute = require('./config/grades');
 const absenceRoute = require("./routes/absence");
 const sanctionsRoutes = require("./routes/sanctions");
+const presenceIg = require("./routes/presenceig");
 app.use(configRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
@@ -80,6 +81,7 @@ app.use(setupPointeuse);
 app.use(gradesRoute);
 app.use(absenceRoute);
 app.use(sanctionsRoutes);
+app.use('/api/presenceig', presenceIg);
 
 // Static frontend
 app.use(express.static(path.join(__dirname, "LSPD")));

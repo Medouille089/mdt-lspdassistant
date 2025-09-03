@@ -1,15 +1,36 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <title>Créer une sanction LSPD</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
-    h1 { color: #222; }
-    select, input, textarea, button { display: block; margin: 10px 0; padding: 5px; width: 300px; }
-    textarea { height: 80px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+
+    h1 {
+      color: #222;
+    }
+
+    select,
+    input,
+    textarea,
+    button {
+      display: block;
+      margin: 10px 0;
+      padding: 5px;
+      width: 300px;
+    }
+
+    textarea {
+      height: 80px;
+    }
   </style>
 </head>
+
 <body>
   <h1>Créer une sanction</h1>
 
@@ -45,12 +66,15 @@
         const agents = await res.json();
         const select = document.getElementById('agent');
         select.innerHTML = '';
-        agents.forEach(a => {
-          const opt = document.createElement('option');
-          opt.value = a.discord_id;
-          opt.textContent = a.username;
-          select.appendChild(opt);
-        });
+        agents
+          .sort((a, b) => a.username.localeCompare(b.username))
+          .forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = a.discord_id;
+            opt.textContent = a.username;
+            select.appendChild(opt);
+          });
+
       } catch (err) {
         console.error("Erreur chargement agents:", err);
       }
@@ -92,5 +116,5 @@
     loadAgents();
   </script>
 </body>
+
 </html>
-    
