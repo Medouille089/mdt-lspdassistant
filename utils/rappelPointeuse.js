@@ -13,6 +13,9 @@ async function checkOvertimePunches() {
         LIMIT 1
     `);
 
+    // Met à jour la colonne pointeuse_alerte dans la table configlspd
+    // Exemple : await pool.query(`UPDATE configlspd SET pointeuse_alerte = $1`, [nouvelleValeur]);
+
     if (!configRes.rows.length) return;
 
     const { pointeuse_alert: alertChannelId, heure_pointeuse_alerte: heureAlerte } = configRes.rows[0];

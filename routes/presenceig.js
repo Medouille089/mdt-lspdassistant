@@ -19,7 +19,7 @@ router.get('/admin', async (req, res) => {
         const roleMembers = guildMembers.filter(m => m.roles.cache.has(ROLE_ID));
 
 
-        const channel = guild.channels.cache.get("1409890865723211856");
+        const channel = guild.channels.cache.get("1166063964380209222");
 
         const result = await Promise.all(messages.rows.map(async msg => {
             let m;
@@ -36,8 +36,9 @@ router.get('/admin', async (req, res) => {
                     const users = await r.users.fetch();
                     return {
                         emoji: r.emoji.name,
-                        users: Array.from(users.values()).map(u => {
+                        users: Array.from(users.values()).filter(u => !u.bot).map(u => {
                             const member = guildMembers.get(u.id);
+
                             return {
                                 id: u.id,
                                 username: member ? (member.nickname || member.user.username) : u.username

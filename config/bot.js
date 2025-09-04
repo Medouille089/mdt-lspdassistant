@@ -15,6 +15,10 @@ const cron = require("node-cron");
 const moment = require("moment-timezone");
 require("dotenv").config();
 
+
+
+
+
 const ficheDePresence = require("../discordUtils/ficheDePresence");
 
 const bot = new Client({
@@ -172,6 +176,12 @@ async function startBot() {
         console.error("Erreur dans la tâche cron fiche de présence :", e);
       }
     });
+    const purgeOldPresence = async () => {
+      await db.query("DELETE FROM lspd_presenceig WHERE timestamp < NOW() - INTERVAL '14 days'");
+      console.log("Anciennes présences supprimées !");
+    };
+    cron.schedule('0 3 * * *', purgeOldPresence);
+
   });
 
   setBot(bot);

@@ -37,6 +37,7 @@ function renderPresence(data) {
                     <div class="reaction-block">
                         <div class="reaction-title">${r.emoji}</div>
                         <ul class="voters-list">
+                            ${r.users.length === 0 ? '<li>Aucun vote</li>' : ''}
                             ${r.users.map(u => `<li>${u.username}</li>`).join('')}
                         </ul>
                     </div>

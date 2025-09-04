@@ -1,7 +1,9 @@
-
-
 body {
     background: none;
+}
+
+user {
+    display: none;
 }
 
 .main-container {
