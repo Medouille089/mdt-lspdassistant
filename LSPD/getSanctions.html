@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Liste Sanctions - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <style>
+        #sanctionsTable tr.archived {
+            color: #dcdcdc;
+            background-color: #6b6b6b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Liste des sanctions</h1>
+        <div class="container">
+            <div class="filters">
+                <input type="text" id="searchInput" placeholder="Rechercher utilisateur ou agent" />
+                <input type="date" id="dateStart" />
+                <input type="date" id="dateEnd" />
+            </div>
+
+            <table id="sanctionsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Utilisateur</th>
+                        <th>Agent</th>
+                        <th>Type</th>
+                        <th>Raison</th>
+                        <th>Date de</th>
+                        <th>Date à</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamique -->
+                </tbody>
+            </table>
+
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-spinner"></div>
+    </div>
+    <script>
+        const API_URL = '/api/sanctions/all';
+        const REVOKE_API = '/api/sanctions/revoke';
+        const ITEMS_PER_PAGE = 10;
+
+        const searchInput = document.getElementById('searchInput');
+        const dateStartInput = document.getElementById('dateStart');
+        const dateEndInput = document.getElementById('dateEnd');
+        const tableBody = document.querySelector('#sanctionsTable tbody');
+        const paginationDiv = document.getElementById('pagination');
+
+        let sanctions = [];
+        let filteredSanctions = [];
+        let currentPage = 1;
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const [y, m, d] = dateStr.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        async function loadSanctions() {
+            document.getElementById('loaderOverlay').style.display = 'flex';
+            try {
+                const res = await fetch(API_URL);
+                if (!res.ok) throw new Error('Erreur chargement');
+                sanctions = await res.json();
+                applyFilters();
+            } catch (e) {
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#f66;">Erreur de chargement.</td></tr>`;
+                console.error(e);
+            } finally {
+                document.getElementById('loaderOverlay').style.display = 'none';
+            }
+        }
+
+        function applyFilters() {
+            const search = searchInput.value.trim().toLowerCase();
+            const dateStart = dateStartInput.value;
+            const dateEnd = dateEndInput.value;
+
+            filteredSanctions = sanctions.filter(item => {
+                const textMatch =
+                    (item.username?.toLowerCase().includes(search)) ||
+                    (item.issued_by?.toLowerCase().includes(search));
+
+                const startOk = dateStart ? item.date_from >= dateStart : true;
+                const endOk = dateEnd ? item.date_end <= dateEnd : true;
+
+                return textMatch && startOk && endOk;
+            });
+
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+
+        function renderTable() {
+            tableBody.innerHTML = '';
+            if (filteredSanctions.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Aucune sanction trouvée.</td></tr>`;
+                return;
+            }
+
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageItems = filteredSanctions.slice(start, end);
+
+            pageItems.forEach(item => {
+                const tr = document.createElement('tr');
+
+                // Ligne grisée si sanction révoquée
+                if (item.archived) tr.classList.add('archived');
+
+                tr.innerHTML = `
+            <td>${item.id}</td>
+            <td>${item.username}</td>
+            <td>${item.issued_by}</td>
+            <td>${item.type}</td>
+            <td>${item.reason}</td>
+            <td>${formatDate(item.date_from.split('T')[0])}</td>
+            <td>${item.date_end ? formatDate(item.date_end.split('T')[0]) : '-'}</td>
+            <td>
+                ${item.archived ? `Révoqué par : ${item.revoked_by || 'Vous'}` : `<button class="revoke-btn">Révoquer</button>`}
+            </td>
+        `;
+
+                if (!item.archived) {
+                    const btn = tr.querySelector('.revoke-btn');
+                    btn.addEventListener('click', async () => {
+                        btn.disabled = true;
+                        try {
+                            const res = await fetch(`${REVOKE_API}/${item.id}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' }
+                            });
+                            if (!res.ok) throw new Error('Erreur révocation');
+
+                            const data = await res.json();
+
+                            if (data.success) {
+                                // Utilise le nom réel si disponible, sinon "Inconnu"
+                                const revokedByName = (data.revoked_by && data.revoked_by.trim()) ? data.revoked_by : 'Vous';
+
+                                // Met à jour l'objet et la ligne
+                                item.archived = true;
+                                item.revoked_by = revokedByName;
+                                tr.classList.add('archived');
+                                btn.replaceWith(document.createTextNode(`Révoqué par : ${revokedByName}`));
+                            }
+                        } catch (e) {
+                            btn.disabled = false;
+                            console.error(e);
+                            alert('Impossible de révoquer la sanction');
+                        }
+                    });
+                }
+
+                tableBody.appendChild(tr);
+            });
+        }
+
+
+        function renderPagination() {
+            paginationDiv.innerHTML = '';
+            const totalPages = Math.ceil(filteredSanctions.length / ITEMS_PER_PAGE);
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '‹ Précédent';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                    renderPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+            paginationDiv.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                if (i === currentPage) btn.disabled = true;
+                btn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderTable();
+                    renderPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                paginationDiv.appendChild(btn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Suivant ›';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                    renderPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+            paginationDiv.appendChild(nextBtn);
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+        dateStartInput.addEventListener('change', applyFilters);
+        dateEndInput.addEventListener('change', applyFilters);
+
+        loadSanctions();
+    </script>
+
+    <script src="scripts/loadSidebar.js"></script>
+</body>
+
+</html>

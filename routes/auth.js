@@ -94,7 +94,7 @@ router.get("/logout", (req, res) => {
 });
 
 // Pages protégées avec le middleware checkAuth
-const protectedPages = ['admin.html', 'adminPointeuse.html'];
+const protectedPages = ['admin.html', 'adminPointeuse.html', 'adminMenu.html, adminGrades.html, admin-absences.html, admin-presence.html'];
 router.use(['/protected', ...protectedPages.map(page => `/${page}`)], checkAuth);
 
 // /protected
