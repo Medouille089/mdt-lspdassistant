@@ -27,13 +27,7 @@ async function loadArrestations() {
         const res = await fetch(API_URL);
         if (!res.ok) throw new Error('Erreur chargement');
         arrestations = await res.json();
-
-        // arrestations.sort((a, b) => {
-        //     const numA = parseInt(a.id.replace(/\D/g, ''), 10);
-        //     const numB = parseInt(b.id.replace(/\D/g, ''), 10);
-        //     return numB - numA;
-        // });
-
+        
         applyFilters();
     } catch (e) {
         tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#f66;">Erreur de chargement.</td></tr>`;

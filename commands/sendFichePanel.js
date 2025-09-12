@@ -1,3 +1,4 @@
+require('dotenv').config(); // Charge les variables d'environnement
 const { SlashCommandBuilder, PermissionsBitField, EmbedBuilder } = require("discord.js");
 const db = require("../config/db");
 const { getConfig, getBot } = require("../config/config");
@@ -63,7 +64,7 @@ module.exports = {
     }
 
     try {
-      const bot = getBot(); // ✅ On appelle getBot ici, quand le bot est prêt
+      const bot = getBot();
       const conf = getConfig();
 
       // Récupération config actuelle
@@ -83,47 +84,53 @@ module.exports = {
         [salon.id, heure, rappel]
       );
 
-      // Log dans le salon s’il y a un changement
-      const logsChannel = await safeFetchChannel(bot, conf.logs_channel);
-      if (
-        logsChannel &&
-        (oldConfig.fiche_de_presence_id !== salon.id ||
-          oldConfig.fiche_de_presence_hour !== heure ||
-          oldConfig.fiche_de_presence_rappel !== rappel)
-      ) {
-        const embed = new EmbedBuilder()
-          .setColor("#FF0000")
-          .setTitle("Fiche de présence modifiée")
-          .setDescription(`<@${interaction.user.id}> a mis à jour la configuration de la fiche de présence.`)
-          .addFields(
-            {
-              name: "Salon",
-              value: `Avant: <#${oldConfig.fiche_de_presence_id}> (\`${oldConfig.fiche_de_presence_id}\`)\nAprès: <#${salon.id}> (\`${salon.id}\`)`,
-              inline: false,
-            },
-            {
-              name: "Heure principale",
-              value: `Avant: \`${oldConfig.fiche_de_presence_hour}\`\nAprès: \`${heure}\``,
-              inline: true,
-            },
-            {
-              name: "Heure de rappel",
-              value: `Avant: \`${oldConfig.fiche_de_presence_rappel}\`\nAprès: \`${rappel}\``,
-              inline: true,
-            },
-            {
-              name: "ID's",
-              value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)\n> <#${oldConfig.fiche_de_presence_id}> (\`${oldConfig.fiche_de_presence_id}\`)\n> <#${salon.id}> (\`${salon.id}\`)` ,
-              inline: false,
-            }
-          )
-          .setFooter({
-            text: "LSPD Assistant",
-            iconURL: bot.user.displayAvatarURL({ extension: "png", size: 256 }),
-          })
-          .setTimestamp();
+      // Log dans le salon si pas en local et si changement
+      console.log("IS_LOCAL =", process.env.IS_LOCAL);
 
-        await logsChannel.send({ embeds: [embed] });
+      if ((process.env.IS_LOCAL || "").trim().toLowerCase() !== "true") {
+        const logsChannel = await safeFetchChannel(bot, conf.logs_channel);
+        if (
+          logsChannel &&
+          (oldConfig.fiche_de_presence_id !== salon.id ||
+            oldConfig.fiche_de_presence_hour !== heure ||
+            oldConfig.fiche_de_presence_rappel !== rappel)
+        ) {
+          const embed = new EmbedBuilder()
+            .setColor("#FF0000")
+            .setTitle("Fiche de présence modifiée")
+            .setDescription(`<@${interaction.user.id}> a mis à jour la configuration de la fiche de présence.`)
+            .addFields(
+              {
+                name: "Salon",
+                value: `Avant: <#${oldConfig.fiche_de_presence_id}> (\`${oldConfig.fiche_de_presence_id}\`)\nAprès: <#${salon.id}> (\`${salon.id}\`)`,
+                inline: false,
+              },
+              {
+                name: "Heure principale",
+                value: `Avant: \`${oldConfig.fiche_de_presence_hour}\`\nAprès: \`${heure}\``,
+                inline: true,
+              },
+              {
+                name: "Heure de rappel",
+                value: `Avant: \`${oldConfig.fiche_de_presence_rappel}\`\nAprès: \`${rappel}\``,
+                inline: true,
+              },
+              {
+                name: "ID's",
+                value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)\n> <#${oldConfig.fiche_de_presence_id}> (\`${oldConfig.fiche_de_presence_id}\`)\n> <#${salon.id}> (\`${salon.id}\`)`,
+                inline: false,
+              }
+            )
+            .setFooter({
+              text: "LSPD Assistant",
+              iconURL: bot.user.displayAvatarURL({ extension: "png", size: 256 }),
+            })
+            .setTimestamp();
+
+          await logsChannel.send({ embeds: [embed] });
+        }
+      } else {
+        console.log("✅ Bot en local, log de fiche et rappel non envoyé");
       }
 
       return interaction.reply({

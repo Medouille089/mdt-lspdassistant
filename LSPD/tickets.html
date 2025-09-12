@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Panel Tickets LSPD</title>
+<style>
+body { font-family: Arial; padding: 20px; }
+input, select, textarea { width: 100%; margin-bottom: 10px; padding: 5px; }
+button { padding: 10px 20px; margin-top: 10px; cursor: pointer; }
+.category { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+hr { margin: 20px 0; }
+</style>
+</head>
+<body>
+<h1>Panel Tickets LSPD</h1>
+
+<div>
+    <h2>Créer un embed pour le panel</h2>
+    <input type="text" id="embedTitle" placeholder="Titre de l'embed">
+    <textarea id="embedDescription" placeholder="Description"></textarea>
+    <input type="color" id="embedColor" value="#00ff00">
+    <input type="text" id="embedThumbnail" placeholder="URL du thumbnail">
+    <input type="text" id="embedFooter" placeholder="Footer (nom du bot)">
+    <select id="panelChannel">
+        <!-- Options remplies via API -->
+    </select>
+</div>
+
+<hr>
+
+<h2>Catégories de tickets</h2>
+<div id="categoriesContainer"></div>
+
+<h3>Ajouter une catégorie</h3>
+<form id="categoryForm">
+    <input type="text" id="title" placeholder="Titre" required>
+    <input type="text" id="emoji" placeholder="Emoji" required>
+    <textarea id="description" placeholder="Description"></textarea>
+    <input type="text" id="pingRoles" placeholder="Roles à ping (id séparés par ,)">
+    <input type="text" id="allowedRoles" placeholder="Roles autorisés (id séparés par ,)">
+    <input type="text" id="targetChannel" placeholder="ID du salon cible">
+    <button type="submit">Créer catégorie</button>
+</form>
+
+<button id="sendPanel">Envoyer le panel sur Discord</button>
+
+<script>
+async function fetchCategories() {
+    const res = await fetch('/api/ticket-categories');
+    const categories = await res.json();
+    const container = document.getElementById('categoriesContainer');
+    container.innerHTML = '';
+    categories.forEach(cat => {
+        const div = document.createElement('div');
+        div.className = 'category';
+        div.innerHTML = `
+            <strong>${cat.emoji} ${cat.title}</strong><br>
+            ${cat.description}<br>
+            Ping roles: ${cat.ping_roles.join(', ')}<br>
+            Allowed roles: ${cat.allowed_roles.join(', ')}<br>
+            Salon cible: ${cat.target_channel_id}
+        `;
+        container.appendChild(div);
+    });
+}
+
+async function fetchChannels() {
+    const res = await fetch('/api/discord-channels');
+    const channels = await res.json();
+    const select = document.getElementById('panelChannel');
+    channels.forEach(ch => {
+        const opt = document.createElement('option');
+        opt.value = ch.id;
+        opt.textContent = `${ch.name} (${ch.type})`;
+        select.appendChild(opt);
+    });
+}
+
+document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('title').value;
+    const emoji = document.getElementById('emoji').value;
+    const description = document.getElementById('description').value;
+    const ping_roles = document.getElementById('pingRoles').value.split(',').map(r=>r.trim()).filter(r=>r);
+    const allowed_roles = document.getElementById('allowedRoles').value.split(',').map(r=>r.trim()).filter(r=>r);
+    const target_channel_id = document.getElementById('targetChannel').value;
+
+    await fetch('/api/ticket-categories', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({title, emoji, description, ping_roles, allowed_roles, target_channel_id})
+    });
+
+    document.getElementById('categoryForm').reset();
+    fetchCategories();
+});
+
+document.getElementById('sendPanel').addEventListener('click', async () => {
+    const channel_id = document.getElementById('panelChannel').value;
+    const embed = {
+        title: document.getElementById('embedTitle').value,
+        description: document.getElementById('embedDescription').value,
+        color: parseInt(document.getElementById('embedColor').value.replace('#','0x')),
+        thumbnail: document.getElementById('embedThumbnail').value,
+        footer: document.getElementById('embedFooter').value
+    };
+    const res = await fetch('/api/send-panel', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({channel_id, embed})
+    });
+    const text = await res.text();
+    alert(text);
+});
+
+fetchCategories();
+fetchChannels();
+</script>
+</body>
+</html>

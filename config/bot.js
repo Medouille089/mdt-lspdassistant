@@ -15,10 +15,6 @@ const cron = require("node-cron");
 const moment = require("moment-timezone");
 require("dotenv").config();
 
-
-
-
-
 const ficheDePresence = require("../discordUtils/ficheDePresence");
 
 const bot = new Client({
@@ -186,6 +182,75 @@ async function startBot() {
 
   setBot(bot);
 }
+
+bot.on('interactionCreate', async interaction => {
+    try {
+        if (!interaction.isStringSelectMenu()) return;
+        if (interaction.customId !== 'select_ticket_category') return;
+
+        const catId = interaction.values[0];
+        const catRes = await db.query('SELECT * FROM lspd_ticket_categories WHERE id=$1', [catId]);
+        const category = catRes.rows[0];
+        if (!category) return interaction.reply({ content: 'Catégorie invalide', ephemeral: true });
+
+        const guild = interaction.guild;
+
+        // Création du salon privé
+        const channel = await guild.channels.create({
+            name: `ticket-${interaction.user.username}`,
+            type: 0, // text
+            parent: category.target_channel_id || null,
+            permissionOverwrites: [
+                { id: guild.roles.everyone.id, deny: ['ViewChannel'] },
+                ...(category.allowed_roles || []).map(rid => ({
+                    id: rid,
+                    allow: ['ViewChannel', 'SendMessages']
+                })),
+                { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages'] }
+            ]
+        });
+
+        // Enregistrement dans la DB
+        await db.query(
+            'INSERT INTO lspd_tickets(user_id, category_id, channel_id) VALUES($1,$2,$3)',
+            [interaction.user.id, category.id, channel.id]
+        );
+
+        // Message de bienvenue
+        await channel.send({
+            content: `${(category.ping_roles || []).map(r => `<@&${r}>`).join(' ')} Bienvenue dans votre ticket !`,
+            embeds: [{
+                title: category.title,
+                description: category.description,
+                timestamp: new Date(),
+                footer: { text: bot.user.username, icon_url: bot.user.displayAvatarURL() }
+            }]
+        });
+
+        // Logs dans le salon configuré
+        const configRes = await db.query('SELECT * FROM lspd_config_panel LIMIT 1');
+        if (configRes.rows[0] && configRes.rows[0].logs_channel) {
+            const logsChannel = guild.channels.cache.get(configRes.rows[0].logs_channel);
+            if (logsChannel) {
+                logsChannel.send(`🆕 Ticket ouvert par ${interaction.user.tag} dans <#${channel.id}>`);
+            } else {
+                console.warn('⚠️ Salon de logs configuré introuvable sur le serveur.');
+            }
+        } else {
+            console.warn('⚠️ Aucun salon de logs configuré.');
+        }
+
+        await interaction.reply({ content: 'Ticket créé ✅', ephemeral: true });
+
+    } catch (err) {
+        console.error('Erreur lors de l\'ouverture du ticket :', err);
+        if (interaction.replied || interaction.deferred) {
+            interaction.followUp({ content: 'Erreur lors de l\'ouverture du ticket.', ephemeral: true });
+        } else {
+            interaction.reply({ content: 'Erreur lors de l\'ouverture du ticket.', ephemeral: true });
+        }
+    }
+});
 
 startBot();
 

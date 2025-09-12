@@ -1,20 +1,39 @@
 /* Sanctions LSPD - Style cohérent projet */
+/* Reset & base */
+html,
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: linear-gradient(135deg, #F1F3FF 0%, #CBD4FF 100%);
-    color: #222;
+    height: 100%;
     margin: 0;
-    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+    z-index: 0;
+    background: none;
+    /* on enlève le fond ici */
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .main-container {
-    max-width: 600px;
-    margin: 40px auto;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
     background: #fff;
-    border-radius: 18px;
-    box-shadow: 0 8px 32px rgba(11, 27, 90, 0.10);
-    border: 3px solid #0b1b5a;
-    padding: 32px 40px 24px 40px;
+    border-radius: 15px;
+    padding: 40px 50px 100px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border: 4px solid #0b1b5a;
+    position: relative;
 }
 
 h1 {

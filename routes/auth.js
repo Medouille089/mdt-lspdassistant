@@ -44,8 +44,14 @@ router.get('/callback', (req, res, next) => {
       if (logs_channel) {
         const logsChannel = await bot.channels.fetch(logs_channel);
         if (logsChannel?.isTextBased()) {
+          // Détection machine locale
+          const isLocal = req.hostname === 'localhost' || req.ip === '127.0.0.1' || req.ip === '::1';
+          const logTitle = isLocal
+            ? '⚠️ Connexion utilisateur - Machine locale'
+            : '⚠️ Connexion utilisateur';
+
           const embed = new EmbedBuilder()
-            .setTitle('⚠️ Connexion utilisateur')
+            .setTitle(logTitle)
             .setColor(hasRequiredRole ? 0x0b1b5a : 0xdb4437)
             .setDescription(`${req.user?.guild_member?.nick || 'Utilisateur inconnu'} ${action}`)
             .addFields({
@@ -88,7 +94,7 @@ router.get("/logout", (req, res) => {
 });
 
 // Pages protégées avec le middleware checkAuth
-const protectedPages = ['admin.html', 'adminPointeuse.html'];
+const protectedPages = ['admin.html', 'adminPointeuse.html', 'adminMenu.html, adminGrades.html, admin-absences.html, admin-presence.html'];
 router.use(['/protected', ...protectedPages.map(page => `/${page}`)], checkAuth);
 
 // /protected
