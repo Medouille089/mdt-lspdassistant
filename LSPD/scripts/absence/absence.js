@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('absenceForm');
+    const loader = document.getElementById("loaderOverlay");
+
+    // Afficher le loader au démarrage
+    loader.style.display = "flex";
+
     fetch("/api/user")
         .then((res) => res.json())
         .then((user) => {
@@ -10,6 +15,10 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error("Erreur chargement utilisateur :", err);
             document.getElementById("officier").value = "Erreur de chargement";
             document.getElementById("grade").value = "";
+        })
+        .finally(() => {
+            // Cacher le loader après le fetch
+            loader.style.display = "none";
         });
 
     const dateDebutInput = document.getElementById('dateDebut');
@@ -28,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
             dateFinInput.value = dateDebutInput.value;
         }
     });
+
 
     form.addEventListener('submit', async function (e) {
         e.preventDefault();

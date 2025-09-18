@@ -1,23 +1,24 @@
 const loader = document.getElementById('loaderOverlay');
 const presenceList = document.getElementById('presence-list');
 
-function showLoader(show) {
-    loader.style.display = show ? 'flex' : 'none';
-}
-
 async function fetchPresenceData() {
-    showLoader(true);
+    // Affiche le loader dès le début
+    loader.style.display = 'flex';
+
     try {
         const res = await fetch('/api/presenceig/admin');
-        //const data = await res.json();
-        console.log(res.json().then(data => {
-            console.log(data)
-            renderPresence(data);
-        }));
+        if (!res.ok) throw new Error('Erreur chargement présences');
+
+        const data = await res.json();
+        renderPresence(data);
+
     } catch (err) {
+        console.error(err);
         presenceList.innerHTML = '<div style="color:red">Erreur de chargement des présences.</div>';
+    } finally {
+        // Cache le loader à la fin, même en cas d'erreur
+        loader.style.display = 'none';
     }
-    showLoader(false);
 }
 
 function renderPresence(data) {
@@ -25,6 +26,7 @@ function renderPresence(data) {
         presenceList.innerHTML = '<div>Aucun message de présence IG trouvé.</div>';
         return;
     }
+
     presenceList.innerHTML = '';
     data.forEach(msg => {
         const createdAt = new Date(msg.timestamp).toLocaleDateString();

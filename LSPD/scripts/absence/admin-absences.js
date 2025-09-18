@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 async function initializePage() {
     try {
+        showLoading(); // Affiche le loader dès le départ
         await loadStats();
         await loadAbsences();
         generateCalendar();
@@ -21,6 +22,8 @@ async function initializePage() {
     } catch (error) {
         console.error('Erreur lors de l\'initialisation:', error);
         showError('Erreur lors du chargement des données');
+    } finally {
+        hideLoading(); // Cache le loader une fois tout chargé
     }
 }
 

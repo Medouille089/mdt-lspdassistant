@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administration - Calendrier des Absences | LSPD</title>
+    <title>Admin abscences - LSPD Assistant</title>
     <link rel="stylesheet" href="styles/sidebar.css" />
     <link rel="stylesheet" href="styles/colors.css" />
     <link rel="stylesheet" href="styles/loader.css" />
@@ -16,13 +16,15 @@
 </head>
 
 <body>
-    <div id="sidebar-container"></div>
     <div class="main-container">
+
+    <div id="sidebar-container"></div>
+    <h1>Pannel des abscences</h1>
+
         <header class="header">
             <div class="header-left">
                 <img src="data/images/lspd.png" alt="LSPD Logo" class="logo">
                 <div class="header-title">
-                    <h1>Administration des Absences</h1>
                     <p>Gestion et suivi des demandes d'absence</p>
                 </div>
             </div>
@@ -178,7 +180,9 @@
         </div>
     </div>
     </div>
-
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-spinner"></div>
+    </div>
     <script src="scripts/absence/admin-absences.js"></script>
     <script src="scripts/loadSidebar.js"></script>
 </body>
