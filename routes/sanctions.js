@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const { getBot, getConfig } = require('../config/config');
 const { EmbedBuilder } = require('discord.js');
+const { checkAuth } = require('../config/middleware');
 
 const LOGS_CHANNEL_ID = '1409873897654063265';
 
@@ -339,6 +340,55 @@ router.get('/api/sanctions/all', async (req, res) => {
         res.status(500).json({ error: 'Erreur récupération sanctions' });
     }
 });
+
+// GET /api/officer/sanctions?userId=<discord_id>
+router.get('/api/officer/sanctions', checkAuth, async (req, res) => {
+    try {
+        const { userId } = req.query;
+        if (!userId) return res.status(400).json({ error: "userId manquant" });
+
+        const result = await pool.query(
+            `SELECT s.id,s.player_id, s.type, s.reason, s.date_from, s.date_end, s.issued_by, s.archived, s.revoked_by, r.nom AS type_name
+             FROM lspd_sanctions s
+             LEFT JOIN lspd_sanctions_roles r ON s.type = r.id_discord
+             WHERE s.player_discord_id = $1
+             ORDER BY s.date_from DESC`,
+            [userId]
+        );
+
+        // Convert dates au format JJ/MM/AAAA
+        const sanctions = result.rows.map(r => ({
+            ...r,
+            type: r.type_name || r.type, // remplace l'ID par le nom si trouvé
+            date_from: r.date_from?.toISOString().split('T')[0],
+            date_end: r.date_end?.toISOString().split('T')[0]
+        }));
+
+        res.json(sanctions);
+    } catch (err) {
+        console.error('Erreur récupération sanctions officer:', err);
+        res.status(500).json({ error: 'Impossible de récupérer les sanctions de l’agent' });
+    }
+});
+
+
+// Récupérer infos d'un agent par son Discord ID
+router.get('/api/discord/member/:userId', checkAuth, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const bot = getBot();
+        const guild = await bot.guilds.fetch(process.env.GUILD_ID);
+        const member = await guild.members.fetch(userId).catch(() => null);
+
+        if (!member) return res.status(404).json({ error: "Membre introuvable" });
+
+        res.json({ displayName: member.displayName });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Impossible de récupérer le membre Discord" });
+    }
+});
+
 
 async function revokeExpiredSanctions() {
     try {

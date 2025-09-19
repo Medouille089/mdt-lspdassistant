@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sanctions Agents - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <style>
+        #sanctionsTable tr.archived {
+            color: #dcdcdc;
+            background-color: #6b6b6b;
+        }
+        .filters {
+            margin-bottom: 10px;
+        }
+        .filters input {
+            margin-right: 5px;
+            padding: 5px;
+        }
+        .pagination button {
+            margin: 2px;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Sanctions de l'agent</h1>
+        <div class="container">
+
+            <table id="sanctionsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Agent</th>
+                        <th>Sanctionneur</th>
+                        <th>Type</th>
+                        <th>Raison</th>
+                        <th>Date de</th>
+                        <th>Date à</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                </tbody>
+            </table>
+
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/sanctions/getOfficerSanctions.js"></script>
+</body>
+
+</html>

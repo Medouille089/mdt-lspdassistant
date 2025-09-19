@@ -84,10 +84,10 @@ module.exports = {
         [salon.id, heure, rappel]
       );
 
-      // Log dans le salon si pas en local et si changement
-      console.log("IS_LOCAL =", process.env.IS_LOCAL);
-
-      if ((process.env.IS_LOCAL || "").trim().toLowerCase() !== "true") {
+      // Ne pas envoyer les logs si on est en local
+      if ((process.env.IS_LOCAL || "").trim().toLowerCase() === "true") {
+        console.log("✅ Bot en local, log de fiche et rappel non envoyé");
+      } else {
         const logsChannel = await safeFetchChannel(bot, conf.logs_channel);
         if (
           logsChannel &&
@@ -129,8 +129,6 @@ module.exports = {
 
           await logsChannel.send({ embeds: [embed] });
         }
-      } else {
-        console.log("✅ Bot en local, log de fiche et rappel non envoyé");
       }
 
       return interaction.reply({
