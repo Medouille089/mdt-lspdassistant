@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 require('./utils/liveUsersCleaner');
+require('./utils/cleanSanctions');
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const passport = require("./config/passport");
