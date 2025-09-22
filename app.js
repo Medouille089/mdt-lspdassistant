@@ -68,6 +68,7 @@ const sanctionsRoutes = require("./routes/sanctions");
 const presenceIg = require("./routes/presenceig");
 const ticketPanelRoutes = require('./routes/ticketPanel');
 const adminOfficer = require('./routes/officers');
+const rapportRookie = require('./routes/rapport-rookie');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -88,6 +89,7 @@ app.use(sanctionsRoutes);
 app.use('/api/presenceig', presenceIg);
 app.use(ticketPanelRoutes);
 app.use(adminOfficer);
+app.use(rapportRookie);
 
 // Static frontend
 app.use(express.static(path.join(__dirname, "LSPD")));
