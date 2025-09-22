@@ -93,16 +93,37 @@ router.get("/logout", (req, res) => {
   });
 });
 
-// Pages protégées avec le middleware checkAuth
-const protectedPages = ['admin.html', 'adminPointeuse.html', 'adminMenu.html, adminGrades.html, admin-absences.html, admin-presence.html'];
-router.use(['/protected', ...protectedPages.map(page => `/${page}`)], checkAuth);
+// Pages protégées Command Staff uniquement
+const protectedPages = [
+  'admin.html',
+  'adminPointeuse.html',
+  'adminMenu.html',
+  'adminGrades.html',
+  'admin-absences.html',
+  'admin-presence.html',
+  'officers.html',
+  'officerMenu.html',
+  'getOfficerSanction.html'
+];
+
+// Pages protégées Command Staff + Supervisor
+const protectedPagesSupervisor = [
+  'sanctions.html',
+  'getSanctions.html'
+];
+
+// Middleware commun (protège toutes les routes listées)
+router.use(
+  ['/protected', ...protectedPages.map(page => `/${page}`), ...protectedPagesSupervisor.map(page => `/${page}`)],
+  checkAuth
+);
 
 // /protected
 router.get('/protected', (req, res) => {
   res.sendFile(path.join(__dirname, '../LSPD/dashboard.html'));
 });
 
-// Pages admin protégées
+// Handler pages Command Staff uniquement
 router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
   try {
     const config = await getConfig();
@@ -116,8 +137,7 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
 
     // Super admin bypass
     if (id_superadmin && roleIds.includes(id_superadmin)) {
-      const requestedPage = req.path.replace('/', '');
-      return res.sendFile(path.join(__dirname, `../LSPD/${requestedPage}`));
+      return res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
     }
 
     // Vérifie le rôle Command Staff
@@ -125,10 +145,37 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
       return res.redirect('/error.html');
     }
 
-    const requestedPage = req.path.replace('/', '');
-    if (!protectedPages.includes(requestedPage)) return res.status(404).send('Page non trouvée');
+    res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
+  } catch (err) {
+    console.error(`Erreur ${req.path}:`, err);
+    res.status(500).send('Erreur serveur');
+  }
+});
 
-    res.sendFile(path.join(__dirname, `../LSPD/${requestedPage}`));
+// Handler pages Command Staff + Supervisor
+router.get(protectedPagesSupervisor.map(page => `/${page}`), async (req, res) => {
+  try {
+    const config = await getConfig();
+    const commandStaffRoleId = config.commandstaff_id?.trim();
+    const supervisorRoleId = config.supervisor_role_id?.trim();
+    const id_superadmin = config.id_superadmin?.trim();
+
+    const guild = await bot.guilds.fetch(GUILD_ID);
+    guild.members.cache.delete(req.user.id);
+    const member = await guild.members.fetch(req.user.id);
+    const roleIds = member.roles.cache.map(role => role.id);
+
+    // Super admin bypass
+    if (id_superadmin && roleIds.includes(id_superadmin)) {
+      return res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
+    }
+
+    // Vérifie Command Staff OU Supervisor
+    if (!(roleIds.includes(commandStaffRoleId) || roleIds.includes(supervisorRoleId))) {
+      return res.redirect('/error.html');
+    }
+
+    res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
   } catch (err) {
     console.error(`Erreur ${req.path}:`, err);
     res.status(500).send('Erreur serveur');

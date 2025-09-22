@@ -1,5 +1,5 @@
+require('dotenv').config();
 const { EmbedBuilder } = require("discord.js");
-const moment = require("moment-timezone");
 const db = require("../config/db");
 
 const EMOJIS = {
@@ -10,21 +10,33 @@ const EMOJIS = {
 
 const LSPD_ROLE = 1096965866245066801;
 
+// Vérifie si on est en local
+const IS_LOCAL = (process.env.IS_LOCAL || "").trim().toLowerCase() === "true";
+
 /**
  * Envoie la fiche de présence dans le salon configuré.
  * @param {Client} bot 
  * @param {boolean} isReminder Indique si c'est un rappel (true) ou le message principal (false)
  */
 async function sendFicheDePresence(bot, isReminder = false) {
+  if (IS_LOCAL) {
+    console.log("✅ Mode local activé : envoi de fiche de présence bloqué");
+    return;
+  }
+
   try {
+    // Récupération de la configuration dans la BDD
     const res = await db.query(
       "SELECT fiche_de_presence_id, fiche_de_presence_hour, fiche_de_presence_rappel FROM configlspd LIMIT 1"
     );
+
     if (!res.rows.length) {
       console.error("⚠️ Aucune config fiche de présence trouvée en BDD");
       return;
     }
+
     const { fiche_de_presence_id, fiche_de_presence_hour, fiche_de_presence_rappel } = res.rows[0];
+
     if (!fiche_de_presence_id) {
       console.error("⚠️ Aucun salon fiche de présence configuré");
       return;
@@ -38,14 +50,14 @@ async function sendFicheDePresence(bot, isReminder = false) {
       return;
     }
 
-    // Trouver le channel
+    // Récupération du channel Discord
     const channel = await bot.channels.fetch(fiche_de_presence_id);
-    if (!channel) {
-      console.error("⚠️ Salon fiche de présence introuvable");
+    if (!channel?.isTextBased()) {
+      console.error("⚠️ Salon fiche de présence introuvable ou non textuel");
       return;
     }
 
-    // Description selon rappel ou pas
+    // Description du message
     const descriptionPrincipal =
       `Présence à **20h55** en salle de dispatch du Poste de Police\n\n` +
       `Présent : ${EMOJIS.present}\n` +
@@ -70,24 +82,23 @@ async function sendFicheDePresence(bot, isReminder = false) {
       .setTimestamp()
       .setThumbnail(bot.user.displayAvatarURL());
 
-    // Envoyer le message
-    const message = await channel.send({ content: `<@&1096965866245066801>`, embeds: [embed] });
+    // Envoi du message
+    const message = await channel.send({ content: `<@&${LSPD_ROLE}>`, embeds: [embed] });
 
-    // Ajout du message dans la table
-
-
-    // Ajouter réactions que pour le message principal uniquement
+    // Ajouter réactions seulement pour le message principal
     if (!isReminder) {
       await db.query(
         "INSERT INTO lspd_presenceig (message_id) VALUES ($1)",
-        [await message.id]
+        [message.id]
       );
       await message.react(EMOJIS.present);
       await message.react(EMOJIS.retard);
       await message.react(EMOJIS.absent);
     }
+
+    console.log(`✅ Fiche de présence ${isReminder ? "rappel" : "principale"} envoyée dans <#${fiche_de_presence_id}>`);
   } catch (error) {
-    console.error("Erreur dans sendFicheDePresence:", error);
+    console.error("❌ Erreur dans sendFicheDePresence:", error);
   }
 }
 

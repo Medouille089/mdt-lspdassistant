@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const { getBot, getConfig } = require('../config/config');
 const { EmbedBuilder } = require('discord.js');
+const { checkAuth } = require('../config/middleware');
 
 const LOGS_CHANNEL_ID = '1409873897654063265';
 
@@ -93,36 +94,43 @@ router.post('/api/sanctions', async (req, res) => {
         }
 
         const roleInfo = roleRes.rows[0];
-        const roleId = roleInfo.id_discord;
-        const roleName = roleInfo.nom;
 
         const bot = getBot();
         const guild = await bot.guilds.fetch(process.env.GUILD_ID);
 
-        // Récupération des display names
         const issuerMember = await guild.members.fetch(req.user.id).catch(() => null);
-        const issued_by_name = issuerMember?.displayName || req.user?.username || "Utilisateur inconnu";
-
         const targetMember = await guild.members.fetch(player_id).catch(() => null);
+
+        const issued_by_name = issuerMember?.displayName || req.user?.username || "Utilisateur inconnu";
         const player_name = targetMember?.displayName || "Utilisateur inconnu";
 
         const insertRes = await pool.query(
-            `INSERT INTO lspd_sanctions(player_id, type, reason, date_from, date_end, issued_by) 
-             VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-            [player_name, roleId, reason, date_from, date_end || null, issued_by_name]
+            `INSERT INTO lspd_sanctions(
+                player_id, player_discord_id,
+                type, reason, date_from, date_end,
+                issued_by, issued_by_discord_id
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+            [
+                player_name, player_id,
+                roleInfo.id_discord, reason, date_from, date_end || null,
+                issued_by_name, req.user.id
+            ]
         );
+
         const sanction = insertRes.rows[0];
 
+        // Ajout rôle Discord
         if (targetMember) {
-            const role = guild.roles.cache.get(roleId);
+            const role = guild.roles.cache.get(roleInfo.id_discord);
             if (role) await targetMember.roles.add(role).catch(err => console.error("Erreur ajout rôle:", err));
 
+            // --- MP exact comme dans le premier code ---
             const issuerGrade = req.body.grade || "Grade inconnu";
 
             const embed = new EmbedBuilder()
                 .setTitle('Sanction reçue')
                 .addFields(
-                    { name: 'Type', value: roleName, inline: false },
+                    { name: 'Type', value: roleInfo.nom, inline: false },
                     { name: 'Raison', value: reason, inline: false },
                     { name: 'Date de', value: formatDate(date_from), inline: true },
                     { name: 'Date à', value: formatDate(date_end), inline: true },
@@ -149,11 +157,11 @@ router.post('/api/sanctions', async (req, res) => {
                 .addFields([
                     {
                         name: "Détails de la sanction",
-                        value: `**Type :** ${roleName}\n **Raison :** ${reason}\n **Date du** : ${formatDate(date_from)}\n **Date au :** ${formatDate(date_end)}`
+                        value: `**Type :** ${roleInfo.nom}\n **Raison :** ${reason}\n **Date du** : ${formatDate(date_from)}\n **Date au :** ${formatDate(date_end)}`
                     },
                     {
-                        name: "Utilisateurs",
-                        value: `> Sanctionneur : ${issued_by_name}\n> Sanctionné : ${player_name}`
+                        name: "ID's",
+                        value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> <@${player_id}> (\`${player_id}\`)`
                     }
                 ])
                 .setFooter({
@@ -166,10 +174,116 @@ router.post('/api/sanctions', async (req, res) => {
             console.log("✅ Log sanction envoyé");
         }
 
+
         res.json({ message: 'Sanction appliquée !', sanction });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Erreur lors de l\'application de la sanction' });
+    }
+});
+
+// POST /api/sanctions/revoke/:id → révoque la sanction, retire le rôle, envoie MP + logs
+router.post('/api/sanctions/revoke/:id', async (req, res) => {
+    try {
+        if (!req.user || !req.user.id)
+            return res.status(401).json({ error: "Vous devez être connecté pour révoquer une sanction" });
+
+        const sanctionId = req.params.id;
+        const bot = getBot();
+        const guild = await bot.guilds.fetch(process.env.GUILD_ID);
+
+        // Récupère la sanction avec jointure sur le nom du rôle
+        const sanctionRes = await pool.query(
+            `SELECT s.*, r.nom AS type_name 
+             FROM lspd_sanctions s
+             LEFT JOIN lspd_sanctions_roles r ON s.type = r.id_discord
+             WHERE s.id = $1`,
+            [sanctionId]
+        );
+        if (!sanctionRes.rows.length) return res.status(404).json({ error: "Sanction introuvable" });
+
+        const sanction = sanctionRes.rows[0];
+
+        // Utilisateur qui révoque
+        const revokerMember = await guild.members.fetch(req.user.id).catch(() => null);
+        const revokerName = revokerMember?.displayName || req.user.username || 'Utilisateur inconnu';
+
+        // Joueur sanctionné via son Discord ID
+        const targetMember = await guild.members.fetch(sanction.player_discord_id).catch(() => null);
+        const targetName = targetMember?.displayName || sanction.player_id;
+
+        // Retire le rôle correspondant
+        if (targetMember) {
+            const role = guild.roles.cache.get(sanction.type);
+            if (role) {
+                await targetMember.roles.remove(role).catch(err =>
+                    console.error("Erreur retrait rôle:", err)
+                );
+
+                const issuerGrade = req.body.grade || "Grade inconnu";
+
+                const embedMP = new EmbedBuilder()
+                    .setTitle('Sanction révoquée')
+                    .addFields(
+                        { name: 'Type', value: sanction.type_name || sanction.type, inline: false },
+                        { name: 'Raison', value: sanction.reason, inline: false },
+                        { name: 'Date de', value: formatDate(sanction.date_from), inline: true },
+                        { name: 'Date à', value: formatDate(sanction.date_end), inline: true },
+                        { name: '\u200B', value: '\u200B', inline: true },
+                        { name: 'Agent révoquant', value: revokerName, inline: true },
+                        { name: 'Grade', value: issuerGrade, inline: true }
+                    )
+                    .setColor('#FFA500') // jaune pour la révocation
+                    .setFooter({
+                        text: "LSPD Assistant",
+                        iconURL: bot?.user?.displayAvatarURL({ extension: 'png', size: 256 })
+                    })
+                    .setTimestamp();
+
+                await targetMember.send({ embeds: [embedMP] }).catch(() => console.log('MP impossible'));
+            }
+        }
+
+        // Marque la sanction comme révoquée
+        await pool.query(
+            `UPDATE lspd_sanctions 
+             SET archived = TRUE, revoked_by = $1 
+             WHERE id = $2`,
+            [revokerName, sanctionId]
+        );
+
+        // --- Logs Discord exact comme dans le premier code ---
+        const logsChannel = await guild.channels.fetch(LOGS_CHANNEL_ID).catch(() => null);
+        if (logsChannel?.isTextBased()) {
+            const embedLog = new EmbedBuilder()
+                .setColor(0xffa500)
+                .setTitle(`Sanction révoquée`)
+                .setDescription(`${revokerName} a révoqué la sanction de ${targetName}`)
+                .addFields([
+                    {
+                        name: "Détails de la sanction",
+                        value: `**Type :** ${sanction.type_name || "Inconnu"}\n**Raison :** ${sanction.reason}\n**Date du :** ${formatDate(sanction.date_from)}\n**Date au :** ${formatDate(sanction.date_end)}`
+                    },
+                    {
+                        name: "ID's",
+                        value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> <@${sanction.player_discord_id}> (\`${sanction.player_discord_id}\`)\n> ID Sanction : ${sanction.id}`
+                    }
+                ])
+                .setFooter({
+                    text: "LSPD Assistant",
+                    iconURL: bot?.user?.displayAvatarURL({ extension: 'png', size: 256 })
+                })
+                .setTimestamp();
+
+            await logsChannel.send({ embeds: [embedLog] });
+            console.log("✅ Log révocation envoyé");
+        }
+
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Erreur API revoke:", err);
+        res.status(500).json({ error: 'Erreur lors de la révocation' });
     }
 });
 
@@ -189,74 +303,226 @@ router.get('/api/sanctions/roles', async (req, res) => {
 // GET /api/sanctions/all
 router.get('/api/sanctions/all', async (req, res) => {
     try {
-        const result = await pool.query(`SELECT * FROM lspd_sanctions ORDER BY created_at DESC`);
-        res.json(result.rows.map(s => ({
-            ...s,
-            date_from: s.date_from?.toISOString().split('T')[0],
-            date_end: s.date_end?.toISOString().split('T')[0],
-            created_at: s.created_at?.toISOString().replace('T', ' ').split('.')[0]
-        })));
+        const bot = getBot();
+        const guild = await bot.guilds.fetch(process.env.GUILD_ID);
+
+        // jointure pour récupérer le nom du rôle sanction
+        const result = await pool.query(`
+            SELECT s.*, r.nom AS type_name
+            FROM lspd_sanctions s
+            LEFT JOIN lspd_sanctions_roles r ON s.type = r.id_discord
+            ORDER BY s.created_at DESC
+        `);
+
+        // transformation
+        const sanctions = await Promise.all(result.rows.map(async s => {
+            // on récupère le membre sanctionné via son ID Discord (player_id)
+            let member = null;
+            try {
+                member = await guild.members.fetch(s.player_id);
+            } catch (e) {
+                // si pas trouvé, on laisse null
+            }
+
+            return {
+                ...s,
+                type: s.type_name || s.type, // affiche le nom du rôle
+                displayName: member?.displayName || s.player_id, // nom lisible côté front
+                date_from: s.date_from?.toISOString().split('T')[0],
+                date_end: s.date_end?.toISOString().split('T')[0],
+                created_at: s.created_at?.toISOString().replace('T', ' ').split('.')[0]
+            };
+        }));
+
+        res.json(sanctions);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Erreur récupération sanctions' });
     }
 });
 
-// POST /api/sanctions/revoke/:id
-router.post('/api/sanctions/revoke/:id', async (req, res) => {
+// GET /api/officer/sanctions?userId=<discord_id>
+router.get('/api/officer/sanctions', checkAuth, async (req, res) => {
     try {
-        if (!req.user || !req.user.id)
-            return res.status(401).json({ error: "Vous devez être connecté pour révoquer une sanction" });
+        const { userId } = req.query;
+        if (!userId) return res.status(400).json({ error: "userId manquant" });
 
-        const id = req.params.id;
+        const result = await pool.query(
+            `SELECT s.id,s.player_id, s.type, s.reason, s.date_from, s.date_end, s.issued_by, s.archived, s.revoked_by, r.nom AS type_name
+             FROM lspd_sanctions s
+             LEFT JOIN lspd_sanctions_roles r ON s.type = r.id_discord
+             WHERE s.player_discord_id = $1
+             ORDER BY s.date_from DESC`,
+            [userId]
+        );
+
+        // Convert dates au format JJ/MM/AAAA
+        const sanctions = result.rows.map(r => ({
+            ...r,
+            type: r.type_name || r.type, // remplace l'ID par le nom si trouvé
+            date_from: r.date_from?.toISOString().split('T')[0],
+            date_end: r.date_end?.toISOString().split('T')[0]
+        }));
+
+        res.json(sanctions);
+    } catch (err) {
+        console.error('Erreur récupération sanctions officer:', err);
+        res.status(500).json({ error: 'Impossible de récupérer les sanctions de l’agent' });
+    }
+});
+
+
+// Récupérer infos d'un agent par son Discord ID
+router.get('/api/discord/member/:userId', checkAuth, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const bot = getBot();
+        const guild = await bot.guilds.fetch(process.env.GUILD_ID);
+        const member = await guild.members.fetch(userId).catch(() => null);
+
+        if (!member) return res.status(404).json({ error: "Membre introuvable" });
+
+        res.json({ displayName: member.displayName });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Impossible de récupérer le membre Discord" });
+    }
+});
+
+
+async function revokeExpiredSanctions() {
+    try {
         const bot = getBot();
         const guild = await bot.guilds.fetch(process.env.GUILD_ID);
 
-        const revokerMember = await guild.members.fetch(req.user.id).catch(() => null);
-        const revokerName = revokerMember?.displayName || req.user.username || 'Utilisateur inconnu';
-
-        const sanctionRes = await pool.query(`SELECT * FROM lspd_sanctions WHERE id = $1`, [id]);
-        if (!sanctionRes.rows.length) return res.status(404).json({ error: "Sanction introuvable" });
-
-        const sanction = sanctionRes.rows[0];
-
-        const targetMember = await guild.members.fetch(sanction.player_id).catch(() => null);
-        const targetName = targetMember?.displayName || sanction.player_id; // ici player_id est déjà un nom
-
-        await pool.query(
-            `UPDATE lspd_sanctions SET archived = TRUE, revoked_by = $1 WHERE id = $2`,
-            [revokerName, id]
+        // Récupère toutes les sanctions actives avec date_end passée
+        const result = await pool.query(
+            `SELECT s.*, r.nom AS type_name
+             FROM lspd_sanctions s
+             LEFT JOIN lspd_sanctions_roles r ON s.type = r.id_discord
+             WHERE archived = FALSE AND date_end IS NOT NULL AND date_end <= CURRENT_DATE`
         );
 
-        const logsChannel = await guild.channels.fetch(LOGS_CHANNEL_ID).catch(() => null);
-        if (logsChannel?.isTextBased()) {
-            const embedLog = new EmbedBuilder()
-                .setColor(0xffa500)
-                .setTitle(`Sanction révoquée`)
-                .setDescription(`${revokerName} a révoqué la sanction de ${targetName}`)
-                .addFields([
-                    { name: "Détails de la sanction", value: `**Type :** ${sanction.type}\n**Raison :** ${sanction.reason}\n**Date du :** ${formatDate(sanction.date_from)}\n**Date au :** ${formatDate(sanction.date_end)}` },
-                    {
-                        name: "Utilisateurs",
-                        value: `> Sanctionneur : ${revokerName}\n> Sanctionné : ${targetName}\n> ID Sanction : ${sanction.id}`
-                    }
+        for (const sanction of result.rows) {
+            const targetMember = await guild.members.fetch(sanction.player_discord_id).catch(() => null);
+            const targetName = targetMember?.displayName || sanction.player_id;
 
-                ])
-                .setFooter({
-                    text: "LSPD Assistant",
-                    iconURL: bot?.user?.displayAvatarURL({ extension: 'png', size: 256 })
-                })
-                .setTimestamp();
+            // Retire le rôle
+            if (targetMember) {
+                const role = guild.roles.cache.get(sanction.type);
+                if (role) await targetMember.roles.remove(role).catch(err => console.error("Erreur retrait rôle:", err));
 
-            await logsChannel.send({ embeds: [embedLog] });
-            console.log("✅ Log révocation envoyé");
+                // --- MP ---
+                const embedMP = new EmbedBuilder()
+                    .setTitle('Sanction arrivée à terme')
+                    .addFields(
+                        { name: 'Type', value: sanction.type_name || sanction.type, inline: false },
+                        { name: 'Raison', value: sanction.reason, inline: false },
+                        { name: 'Date de', value: formatDate(sanction.date_from), inline: true },
+                        { name: 'Date à', value: formatDate(sanction.date_end), inline: true },
+                        { name: '\u200B', value: '\u200B', inline: true },
+                        { name: 'Sanction arrivée à terme', value: 'Automatique', inline: true },
+                    )
+                    .setColor('#FFA500')
+                    .setFooter({
+                        text: "LSPD Assistant",
+                        iconURL: bot?.user?.displayAvatarURL({ extension: 'png', size: 256 })
+                    })
+                    .setTimestamp();
+
+                await targetMember.send({ embeds: [embedMP] }).catch(() => console.log('MP impossible'));
+            }
+
+            // --- Log Discord ---
+            const logsChannel = await guild.channels.fetch(LOGS_CHANNEL_ID).catch(() => null);
+            if (logsChannel?.isTextBased()) {
+                const embedLog = new EmbedBuilder()
+                    .setColor(0xffa500)
+                    .setTitle(`Sanction arrivée à terme - ${targetName}`)
+                    .setDescription(`Sanction arrivée à terme pour ${targetName}`)
+                    .addFields([
+                        {
+                            name: "Détails de la sanction",
+                            value: `**Type :** ${sanction.type_name || "Inconnu"}\n**Raison :** ${sanction.reason}\n**Date du :** ${formatDate(sanction.date_from)}\n**Date au :** ${formatDate(sanction.date_end)}`
+                        },
+                        {
+                            name: "ID's",
+                            value: `> <@${sanction.issued_by_discord_id}> (\`${sanction.issued_by_discord_id}\`)\n> <@${sanction.player_discord_id}> (\`${sanction.player_discord_id}\`)\n> ID Sanction : ${sanction.id}`
+                        }
+                    ])
+                    .setFooter({
+                        text: "LSPD Assistant",
+                        iconURL: bot?.user?.displayAvatarURL({ extension: 'png', size: 256 })
+                    })
+                    .setTimestamp();
+
+                await logsChannel.send({ embeds: [embedLog] });
+                console.log(`✅ Log automatique sanction ${sanction.id} envoyé`);
+            }
+
+            // Archive la sanction
+            await pool.query(
+                `UPDATE lspd_sanctions SET archived = TRUE, revoked_by = $1 WHERE id = $2`,
+                ['LSPD Assistant', sanction.id]
+            );
         }
-
-        res.json({ success: true });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Erreur révocation' });
+        console.error("Erreur lors du retrait automatique des sanctions :", err);
     }
-});
+}
+
+// ---------------------- Planification quotidienne ----------------------
+function scheduleDailySanctionCheck() {
+    const now = new Date();
+
+    // Prochain minuit
+    const nextMidnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+        0, 0, 0, 0
+    );
+
+    const msUntilMidnight = nextMidnight - now;
+
+    // Check à minuit
+    setTimeout(() => {
+        revokeExpiredSanctions();
+        setInterval(revokeExpiredSanctions, 24 * 60 * 60 * 1000); // tous les jours à minuit
+    }, msUntilMidnight);
+
+    // Check à minuit + 10 minutes
+    setTimeout(() => {
+        revokeExpiredSanctions();
+        setInterval(revokeExpiredSanctions, 24 * 60 * 60 * 1000); // tous les jours à minuit+10
+    }, msUntilMidnight + 10 * 60 * 1000);
+}
+
+// ---------------------- Mode test pour une heure précise ----------------------
+function scheduleTestSanctionCheck(hour = 12, minute = 35) {
+    const now = new Date();
+    const nextTime = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        hour,
+        minute,
+        0,
+        0
+    );
+    if (nextTime < now) nextTime.setDate(nextTime.getDate() + 1);
+
+    const msUntilNextTime = nextTime - now;
+    console.log(`⏱ Planifié test de sanctions dans ${msUntilNextTime / 1000}s`);
+
+    setTimeout(() => {
+        revokeExpiredSanctions();
+    }, msUntilNextTime);
+}
+
+scheduleDailySanctionCheck();
+
+// Mode test dé-commentable si besoin
+// scheduleTestSanctionCheck(12, 35);
 
 module.exports = router;

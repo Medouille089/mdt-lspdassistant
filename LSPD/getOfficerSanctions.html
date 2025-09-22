@@ -2,8 +2,8 @@
 <html lang="fr">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>Liste Sanctions - LSPD Assistant</title>
+    <meta charset="UTF-8">
+    <title>Sanctions Agents - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
@@ -14,19 +14,25 @@
             color: #dcdcdc;
             background-color: #6b6b6b;
         }
+        .filters {
+            margin-bottom: 10px;
+        }
+        .filters input {
+            margin-right: 5px;
+            padding: 5px;
+        }
+        .pagination button {
+            margin: 2px;
+            padding: 5px 10px;
+        }
     </style>
 </head>
 
 <body>
     <div class="main-container">
         <div id="sidebar-container"></div>
-        <h1>Liste des sanctions</h1>
+        <h1>Sanctions de l'agent</h1>
         <div class="container">
-            <div class="filters">
-                <input type="text" id="searchInput" placeholder="Rechercher utilisateur ou agent" />
-                <input type="date" id="dateStart" />
-                <input type="date" id="dateEnd" />
-            </div>
 
             <table id="sanctionsTable">
                 <thead>
@@ -42,7 +48,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Dynamique -->
+                    
                 </tbody>
             </table>
 
@@ -53,8 +59,9 @@
     <div id="loaderOverlay" class="loader-overlay">
         <div class="loader-spinner"></div>
     </div>
-    <script src="scripts/sanctions/getSanctions.js"></script>
+
     <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/sanctions/getOfficerSanctions.js"></script>
 </body>
 
 </html>

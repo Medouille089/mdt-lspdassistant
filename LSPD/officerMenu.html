@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/admin.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/genMenu.css">
+    <title>Menu officer - LSPD Assistant</title>
+</head>
+
+<body>
+    <div id="sidebar-container"></div>
+
+    <div class="main-container">
+        <h1 id="agent-name">Menu officer</h1>
+
+        <div class="grid-wrapper">
+            <div class="button-grid">
+                <a href="#" class="send-button" id="info-btn">Informations</a>
+                <a href="#" class="send-button" id="sanctions-btn">Sanctions</a>
+                <a href="#" class="send-button">Bouton 3</a>
+                <a href="#" class="send-button">Bouton 4</a>
+            </div>
+        </div>
+
+        <div id="content-area"></div>
+    </div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('userId'); // ID Discord de l'agent
+        const agentNameH1 = document.getElementById('agent-name');
+
+        // Supprime les boutons sans id
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('.send-button').forEach(btn => {
+                if (!btn.id) btn.remove();
+            });
+        });
+
+        // Fetch du displayName du membre Discord
+        async function fetchAgentDisplayName() {
+            if (!userId) return;
+
+            try {
+                const res = await fetch(`/api/discord/member/${userId}`);
+                if (!res.ok) throw new Error('Impossible de récupérer le nom de l’agent');
+
+                const data = await res.json();
+                agentNameH1.textContent = `Menu officer de l'agent ${data.displayName}`;
+            } catch (err) {
+                console.warn('Impossible de récupérer le nom de l’agent:', err);
+                agentNameH1.textContent = `Menu officer - Utilisateur inconnu`;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchAgentDisplayName);
+
+        // Redirection vers la page des sanctions
+        document.getElementById('sanctions-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!userId) return;
+
+            // on ne passe que l'ID, le displayName sera récupéré côté getOfficerSanctions
+            window.location.href = `getOfficerSanctions.html?userId=${userId}`;
+        });
+    </script>
+</body>
+
+</html>

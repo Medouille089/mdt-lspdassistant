@@ -31,9 +31,22 @@ const commandFiles = fs
   .filter((file) => file.endsWith(".js"));
 
 for (const file of commandFiles) {
-  const command = require(path.join(__dirname, "../commands", file));
-  bot.commands.set(command.data.name, command);
+  const moduleExports = require(path.join(__dirname, "../commands", file));
+
+  // Si le fichier exporte une commande unique
+  if (moduleExports?.data && moduleExports?.execute) {
+    bot.commands.set(moduleExports.data.name, moduleExports);
+  } else {
+    // Si le fichier exporte plusieurs commandes
+    for (const key in moduleExports) {
+      const cmd = moduleExports[key];
+      if (cmd?.data && cmd?.execute) {
+        bot.commands.set(cmd.data.name, cmd);
+      }
+    }
+  }
 }
+
 
 async function registerCommands() {
   const commands = bot.commands.map((cmd) => cmd.data.toJSON());
