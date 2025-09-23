@@ -74,3 +74,7 @@ body::before {
 .send-button .material-symbols-rounded {
     font-size: 1.2em;
 }
+
+.hidden {
+  display: none;
+}

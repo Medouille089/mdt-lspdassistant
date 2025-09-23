@@ -1,112 +1,124 @@
 const express = require('express');
 const router = express.Router();
-const bot = require('../config/bot');
-const { getConfig } = require('../config/config');
+const pool = require('../config/db');
+const { getBot, getConfig } = require('../config/config');
 const { EmbedBuilder } = require('discord.js');
+const { checkAuth } = require('../config/middleware');
 
-const GUILD_ID = process.env.GUILD_ID; // depuis le .env
-console.log('📢 GUILD_ID chargé depuis .env:', GUILD_ID);
+const LOGS_CHANNEL_ID = '1409873897654063265';
 
-router.get('/api/rookies', async (req, res) => {
-  try {
-    console.log('🔹 Route /api/rookies appelée');
+// Helper → formatage des dates en JJ/MM/AAAA
+function formatDate(date) {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString('fr-FR');
+}
 
-    const config = await getConfig();
-    console.log('🔹 Config récupérée:', config);
+// routes/rapport-rookie.js
+router.get('/api/agents-rookie', async (req, res) => {
+    try {
+        const bot = getBot();
+        if (!bot?.isReady()) return res.status(500).json({ error: "Bot Discord non connecté" });
 
-    const rookieRoleId = config.rookie_role_id;
-    if (!GUILD_ID || !rookieRoleId) {
-      console.error('❌ GUILD_ID ou rookie_role_id manquant');
-      return res.status(500).json({ error: 'GUILD_ID ou rookie_role_id manquant' });
+        const guild = await bot.guilds.fetch(process.env.GUILD_ID);
+        if (!guild) return res.status(500).json({ error: "Guild introuvable" });
+
+        // Récupérer le rookie_role_id en BDD
+        const { rows } = await pool.query(`SELECT rookie_role_id FROM lspd_grades LIMIT 1`);
+        if (!rows.length) return res.status(500).json({ error: "Aucun rookie_role_id trouvé" });
+
+        const rookieRoleId = rows[0].rookie_role_id;
+        const role = guild.roles.cache.get(rookieRoleId);
+        if (!role) return res.status(500).json({ error: "Rôle Discord introuvable" });
+
+        await guild.members.fetch();
+        const rookies = role.members.map(m => ({
+            discord_id: m.user.id,
+            username: m.displayName,
+        }));
+
+        res.json(rookies);
+    } catch (err) {
+        console.error("Erreur API /agents:", err);
+        res.status(500).json({ error: 'Erreur lors de la récupération des rookies' });
     }
-
-    const guild = await bot.guilds.fetch(GUILD_ID);
-    console.log('🔹 Guild récupérée:', guild.name);
-
-    await guild.members.fetch();
-    console.log('🔹 Membres fetchés');
-
-    const rookies = guild.members.cache
-      .filter(member => member.roles.cache.has(rookieRoleId))
-      .map(member => ({
-        id: member.id,
-        displayName: member.displayName || member.user.username
-      }));
-
-    console.log('🔹 Rookies trouvés:', rookies.length);
-    res.json(rookies);
-  } catch (err) {
-    console.error('❌ Erreur rookies:', err);
-    res.status(500).json({ error: 'Erreur lors de la récupération des rookies' });
-  }
 });
 
-router.get('/api/me', (req, res) => {
-  console.log('🔹 Route /api/me appelée');
-  if (!req.user) {
-    console.warn('⚠️ Utilisateur non connecté');
-    return res.status(401).json({ error: 'Non connecté' });
-  }
+// routes/rapport-rookie.js
+router.post('/api/rapport-rookie', checkAuth, async (req, res) => {
+    try {
+        const {
+            agent, conduite, radio, procedures, ville,
+            trello, mdt, hierarchie, attitude, appreciation,
+            officier, grade
+        } = req.body;
 
-  const me = {
-    id: req.user.id,
-    displayName: req.user.guild_member?.nick || req.user.username,
-    grade: req.user.grade || 'Grade inconnu'
-  };
-  console.log('🔹 Utilisateur connecté:', me);
-  res.json(me);
-});
+        const bot = getBot();
+        const guild = await bot.guilds.fetch(process.env.GUILD_ID);
+        const member = await guild.members.fetch(agent);
 
-router.post('/api/rapport-rookie', async (req, res) => {
-  try {
-    console.log('🔹 Route POST /api/rapport-rookie appelée');
-    console.log('🔹 Body reçu:', req.body);
+        // Récupérer la configuration pour choper le channel
+        const config = getConfig();
+        const reportChannelId = config.rapport_rookie_channel_id;
+        if (!reportChannelId) return res.status(500).json({ error: "ID du channel de rapport rookie introuvable" });
 
-    const config = await getConfig();
+        // Embed principal pour le rapport
+        const embed = new EmbedBuilder()
+            .setColor(0x0b1b5a) // bleu
+            .setTitle("Rapport Rookie")
+            .addFields(
+                { name: "Rapport sur", value: `${member.displayName}`, inline: false },
+                { name: "Agent qui rédige", value: officier || "Inconnu", inline: true },
+                { name: "Grade", value: grade || "Grade inconnu", inline: true },
+                { name: '\u200B', value: '\u200B', inline: true },
+                { name: "Conduite", value: conduite || "⚪️", inline: false },
+                { name: "Radio", value: radio || "⚪️", inline: true },
+                { name: "Procédures", value: procedures || "⚪️", inline: false },
+                { name: "Connaissance de la ville", value: ville || "⚪️", inline: false },
+                { name: "Trello", value: trello || "⚪️", inline: false },
+                { name: "MDT", value: mdt || "⚪️", inline: false },
+                { name: "Connaissance de la Hiérarchie", value: hierarchie || "⚪️", inline: false },
+                { name: "Attitude", value: attitude || "Non renseigné", inline: false },
+                { name: "Appréciation Globale", value: appreciation || "Non renseigné", inline: false }
+            )
+            .setThumbnail(bot.user.displayAvatarURL())
+            .setFooter({ text: "LSPD Assistant", iconURL: bot.user.displayAvatarURL() })
+            .setTimestamp();
 
-    const {
-      rookieId, conduite, radio, procedures, ville, trello, mdt,
-      hierarchie, attitude, appreciation, officier, grade
-    } = req.body;
+        const channel = await bot.channels.fetch(reportChannelId);
+        if (!channel) return res.status(500).json({ error: "Salon de rapport introuvable" });
 
-    const channel = await bot.channels.fetch('1419619602962583573');
-    console.log('🔹 Salon Discord récupéré:', channel.name);
+        await channel.send({ embeds: [embed] });
 
-    const guild = await bot.guilds.fetch(GUILD_ID);
-    await guild.members.fetch(rookieId);
-    const rookieMember = guild.members.cache.get(rookieId);
+        const sentMessage = await channel.send({ embeds: [embed] });
+        const authorId = req.user.id; 
 
-    console.log('🔹 Rookie sélectionné:', rookieMember.displayName);
+        const logEmbed = new EmbedBuilder()
+            .setColor(0x0b1b5a)
+            .setTitle("Nouveau rapport rookie")
+            .setDescription(`${officier || "Un agent"} a soumis un nouveau rapport pour ${member.displayName}`)
+            .addFields(
+                {
+                    name: "ID's",
+                    value: `> <@${authorId}> (\`${authorId}\`)\n> <@${member.id}> (\`${member.id}\`)\n> ${sentMessage.url}`,
+                    inline: false
+                }
+            )
+            .setFooter({ text: "LSPD Assistant", iconURL: bot.user.displayAvatarURL() })
+            .setTimestamp();
 
-    const embed = new EmbedBuilder()
-      .setColor(0x0b1b5a)
-      .setTitle('Avis Rookie')
-      .addFields(
-        { name: 'Rapport sur', value: rookieMember.displayName, inline: false },
-        { name: 'Agent qui rédige', value: officier, inline: true },
-        { name: 'Grade', value: grade, inline: true },
-        { name: 'Conduite', value: conduite, inline: true },
-        { name: 'Radio', value: radio, inline: true },
-        { name: 'Procédures', value: procedures, inline: true },
-        { name: 'Connaissance de la ville', value: ville, inline: true },
-        { name: 'Trello', value: trello, inline: true },
-        { name: 'MDT', value: mdt, inline: true },
-        { name: 'Connaissance de la Hiérarchie', value: hierarchie, inline: true },
-        { name: 'Attitude', value: attitude, inline: false },
-        { name: 'Appréciation Global', value: appreciation, inline: false }
-      )
-      .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL() })
-      .setThumbnail(bot.user.displayAvatarURL())
-      .setTimestamp(new Date());
+        const logChannelId = getConfig().logs_channel;
+        if (logChannelId) {
+            const logChannel = await bot.channels.fetch(logChannelId);
+            if (logChannel) await logChannel.send({ embeds: [logEmbed] });
+        }
 
-    await channel.send({ embeds: [embed] });
-    console.log('✅ Rapport envoyé dans Discord');
 
-    res.json({ message: 'Rapport enregistré et envoyé !' });
-  } catch (err) {
-    console.error('❌ Erreur rapport-rookie:', err);
-    res.status(500).json({ error: 'Erreur lors de l’envoi du rapport.' });
-  }
+        res.json({ success: true, message: "Rapport envoyé avec succès !" });
+
+    } catch (err) {
+        console.error("Erreur POST /rapport-rookie:", err);
+        res.status(500).json({ error: "Impossible d’envoyer le rapport" });
+    }
 });
 
 module.exports = router;

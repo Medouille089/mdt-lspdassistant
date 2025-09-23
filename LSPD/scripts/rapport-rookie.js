@@ -1,51 +1,84 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  const agentSelect = document.getElementById('agent');
-  const officierInput = document.getElementById('officier');
-  const gradeInput = document.getElementById('grade');
-  const form = document.getElementById('sanctionForm');
+let allRoles = [];
+let agentsCache = [];
 
-  // 1️⃣ Récupérer les rookies
-  const resRookies = await fetch('/api/rookies');
-  const rookies = await resRookies.json();
-  rookies.forEach(r => {
-    const option = document.createElement('option');
-    option.value = r.id;
-    option.textContent = r.displayName;
-    agentSelect.appendChild(option);
-  });
+// Charger les agents
+async function loadAgents() {
+  try {
+    const res = await fetch('/api/agents-rookie');
+    const agents = await res.json();
+    agentsCache = agents;
+    const select = document.getElementById('agent');
+    select.innerHTML = '<option value="">-- Choisir un agent --</option>';
 
-  // 2️⃣ Récupérer l'agent rédacteur connecté
-  const resMe = await fetch('/api/me');
-  const me = await resMe.json();
-  officierInput.value = me.displayName;
-  gradeInput.value = me.grade;
+    agents.sort((a, b) => a.username.localeCompare(b.username))
+      .forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.discord_id;
+        opt.textContent = a.username;
+        select.appendChild(opt);
+      });
+  } catch (err) {
+    console.error("Erreur chargement agents:", err);
+  }
+}
 
-  // 3️⃣ Submit du formulaire
-  form.addEventListener('submit', async (e) => {
+// DOMContentLoaded
+document.addEventListener("DOMContentLoaded", async () => {
+  const loader = document.getElementById("loaderOverlay");
+  loader.style.display = "flex"; // afficher loader
+
+  try {
+    // Charger utilisateur
+    const userRes = await fetch("/api/user");
+    const user = await userRes.json();
+    document.getElementById("officier").value = user.username;
+    document.getElementById("grade").value = user.grade;
+  } catch (err) {
+    console.error("Erreur chargement utilisateur :", err);
+    document.getElementById("officier").value = "Erreur de chargement";
+    document.getElementById("grade").value = "";
+  } finally {
+    loader.style.display = "none"; // cacher loader après fetch
+  }
+
+  // Charger agents et rôles (loader géré uniquement au début)
+  await loadAgents();
+
+  document.getElementById("sanctionForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const payload = {
-      rookieId: agentSelect.value,
-      conduite: document.getElementById('conduite').value,
-      radio: document.getElementById('radio').value,
-      procedures: document.getElementById('procedures').value,
-      ville: document.getElementById('ville').value,
-      trello: document.getElementById('trello').value,
-      mdt: document.getElementById('mdt').value,
-      hierarchie: document.getElementById('hierarchie').value,
-      attitude: document.querySelectorAll('textarea')[0].value,
-      appreciation: document.querySelectorAll('textarea')[1].value,
-      officier: officierInput.value,
-      grade: gradeInput.value
+    const data = {
+      agent: document.getElementById("agent").value,
+      conduite: document.getElementById("conduite").value,
+      radio: document.getElementById("radio").value,
+      procedures: document.getElementById("procedures").value,
+      ville: document.getElementById("ville").value,
+      trello: document.getElementById("trello").value,
+      mdt: document.getElementById("mdt").value,
+      hierarchie: document.getElementById("hierarchie").value,
+      attitude: document.getElementById("attitude").value,
+      appreciation: document.getElementById("appreciation").value,
+      officier: document.getElementById("officier").value,
+      grade: document.getElementById("grade").value
     };
 
-    const res = await fetch('/api/rapport-rookie', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const res = await fetch("/api/rapport-rookie", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
 
-    const data = await res.json();
-    alert(data.message);
+      const result = await res.json();
+      if (result.success) {
+        alert("✅ Rapport envoyé !");
+      } else {
+        alert("❌ Erreur : " + (result.error || "Inconnue"));
+      }
+    } catch (err) {
+      console.error("Erreur envoi rapport:", err);
+      alert("❌ Impossible d’envoyer le rapport.");
+    }
   });
+
 });

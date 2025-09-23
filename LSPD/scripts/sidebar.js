@@ -117,14 +117,17 @@ async function fetchUser() {
       }
     });
 
+    // Ensuite dans JS :
     document.querySelectorAll('.onlySupervisor').forEach(el => {
-      console.log(user)
-      el.style.display = (user.isSupervisor || user.isCommandStaff || user.isSuperAdmin) ? "" : 'none';
-
+      if (user.isSupervisor || user.isCommandStaff || user.isSuperAdmin) {
+        el.style.display = 'block'; // ou 'block', selon le layout
+      }
     });
 
     document.querySelectorAll('.onlyCommandStaff').forEach(el => {
-      el.style.display = (user.isCommandStaff || user.isSuperAdmin) ? '' : 'none';
+      if (user.isCommandStaff || user.isSuperAdmin) {
+        el.style.display = 'block'; // ou 'block', selon le layout
+      }
     });
 
   } catch (error) {
