@@ -22,40 +22,6 @@ async function loadAgents() {
     }
 }
 
-// Charger les rôles de sanction
-async function loadSanctionRoles() {
-    try {
-        const res = await fetch('/api/sanctions/roles');
-        allRoles = await res.json();
-        renderSanctionRoles();
-    } catch (err) {
-        console.error("Erreur chargement rôles:", err);
-    }
-}
-
-// Rendu des rôles (filtrés si un agent est sélectionné)
-function renderSanctionRoles(agentId = null) {
-    const select = document.getElementById('type');
-    select.innerHTML = '<option value="">-- Choisir un type de sanction --</option>';
-
-    let rolesToDisplay = [...allRoles];
-
-    if (agentId) {
-        const agent = agentsCache.find(a => a.discord_id === agentId);
-        if (agent) {
-            const rolesDiscord = agent.roles || [];
-            rolesToDisplay = rolesToDisplay.filter(r => !rolesDiscord.includes(r.id_discord));
-        }
-    }
-
-    rolesToDisplay.forEach(r => {
-        const opt = document.createElement('option');
-        opt.value = r.id_discord;
-        opt.textContent = r.nom;
-        select.appendChild(opt);
-    });
-}
-
 // DOMContentLoaded
 document.addEventListener("DOMContentLoaded", async () => {
     const loader = document.getElementById("loaderOverlay");
