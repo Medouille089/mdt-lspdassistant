@@ -112,7 +112,8 @@ const protectedPages = [
   'admin-presence.html',
   'officers.html',
   'officerMenu.html',
-  'getOfficerSanction.html'
+  'getOfficerSanction.html',
+  'tickets.html'
 ];
 
 // Pages protégées Command Staff + Supervisor

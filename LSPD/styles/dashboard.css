@@ -153,8 +153,8 @@ body::before {
 .middle-section {
     display: flex;
     gap: 20px;
+    height: 100%; /* ajouter pour que le flex enfant remplisse */
 }
-
 .chart {
     flex: 2;
 }
@@ -232,7 +232,7 @@ tbody td {
 }
 
 .connected-agents-list {
-  max-height: 200px; 
+  max-height: 400px; 
   overflow-y: auto;
   padding-right: 8px;
   scrollbar-width: thin;

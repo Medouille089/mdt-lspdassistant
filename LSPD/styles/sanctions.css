@@ -1,3 +1,4 @@
+/* Sanctions LSPD - Style cohérent projet */
 /* Reset & base */
 html,
 body {
@@ -7,6 +8,7 @@ body {
     position: relative;
     z-index: 0;
     background: none;
+    /* on enlève le fond ici */
 }
 
 body::before {
@@ -22,20 +24,10 @@ body::before {
     background-size: cover;
 }
 
-/* Layout global */
-.layout {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 30px;
-    padding: 20px;
-}
-
-/* Container principal */
 .sanction-container {
-    max-width: 700px;
+    max-width: 900px;
     width: 100%;
-    margin: auto;
+    margin: 0 auto;
     background: #fff;
     border-radius: 15px;
     padding: 40px 50px 100px;
@@ -104,16 +96,6 @@ button:hover {
 }
 
 @media (max-width: 700px) {
-    .layout {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    #sidebar-container {
-        width: 100%;
-        min-height: auto;
-    }
-
     .main-container {
         padding: 18px 8px;
     }
@@ -121,21 +103,4 @@ button:hover {
     h1 {
         font-size: 1.3rem;
     }
-}
-
-.user-info-row {
-    display: flex;
-    gap: 20px;
-    margin-top: 5px;
-}
-
-.user-info-field {
-    flex: 1;
-}
-
-.user-info-field input {
-    background: #f0f2fa;
-    border: 2px solid #CBD4FF;
-    color: #333;
-    cursor: not-allowed;
 }

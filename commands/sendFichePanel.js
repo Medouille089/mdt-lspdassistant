@@ -37,37 +37,45 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      return interaction.reply({
-        content: "❌ Vous n'avez pas la permission de gérer la configuration.",
-        flags: 64,
-      });
-    }
-
-    const salon = interaction.options.getChannel("salon");
-    const heure = interaction.options.getString("heure");
-    const rappel = interaction.options.getString("rappel");
-
-    const re = /^\d{2}:\d{2}$/;
-    if (!re.test(heure) || !re.test(rappel)) {
-      return interaction.reply({
-        content: "❌ Les heures doivent être au format HH:mm (ex: 17:35).",
-        flags: 64,
-      });
-    }
-
-    if (!salon.isTextBased()) {
-      return interaction.reply({
-        content: "❌ Veuillez choisir un salon texte valide.",
-        flags: 64,
-      });
-    }
-
     try {
       const bot = getBot();
       const conf = getConfig();
 
-      // Récupération config actuelle
+      // --- Vérification roles commandstaff_id ou id_superadmin ---
+      const commandStaffRoleId = conf.commandstaff_id?.toString();
+      const superAdminRoleId = conf.id_superadmin?.toString();
+      const memberRoles = interaction.member.roles.cache;
+
+      if (
+        (!commandStaffRoleId || !memberRoles.has(commandStaffRoleId)) &&
+        (!superAdminRoleId || !memberRoles.has(superAdminRoleId))
+      ) {
+        return interaction.reply({
+          content: "❌ Vous devez être un membre du Command Staff pour exécuter cette commande.",
+          flags: 64,
+        });
+      }
+
+      const salon = interaction.options.getChannel("salon");
+      const heure = interaction.options.getString("heure");
+      const rappel = interaction.options.getString("rappel");
+
+      const re = /^\d{2}:\d{2}$/;
+      if (!re.test(heure) || !re.test(rappel)) {
+        return interaction.reply({
+          content: "❌ Les heures doivent être au format HH:mm (ex: 17:35).",
+          flags: 64,
+        });
+      }
+
+      if (!salon.isTextBased()) {
+        return interaction.reply({
+          content: "❌ Veuillez choisir un salon texte valide.",
+          flags: 64,
+        });
+      }
+
+      // Récupération config actuelle depuis la BDD
       const { rows } = await db.query(`
         SELECT fiche_de_presence_id, fiche_de_presence_hour, fiche_de_presence_rappel
         FROM configlspd WHERE id = 1
@@ -84,10 +92,8 @@ module.exports = {
         [salon.id, heure, rappel]
       );
 
-      // Ne pas envoyer les logs si on est en local
-      if ((process.env.IS_LOCAL || "").trim().toLowerCase() === "true") {
-        console.log("✅ Bot en local, log de fiche et rappel non envoyé");
-      } else {
+      // Logs si pas en local
+      if ((process.env.IS_LOCAL || "").trim().toLowerCase() !== "true") {
         const logsChannel = await safeFetchChannel(bot, conf.logs_channel);
         if (
           logsChannel &&

@@ -51,17 +51,18 @@ router.post("/pointeuse/start", async (req, res) => {
             .setColor(0x0b1b5a)
             .setTitle("Pointeuse lancée")
             .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a lancé sa pointeuse - \`${nowFormatted}\``)
-            .addFields({
-              name: "ID's",
-              value: `> <@${req.user.id}> (\`${req.user.id}\`)`,
-              inline: false
-            })
+            .addFields(
+              {
+                name: "ID's",
+                value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> <@&${topRole.discord_role_id}> (\`${topRole.discord_role_id}\`)`,
+                inline: false
+              }
+            )
             .setFooter({
               text: "LSPD Assistant",
               iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
             })
             .setTimestamp();
-
           await logsChannel.send({ embeds: [embedLog] });
         }
       } catch (err) {
@@ -122,11 +123,13 @@ router.post("/pointeuse/stop", async (req, res) => {
             .setColor(0x0b1b5a)
             .setTitle("Pointeuse arrêtée")
             .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a arrêté sa pointeuse - \`${nowFormatted}\``)
-            .addFields({
-              name: "ID's",
-              value: `> <@${idDiscord}> (\`${idDiscord}\`)`,
-              inline: false
-            })
+            .addFields(
+              {
+                name: "ID's",
+                value: `> <@${idDiscord}> (\`${idDiscord}\`)\n> <@&${row.discord_role_id}> (\`${row.discord_role_id}\`)`,
+                inline: false
+              }
+            )
             .setFooter({
               text: "LSPD Assistant",
               iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
