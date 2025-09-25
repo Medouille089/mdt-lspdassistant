@@ -1,7 +1,46 @@
-async function loadRoles() {
+// Fonctions utilitaires pour loader et feedback
+function showLoader(show = true) {
+  const loader = document.getElementById('loaderOverlay');
+  if (loader) loader.style.display = show ? 'flex' : 'none';
+}
+
+function showFeedback(message, isSuccess = true) {
+  const feedback = document.getElementById('feedbackAnimation');
+  if (!feedback) return;
+
+  feedback.innerHTML = '';
+  const content = document.createElement('div');
+  content.className = 'feedback-inner';
+
+  if (isSuccess) {
+    content.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+        <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
+        <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
+      </svg>
+      <p class="success">${message}</p>
+    `;
+  } else {
+    content.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+        <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
+        <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+        <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
+      </svg>
+      <p class="error">${message}</p>
+    `;
+  }
+
+  feedback.appendChild(content);
+  feedback.style.display = 'flex';
+
+  setTimeout(() => {
+    feedback.style.display = 'none';
+  }, 3000);
+} async function loadRoles() {
   const res = await fetch('/config/pointeuse');
   if (!res.ok) {
-    alert("Erreur lors du chargement des rôles");
+    showFeedback("Erreur lors du chargement des rôles", false);
     return;
   }
   const data = await res.json();
@@ -34,44 +73,49 @@ async function updateRole(button) {
   const rank = parseInt(tr.children[3].querySelector('input').value);
 
   if (!id || !discord_role_id || !role_name || isNaN(salary_rate) || isNaN(rank)) {
-    alert("Tous les champs doivent être remplis correctement.");
+    showFeedback("Tous les champs doivent être remplis correctement.", false);
     return;
   }
 
+  showLoader(true);
   const res = await fetch('/config/pointeuse', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, discord_role_id, role_name, salary_rate, rank }),
   });
 
+  showLoader(false);
   if (!res.ok) {
-    alert("Erreur lors de la modification");
+    showFeedback("Erreur lors de la modification", false);
     return;
   }
 
-  alert("Rôle modifié avec succès");
+  showFeedback("Rôle modifié avec succès", true);
   await loadRoles();
 }
 
 async function deleteRole(roleId) {
   if (!confirm("Supprimer ce rôle ?")) return;
 
+  showLoader(true);
   const res = await fetch(`/config/pointeuse/${roleId}`, {
     method: 'DELETE',
   });
 
+  showLoader(false);
   if (!res.ok) {
-    alert("Erreur lors de la suppression du rôle");
+    showFeedback("Erreur lors de la suppression du rôle", false);
     return;
   }
 
+  showFeedback("Rôle supprimé avec succès", true);
   await loadRoles();
 }
 
 async function loadUsersWithSalary() {
   const res = await fetch('/admin/users-salaries');
   if (!res.ok) {
-    alert("Erreur lors du chargement des utilisateurs");
+    showFeedback("Erreur lors du chargement des utilisateurs", false);
     return;
   }
   const users = await res.json();
@@ -104,11 +148,17 @@ async function loadUsersWithSalary() {
 
 async function deleteUser(userId) {
   if (!confirm("Supprimer toutes les données de cet utilisateur ?")) return;
+
+  showLoader(true);
   const res = await fetch('/admin/pointeuse/users/' + userId, { method: 'DELETE' });
+  showLoader(false);
+
   if (!res.ok) {
-    alert("Erreur lors de la suppression de l'utilisateur");
+    showFeedback("Erreur lors de la suppression de l'utilisateur", false);
     return;
   }
+
+  showFeedback("Utilisateur supprimé avec succès", true);
   await loadUsersWithSalary();
 }
 
@@ -123,21 +173,24 @@ document.getElementById('add-role-form').addEventListener('submit', async e => {
   };
 
   if (!body.discord_role_id || !body.role_name || isNaN(body.salary_rate) || isNaN(body.rank)) {
-    alert("Tous les champs doivent être remplis correctement.");
+    showFeedback("Tous les champs doivent être remplis correctement.", false);
     return;
   }
 
+  showLoader(true);
   const res = await fetch('/config/pointeuse', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
 
+  showLoader(false);
   if (!res.ok) {
-    alert("Erreur lors de l'ajout / modification");
+    showFeedback("Erreur lors de l'ajout / modification", false);
     return;
   }
 
+  showFeedback("Rôle ajouté avec succès", true);
   e.target.reset();
   await loadRoles();
 });
@@ -162,12 +215,13 @@ async function saveAlertTime() {
   const heure = document.getElementById('alertTime').value;
 
   if (!heure) {
-    alert("Veuillez sélectionner une heure valide.");
+    showFeedback("Veuillez sélectionner une heure valide.", false);
     return;
   }
 
   btn.disabled = true;
   status.style.display = 'none';
+  showLoader(true);
 
   try {
     const res = await fetch('/config/pointeuse/heure', {
@@ -175,14 +229,14 @@ async function saveAlertTime() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ heure }),
     });
+
+    showLoader(false);
     if (!res.ok) throw new Error("Erreur sauvegarde heure");
 
-    status.style.display = 'inline';
-    setTimeout(() => {
-      status.style.display = 'none';
-    }, 2000);
+    showFeedback("Heure d'alerte sauvegardée", true);
   } catch (err) {
-    alert("Erreur lors de la sauvegarde de l'heure.");
+    showLoader(false);
+    showFeedback("Erreur lors de la sauvegarde de l'heure.", false);
     console.error(err);
   } finally {
     btn.disabled = false;
@@ -225,7 +279,7 @@ async function getDisplayName(discordId) {
 async function loadActivePointeuses() {
   const res = await fetch("/admin/pointeuses-actives");
   if (!res.ok) {
-    alert("Erreur lors du chargement des pointeuses actives");
+    showFeedback("Erreur lors du chargement des pointeuses actives", false);
     return;
   }
   const data = await res.json();
@@ -258,16 +312,18 @@ async function loadActivePointeuses() {
 async function forceStopPointeuse(discordId) {
   if (!confirm("Êtes-vous sûr de vouloir forcer l'arrêt de cette pointeuse ?")) return;
 
+  showLoader(true);
   const res = await fetch(`/admin/pointeuse/stop/${discordId}`, {
     method: "POST"
   });
 
+  showLoader(false);
   if (res.ok) {
-    alert("Pointeuse arrêtée !");
+    showFeedback("Pointeuse arrêtée avec succès", true);
     loadActivePointeuses();
   } else {
     const err = await res.json();
-    alert("Erreur : " + err.error);
+    showFeedback("Erreur : " + err.error, false);
   }
 }
 

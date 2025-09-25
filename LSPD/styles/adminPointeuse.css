@@ -1,30 +1,30 @@
 html,
 body {
-    height: 100%;
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    position: relative;
-    color: #fff;
-    z-index: 0;
-    background: none;
+  height: 100%;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  color: #fff;
+  z-index: 0;
+  background: none;
 }
 
 body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1;
-    background: linear-gradient(#F1F3FF, #CBD4FF);
-    background-repeat: no-repeat;
-    background-size: cover;
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: linear-gradient(#F1F3FF, #CBD4FF);
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 h1 {
-    text-align: center;
-    margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .main-container h2 {
@@ -38,80 +38,80 @@ h1 {
 
 /* Conteneur principal */
 .container {
-    background: #1e2a44;    
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: #1e2a44;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* Filtres */
 .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .filters>* {
-    flex: 1 1 200px;
-    min-width: 150px;
+  flex: 1 1 200px;
+  min-width: 150px;
 }
 
 input[type="text"],
-input[type="date"], 
+input[type="date"],
 input[type="number"] {
-    width: 100%;
-    padding: 8px 10px;
-    border-radius: 5px;
-    border: none;
-    font-size: 16px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: none;
+  font-size: 16px;
 }
 
 /* Tableau */
 table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #344863;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  border-collapse: collapse;
+  background: #344863;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
 thead {
-    background: #1d284a;
+  background: #1d284a;
 }
 
 thead th {
-    padding: 12px 15px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 16px;
-    cursor: default;
-    color: #fff;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: default;
+  color: #fff;
 }
 
 tbody tr {
-    transition: background 0.25s;
+  transition: background 0.25s;
 }
 
 tbody td {
-    padding: 12px 15px;
-    border-top: 1px solid #2f3e57;
+  padding: 12px 15px;
+  border-top: 1px solid #2f3e57;
 }
 
 button {
-    padding: 0.25rem 1rem;
-    font-size: 100%;
-    background-color: #0b1b5a;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
+  padding: 0.25rem 1rem;
+  font-size: 100%;
+  background-color: #0b1b5a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 button:hover {
-    background-color: #08123a;
+  background-color: #08123a;
 }
 
 #add-role-form {
@@ -124,7 +124,7 @@ button:hover {
   border-radius: 8px;
   width: 100%;
   box-sizing: border-box;
-  margin:  auto;
+  margin: auto;
 }
 
 #add-role-form input[type="text"],
@@ -172,4 +172,81 @@ button:hover {
   vertical-align: middle;
 }
 
+/* Animation feedback comme bracelet.js */
+#feedbackAnimation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
 
+.feedback-inner {
+  text-align: center;
+  max-width: 300px;
+}
+
+.feedback-inner svg {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 20px;
+}
+
+.feedback-inner p {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.feedback-inner p.success {
+  color: #0b1b5a;
+}
+
+.feedback-inner p.error {
+  color: #D06079;
+}
+
+/* Animations SVG */
+.path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 0;
+}
+
+.path.circle {
+  animation: dash 0.9s ease-in-out;
+}
+
+.path.line {
+  stroke-dashoffset: 1000;
+  animation: dash 0.9s 0.35s ease-in-out forwards;
+}
+
+.path.check {
+  stroke-dashoffset: -100;
+  animation: dash-check 0.9s 0.35s ease-in-out forwards;
+}
+
+@keyframes dash {
+  0% {
+    stroke-dashoffset: 1000;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes dash-check {
+  0% {
+    stroke-dashoffset: -100;
+  }
+
+  100% {
+    stroke-dashoffset: 900;
+  }
+}
