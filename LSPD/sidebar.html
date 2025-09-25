@@ -12,6 +12,13 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+        .onlySupervisor,
+        .onlyCommandStaff
+        {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -113,17 +120,22 @@
                     </ul>
                 </li>
 
-                <li class="nav-item onlySupervisor">
-                    <a href="sanctions.html" class="nav-link">
+                <li class="nav-item dropdown-container onlySupervisor">
+                    <a href="#" class="nav-link dropdown-toggle">
                         <span class="material-symbols-rounded">brightness_alert</span>
                         <span class="nav-label">Sanctions</span>
+                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
                     </a>
                     <ul class="dropdown-menu">
                         <li class="nav-item"><a class="nav-link dropdown-title">Sanctions</a></li>
+                        <li class="nav-item"><a href="sanctions.html" class="nav-link dropdown-link">Nouvelle
+                                sanction</a>
+                        </li>
+                        <li class="nav-item"><a href="getSanctions.html" class="nav-link dropdown-link">Liste
+                                Sanctions</a>
+                        </li>
                     </ul>
                 </li>
-
-
 
                 <li class="nav-item onlyCommandStaff">
                     <a href="adminMenu.html" class="nav-link">

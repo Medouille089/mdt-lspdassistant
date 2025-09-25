@@ -24,7 +24,7 @@ body::before {
     background-size: cover;
 }
 
-.main-container {
+.sanction-container {
     max-width: 900px;
     width: 100%;
     margin: 0 auto;

@@ -247,6 +247,9 @@ router.put('/api/absence/:id/statut', async (req, res) => {
         }
 
         const absenceModifiee = result.rows[0];
+        const bot = getBot(); // Ton client Discord
+        const conf = getConfig();
+        const logsChannelId = conf.logs_channel;
 
         try {
             const statutTexte = {
@@ -262,21 +265,30 @@ router.put('/api/absence/:id/statut', async (req, res) => {
             };
 
             const discordMessage = new EmbedBuilder()
-                .setColor(0x0b1b5a)
-                .setTitle(`Bracelet pointé - ${data.id_brac}`)
-                .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a pointé le bracelet - ${mentionThread} \`${data.id_brac}\``)
-                .addFields({
-                    name: "ID's",
-                    value: `> <@${req.user.id}> (${req.user.id}) \n > ${mentionThread} (\`${data.id_thread}\`)`,
-                    inline: false
-                })
+                .setColor(couleur[statut])
+                .setTitle(`Mise à jour d'absence - ID ${absenceModifiee.id}`)
+                .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a mis à jour le statut de l'absence.`)
+                .addFields(
+                    { 
+                        name: "Infos de l'absence", 
+                        value: `> Officier: ${absenceModifiee.officier}\n> Grade: ${absenceModifiee.grade}\n> Type: ${absenceModifiee.type_absence}\n> Motif: ${absenceModifiee.motif}\n> Statut: ${statutTexte[statut]}`, 
+                        inline: false 
+                    },
+                    { 
+                        name: "ID Discord", 
+                        value: `> <@${req.user.id}> (${req.user.id})`, 
+                        inline: false 
+                    }
+                )
                 .setFooter({
                     text: "LSPD Assistant",
-                    iconURL: clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 })
+                    iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
                 })
                 .setTimestamp();
 
-            await createForumPost("Demandes d'absences", discordMessage);
+            const logsChannel = await bot.channels.fetch(logsChannelId);
+            await logsChannel.send({ embeds: [discordMessage] });
+
         } catch (discordError) {
             console.error('Erreur lors de la notification Discord:', discordError);
         }

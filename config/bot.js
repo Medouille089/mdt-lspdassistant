@@ -7,7 +7,7 @@ const {
   REST,
   Routes,
 } = require("discord.js");
-const { loadConfig, getConfig, setBot } = require("./config");
+const { loadConfig, setBot } = require("./config");
 const db = require("./db");
 const fs = require("fs");
 const path = require("path");
@@ -16,6 +16,7 @@ const moment = require("moment-timezone");
 require("dotenv").config();
 
 const ficheDePresence = require("../discordUtils/ficheDePresence");
+const handleTicket = require("../discordUtils/tickets");
 
 const bot = new Client({
   intents: [
@@ -31,18 +32,26 @@ const commandFiles = fs
   .filter((file) => file.endsWith(".js"));
 
 for (const file of commandFiles) {
-  const command = require(path.join(__dirname, "../commands", file));
-  bot.commands.set(command.data.name, command);
+  const moduleExports = require(path.join(__dirname, "../commands", file));
+
+  if (moduleExports?.data && moduleExports?.execute) {
+    bot.commands.set(moduleExports.data.name, moduleExports);
+  } else {
+    for (const key in moduleExports) {
+      const cmd = moduleExports[key];
+      if (cmd?.data && cmd?.execute) {
+        bot.commands.set(cmd.data.name, cmd);
+      }
+    }
+  }
 }
 
 async function registerCommands() {
   const commands = bot.commands.map((cmd) => cmd.data.toJSON());
-
   const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
   try {
     console.log("📤 Enregistrement des commandes slash...");
-
     await rest.put(
       Routes.applicationGuildCommands(
         process.env.CLIENT_ID,
@@ -50,7 +59,6 @@ async function registerCommands() {
       ),
       { body: commands }
     );
-
     console.log("✅ Commandes enregistrées avec succès !");
   } catch (err) {
     console.error("❌ Erreur en enregistrant les commandes :", err);
@@ -58,21 +66,24 @@ async function registerCommands() {
 }
 
 bot.on(Events.InteractionCreate, async (interaction) => {
-  console.log("test")
-  //if (!interaction.isChatInputCommand()) return;
-  console.log("test2")
+  // Gestion des commandes
   const command = bot.commands.get(interaction.commandName);
-  if (!command) return;
-  console.log("test3")
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({
-      content: "❌ Une erreur est survenue lors de l'exécution de la commande.",
-      flags: 64,
-    });
+  if (command) {
+    try {
+      await command.execute(interaction);
+    } catch (error) {
+      console.error(error);
+      await interaction.reply({
+        content:
+          "❌ Une erreur est survenue lors de l'exécution de la commande.",
+        flags: 64,
+      });
+    }
+    return; // on sort si c'était une commande
   }
+
+  // Gestion des tickets
+  await handleTicket(interaction, bot);
 });
 
 function pluralize(count, zeroIsPlural = false) {
@@ -98,6 +109,15 @@ async function getPresenceMessages(zeroPlural = false) {
     const res4 = await db.query("SELECT COUNT(*) FROM lspd_live_users");
     const lspdUsers = parseInt(res4.rows[0].count);
 
+    // Récupération du count total
+    const res5 = await db.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM lspd_tickets) + 
+        (SELECT COUNT(*) FROM lspd_count_tickets) AS total_tickets
+    `);
+    const totalTickets = parseInt(res5.rows[0].total_tickets);
+
+
     return [
       { name: "Assister le LSPD", type: ActivityType.Playing },
       {
@@ -112,6 +132,10 @@ async function getPresenceMessages(zeroPlural = false) {
         name: `${lspdUsers} personne${pluralize(lspdUsers, zeroPlural)} connecté${pluralize(lspdUsers, zeroPlural)}`,
         type: ActivityType.Watching,
       },
+      {
+        name: `${totalTickets} ticket${pluralize(totalTickets, zeroPlural)}`,
+        type: ActivityType.Watching,
+      }
     ];
   } catch (err) {
     console.error("Erreur lors de la récupération des stats :", err);
@@ -119,23 +143,21 @@ async function getPresenceMessages(zeroPlural = false) {
   }
 }
 
+
 async function startBot() {
   await loadConfig();
-
   await bot.login(process.env.TOKEN);
 
   bot.once("ready", async () => {
     console.log(`🤖 Bot connecté en tant que ${bot.user.tag}`);
 
     let index = 0;
-
     async function cyclePresence() {
       const activities = await getPresenceMessages();
       bot.user.setPresence({
         activities: [activities[index]],
         status: "online",
       });
-
       index = (index + 1) % activities.length;
     }
 
@@ -143,7 +165,6 @@ async function startBot() {
     setInterval(cyclePresence, 5000);
     await registerCommands();
 
-    // Tâche cron qui tourne chaque minute, envoie la fiche principale et rappel si l'heure correspond
     cron.schedule("* * * * *", async () => {
       try {
         const res = await db.query(
@@ -152,106 +173,33 @@ async function startBot() {
         if (!res.rows.length) return;
 
         const { fiche_de_presence_hour, fiche_de_presence_rappel } = res.rows[0];
+        const nowParis = moment().tz("Europe/Paris").format("HH:mm");
 
-        if (fiche_de_presence_hour && /^\d{2}:\d{2}$/.test(fiche_de_presence_hour)) {
-          const nowParis = moment().tz("Europe/Paris").format("HH:mm");
-          if (nowParis === fiche_de_presence_hour) {
-            console.log("📌 Envoi de la fiche de présence principale à", fiche_de_presence_hour);
-            await ficheDePresence.sendFicheDePresence(bot, false);
-          }
+        if (fiche_de_presence_hour && nowParis === fiche_de_presence_hour) {
+          console.log("📌 Envoi de la fiche de présence principale");
+          await ficheDePresence.sendFicheDePresence(bot, false);
         }
 
-        if (fiche_de_presence_rappel && /^\d{2}:\d{2}$/.test(fiche_de_presence_rappel)) {
-          const nowParis = moment().tz("Europe/Paris").format("HH:mm");
-          if (nowParis === fiche_de_presence_rappel) {
-            console.log("📌 Envoi du rappel de la fiche de présence à", fiche_de_presence_rappel);
-            await ficheDePresence.sendFicheDePresence(bot, true);
-          }
+        if (fiche_de_presence_rappel && nowParis === fiche_de_presence_rappel) {
+          console.log("📌 Envoi du rappel de la fiche de présence");
+          await ficheDePresence.sendFicheDePresence(bot, true);
         }
       } catch (e) {
         console.error("Erreur dans la tâche cron fiche de présence :", e);
       }
     });
+
     const purgeOldPresence = async () => {
-      await db.query("DELETE FROM lspd_presenceig WHERE timestamp < NOW() - INTERVAL '14 days'");
+      await db.query(
+        "DELETE FROM lspd_presenceig WHERE timestamp < NOW() - INTERVAL '14 days'"
+      );
       console.log("Anciennes présences supprimées !");
     };
-    cron.schedule('0 3 * * *', purgeOldPresence);
-
+    cron.schedule("0 3 * * *", purgeOldPresence);
   });
 
   setBot(bot);
 }
 
-bot.on('interactionCreate', async interaction => {
-    try {
-        if (!interaction.isStringSelectMenu()) return;
-        if (interaction.customId !== 'select_ticket_category') return;
-
-        const catId = interaction.values[0];
-        const catRes = await db.query('SELECT * FROM lspd_ticket_categories WHERE id=$1', [catId]);
-        const category = catRes.rows[0];
-        if (!category) return interaction.reply({ content: 'Catégorie invalide', ephemeral: true });
-
-        const guild = interaction.guild;
-
-        // Création du salon privé
-        const channel = await guild.channels.create({
-            name: `ticket-${interaction.user.username}`,
-            type: 0, // text
-            parent: category.target_channel_id || null,
-            permissionOverwrites: [
-                { id: guild.roles.everyone.id, deny: ['ViewChannel'] },
-                ...(category.allowed_roles || []).map(rid => ({
-                    id: rid,
-                    allow: ['ViewChannel', 'SendMessages']
-                })),
-                { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages'] }
-            ]
-        });
-
-        // Enregistrement dans la DB
-        await db.query(
-            'INSERT INTO lspd_tickets(user_id, category_id, channel_id) VALUES($1,$2,$3)',
-            [interaction.user.id, category.id, channel.id]
-        );
-
-        // Message de bienvenue
-        await channel.send({
-            content: `${(category.ping_roles || []).map(r => `<@&${r}>`).join(' ')} Bienvenue dans votre ticket !`,
-            embeds: [{
-                title: category.title,
-                description: category.description,
-                timestamp: new Date(),
-                footer: { text: bot.user.username, icon_url: bot.user.displayAvatarURL() }
-            }]
-        });
-
-        // Logs dans le salon configuré
-        const configRes = await db.query('SELECT * FROM lspd_config_panel LIMIT 1');
-        if (configRes.rows[0] && configRes.rows[0].logs_channel) {
-            const logsChannel = guild.channels.cache.get(configRes.rows[0].logs_channel);
-            if (logsChannel) {
-                logsChannel.send(`🆕 Ticket ouvert par ${interaction.user.tag} dans <#${channel.id}>`);
-            } else {
-                console.warn('⚠️ Salon de logs configuré introuvable sur le serveur.');
-            }
-        } else {
-            console.warn('⚠️ Aucun salon de logs configuré.');
-        }
-
-        await interaction.reply({ content: 'Ticket créé ✅', ephemeral: true });
-
-    } catch (err) {
-        console.error('Erreur lors de l\'ouverture du ticket :', err);
-        if (interaction.replied || interaction.deferred) {
-            interaction.followUp({ content: 'Erreur lors de l\'ouverture du ticket.', ephemeral: true });
-        } else {
-            interaction.reply({ content: 'Erreur lors de l\'ouverture du ticket.', ephemeral: true });
-        }
-    }
-});
-
 startBot();
-
 module.exports = bot;

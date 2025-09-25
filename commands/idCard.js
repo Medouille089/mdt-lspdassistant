@@ -1,71 +1,135 @@
-const { ContextMenuCommandBuilder, ApplicationCommandType, EmbedBuilder } = require('discord.js');
+const {
+  ContextMenuCommandBuilder,
+  ApplicationCommandType,
+  SlashCommandBuilder,
+  EmbedBuilder
+} = require('discord.js');
+const { getConfig } = require('../config/config');
+
+async function buildFiche(interaction, user, member) {
+  const config = getConfig();
+  const roles = member.roles.cache;
+
+  // --- Formations ---
+  const formationsText = config.lspd_formations
+    .filter(([col, roleId]) => col.endsWith("_role_id") && roleId)
+    .map(([_, roleId]) => {
+      const guildRole = interaction.guild.roles.cache.get(roleId);
+      if (!guildRole) return `❌ Rôle introuvable (${roleId})`;
+      const hasRole = roles.has(roleId);
+      const emoji = hasRole ? "✅" : "❌";
+      return `${emoji} ${guildRole.name}`;
+    })
+    .join("\n");
+
+  // --- Grades ---
+  const userGrades = config.lspd_grades
+    .filter(([col, roleId]) => col.endsWith("_role_id") && roleId)
+    .filter(([_, roleId]) => roles.has(roleId));
+
+  const gradesText = userGrades.length > 0
+    ? userGrades
+      .map(([_, roleId]) => {
+        const guildRole = interaction.guild.roles.cache.get(roleId);
+        return guildRole ? guildRole.name : `Rôle introuvable (${roleId})`;
+      })
+      .join("\n")
+    : "Aucun grade";
+
+  // --- Retour des infos pour embed ---
+  return {
+    displayName: member.displayName,
+    userTag: user.tag,
+    userId: user.id,
+    avatarURL: user.displayAvatarURL(),
+    gradesText,
+    formationsText,
+  };
+}
 
 module.exports = {
+  // --- Commande clic droit ---
+  ficheAgentContextMenu: {
     data: new ContextMenuCommandBuilder()
-        .setName('Voir fiche utilisateur')
-        .setType(ApplicationCommandType.User),
+      .setName('Fiche agent')
+      .setType(ApplicationCommandType.User),
     async execute(interaction) {
-        const user = interaction.targetUser;
-        const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+      const user = interaction.targetUser;
+      const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+      if (!member) return interaction.reply({ content: "Utilisateur introuvable.", flags: 64 });
 
-        if (!member) {
-            return interaction.reply({
-                content: "Utilisateur introuvable.",
-                flags: 64,
-            });
-        }
+      const config = getConfig();
+      const requiredRoleId = config.required_role_id?.toString();
+      const superAdminRoleId = config.id_superadmin?.toString();
 
-        const formationsRoles = [
-            { id: "1177771527815577690" },
-            { id: "1177771674423279686" },
-            { id: "1096965866266050623" },
-            { id: "1096965866266050624" },
-            { id: "1130535962414428325" },
-            { id: "1298387776516915281" },
-            { id: "1358148340566724609" },
-            { id: "1124056236594311258" }
-        ];
-        const gradeRoles = [
-            "1166106799250882600",
-            "456789012345678901"
-        ];
+      // Vérification sur le membre qui exécute la commande
+      if (!interaction.member.roles.cache.has(requiredRoleId) &&
+          !interaction.member.roles.cache.has(superAdminRoleId)) {
+        return interaction.reply({ content: "❌ Vous devez être un agent du LSPD pour exécuter la commande.", flags: 64 });
+      }
 
-        const roles = member.roles.cache
-            .filter(role => role.id !== interaction.guild.id)
-            .sort((a, b) => b.position - a.position);
+      const fiche = await buildFiche(interaction, user, member);
 
-        const formationsText = formationsRoles.map(fRole => {
-            const hasRole = roles.some(role => role.id === fRole.id);
-            const emoji = hasRole ? '✅' : '❌';
-            const guildRole = interaction.guild.roles.cache.get(fRole.id);
-            const displayName = guildRole ? guildRole.name : fRole.name;
-            return `${emoji} ${displayName}`;
-        }).join('\n');
+      // Création de l'embed
+      const embed = new EmbedBuilder()
+        .setTitle(`Fiche agent : ${fiche.displayName}`)
+        .setColor(0x0b1b5a)
+        .setThumbnail(fiche.avatarURL)
+        .addFields(
+          { name: "ID", value: fiche.userId, inline: true },
+          { name: "Tag", value: fiche.userTag, inline: true },
+          { name: "Grade", value: fiche.gradesText, inline: false },
+          { name: "Formations", value: fiche.formationsText, inline: false }
+        )
+        .setFooter({ text: 'LSPD Assistant', iconURL: interaction.client.user.displayAvatarURL() })
+        .setTimestamp();
 
-        const userGrades = roles.filter(role => gradeRoles.includes(role.id));
-        const gradesText = userGrades.size > 0
-            ? userGrades.map(role => `${role}`).join('\n')
-            : "Aucun grade";
+      await interaction.reply({ embeds: [embed] });
+    }
+  },
 
-        const botUser = interaction.client.user;
+  // --- Commande slash ---
+  ficheAgentSlash: {
+    data: new SlashCommandBuilder()
+      .setName('fiche_agent')
+      .setDescription("Affiche la fiche d'un agent du LSPD")
+      .addUserOption(option =>
+        option.setName('agent')
+          .setDescription('Sélectionnez l’agent')
+          .setRequired(true)
+      ),
+    async execute(interaction) {
+      const user = interaction.options.getUser('agent');
+      const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+      if (!member) return interaction.reply({ content: "Utilisateur introuvable.", flags: 64 });
 
-        const embed = new EmbedBuilder()
-            .setTitle(`Fiche utilisateur : ${user.username}`)
-            .setColor(0x0b1b5a)
-            .setThumbnail(user.displayAvatarURL())
-            .addFields(
-                { name: 'ID', value: user.id, inline: true },
-                { name: 'Tag', value: user.tag, inline: true },
-                { name: 'Créé le', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`, inline: true },
-                { name: 'Grade', value: gradesText, inline: false },
-                { name: 'Formations', value: formationsText, inline: false },
-            )
-            .setFooter({
-                text: 'LSPD Assistant',
-                iconURL: botUser.displayAvatarURL(),
-            })
-            .setTimestamp();
+      const config = getConfig();
+      const requiredRoleId = config.required_role_id?.toString();
+      const superAdminRoleId = config.id_superadmin?.toString();
 
-        await interaction.reply({ embeds: [embed] });
-    },
+      // Vérification sur le membre qui exécute la commande
+      if (!interaction.member.roles.cache.has(requiredRoleId) &&
+          !interaction.member.roles.cache.has(superAdminRoleId)) {
+        return interaction.reply({ content: "❌ Vous devez être un agent du LSPD pour exécuter la commande.", flags: 64 });
+      }
+
+      const fiche = await buildFiche(interaction, user, member);
+
+      // Création de l'embed
+      const embed = new EmbedBuilder()
+        .setTitle(`Fiche agent : ${fiche.displayName}`)
+        .setColor(0x0b1b5a)
+        .setThumbnail(fiche.avatarURL)
+        .addFields(
+          { name: "ID", value: fiche.userId, inline: true },
+          { name: "Tag", value: fiche.userTag, inline: true },
+          { name: "Grade", value: fiche.gradesText, inline: false },
+          { name: "Formations", value: fiche.formationsText, inline: false }
+        )
+        .setFooter({ text: 'LSPD Assistant', iconURL: interaction.client.user.displayAvatarURL() })
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [embed] });
+    }
+  }
 };

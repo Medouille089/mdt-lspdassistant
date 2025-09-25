@@ -17,12 +17,22 @@ router.get('/callback', (req, res, next) => {
 }, passport.authenticate('discord', { failureRedirect: '/' }),
   async (req, res) => {
     try {
+      if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
+
       const config = await getConfig();
       const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, id_superadmin } = config;
 
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
-      const member = await guild.members.fetch(req.user.id);
+
+      let member;
+      try {
+        member = await guild.members.fetch(req.user.id);
+      } catch (err) {
+        console.error("Impossible de fetch le membre :", err);
+        return res.status(404).send("Membre introuvable sur le serveur");
+      }
+
       const roleIds = member.roles.cache.map(r => r.id);
 
       // Super admin check
@@ -44,7 +54,6 @@ router.get('/callback', (req, res, next) => {
       if (logs_channel) {
         const logsChannel = await bot.channels.fetch(logs_channel);
         if (logsChannel?.isTextBased()) {
-          // Détection machine locale
           const isLocal = req.hostname === 'localhost' || req.ip === '127.0.0.1' || req.ip === '::1';
           const logTitle = isLocal
             ? '⚠️ Connexion utilisateur - Machine locale'
@@ -53,7 +62,7 @@ router.get('/callback', (req, res, next) => {
           const embed = new EmbedBuilder()
             .setTitle(logTitle)
             .setColor(hasRequiredRole ? 0x0b1b5a : 0xdb4437)
-            .setDescription(`${req.user?.guild_member?.nick || 'Utilisateur inconnu'} ${action}`)
+            .setDescription(`${member.displayName || 'Utilisateur inconnu'} ${action}`)
             .addFields({
               name: "ID's",
               value: `> <@${req.user.id}> (\`${req.user.id}\`)${isSuperAdmin ? `\n> <@&${id_superadmin}> (\`${id_superadmin}\`)` : ""}`,
@@ -93,31 +102,66 @@ router.get("/logout", (req, res) => {
   });
 });
 
-// Pages protégées avec le middleware checkAuth
-const protectedPages = ['admin.html', 'adminPointeuse.html', 'adminMenu.html, adminGrades.html, admin-absences.html, admin-presence.html'];
-router.use(['/protected', ...protectedPages.map(page => `/${page}`)], checkAuth);
+// Pages protégées Command Staff uniquement
+const protectedPages = [
+  'admin.html',
+  'adminPointeuse.html',
+  'adminMenu.html',
+  'adminGrades.html',
+  'admin-absences.html',
+  'admin-presence.html',
+  'officers.html',
+  'officerMenu.html',
+  'getOfficerSanction.html',
+  'tickets.html'
+];
+
+// Pages protégées Command Staff + Supervisor
+const protectedPagesSupervisor = [
+  'sanctions.html',
+  'getSanctions.html'
+];
+
+const blockedForRookies = [
+  'rapport-rookie.html'
+];
+
+// Middleware commun (protège toutes les routes listées)
+router.use(
+  ['/protected', ...protectedPages.map(page => `/${page}`), ...protectedPagesSupervisor.map(page => `/${page}`)],
+  checkAuth
+);
 
 // /protected
 router.get('/protected', (req, res) => {
   res.sendFile(path.join(__dirname, '../LSPD/dashboard.html'));
 });
 
-// Pages admin protégées
+// Handler pages Command Staff uniquement
 router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
   try {
+    if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
+
     const config = await getConfig();
     const commandStaffRoleId = config.commandstaff_id?.trim();
     const id_superadmin = config.id_superadmin?.trim();
 
     const guild = await bot.guilds.fetch(GUILD_ID);
     guild.members.cache.delete(req.user.id);
-    const member = await guild.members.fetch(req.user.id);
+
+    let member;
+    try {
+      member = await guild.members.fetch(req.user.id);
+    } catch (err) {
+      console.error("Impossible de fetch le membre :", err);
+      return res.status(404).send("Membre introuvable sur le serveur");
+    }
+
     const roleIds = member.roles.cache.map(role => role.id);
 
     // Super admin bypass
     if (id_superadmin && roleIds.includes(id_superadmin)) {
-      const requestedPage = req.path.replace('/', '');
-      return res.sendFile(path.join(__dirname, `../LSPD/${requestedPage}`));
+      return res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
     }
 
     // Vérifie le rôle Command Staff
@@ -125,12 +169,86 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
       return res.redirect('/error.html');
     }
 
-    const requestedPage = req.path.replace('/', '');
-    if (!protectedPages.includes(requestedPage)) return res.status(404).send('Page non trouvée');
-
-    res.sendFile(path.join(__dirname, `../LSPD/${requestedPage}`));
+    res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
   } catch (err) {
     console.error(`Erreur ${req.path}:`, err);
+    res.status(500).send('Erreur serveur');
+  }
+});
+
+// Handler pages Command Staff + Supervisor
+router.get(protectedPagesSupervisor.map(page => `/${page}`), async (req, res) => {
+  try {
+    if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
+
+    const config = await getConfig();
+    const commandStaffRoleId = config.commandstaff_id?.trim();
+    const supervisorRoleId = config.supervisor_role_id?.trim();
+    const id_superadmin = config.id_superadmin?.trim();
+
+    const guild = await bot.guilds.fetch(GUILD_ID);
+    guild.members.cache.delete(req.user.id);
+
+    let member;
+    try {
+      member = await guild.members.fetch(req.user.id);
+    } catch (err) {
+      console.error("Impossible de fetch le membre :", err);
+      return res.status(404).send("Membre introuvable sur le serveur");
+    }
+
+    const roleIds = member.roles.cache.map(role => role.id);
+
+    // Super admin bypass
+    if (id_superadmin && roleIds.includes(id_superadmin)) {
+      return res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
+    }
+
+    // Vérifie Command Staff OU Supervisor
+    if (!(roleIds.includes(commandStaffRoleId) || roleIds.includes(supervisorRoleId))) {
+      return res.redirect('/error.html');
+    }
+
+    res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
+  } catch (err) {
+    console.error(`Erreur ${req.path}:`, err);
+    res.status(500).send('Erreur serveur');
+  }
+});
+
+// Middleware blocage rookies
+router.use(blockedForRookies.map(page => `/${page}`), async (req, res, next) => {
+  try {
+    if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
+
+    const config = await getConfig();
+    const guild = await bot.guilds.fetch(GUILD_ID);
+    guild.members.cache.delete(req.user.id);
+
+    let member;
+    try {
+      member = await guild.members.fetch(req.user.id);
+    } catch (err) {
+      console.error("Impossible de fetch le membre :", err);
+      return res.status(404).send("Membre introuvable sur le serveur");
+    }
+
+    const roleIds = member.roles.cache.map(role => role.id);
+
+    // Récupère rookie_role_id depuis la BDD
+    const { rows } = await require('../config/db').query(`SELECT rookie_role_id FROM lspd_grades LIMIT 1`);
+    if (rows.length) {
+      const rookieRoleId = rows[0].rookie_role_id?.trim();
+
+      // Si l'utilisateur est rookie → redirect vers error.html
+      if (rookieRoleId && roleIds.includes(rookieRoleId)) {
+        return res.redirect('/error.html');
+      }
+    }
+
+    next();
+  } catch (err) {
+    console.error("Erreur blocage rookies :", err);
     res.status(500).send('Erreur serveur');
   }
 });

@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 require('./utils/liveUsersCleaner');
+require('./utils/cleanSanctions');
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const passport = require("./config/passport");
@@ -66,6 +67,8 @@ const absenceRoute = require("./routes/absence");
 const sanctionsRoutes = require("./routes/sanctions");
 const presenceIg = require("./routes/presenceig");
 const ticketPanelRoutes = require('./routes/ticketPanel');
+const adminOfficer = require('./routes/officers');
+const rapportRookie = require('./routes/rapport-rookie');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -85,6 +88,8 @@ app.use(absenceRoute);
 app.use(sanctionsRoutes);
 app.use('/api/presenceig', presenceIg);
 app.use(ticketPanelRoutes);
+app.use(adminOfficer);
+app.use(rapportRookie);
 
 // Static frontend
 app.use(express.static(path.join(__dirname, "LSPD")));

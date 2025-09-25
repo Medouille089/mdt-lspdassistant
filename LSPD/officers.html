@@ -1,44 +1,29 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8" />
-    <title>Liste Sanctions - LSPD Assistant</title>
+    <title>Liste des agents - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/loader.css">
-    <style>
-        #sanctionsTable tr.archived {
-            color: #dcdcdc;
-            background-color: #6b6b6b;
-        }
-    </style>
 </head>
-
 <body>
     <div class="main-container">
         <div id="sidebar-container"></div>
-        <h1>Liste des sanctions</h1>
+        <h1>Liste des agents</h1>
         <div class="container">
             <div class="filters">
-                <input type="text" id="searchInput" placeholder="Rechercher utilisateur ou agent" />
-                <input type="date" id="dateStart" />
-                <input type="date" id="dateEnd" />
+                <input type="text" id="searchInput" placeholder="Rechercher" autocomplete="off" />
             </div>
 
-            <table id="sanctionsTable">
+            <table id="officersTable" aria-label="Liste des officers">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Agent</th>
-                        <th>Sanctionneur</th>
-                        <th>Type</th>
-                        <th>Raison</th>
-                        <th>Date de</th>
-                        <th>Date à</th>
-                        <th>Action</th>
+                        <th>ID Discord</th>
+                        <th>Nom</th>
+                        <th>Grade</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -49,12 +34,10 @@
             <div class="pagination" id="pagination"></div>
         </div>
     </div>
-
-    <div id="loaderOverlay" class="loader-overlay">
+    <div class="loader-overlay" id="loaderOverlay">
         <div class="loader-spinner"></div>
     </div>
-    <script src="scripts/sanctions/getSanctions.js"></script>
+    <script src="scripts/officers.js"></script>
     <script src="scripts/loadSidebar.js"></script>
 </body>
-
 </html>

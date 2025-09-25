@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { getConfig } = require('../config/config');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -12,20 +13,39 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            const conf = getConfig();
+            const requiredRoleId = conf.required_role_id?.toString();
+            const superAdminRoleId = conf.id_superadmin?.toString();
+            const memberRoles = interaction.member.roles.cache;
+
+            // Vérification que l'utilisateur a required_role_id ou id_superadmin
+            if (
+                (!requiredRoleId || !memberRoles.has(requiredRoleId)) &&
+                (!superAdminRoleId || !memberRoles.has(superAdminRoleId))
+            ) {
+                return interaction.reply({
+                    content: "❌ Vous devez être un agent du LSPD pour exécuter la commande.",
+                    flags: 64
+                });
+            }
+
             const role = interaction.options.getRole('role');
-            if (!role) return interaction.reply({ content: "Rôle introuvable.", ephemeral: true });
+            if (!role) return interaction.reply({ content: "Rôle introuvable.", flags: 64 });
 
             // Fetch tous les membres pour que le cache soit complet
             await interaction.guild.members.fetch();
 
-            const membersWithRole = role.members.map(member => `<@${member.id}>`);
+            // Filtrer les bots et map les membres pour avoir <@id> | displayName
+            const membersWithRole = role.members
+                .filter(member => !member.user.bot)
+                .map(member => `<@${member.id}> [\`${member.displayName}\`]`);
 
             if (membersWithRole.length === 0) {
-                return interaction.reply({ content: `Aucun membre n’a le rôle ${role}.`, ephemeral: true });
+                return interaction.reply({ content: `Aucun membre humain n’a le rôle ${role}.`, flags: 64 });
             }
 
             const embed = new EmbedBuilder()
-                .setTitle('Membre ayant le rôle')
+                .setTitle('Membres ayant le rôle')
                 .setDescription(`${role} **- ${membersWithRole.length}**\n\n${membersWithRole.join('\n')}`)
                 .setColor(0x0b1b5a)
                 .setTimestamp()
@@ -37,7 +57,7 @@ module.exports = {
             await interaction.reply({ embeds: [embed] });
         } catch (err) {
             console.error("Erreur dans la commande list_role :", err);
-            await interaction.reply({ content: "❌ Une erreur est survenue.", ephemeral: true });
+            await interaction.reply({ content: "❌ Une erreur est survenue.", flags: 64 });
         }
     },
 };

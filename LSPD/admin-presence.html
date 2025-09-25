@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Présence IG - Admin LSPD</title>
+    <title>Admin présence - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/sidebar.css" />
     <link rel="stylesheet" href="styles/colors.css" />
@@ -13,13 +13,15 @@
 </head>
 
 <body>
-    <div id="sidebar-container"></div>
     <div class="main-container">
+
+    <div id="sidebar-container"></div>
+    <h1>Pannel présences IG</h1>
+
         <header class="header">
             <div class="header-left">
                 <img src="data/images/lspd.png" alt="LSPD Logo" class="logo">
                 <div class="header-title">
-                    <h1>Présence IG - Administration</h1>
                     <p>Suivi des votes de présence IG</p>
                 </div>
             </div>
@@ -29,7 +31,7 @@
             </div>
         </section>
     </div>
-    <div class="loader-overlay" id="loaderOverlay" style="display:none;">
+    <div id="loaderOverlay" class="loader-overlay">
         <div class="loader-spinner"></div>
     </div>
     <script src="scripts/presence/admin-presence.js"></script>

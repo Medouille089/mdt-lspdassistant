@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Rapport Rookie - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/sanctions.css">
+</head>
+
+<body>
+  <div id="loaderOverlay" class="loader-overlay">
+    <div class="loader-spinner"></div>
+  </div>
+  <div class="main-container">
+    <div id="sidebar-container"></div>
+    <h1>Rapport Rookie</h1>
+    <div class="sanction-container">
+      <form id="sanctionForm">
+        <label for="agent">Rookie :</label>
+        <select id="agent">
+          <option value="">-- Choisir un Rookie --</option>
+        </select>
+
+        <!-- Conduite -->
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="conduite">Conduite :</label>
+            <select id="conduite">
+              <option value="">-- Choisir --</option>
+              <option value="🟢">🟢</option>
+              <option value="🟠">🟠</option>
+              <option value="⚪️">⚪️</option>
+              <option value="🔴">🔴</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Radio -->
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="radio">Radio :</label>
+            <select id="radio">
+              <option value="">-- Choisir --</option>
+              <option value="🟢">🟢</option>
+              <option value="🟠">🟠</option>
+              <option value="⚪️">⚪️</option>
+              <option value="🔴">🔴</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Procédures -->
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="procedures">Procédures :</label>
+            <select id="procedures">
+              <option value="">-- Choisir --</option>
+              <option value="🟢">🟢</option>
+              <option value="🟠">🟠</option>
+              <option value="⚪️">⚪️</option>
+              <option value="🔴">🔴</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Connaissance de la ville -->
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="ville">Connaissance de la ville :</label>
+            <select id="ville">
+              <option value="">-- Choisir --</option>
+              <option value="🟢">🟢</option>
+              <option value="🟠">🟠</option>
+              <option value="⚪️">⚪️</option>
+              <option value="🔴">🔴</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Trello -->
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="trello">Trello :</label>
+            <select id="trello">
+              <option value="">-- Choisir --</option>
+              <option value="🟢">🟢</option>
+              <option value="🟠">🟠</option>
+              <option value="⚪️">⚪️</option>
+              <option value="🔴">🔴</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- MDT -->
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="mdt">MDT :</label>
+            <select id="mdt">
+              <option value="">-- Choisir --</option>
+              <option value="🟢">🟢</option>
+              <option value="🟠">🟠</option>
+              <option value="⚪️">⚪️</option>
+              <option value="🔴">🔴</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Connaissance de la Hiérarchie -->
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="hierarchie">Connaissance de la Hiérarchie :</label>
+            <select id="hierarchie">
+              <option value="">-- Choisir --</option>
+              <option value="🟢">🟢</option>
+              <option value="🟠">🟠</option>
+              <option value="⚪️">⚪️</option>
+              <option value="🔴">🔴</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Attitude -->
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="attitude">Attitude :</label>
+            <textarea id="attitude" placeholder="Décrire l’attitude du Rookie..."></textarea>
+          </div>
+        </div>
+
+        <!-- Appréciation -->
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="appreciation">Appréciation Globale :</label>
+            <textarea id="appreciation" placeholder="Décrire l’appréciation Globale..."></textarea>
+          </div>
+        </div>
+
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="officier">Agent rédacteur :</label>
+            <input type="text" id="officier" readonly>
+          </div>
+          <div class="user-info-field">
+            <label for="grade">Grade :</label>
+            <input type="text" id="grade" readonly>
+          </div>
+        </div>
+
+        <div class="button-container">
+          <button type="submit" id="submit">Envoyer le rapport</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  </div>
+  <script src="scripts/loadSidebar.js"></script>
+  <script src="scripts/rapport-rookie.js"></script>
+</body>
+
+</html>

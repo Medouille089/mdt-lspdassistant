@@ -43,6 +43,7 @@ router.put("/api/config", async (req, res) => {
     arrestation_thread_id,
     situations_thread_id,
     pointeuse_alert,
+    rapport_rookie_channel_id,
   } = req.body;
 
   try {
@@ -61,7 +62,8 @@ router.put("/api/config", async (req, res) => {
         incident_thread_id = $8,
         arrestation_thread_id = $9,
         situations_thread_id = $10,
-        pointeuse_alert = $11
+        pointeuse_alert = $11,
+        rapport_rookie_channel_id = $12
        WHERE id = 1 RETURNING *`,
       [
         required_role_id,
@@ -74,7 +76,8 @@ router.put("/api/config", async (req, res) => {
         incident_thread_id,
         arrestation_thread_id,
         situations_thread_id,
-        pointeuse_alert
+        pointeuse_alert,
+        rapport_rookie_channel_id
       ]
     );
 
@@ -181,6 +184,26 @@ router.put("/api/config", async (req, res) => {
           .addFields({
             name: "ID's",
             value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> Avant: <#${oldConfig.logs_channel}> (\`${oldConfig.logs_channel}\`)\n> Après: <#${logs_channel}> (\`${logs_channel}\`)`,
+            inline: false,
+          })
+          .setFooter({
+            text: "LSPD Assistant",
+            iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }),
+          })
+          .setTimestamp();
+
+        await logsChannel.send({ embeds: [embed] });
+      }
+
+      // Log rapport_rookie_channel_id
+      if (oldConfig.rapport_rookie_channel_id !== rapport_rookie_channel_id && logsChannel) {
+        const embed = new EmbedBuilder()
+          .setColor(0xFF0000)
+          .setTitle("Salon rapport rookie modifié")
+          .setDescription(`<@${req.user.id}> a modifié la configuration du salon rapport rookie`)
+          .addFields({
+            name: "ID's",
+            value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> Avant: <#${oldConfig.rapport_rookie_channel_id}> (\`${oldConfig.rapport_rookie_channel_id}\`)\n> Après: <#${rapport_rookie_channel_id}> (\`${rapport_rookie_channel_id}\`)`,
             inline: false,
           })
           .setFooter({

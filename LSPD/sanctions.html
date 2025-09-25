@@ -4,154 +4,19 @@
 <head>
   <meta charset="UTF-8" />
   <title>Créer une sanction - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
   <link rel="stylesheet" href="styles/sidebar.css" />
   <link rel="stylesheet" href="styles/loader.css" />
-  <style>
-    /* Reset & base */
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      position: relative;
-      z-index: 0;
-      background: none;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: -1;
-      background: linear-gradient(#F1F3FF, #CBD4FF);
-      background-repeat: no-repeat;
-      background-size: cover;
-    }
-
-    /* Layout global */
-    .layout {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      gap: 30px;
-      padding: 20px;
-    }
-
-    /* Container principal */
-    .sanction-container {
-      max-width: 700px;
-      width: 100%;
-      margin: auto;
-      background: #fff;
-      border-radius: 15px;
-      padding: 40px 50px 100px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-      border: 4px solid #0b1b5a;
-      position: relative;
-    }
-
-    h1 {
-      color: #0b1b5a;
-      font-size: 2rem;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-
-    label {
-      color: #0b1b5a;
-      font-weight: 500;
-      margin-top: 18px;
-      margin-bottom: 6px;
-      display: block;
-    }
-
-    select,
-    input,
-    textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: 2px solid #CBD4FF;
-      background: #f7f9ff;
-      font-size: 1rem;
-      margin-bottom: 12px;
-      transition: border-color 0.2s;
-    }
-
-    select:focus,
-    input:focus,
-    textarea:focus {
-      border-color: #0b1b5a;
-      outline: none;
-    }
-
-    textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-
-    button {
-      background: #0b1b5a;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 18px;
-      box-shadow: 0 2px 8px rgba(11, 27, 90, 0.08);
-      transition: background 0.2s;
-      width: 100%;
-    }
-
-    button:hover {
-      background: #1436a3;
-    }
-
-    @media (max-width: 700px) {
-      .layout {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      #sidebar-container {
-        width: 100%;
-        min-height: auto;
-      }
-
-      .main-container {
-        padding: 18px 8px;
-      }
-
-      h1 {
-        font-size: 1.3rem;
-      }
-    }
-
-    .user-info-row {
-      display: flex;
-      gap: 20px;
-      margin-top: 5px;
-    }
-
-    .user-info-field {
-      flex: 1;
-    }
-
-    .user-info-field input {
-      background: #f0f2fa;
-      border: 2px solid #CBD4FF;
-      color: #333;
-      cursor: not-allowed;
-    }
-  </style>
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/sanctions.css">
+  <link rel="stylesheet" href="styles/popup.css">
 </head>
 
 <body>
+  <div id="loaderOverlay" class="loader-overlay">
+    <div class="loader-spinner"></div>
+  </div>
   <div class="main-container">
     <div id="sidebar-container"></div>
     <h1>Nouvelle sanction</h1>
@@ -194,156 +59,20 @@
     </div>
   </div>
   </div>
+
+  <div id="customConfirmSend" class="custom-confirm-overlay" style="display:none;">
+    <div class="custom-confirm-box">
+      <p>Confirmer l'envoi de cette sanction ?</p>
+      <div class="custom-confirm-buttons">
+        <button class="btn btn-blue">Annuler</button>
+        <button class="btn btn-red">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
   <script src="scripts/loadSidebar.js"></script>
-  <script>
-    let allRoles = [];
-    let agentsCache = [];
-
-    // Charger les agents
-    async function loadAgents() {
-      try {
-        const res = await fetch('/api/agents');
-        const agents = await res.json();
-        agentsCache = agents;
-        const select = document.getElementById('agent');
-        select.innerHTML = '<option value="">-- Choisir un agent --</option>';
-
-        agents.sort((a, b) => a.username.localeCompare(b.username))
-          .forEach(a => {
-            const opt = document.createElement('option');
-            opt.value = a.discord_id;
-            opt.textContent = a.username;
-            select.appendChild(opt);
-          });
-      } catch (err) {
-        console.error("Erreur chargement agents:", err);
-      }
-    }
-
-    // Charger les rôles de sanction
-    async function loadSanctionRoles() {
-      try {
-        const res = await fetch('/api/sanctions/roles');
-        allRoles = await res.json();
-        renderSanctionRoles();
-      } catch (err) {
-        console.error("Erreur chargement rôles:", err);
-      }
-    }
-
-    // Charger infos utilisateur connecté
-    document.addEventListener("DOMContentLoaded", () => {
-      fetch("/api/user")
-        .then((res) => res.json())
-        .then((user) => {
-          document.getElementById("officier").value = user.username;
-          document.getElementById("grade").value = user.grade;
-        })
-        .catch((err) => {
-          console.error("Erreur chargement utilisateur :", err);
-          document.getElementById("officier").value = "Erreur de chargement";
-          document.getElementById("grade").value = "";
-        });
-    });
-
-    // Rendu des rôles (filtrés si un agent est sélectionné)
-    function renderSanctionRoles(agentId = null) {
-      const select = document.getElementById('type');
-      select.innerHTML = '<option value="">-- Choisir un type de sanction --</option>';
-
-      let rolesToDisplay = [...allRoles];
-
-      if (agentId) {
-        const agent = agentsCache.find(a => a.discord_id === agentId);
-        if (agent) {
-          // Ici on check ses rôles Discord actifs
-          const rolesDiscord = agent.roles || [];
-
-          // On enlève les sanctions déjà présentes dans ses rôles Discord
-          rolesToDisplay = rolesToDisplay.filter(r => !rolesDiscord.includes(r.id_discord));
-        }
-      }
-
-      rolesToDisplay.forEach(r => {
-        const opt = document.createElement('option');
-        opt.value = r.id_discord;
-        opt.textContent = r.nom;
-        select.appendChild(opt);
-      });
-    }
-
-    // Gérer la dépendance agent → sanctions
-    document.getElementById('agent').addEventListener('change', (e) => {
-      const agentId = e.target.value;
-      renderSanctionRoles(agentId || null);
-    });
-
-    // Gestion du formulaire
-    document.getElementById('sanctionForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const player_id = document.getElementById('agent').value;
-      const type = document.getElementById('type').value;
-      const date_from = document.getElementById('start_date').value;
-      const date_end = document.getElementById('end_date').value;
-      const reason = document.getElementById('reason').value;
-
-      if (!player_id || !type || !reason || !date_from) {
-        return alert('Merci de remplir tous les champs obligatoires.');
-      }
-
-      try {
-        const grade = document.getElementById('grade').value;
-
-        const res = await fetch('/api/sanctions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ player_id, type, reason, date_from, date_end, grade })
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-          alert('Sanction appliquée !');
-
-          // Reset des champs
-          document.getElementById('reason').value = '';
-          document.getElementById('start_date').value = new Date().toISOString().split('T')[0];
-          document.getElementById('end_date').value = '';
-
-          // 🔄 Recharger les agents et rôles
-          await loadAgents();
-          await loadSanctionRoles();
-
-          // Garder l’agent sélectionné et réactualiser ses sanctions
-          const agentSelect = document.getElementById('agent');
-          agentSelect.value = player_id;
-          renderSanctionRoles(player_id);
-
-        } else {
-          alert('Erreur: ' + data.error);
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Erreur serveur');
-      }
-    });
-
-
-    // Initialisation
-    loadAgents();
-    loadSanctionRoles();
-
-    // Dates → min = aujourd'hui
-    const today = new Date().toISOString().split('T')[0];
-    const startInput = document.getElementById('start_date');
-    const endInput = document.getElementById('end_date');
-    startInput.value = today;
-    startInput.min = today;
-    endInput.min = today;
-
-    startInput.addEventListener('change', () => {
-      endInput.min = startInput.value;
-    });
-  </script>
+  <script src="scripts/sanctions/sanctions.js"></script>
 </body>
 
 </html>
