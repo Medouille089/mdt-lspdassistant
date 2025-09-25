@@ -78,7 +78,7 @@ router.post('/api/sanctions', async (req, res) => {
         if (!req.user || !req.user.id)
             return res.status(401).json({ error: "Vous devez être connecté pour appliquer une sanction" });
 
-        const { player_id, type, reason, date_from, date_end } = req.body;
+        const { player_id, type, reason, date_from, date_end, grade } = req.body;
 
         if (!player_id || !type || !reason || !date_from) {
             return res.status(400).json({ error: "Champs obligatoires manquants" });
@@ -104,28 +104,27 @@ router.post('/api/sanctions', async (req, res) => {
         const issued_by_name = issuerMember?.displayName || req.user?.username || "Utilisateur inconnu";
         const player_name = targetMember?.displayName || "Utilisateur inconnu";
 
+        const issuerGrade = grade || "Grade inconnu";
+
         const insertRes = await pool.query(
             `INSERT INTO lspd_sanctions(
                 player_id, player_discord_id,
                 type, reason, date_from, date_end,
-                issued_by, issued_by_discord_id
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+                issued_by, issued_by_discord_id, issuer_grade
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
             [
                 player_name, player_id,
                 roleInfo.id_discord, reason, date_from, date_end || null,
-                issued_by_name, req.user.id
+                issued_by_name, req.user.id, issuerGrade
             ]
         );
 
         const sanction = insertRes.rows[0];
 
-        // Ajout rôle Discord
+        // Ajout rôle Discord + MP
         if (targetMember) {
             const role = guild.roles.cache.get(roleInfo.id_discord);
             if (role) await targetMember.roles.add(role).catch(err => console.error("Erreur ajout rôle:", err));
-
-            // --- MP exact comme dans le premier code ---
-            const issuerGrade = req.body.grade || "Grade inconnu";
 
             const embed = new EmbedBuilder()
                 .setTitle('Sanction reçue')
@@ -148,6 +147,7 @@ router.post('/api/sanctions', async (req, res) => {
             await targetMember.send({ embeds: [embed] }).catch(() => console.log('MP impossible'));
         }
 
+        // Logs Discord (inchangé)
         const logsChannel = await guild.channels.fetch(LOGS_CHANNEL_ID).catch(() => null);
         if (logsChannel?.isTextBased()) {
             const embedLog = new EmbedBuilder()
@@ -157,7 +157,7 @@ router.post('/api/sanctions', async (req, res) => {
                 .addFields([
                     {
                         name: "Détails de la sanction",
-                        value: `**Type :** ${roleInfo.nom}\n **Raison :** ${reason}\n **Date du** : ${formatDate(date_from)}\n **Date au :** ${formatDate(date_end)}`
+                        value: `**Type :** ${roleInfo.nom}\n **Raison :** ${reason}\n **Date du** : ${formatDate(date_from)}\n **Date au :** ${formatDate(date_end)}\n **Grade :** ${issuerGrade}`
                     },
                     {
                         name: "ID's",
@@ -174,7 +174,6 @@ router.post('/api/sanctions', async (req, res) => {
             console.log("✅ Log sanction envoyé");
         }
 
-
         res.json({ message: 'Sanction appliquée !', sanction });
     } catch (err) {
         console.error(err);
@@ -182,7 +181,7 @@ router.post('/api/sanctions', async (req, res) => {
     }
 });
 
-// POST /api/sanctions/revoke/:id → révoque la sanction, retire le rôle, envoie MP + logs
+// POST /api/sanctions/revoke/:id → révoque la sanction
 router.post('/api/sanctions/revoke/:id', async (req, res) => {
     try {
         if (!req.user || !req.user.id)
@@ -192,7 +191,7 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
         const bot = getBot();
         const guild = await bot.guilds.fetch(process.env.GUILD_ID);
 
-        // Récupère la sanction avec jointure sur le nom du rôle
+        // Récupère la sanction avec jointure rôle + grade stocké
         const sanctionRes = await pool.query(
             `SELECT s.*, r.nom AS type_name 
              FROM lspd_sanctions s
@@ -208,7 +207,7 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
         const revokerMember = await guild.members.fetch(req.user.id).catch(() => null);
         const revokerName = revokerMember?.displayName || req.user.username || 'Utilisateur inconnu';
 
-        // Joueur sanctionné via son Discord ID
+        // Joueur sanctionné
         const targetMember = await guild.members.fetch(sanction.player_discord_id).catch(() => null);
         const targetName = targetMember?.displayName || sanction.player_id;
 
@@ -220,7 +219,7 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
                     console.error("Erreur retrait rôle:", err)
                 );
 
-                const issuerGrade = req.body.grade || "Grade inconnu";
+                const issuerGrade = sanction.issuer_grade || "Grade inconnu";
 
                 const embedMP = new EmbedBuilder()
                     .setTitle('Sanction révoquée')
@@ -233,7 +232,7 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
                         { name: 'Agent révoquant', value: revokerName, inline: true },
                         { name: 'Grade', value: issuerGrade, inline: true }
                     )
-                    .setColor('#FFA500') // jaune pour la révocation
+                    .setColor('#FFA500')
                     .setFooter({
                         text: "LSPD Assistant",
                         iconURL: bot?.user?.displayAvatarURL({ extension: 'png', size: 256 })
@@ -252,7 +251,7 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
             [revokerName, sanctionId]
         );
 
-        // --- Logs Discord exact comme dans le premier code ---
+        // Logs Discord
         const logsChannel = await guild.channels.fetch(LOGS_CHANNEL_ID).catch(() => null);
         if (logsChannel?.isTextBased()) {
             const embedLog = new EmbedBuilder()
@@ -262,7 +261,7 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
                 .addFields([
                     {
                         name: "Détails de la sanction",
-                        value: `**Type :** ${sanction.type_name || "Inconnu"}\n**Raison :** ${sanction.reason}\n**Date du :** ${formatDate(sanction.date_from)}\n**Date au :** ${formatDate(sanction.date_end)}`
+                        value: `**Type :** ${sanction.type_name || "Inconnu"}\n**Raison :** ${sanction.reason}\n**Date du :** ${formatDate(sanction.date_from)}\n**Date au :** ${formatDate(sanction.date_end)}\n**Grade :** ${sanction.issuer_grade || "Grade inconnu"}`
                     },
                     {
                         name: "ID's",
@@ -278,7 +277,6 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
             await logsChannel.send({ embeds: [embedLog] });
             console.log("✅ Log révocation envoyé");
         }
-
 
         res.json({ success: true });
     } catch (err) {

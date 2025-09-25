@@ -1,120 +1,131 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-<meta charset="UTF-8">
-<title>Panel Tickets LSPD</title>
-<style>
-body { font-family: Arial; padding: 20px; }
-input, select, textarea { width: 100%; margin-bottom: 10px; padding: 5px; }
-button { padding: 10px 20px; margin-top: 10px; cursor: pointer; }
-.category { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-hr { margin: 20px 0; }
-</style>
+    <meta charset="UTF-8">
+    <title>Panel Tickets - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css">
+    <link rel="stylesheet" href="styles/warning.css">
+    <link rel="stylesheet" href="styles/tickets.css">
+    <link rel="stylesheet" href="styles/popup.css">
+
 </head>
+
 <body>
-<h1>Panel Tickets LSPD</h1>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Panel tickets</h1>
+        <div class="warning-modern">
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern">
+            <span>Merci de demander l'accord de 52 ou de 59 avant toutes modifications</span>
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern">
+        </div>
+        <div class="incident-container">
+            <div class="header">
+            </div>
 
-<div>
-    <h2>Créer un embed pour le panel</h2>
-    <input type="text" id="embedTitle" placeholder="Titre de l'embed">
-    <textarea id="embedDescription" placeholder="Description"></textarea>
-    <input type="color" id="embedColor" value="#00ff00">
-    <input type="text" id="embedThumbnail" placeholder="URL du thumbnail">
-    <input type="text" id="embedFooter" placeholder="Footer (nom du bot)">
-    <select id="panelChannel">
-        <!-- Options remplies via API -->
-    </select>
-</div>
+            <h2>Créer un embed pour le panel</h2>
+            <label>Titre du selecteur</label>
+            <input type="text" id="embedTitle" placeholder="Titre de l'embed">
+            <label>Description du selecteur</label>
+            <textarea id="embedDescription" placeholder="Description"></textarea>
+            <label>Couleur de l'embed</label>
+            <input type="color" id="panelEmbedColor" value="#0b1b5a">
+            <label>Salon</label>
+            <select id="panelChannel"></select>
 
-<hr>
+            <hr>
 
-<h2>Catégories de tickets</h2>
-<div id="categoriesContainer"></div>
+            <h2>Catégories de tickets</h2>
+            <div id="categoriesContainer"></div>
 
-<h3>Ajouter une catégorie</h3>
-<form id="categoryForm">
-    <input type="text" id="title" placeholder="Titre" required>
-    <input type="text" id="emoji" placeholder="Emoji" required>
-    <textarea id="description" placeholder="Description"></textarea>
-    <input type="text" id="pingRoles" placeholder="Roles à ping (id séparés par ,)">
-    <input type="text" id="allowedRoles" placeholder="Roles autorisés (id séparés par ,)">
-    <input type="text" id="targetChannel" placeholder="ID du salon cible">
-    <button type="submit">Créer catégorie</button>
-</form>
+            <h3>Ajouter / éditer une catégorie</h3>
+            <form id="categoryForm">
+                <div class="form-row">
+                    <input type="text" id="title" placeholder="Titre" required>
+                    <input type="text" id="emoji" placeholder="Emoji" required>
+                </div>
+                <div class="form-row">
+                    <input type="text" id="prefix" placeholder="Préfix (ex: ppa)">
+                    <input type="text" id="targetChannel" placeholder="ID de la catégorie cible">
+                </div>
+                <textarea id="description" placeholder="Description"></textarea>
 
-<button id="sendPanel">Envoyer le panel sur Discord</button>
+                <label>Message de bienvenue (embed)</label>
+                <textarea id="welcomeMessage" placeholder="Message envoyé dans le ticket (markdown/texte)"></textarea>
 
-<script>
-async function fetchCategories() {
-    const res = await fetch('/api/ticket-categories');
-    const categories = await res.json();
-    const container = document.getElementById('categoriesContainer');
-    container.innerHTML = '';
-    categories.forEach(cat => {
-        const div = document.createElement('div');
-        div.className = 'category';
-        div.innerHTML = `
-            <strong>${cat.emoji} ${cat.title}</strong><br>
-            ${cat.description}<br>
-            Ping roles: ${cat.ping_roles.join(', ')}<br>
-            Allowed roles: ${cat.allowed_roles.join(', ')}<br>
-            Salon cible: ${cat.target_channel_id}
-        `;
-        container.appendChild(div);
-    });
-}
+                <label>Couleur embed catégorie</label>
+                <input type="color" id="categoryEmbedColor" value="#0b1b5a">
 
-async function fetchChannels() {
-    const res = await fetch('/api/discord-channels');
-    const channels = await res.json();
-    const select = document.getElementById('panelChannel');
-    channels.forEach(ch => {
-        const opt = document.createElement('option');
-        opt.value = ch.id;
-        opt.textContent = `${ch.name} (${ch.type})`;
-        select.appendChild(opt);
-    });
-}
+                <label>Roles (sélectionne puis clique "Ajouter role")</label>
+                <div class="form-row">
+                    <select id="rolesSelect"></select>
+                </div>
+                <div class="form-row">
+                    <button id="addRoleBtn" type="button">Ajouter role</button>
+                </div>
 
-document.getElementById('categoryForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const title = document.getElementById('title').value;
-    const emoji = document.getElementById('emoji').value;
-    const description = document.getElementById('description').value;
-    const ping_roles = document.getElementById('pingRoles').value.split(',').map(r=>r.trim()).filter(r=>r);
-    const allowed_roles = document.getElementById('allowedRoles').value.split(',').map(r=>r.trim()).filter(r=>r);
-    const target_channel_id = document.getElementById('targetChannel').value;
+                <div class="roles-list" id="selectedRolesContainer"></div>
 
-    await fetch('/api/ticket-categories', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({title, emoji, description, ping_roles, allowed_roles, target_channel_id})
-    });
+                <div class="form-row">
+                    <label class="switch"><input type="checkbox" id="visibleCheckbox" checked> Afficher dans le
+                        panel</label>
+                    <button type="submit">Créer catégorie</button>
+                </div>
+            </form>
 
-    document.getElementById('categoryForm').reset();
-    fetchCategories();
-});
+            <div class="button-container">
+                <button id="sendPanel" class="send-button">Envoyer le panel sur Discord</button>
+            </div>
+        </div>
+    </div>
+    <div id="customConfirmDelete" class="custom-confirm-overlay" style="display:none;">
+        <div class="custom-confirm-box">
+            <p>Êtes-vous sûr de vouloir supprimer de la catégorie ?</p>
+            <div class="custom-confirm-buttons">
+                <button id="cancelDeleteBtn" class="btn btn-blue">Annuler</button>
+                <button id="confirmDeleteBtn" class="btn btn-red">Confirmer</button>
+            </div>
+        </div>
+    </div>
 
-document.getElementById('sendPanel').addEventListener('click', async () => {
-    const channel_id = document.getElementById('panelChannel').value;
-    const embed = {
-        title: document.getElementById('embedTitle').value,
-        description: document.getElementById('embedDescription').value,
-        color: parseInt(document.getElementById('embedColor').value.replace('#','0x')),
-        thumbnail: document.getElementById('embedThumbnail').value,
-        footer: document.getElementById('embedFooter').value
-    };
-    const res = await fetch('/api/send-panel', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({channel_id, embed})
-    });
-    const text = await res.text();
-    alert(text);
-});
+    <div id="customConfirmModify" class="custom-confirm-overlay" style="display:none;">
+        <div class="custom-confirm-box">
+            <p>Confirmer la modification de la catégorie ?</p>
+            <div class="custom-confirm-buttons">
+                <button id="cancelModifyBtn" class="btn btn-blue">Annuler</button>
+                <button id="confirmModifyBtn" class="btn btn-red">Confirmer</button>
+            </div>
+        </div>
+    </div>
 
-fetchCategories();
-fetchChannels();
-</script>
+    <div id="customConfirmAdd" class="custom-confirm-overlay" style="display:none;">
+        <div class="custom-confirm-box">
+            <p>Confirmer l'ajout de la catégorie ?</p>
+            <div class="custom-confirm-buttons">
+                <button id="cancelModifyBtn" class="btn btn-blue">Annuler</button>
+                <button id="confirmModifyBtn" class="btn btn-red">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customConfirmSend" class="custom-confirm-overlay" style="display:none;">
+        <div class="custom-confirm-box">
+            <p>Confirmer l'envoie du panel ?</p>
+            <div class="custom-confirm-buttons">
+                <button id="cancelModifyBtn" class="btn btn-blue">Annuler</button>
+                <button id="confirmModifyBtn" class="btn btn-red">Confirmer</button>
+            </div>
+        </div>
+    </div>
+    <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+    <script src="scripts/ticket.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
 </body>
+
 </html>

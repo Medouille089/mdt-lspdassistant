@@ -1,3 +1,77 @@
+// --------------------
+// SHOW ANIMATION
+// --------------------
+function showAnimation(type = 'success', message = '') {
+    return new Promise((resolve) => {
+        const container = document.getElementById('feedbackAnimation');
+        container.innerHTML = '';
+
+        const content = document.createElement('div');
+        content.className = 'feedback-inner';
+
+        if (type === 'success') {
+            content.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2" width="100" height="100">
+                    <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
+                    <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
+                </svg>
+                <p class="success">${message || 'Opération réussie !'}</p>
+            `;
+        } else {
+            content.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2" width="100" height="100">
+                    <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
+                    <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+                    <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
+                </svg>
+                <p class="error">${message || "Erreur lors de l'opération"}</p>
+            `;
+        }
+
+        container.appendChild(content);
+        container.style.display = 'flex';
+
+        setTimeout(() => {
+            container.style.display = 'none';
+            container.innerHTML = '';
+            resolve();
+        }, 1800);
+    });
+}
+
+// --------------------
+// CUSTOM CONFIRM
+// --------------------
+function customConfirm(message, confirmText = "Confirmer", cancelText = "Annuler") {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('customConfirmSend');
+        const p = overlay.querySelector('p');
+        const btnCancel = overlay.querySelector('.btn-blue');
+        const btnConfirm = overlay.querySelector('.btn-red');
+
+        p.textContent = message;
+        btnConfirm.textContent = confirmText;
+        btnCancel.textContent = cancelText;
+
+        overlay.style.display = 'flex';
+
+        const cleanup = () => {
+            overlay.style.display = 'none';
+            btnCancel.removeEventListener('click', onCancel);
+            btnConfirm.removeEventListener('click', onConfirm);
+        };
+
+        const onCancel = () => { cleanup(); resolve(false); };
+        const onConfirm = () => { cleanup(); resolve(true); };
+
+        btnCancel.addEventListener('click', onCancel);
+        btnConfirm.addEventListener('click', onConfirm);
+    });
+}
+
+// --------------------
+// INITIALIZATION
+// --------------------
 document.addEventListener('DOMContentLoaded', () => {
     const loader = document.getElementById('loaderOverlay');
     if (loader) loader.style.display = 'flex';
@@ -5,40 +79,48 @@ document.addEventListener('DOMContentLoaded', () => {
         .finally(() => {
             if (loader) loader.style.display = 'none';
         })
-        .catch(err => {
-            console.error("Erreur initialisation dashboard :", err);
-        });
+        .catch(err => console.error("Erreur initialisation dashboard :", err));
 });
-
 
 const { DateTime } = luxon;
 let isRunning = false;
 
+// --------------------
+// CHECK STATUS
+// --------------------
 async function checkStatus() {
-    const resHist = await fetch('/pointeuse/historique');
-    if (!resHist.ok) {
+    try {
+        const resHist = await fetch('/pointeuse/historique');
+        if (!resHist.ok) {
+            document.getElementById('status').textContent = 'Erreur serveur';
+            return;
+        }
+
+        const history = await resHist.json();
+        const ongoing = history.find(h => h.end_time === null);
+        isRunning = !!ongoing;
+
+        const btn = document.getElementById('btn-start-stop');
+        const status = document.getElementById('status');
+
+        if (isRunning) {
+            status.textContent = `Pointage en cours depuis : ${DateTime.fromISO(ongoing.start_time).setZone('Europe/Paris').toLocaleString(DateTime.DATETIME_SHORT)}`;
+            btn.textContent = 'Arrêter le pointage';
+        } else {
+            status.textContent = 'Aucun pointage en cours.';
+            btn.textContent = 'Démarrer le pointage';
+        }
+
+        await fetchWeeklySalary();
+    } catch (err) {
+        console.error("Erreur checkStatus:", err);
         document.getElementById('status').textContent = 'Erreur serveur';
-        return;
     }
-    const history = await resHist.json();
-    const ongoing = history.find(h => h.end_time === null);
-    isRunning = !!ongoing;
-
-    const btn = document.getElementById('btn-start-stop');
-    const status = document.getElementById('status');
-
-    if (isRunning) {
-        status.textContent = `Pointage en cours depuis : ${DateTime.fromISO(ongoing.start_time).setZone('Europe/Paris').toLocaleString(DateTime.DATETIME_SHORT)}`;
-        btn.textContent = 'Arrêter le pointage';
-    } else {
-        status.textContent = 'Aucun pointage en cours.';
-        btn.textContent = 'Démarrer le pointage';
-    }
-
-    // Affiche l'historique semaine et le salaire
-    await fetchWeeklySalary();
 }
 
+// --------------------
+// FETCH WEEKLY SALARY
+// --------------------
 async function fetchWeeklySalary() {
     try {
         const res = await fetch('/pointeuse/semaine');
@@ -46,7 +128,6 @@ async function fetchWeeklySalary() {
 
         const data = await res.json();
 
-        // Affiche la plage de la semaine courante
         const startDate = DateTime.fromISO(data.currentWeek.start, { zone: 'Europe/Paris' }).toLocaleString(DateTime.DATE_MED);
         const endDate = DateTime.fromISO(data.currentWeek.end, { zone: 'Europe/Paris' }).toLocaleString(DateTime.DATE_MED);
 
@@ -73,6 +154,9 @@ async function fetchWeeklySalary() {
     }
 }
 
+// --------------------
+// RENDER WEEKLY HISTORY
+// --------------------
 function renderWeeklyHistory(entries) {
     const tbody = document.getElementById('weekly-history-body');
     tbody.innerHTML = '';
@@ -95,32 +179,41 @@ function renderWeeklyHistory(entries) {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-                    <td>${start}</td>
-                    <td>${end}</td>
-                    <td>${role}</td>
-                    <td>${duration}</td>
-                    <td>${earned}</td>
-                `;
+            <td>${start}</td>
+            <td>${end}</td>
+            <td>${role}</td>
+            <td>${duration}</td>
+            <td>${earned}</td>
+        `;
         tbody.appendChild(tr);
     });
 }
 
+// --------------------
+// START / STOP POINTEUSE
+// --------------------
 document.getElementById('btn-start-stop').addEventListener('click', async () => {
-    const url = isRunning ? '/pointeuse/stop' : '/pointeuse/start';
-    const res = await fetch(url, { method: 'POST' });
-    const data = await res.json();
+    const action = isRunning ? 'stop' : 'start';
+    const message = isRunning ? 'Voulez-vous vraiment arrêter votre pointage ?' : 'Voulez-vous démarrer un nouveau pointage ?';
 
-    if (!res.ok) {
-        alert(data.error || 'Erreur serveur');
-        return;
+    const confirmed = await customConfirm(message, `Confirmer ${isRunning ? 'arrêt' : 'démarrage'}`, "Annuler");
+    if (!confirmed) return;
+
+    try {
+        const res = await fetch(`/pointeuse/${action}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+
+        if (isRunning) {
+            await showAnimation('success', `Pointage arrêté. Vous avez gagné ${data.earned ? data.earned.toFixed(2) : '?'} $`);
+        } else {
+            await showAnimation('success', `Pointage démarré avec le rôle : ${data.role_used}`);
+        }
+
+        await checkStatus();
+    } catch (err) {
+        await showAnimation('error', err.message || 'Erreur serveur');
+        console.error(err);
     }
-
-    alert(isRunning
-        ? `Pointage arrêté. Vous avez gagné ${data.earned ? data.earned.toFixed(2) : '?'} $`
-        : `Pointage démarré avec le rôle : ${data.role_used}`);
-
-    await checkStatus();
 });
-
-// Au chargement de la page
-checkStatus();
