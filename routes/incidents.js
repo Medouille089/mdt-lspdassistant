@@ -188,7 +188,7 @@ router.get('/api/getIncident', async (req, res) => {
       ORDER BY date_incident DESC, heure_incident DESC
     `);
 
-    const bot = getBot(); // Assure-toi que le bot est prêt
+    const bot = getBot();
 
     const withImages = await Promise.all(result.rows.map(async row => {
       let images = [];
@@ -198,7 +198,6 @@ router.get('/api/getIncident', async (req, res) => {
 
         if (thread?.isThread()) {
           const messages = await thread.messages.fetch({ limit: 100 });
-
           messages.forEach(msg => {
             msg.attachments.forEach(att => {
               if (att.contentType?.startsWith("image/")) {
@@ -208,7 +207,11 @@ router.get('/api/getIncident', async (req, res) => {
           });
         }
       } catch (err) {
-        console.error(`Erreur lors de la récupération des images du thread ${row.discord_thread_id}:`, err);
+        if (err.code === 10003) {
+          console.warn(`[WARN] Thread introuvable ou supprimé (${row.discord_thread_id}) pour incident ${row.incident_id}`);
+        } else {
+          console.error(`[ERROR] Problème sur incident ${row.incident_id}:`, err);
+        }
       }
 
       return {
