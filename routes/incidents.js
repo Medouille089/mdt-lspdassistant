@@ -162,47 +162,40 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
 
 router.get('/api/getIncident', async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT 
-        incident_id,
-        date_incident,
-        heure_incident,
-        officier_redacteur,
-        grade,
-        recit,
-        officier_implique,
-        type_rapport,
-        lieu_incident,
-        discord_thread_id,
-        discord_message_id
-      FROM incidents
-      ORDER BY date_incident DESC, heure_incident DESC
-    `);
+    const { id } = req.query; // possibilité de demander un incident précis
+    const query = id
+      ? `SELECT * FROM incidents WHERE incident_id=$1`
+      : `SELECT * FROM incidents ORDER BY date_incident DESC, heure_incident DESC`;
 
+    const params = id ? [id] : [];
+    const result = await pool.query(query, params);
     const bot = getBot();
 
     const withImages = await Promise.all(result.rows.map(async row => {
       let images = [];
+      let threadExists = true;
 
-      try {
-        const thread = await bot.channels.fetch(row.discord_thread_id);
-
-        if (thread?.isThread()) {
-          const messages = await thread.messages.fetch({ limit: 100 });
-          messages.forEach(msg => {
-            msg.attachments.forEach(att => {
-              if (att.contentType?.startsWith("image/")) {
-                images.push(att.url);
-              }
+      if (row.discord_thread_id) {
+        try {
+          const thread = await bot.channels.fetch(row.discord_thread_id);
+          if (!thread?.isThread()) {
+            threadExists = false;
+          } else {
+            const messages = await thread.messages.fetch({ limit: 100 });
+            messages.forEach(msg => {
+              msg.attachments.forEach(att => {
+                if (att.contentType?.startsWith("image/")) images.push(att.url);
+              });
             });
-          });
+          }
+        } catch (err) {
+          if (err.code !== 10003) {
+            console.error(`[ERROR] Problème sur incident ${row.incident_id}:`, err);
+          }
+          threadExists = false; // thread introuvable ou supprimé
         }
-      } catch (err) {
-        if (err.code === 10003) {
-          console.warn(`[WARN] Thread introuvable ou supprimé (${row.discord_thread_id}) pour incident ${row.incident_id}`);
-        } else {
-          console.error(`[ERROR] Problème sur incident ${row.incident_id}:`, err);
-        }
+      } else {
+        threadExists = false;
       }
 
       return {
@@ -215,7 +208,7 @@ router.get('/api/getIncident', async (req, res) => {
         implique: row.officier_implique,
         type: row.type_rapport,
         lieu: row.lieu_incident,
-        threadId: row.discord_thread_id,
+        threadId: threadExists ? row.discord_thread_id : null,
         messageId: row.discord_message_id,
         images
       };
