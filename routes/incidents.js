@@ -77,14 +77,12 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
     const [yyyy, mm, dd] = date.split("-");
     const formattedDate = `${dd}/${mm}/${yyyy}`;
 
-    // ⚡ Générer le lien de consultation
     const isLocal = process.env.IS_LOCAL === "true";
     const baseUrl = isLocal
       ? "http://localhost:3001/viewIncident.html"
       : "https://lspd-assistant.fr/viewIncident.html";
     const incidentLink = `${baseUrl}?id=${incidentId}`;
 
-    // Embed Discord
     const embed = new EmbedBuilder()
       .setTitle("Nouveau rapport d'incident")
       .setThumbnail(botUser.displayAvatarURL({ extension: 'png' }))
@@ -261,74 +259,89 @@ router.put('/api/updateIncident', upload.array('pieces'), async (req, res) => {
   const bot = getBot();
   const situationsChannelId = conf.situations_thread_id;
   const logsChannelId = conf.logs_channel;
+
   try {
+    const {
+      incidentId, date, heure, officier, grade,
+      recit, implique, type, lieu, discord_thread_id, editBy
+    } = req.body;
 
-    const { incidentId, date, heure, officier, grade, recit, implique, type, lieu, discord_thread_id, messageId, editBy } = req.body;
-    const files = req.files;
+    const files = req.files || [];
+    const imageFiles = files.filter(f => f.mimetype.startsWith("image/"));
 
-    if (!incidentId) {
-      return res.status(400).json({ error: 'incidentId manquant' });
-    }
+    if (!incidentId) return res.status(400).json({ error: 'incidentId manquant' });
 
+    // Mise à jour en base
     await pool.query(`
       UPDATE incidents 
-      SET date_incident = $1, heure_incident = $2, officier_redacteur = $3, grade = $4, recit = $5, 
-          officier_implique = $6, type_rapport = $7, lieu_incident = $8
-      WHERE incident_id = $9
+      SET date_incident=$1, heure_incident=$2, officier_redacteur=$3, grade=$4, recit=$5,
+          officier_implique=$6, type_rapport=$7, lieu_incident=$8
+      WHERE incident_id=$9
     `, [date, heure, officier, grade, recit, implique, type, lieu, incidentId]);
 
-    // Si pas de discord_thread_id, on termine ici
     if (!discord_thread_id || discord_thread_id === 'null' || discord_thread_id === 'undefined') {
       console.log("Pas de thread Discord à mettre à jour");
       return res.json({ message: "Incident mis à jour avec succès (sans Discord)." });
     }
 
-
-    const situationsChannel = await getBot().channels.fetch(situationsChannelId);
+    const situationsChannel = await bot.channels.fetch(situationsChannelId);
     const thread = await situationsChannel.threads.fetch(discord_thread_id);
-    if (!thread) {
-      return res.status(404).json({ error: 'Thread non trouvé ou invalide.' });
+    if (!thread) return res.status(404).json({ error: 'Thread non trouvé ou invalide.' });
+
+    const botUser = bot.user;
+
+    const isLocal = process.env.IS_LOCAL === "true";
+    const baseUrl = isLocal
+      ? "http://localhost:3001/viewIncident.html"
+      : "https://lspd-assistant.fr/viewIncident.html";
+    const incidentLink = `${baseUrl}?id=${incidentId}`;
+
+    // Crée un nouvel embed pour l'update
+    const embed = new EmbedBuilder()
+      .setTitle("Mise à jour d'un rapport d'incident")
+      .setThumbnail(botUser.displayAvatarURL({ extension: 'png' }))
+      .addFields(
+        { name: "ID d'incident", value: incidentId },
+        { name: "Date", value: date, inline: true },
+        { name: "Heure", value: heure, inline: true },
+        { name: "Officier rédacteur", value: officier, inline: true },
+        { name: "Grade", value: grade || "Non précisé", inline: true },
+        { name: "Officiers impliqués", value: implique || "Aucun" },
+        { name: "Type", value: type || "Non précisé", inline: true },
+        { name: "Lieu", value: lieu || "Non précisé", inline: true },
+        { name: "Consulter le rapport", value: `[Voir le rapport d'incident ${incidentId}](${incidentLink})` }
+      )
+
+      .setFooter({ text: `Modifié par ${editBy}`, iconURL: botUser.displayAvatarURL() })
+      .setColor(0x0b1b5a)
+      .setTimestamp();
+
+    const message = await thread.send({ embeds: [embed] });
+
+    // Envoie les images dans un second message
+    if (imageFiles.length > 0) {
+      const attachments = imageFiles.map(f => new AttachmentBuilder(f.buffer, { name: f.originalname }));
+      await thread.send({ files: attachments });
     }
-    console.log(`Thread récupéré : ${thread.name} (${thread.id})`);
-    const botUser = await getBot().user;
-    const botMessage = await thread.messages.fetch(messageId);
-    if (botMessage) {
-      if (files && files.length > 0) {
-        for (const file of files) {
-          const attachment = new AttachmentBuilder(file.buffer, { name: file.originalname });
-          await botMessage.edit({ content: `Modifié par : ${editBy} (|| <@${req.user?.id}> ||)`, files: [attachment] });
-        }
-      }
-    }
+
     const logsChannel = await bot.channels.fetch(logsChannelId);
     if (logsChannel?.isTextBased()) {
       const embedLog = new EmbedBuilder()
         .setColor(0x0b1b5a)
         .setTitle(`Modification d'un rapport d'incident - ${incidentId}`)
-        .setDescription(`<@${req.user?.id}> a modifié le rapport de la situation - <#${thread.id}> \`${incidentId}\` `)
-        .addFields({
-          name: "ID's",
-          value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${req.user?.id || 'ID inconnu'}\`) \n> <#${thread.id}> (\`${thread.id}\`) \n> ${botMessage.url || 'Aucun message ID'} (\`${messageId}\`)`,
-          inline: false
-        })
-        .setFooter({
-          text: "LSPD Assistant",
-          iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 })
-        })
+        .setDescription(`<@${req.user?.id}> a modifié le rapport - <#${thread.id}>`)
+        .setFooter({ text: "LSPD Assistant", iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 }) })
         .setTimestamp();
-
       await logsChannel.send({ embeds: [embedLog] });
-      console.log('Log modification rapport envoyé');
     }
 
-
-    console.log(`Thread mis à jour : ${thread.id}`);
-
     res.json({ message: "Incident mis à jour avec succès." });
+
   } catch (err) {
     console.error('Erreur PUT /api/updateIncident :', err);
     res.status(500).json({ error: 'Erreur lors de la mise à jour de l’incident.' });
   }
 });
+
 
 module.exports = router;
