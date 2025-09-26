@@ -7,13 +7,12 @@ const { getBot } = require("../config/config");
 const { AttachmentBuilder, EmbedBuilder, ChannelType } = require("discord.js");
 const upload = multer({ storage: multer.memoryStorage() });
 
-async function createOrGetThread(forum, situationsChannel, situationsArray, data) {
-  const { incidentId, formattedDate, officier, embed, recit } = data;
+async function createOrGetThread(forum, situationsChannel, situationsArray, data, files = []) {
+  const { incidentId, formattedDate, officier, embed } = data;
 
   try {
+    // Cherche un thread existant dans les situations
     if (situationsArray && situationsArray.length > 0) {
-      console.log("Tentative de récupération du thread situation:", situationsArray);
-
       const activeThreads = await situationsChannel.threads.fetch();
 
       for (const situationData of situationsArray) {
@@ -21,6 +20,14 @@ async function createOrGetThread(forum, situationsChannel, situationsArray, data
           const existingThread = activeThreads.threads.get(situationData.id);
           if (existingThread) {
             console.log(`Thread situation trouvé: ${existingThread.name} (${existingThread.id})`);
+
+            // Envoie l'embed avec les images dans le thread existant
+            if (files.length > 0) {
+              const attachments = files.map(f => new AttachmentBuilder(f.buffer, { name: f.originalname }));
+              await existingThread.send({ embeds: [embed], files: attachments });
+            } else {
+              await existingThread.send({ embeds: [embed] });
+            }
 
             return existingThread;
           }
@@ -30,11 +37,12 @@ async function createOrGetThread(forum, situationsChannel, situationsArray, data
       console.log("Aucun thread situation valide trouvé, création d'un nouveau thread dans le forum incidents");
     }
 
+    // Création d'un nouveau thread dans le forum incidents
     const newThread = await forum.threads.create({
       name: `${incidentId} - ${formattedDate} - ${officier}`,
       message: {
         embeds: [embed],
-        content: `**Récit des faits :**\n${recit || 'Aucun récit fourni'}`
+        files: files.map(f => new AttachmentBuilder(f.buffer, { name: f.originalname }))
       }
     });
 
@@ -43,17 +51,7 @@ async function createOrGetThread(forum, situationsChannel, situationsArray, data
 
   } catch (error) {
     console.error("Erreur lors de la gestion du thread:", error);
-
-    const fallbackThread = await forum.threads.create({
-      name: `${incidentId} - ${formattedDate} - ${officier}`,
-      message: {
-        embeds: [embed],
-        content: `**Récit des faits :**\n${recit || 'Aucun récit fourni'}`
-      }
-    });
-
-    console.log(`Thread fallback créé: ${fallbackThread.name} (${fallbackThread.id})`);
-    return fallbackThread;
+    throw error;
   }
 }
 
@@ -63,18 +61,10 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
   const situationForumChannelId = conf.situations_thread_id;
   const forumChannelId = conf.incident_thread_id;
   const logsChannelId = conf.logs_channel;
-  try {
-    const {
-      date, heure, officier, grade,
-      recit, implique, type, lieu, situations
-    } = req.body;
-    const files = req.files;
-    const situationsArray = JSON.parse(situations || "[]");
 
-    console.log("Données reçues:");
-    console.log("- situations (raw):", situations);
-    console.log("- situationsArray (parsed):", situationsArray);
-    console.log("- Type de situationsArray:", Array.isArray(situationsArray) ? 'Array' : typeof situationsArray);
+  try {
+    const { date, heure, officier, grade, recit, implique, type, lieu, situations } = req.body;
+    const situationsArray = JSON.parse(situations || "[]");
 
     const forum = await bot.channels.fetch(forumChannelId);
     const situationsChannel = await bot.channels.fetch(situationForumChannelId);
@@ -86,6 +76,12 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
 
     const [yyyy, mm, dd] = date.split("-");
     const formattedDate = `${dd}/${mm}/${yyyy}`;
+
+    const isLocal = process.env.IS_LOCAL === "true";
+    const baseUrl = isLocal
+      ? "http://localhost:3001/viewIncident.html"
+      : "https://lspd-assistant.fr/viewIncident.html";
+    const incidentLink = `${baseUrl}?id=${incidentId}`;
 
     const embed = new EmbedBuilder()
       .setTitle("Nouveau rapport d'incident")
@@ -99,44 +95,46 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
         { name: "Officiers impliqués", value: implique || "Aucun" },
         { name: "Type", value: type || "Non précisé", inline: true },
         { name: "Lieu", value: lieu || "Non précisé", inline: true },
+        { name: "Consulter le rapport", value: `[Voir le rapport d'incident ${incidentId}](${incidentLink})` }
       )
-      .setFooter({
-        text: "LSPD Assistant",
-        iconURL: botUser.displayAvatarURL()
-      })
+      .setFooter({ text: "LSPD Assistant", iconURL: botUser.displayAvatarURL() })
       .setColor(0x0b1b5a)
       .setTimestamp();
 
-    const thread = await createOrGetThread(forum, situationsChannel, situationsArray, {
-      incidentId,
-      formattedDate,
-      officier,
-      embed,
-      recit
-    });
+    const files = req.files || [];
+    const imageFiles = (files || []).filter(f => f.mimetype.startsWith("image/"));
 
-    console.log(`Thread utilisé : ${thread.id}`);
-
-    if (files?.length > 0) {
-      for (const file of files) {
-        const attachment = new AttachmentBuilder(file.buffer, {
-          name: file.originalname
-        });
-        await thread.send({ files: [attachment] });
+    const thread = await createOrGetThread(
+      forum,
+      situationsChannel,
+      situationsArray,
+      {
+        incidentId,
+        formattedDate,
+        officier,
+        embed
       }
+    );
+
+    if (imageFiles.length > 0) {
+      const attachments = imageFiles.map(f => new AttachmentBuilder(f.buffer, { name: f.originalname }));
+      await thread.send({ files: attachments });
     }
 
     thread.setLocked(true);
 
+    // ⚡ Enregistrer en base **avec le récit**
     await pool.query(`
       INSERT INTO incidents 
       (incident_id, date_incident, heure_incident, officier_redacteur, grade, recit, officier_implique, type_rapport, lieu_incident, discord_thread_id, discord_message_id)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
     `, [
       incidentId, date, heure, officier, grade,
-      recit, implique, type, lieu, thread.id, thread.lastMessageId
+      recit || '', // obligatoire pour NOT NULL
+      implique, type, lieu, thread.id, thread.lastMessageId
     ]);
 
+    // ⚡ Log Discord
     const logsChannel = await bot.channels.fetch(logsChannelId);
     if (logsChannel?.isTextBased()) {
       const embedLog = new EmbedBuilder()
@@ -148,20 +146,13 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
           value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${req.user?.id || 'ID inconnu'}\`) \n> <#${thread.id}> (\`${thread.id}\`)`,
           inline: false
         })
-        .setFooter({
-          text: "LSPD Assistant",
-          iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 })
-        })
+        .setFooter({ text: "LSPD Assistant", iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 }) })
         .setTimestamp();
 
       await logsChannel.send({ embeds: [embedLog] });
-      console.log('Log création rapport envoyé');
     }
 
-    res.json({
-      message: "Rapport enregistré et envoyé !",
-      incidentId: incidentId
-    });
+    res.json({ message: "Rapport enregistré et envoyé !", incidentId, link: incidentLink });
 
   } catch (err) {
     console.error("Erreur API /api/incident :", err);
@@ -171,44 +162,40 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
 
 router.get('/api/getIncident', async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT 
-        incident_id,
-        date_incident,
-        heure_incident,
-        officier_redacteur,
-        grade,
-        recit,
-        officier_implique,
-        type_rapport,
-        lieu_incident,
-        discord_thread_id,
-        discord_message_id
-      FROM incidents
-      ORDER BY date_incident DESC, heure_incident DESC
-    `);
+    const { id } = req.query; // possibilité de demander un incident précis
+    const query = id
+      ? `SELECT * FROM incidents WHERE incident_id=$1`
+      : `SELECT * FROM incidents ORDER BY date_incident DESC, heure_incident DESC`;
 
-    const bot = getBot(); // Assure-toi que le bot est prêt
+    const params = id ? [id] : [];
+    const result = await pool.query(query, params);
+    const bot = getBot();
 
     const withImages = await Promise.all(result.rows.map(async row => {
       let images = [];
+      let threadExists = true;
 
-      try {
-        const thread = await bot.channels.fetch(row.discord_thread_id);
-
-        if (thread?.isThread()) {
-          const messages = await thread.messages.fetch({ limit: 100 });
-
-          messages.forEach(msg => {
-            msg.attachments.forEach(att => {
-              if (att.contentType?.startsWith("image/")) {
-                images.push(att.url);
-              }
+      if (row.discord_thread_id) {
+        try {
+          const thread = await bot.channels.fetch(row.discord_thread_id);
+          if (!thread?.isThread()) {
+            threadExists = false;
+          } else {
+            const messages = await thread.messages.fetch({ limit: 100 });
+            messages.forEach(msg => {
+              msg.attachments.forEach(att => {
+                if (att.contentType?.startsWith("image/")) images.push(att.url);
+              });
             });
-          });
+          }
+        } catch (err) {
+          if (err.code !== 10003) {
+            console.error(`[ERROR] Problème sur incident ${row.incident_id}:`, err);
+          }
+          threadExists = false; // thread introuvable ou supprimé
         }
-      } catch (err) {
-        console.error(`Erreur lors de la récupération des images du thread ${row.discord_thread_id}:`, err);
+      } else {
+        threadExists = false;
       }
 
       return {
@@ -221,7 +208,7 @@ router.get('/api/getIncident', async (req, res) => {
         implique: row.officier_implique,
         type: row.type_rapport,
         lieu: row.lieu_incident,
-        threadId: row.discord_thread_id,
+        threadId: threadExists ? row.discord_thread_id : null,
         messageId: row.discord_message_id,
         images
       };
@@ -265,74 +252,89 @@ router.put('/api/updateIncident', upload.array('pieces'), async (req, res) => {
   const bot = getBot();
   const situationsChannelId = conf.situations_thread_id;
   const logsChannelId = conf.logs_channel;
+
   try {
+    const {
+      incidentId, date, heure, officier, grade,
+      recit, implique, type, lieu, discord_thread_id, editBy
+    } = req.body;
 
-    const { incidentId, date, heure, officier, grade, recit, implique, type, lieu, discord_thread_id, messageId, editBy } = req.body;
-    const files = req.files;
+    const files = req.files || [];
+    const imageFiles = files.filter(f => f.mimetype.startsWith("image/"));
 
-    if (!incidentId) {
-      return res.status(400).json({ error: 'incidentId manquant' });
-    }
+    if (!incidentId) return res.status(400).json({ error: 'incidentId manquant' });
 
+    // Mise à jour en base
     await pool.query(`
       UPDATE incidents 
-      SET date_incident = $1, heure_incident = $2, officier_redacteur = $3, grade = $4, recit = $5, 
-          officier_implique = $6, type_rapport = $7, lieu_incident = $8
-      WHERE incident_id = $9
+      SET date_incident=$1, heure_incident=$2, officier_redacteur=$3, grade=$4, recit=$5,
+          officier_implique=$6, type_rapport=$7, lieu_incident=$8
+      WHERE incident_id=$9
     `, [date, heure, officier, grade, recit, implique, type, lieu, incidentId]);
 
-    // Si pas de discord_thread_id, on termine ici
     if (!discord_thread_id || discord_thread_id === 'null' || discord_thread_id === 'undefined') {
       console.log("Pas de thread Discord à mettre à jour");
       return res.json({ message: "Incident mis à jour avec succès (sans Discord)." });
     }
 
-
-    const situationsChannel = await getBot().channels.fetch(situationsChannelId);
+    const situationsChannel = await bot.channels.fetch(situationsChannelId);
     const thread = await situationsChannel.threads.fetch(discord_thread_id);
-    if (!thread) {
-      return res.status(404).json({ error: 'Thread non trouvé ou invalide.' });
+    if (!thread) return res.status(404).json({ error: 'Thread non trouvé ou invalide.' });
+
+    const botUser = bot.user;
+
+    const isLocal = process.env.IS_LOCAL === "true";
+    const baseUrl = isLocal
+      ? "http://localhost:3001/viewIncident.html"
+      : "https://lspd-assistant.fr/viewIncident.html";
+    const incidentLink = `${baseUrl}?id=${incidentId}`;
+
+    // Crée un nouvel embed pour l'update
+    const embed = new EmbedBuilder()
+      .setTitle("Mise à jour d'un rapport d'incident")
+      .setThumbnail(botUser.displayAvatarURL({ extension: 'png' }))
+      .addFields(
+        { name: "ID d'incident", value: incidentId },
+        { name: "Date", value: date, inline: true },
+        { name: "Heure", value: heure, inline: true },
+        { name: "Officier rédacteur", value: officier, inline: true },
+        { name: "Grade", value: grade || "Non précisé", inline: true },
+        { name: "Officiers impliqués", value: implique || "Aucun" },
+        { name: "Type", value: type || "Non précisé", inline: true },
+        { name: "Lieu", value: lieu || "Non précisé", inline: true },
+        { name: "Consulter le rapport", value: `[Voir le rapport d'incident ${incidentId}](${incidentLink})` }
+      )
+
+      .setFooter({ text: `Modifié par ${editBy}`, iconURL: botUser.displayAvatarURL() })
+      .setColor(0x0b1b5a)
+      .setTimestamp();
+
+    const message = await thread.send({ embeds: [embed] });
+
+    // Envoie les images dans un second message
+    if (imageFiles.length > 0) {
+      const attachments = imageFiles.map(f => new AttachmentBuilder(f.buffer, { name: f.originalname }));
+      await thread.send({ files: attachments });
     }
-    console.log(`Thread récupéré : ${thread.name} (${thread.id})`);
-    const botUser = await getBot().user;
-    const botMessage = await thread.messages.fetch(messageId);
-    if (botMessage) {
-      if (files && files.length > 0) {
-        for (const file of files) {
-          const attachment = new AttachmentBuilder(file.buffer, { name: file.originalname });
-          await botMessage.edit({ content: `Modifié par : ${editBy} (|| <@${req.user?.id}> ||)`, files: [attachment] });
-        }
-      }
-    }
+
     const logsChannel = await bot.channels.fetch(logsChannelId);
     if (logsChannel?.isTextBased()) {
       const embedLog = new EmbedBuilder()
         .setColor(0x0b1b5a)
         .setTitle(`Modification d'un rapport d'incident - ${incidentId}`)
-        .setDescription(`<@${req.user?.id}> a modifié le rapport de la situation - <#${thread.id}> \`${incidentId}\` `)
-        .addFields({
-          name: "ID's",
-          value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${req.user?.id || 'ID inconnu'}\`) \n> <#${thread.id}> (\`${thread.id}\`) \n> ${botMessage.url || 'Aucun message ID'} (\`${messageId}\`)`,
-          inline: false
-        })
-        .setFooter({
-          text: "LSPD Assistant",
-          iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 })
-        })
+        .setDescription(`<@${req.user?.id}> a modifié le rapport - <#${thread.id}>`)
+        .setFooter({ text: "LSPD Assistant", iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 }) })
         .setTimestamp();
-
       await logsChannel.send({ embeds: [embedLog] });
-      console.log('Log modification rapport envoyé');
     }
 
-
-    console.log(`Thread mis à jour : ${thread.id}`);
-
     res.json({ message: "Incident mis à jour avec succès." });
+
   } catch (err) {
     console.error('Erreur PUT /api/updateIncident :', err);
     res.status(500).json({ error: 'Erreur lors de la mise à jour de l’incident.' });
   }
 });
+
 
 module.exports = router;
