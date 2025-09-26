@@ -53,6 +53,7 @@ async function loadAlertTime() {
     } catch (err) {
         console.warn("Impossible de charger l'heure d'alerte :", err);
     }
+
 }
 
 // --------------------
@@ -127,6 +128,7 @@ async function deleteRole(roleId) {
 
     await showAnimation('success', "Rôle supprimé avec succès !");
     await loadRoles();
+
 }
 
 // --------------------
