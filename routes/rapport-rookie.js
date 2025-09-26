@@ -53,7 +53,11 @@ router.post('/api/rapport-rookie', checkAuth, async (req, res) => {
         } = req.body;
 
         const bot = getBot();
+        if (!bot?.isReady()) return res.status(500).json({ error: "Bot Discord non connecté" });
+
         const guild = await bot.guilds.fetch(process.env.GUILD_ID);
+        if (!guild) return res.status(500).json({ error: "Guild introuvable" });
+
         const member = await guild.members.fetch(agent);
 
         // Récupérer la configuration pour choper le channel
@@ -87,11 +91,13 @@ router.post('/api/rapport-rookie', checkAuth, async (req, res) => {
         const channel = await bot.channels.fetch(reportChannelId);
         if (!channel) return res.status(500).json({ error: "Salon de rapport introuvable" });
 
-        await channel.send({ embeds: [embed] });
-
+        // ✅ Envoie unique du rapport
         const sentMessage = await channel.send({ embeds: [embed] });
+
+        // Récupérer l'auteur grâce au middleware checkAuth
         const authorId = req.user.id; 
 
+        // Embed de log
         const logEmbed = new EmbedBuilder()
             .setColor(0x0b1b5a)
             .setTitle("Nouveau rapport rookie")
@@ -106,12 +112,12 @@ router.post('/api/rapport-rookie', checkAuth, async (req, res) => {
             .setFooter({ text: "LSPD Assistant", iconURL: bot.user.displayAvatarURL() })
             .setTimestamp();
 
-        const logChannelId = getConfig().logs_channel;
+        // Envoi dans le salon de logs si configuré
+        const logChannelId = config.logs_channel;
         if (logChannelId) {
             const logChannel = await bot.channels.fetch(logChannelId);
             if (logChannel) await logChannel.send({ embeds: [logEmbed] });
         }
-
 
         res.json({ success: true, message: "Rapport envoyé avec succès !" });
 
