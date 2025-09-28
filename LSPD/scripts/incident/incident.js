@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadSituations();
 });
 
-function fileToBase64(file) {
+async function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
@@ -67,25 +67,55 @@ async function compressImage(file, quality = 0.6) {
   });
 }
 
+let attachedImages = []; 
 async function previewAttachments(event) {
-  const files = event.target.files;
+  const files = Array.from(event.target.files); 
   const preview = document.getElementById('attachmentsPreview');
-  preview.innerHTML = '';
 
   for (const file of files) {
     if (file.type.startsWith('image/')) {
-      try {
-        const base64 = await fileToBase64(file);
-        const img = document.createElement('img');
-        img.src = base64;
-        img.classList.add('preview-image');
-        preview.appendChild(img);
-      } catch (e) {
-        console.error("Erreur conversion image :", e);
-      }
+      attachedImages.push(file);
+    }
+  }
+
+  renderPreview();
+}
+
+async function renderPreview() {
+  const preview = document.getElementById('attachmentsPreview');
+  preview.innerHTML = '';
+
+  for (let i = 0; i < attachedImages.length; i++) {
+    const file = attachedImages[i];
+    try {
+      const base64 = await fileToBase64(file);
+      const wrapper = document.createElement('div');
+      wrapper.className = 'preview-wrapper';
+
+      const img = document.createElement('img');
+      img.src = base64;
+      img.classList.add('preview-image');
+
+      const removeBtn = document.createElement('span');
+      removeBtn.className = 'remove-image';
+      removeBtn.textContent = '×';
+      removeBtn.addEventListener('click', () => {
+        attachedImages.splice(i, 1);
+        renderPreview();
+        document.getElementById('pieces').value = ''; 
+      });
+
+      wrapper.appendChild(img);
+      wrapper.appendChild(removeBtn);
+      preview.appendChild(wrapper);
+    } catch (e) {
+      console.error("Erreur conversion image :", e);
     }
   }
 }
+
+document.getElementById('pieces').addEventListener('change', previewAttachments);
+// ---------------------------------------------------------------------------------------------
 
 let situationItems = [];
 
@@ -103,8 +133,6 @@ async function loadSituations() {
   }
 }
 
-
-// 2. Initialisation sur chaque conteneur
 function initSelectBox(container, items) {
   const isMultiple = container.dataset.multiple !== undefined;
   let selected = [];
@@ -112,13 +140,11 @@ function initSelectBox(container, items) {
   const inputEl = container.querySelector('.search-input');
   const listEl = container.querySelector('.options-list');
 
-  // 3. Affiche la liste filtrée
   function renderOptions(regex) {
     listEl.innerHTML = '';
     items
       .filter(item => regex.test(item.name))
       .forEach(item => {
-        console.log()
         const li = document.createElement('li');
         li.textContent = item.name;
         li.situation = item;
@@ -127,7 +153,6 @@ function initSelectBox(container, items) {
       });
   }
 
-  // 4. Sélectionne ou désélectionne un item
   function toggle(item) {
     const idx = selected.indexOf(item);
 
@@ -142,7 +167,6 @@ function initSelectBox(container, items) {
     renderSelected();
   }
 
-  // 5. Met à jour les étiquettes affichées
   function renderSelected() {
     selectedEl.innerHTML = '';
     selected.forEach(item => {
@@ -155,7 +179,6 @@ function initSelectBox(container, items) {
     });
   }
 
-  // 6. Filtrage regex au fil de la frappe
   inputEl.addEventListener('input', () => {
     try {
       const regex = new RegExp(inputEl.value, 'i');
@@ -165,13 +188,11 @@ function initSelectBox(container, items) {
     }
   });
 
-  // 7. Premier rendu
   renderOptions(/.*/);
   renderSelected();
 }
 
-document.getElementById("pieces").addEventListener("change", previewAttachments);
-
+// ------------------- Soumission du formulaire -------------------
 async function waitForImagesToLoad(container) {
   const images = Array.from(container.querySelectorAll('img'));
   await Promise.all(images.map(img => {
@@ -252,22 +273,19 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     formData.append("type", document.getElementById("type").value);
     formData.append("lieu", document.getElementById("lieu").value);
     formData.append("grade", document.getElementById("grade").value);
-    // Get selected situations
+
     const selectedSituations = Array.from(document.querySelectorAll('.select-situations .tag'))
       .map(tag => tag.situation);
     formData.append("situations", JSON.stringify(selectedSituations));
-    formData.append("pieces", pdfBlob, "Rapport d'incident.pdf");
-    // RI | LIEU | DATE
 
-    const files = document.getElementById("pieces").files;
-    for (const file of files) {
-      if (file.type.startsWith("image/")) {
-        try {
-          const compressed = await compressImage(file, 0.6);
-          formData.append("pieces", compressed);
-        } catch (err) {
-          console.warn("Erreur compression fichier :", file.name, err);
-        }
+    formData.append("pieces", pdfBlob, "Rapport d'incident.pdf");
+
+    for (const file of attachedImages) {
+      try {
+        const compressed = await compressImage(file, 0.6);
+        formData.append("pieces", compressed);
+      } catch (err) {
+        console.warn("Erreur compression fichier :", file.name, err);
       }
     }
 

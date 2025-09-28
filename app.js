@@ -162,20 +162,23 @@ app.use(passport.session());
 app.use((req, res, next) => {
   const publicPaths = ['/login', '/callback', '/logout', '/bracelet', '/connect.html', '/trello'];
 
-  const isStatic = req.path.match(/\.(html|css|js|png|jpg|jpeg|gif|svg)$/);
-  if (isStatic) return next();
+  // Autoriser uniquement les assets front (pas les .html)
+  const isStaticAsset = req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg)$/i);
+  if (isStaticAsset) return next();
 
+  // Autoriser seulement les routes publiques
   if (publicPaths.includes(req.path)) return next();
 
+  // Cas API interne
   if (req.headers['x-internal'] === 'true') return next();
 
+  // Tout le reste → nécessite une connexion
   if (!req.isAuthenticated?.()) {
     return res.redirect('/login');
   }
 
   next();
 });
-
 
 // Routes
 const authRoutes = require("./routes/auth");

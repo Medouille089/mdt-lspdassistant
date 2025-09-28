@@ -414,3 +414,44 @@ form textarea {
         opacity: 1;
     }
 }
+
+
+
+
+/* Wrapper pour chaque image preview */
+.preview-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* Image preview */
+.preview-wrapper img {
+    height: 200px; /* comme ton ancien preview */
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    display: block;
+}
+
+/* Croix de suppression */
+.remove-image {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: #0b1b5a;
+    color: #fff;
+    font-weight: bold;
+    font-size: 20px; /* un peu plus grosse */
+    width: 28px;
+    height: 28px;
+    text-align: center;
+    line-height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.remove-image:hover {
+    background: #0b1b5a;
+    transform: scale(1.1);
+}
