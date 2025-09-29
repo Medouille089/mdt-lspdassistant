@@ -91,13 +91,10 @@ router.post('/api/rapport-rookie', checkAuth, async (req, res) => {
         const channel = await bot.channels.fetch(reportChannelId);
         if (!channel) return res.status(500).json({ error: "Salon de rapport introuvable" });
 
-        // ✅ Envoie unique du rapport
         const sentMessage = await channel.send({ embeds: [embed] });
 
-        // Récupérer l'auteur grâce au middleware checkAuth
         const authorId = req.user.id; 
 
-        // Embed de log
         const logEmbed = new EmbedBuilder()
             .setColor(0x0b1b5a)
             .setTitle("Nouveau rapport rookie")
@@ -112,7 +109,6 @@ router.post('/api/rapport-rookie', checkAuth, async (req, res) => {
             .setFooter({ text: "LSPD Assistant", iconURL: bot.user.displayAvatarURL() })
             .setTimestamp();
 
-        // Envoi dans le salon de logs si configuré
         const logChannelId = config.logs_channel;
         if (logChannelId) {
             const logChannel = await bot.channels.fetch(logChannelId);
