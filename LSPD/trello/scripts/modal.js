@@ -196,9 +196,7 @@ function openModalActionMenu() {
         <div class="menu-title">Actions</div>
         <button data-act="duplicate">📄 Dupliquer</button>
         <button data-act="compact">${compactLabel}</button>
-        <button data-act="labels">🏷️ Gérer les étiquettes</button>
         <button data-act="copy-title">📋 Copier le titre</button>
-        <button data-act="delete" class="danger">🗑️ Supprimer</button>
     `;
     btn.parentElement.appendChild(menu);
 

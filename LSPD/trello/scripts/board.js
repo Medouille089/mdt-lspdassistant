@@ -15,9 +15,12 @@ export function renderBoard(preserveScroll = true) {
         const listId = creator.closest('.list')?.dataset.listId;
         if (listId && activeCardCreations.has(listId)) {
             const textarea = creator.querySelector('.edit-input');
+            const imagePreview = creator.querySelector('.image-preview-container');
             activeInputs.set(listId, {
                 value: textarea?.value || '',
-                focused: document.activeElement === textarea
+                focused: document.activeElement === textarea,
+                hasImage: imagePreview?.style.display === 'flex',
+                imageHtml: imagePreview?.querySelector('.image-preview')?.innerHTML || ''
             });
         }
     });
@@ -34,6 +37,7 @@ export function renderBoard(preserveScroll = true) {
         listEl.innerHTML = `
             <div class="list-header">
                 <div class="list-title editable-list-title">${list.title}</div>
+                <button class="list-menu-btn" data-list-id="${list.id}">⋯</button>
             </div>
             <div class="list-content">
                 ${cardsHtml}
@@ -45,8 +49,21 @@ export function renderBoard(preserveScroll = true) {
 
     attachEvents();
     
+    // Restaurer les créateurs de cartes actifs APRÈS le rendu
     requestAnimationFrame(() => {
         if (preserveScroll) restoreScrollState(scrollState);
+        
+        // Restaurer les créateurs de cartes
+        activeInputs.forEach((inputData, listId) => {
+            const list = document.querySelector(`.list[data-list-id="${listId}"]`);
+            if (list && !list.querySelector('.simple-card-creator')) {
+                const addButton = list.querySelector('.add-card-btn');
+                if (addButton) {
+                    // Recréer le créateur de carte
+                    recreateCardCreator(addButton, listId, inputData);
+                }
+            }
+        });
     });
 }
 
@@ -131,6 +148,15 @@ function attachEvents() {
             const listElement = this.closest('.list');
             const listId = listElement.dataset.listId;
             editListTitle(listElement, listId);
+        });
+    });
+
+    // Événements pour les menus de tri des listes
+    document.querySelectorAll('.list-menu-btn').forEach(menuBtn => {
+        menuBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const listId = this.dataset.listId;
+            openListSortMenu(this, listId);
         });
     });
 }
@@ -303,4 +329,122 @@ export function openFullscreenImage(src, alt = '') {
 export function closeFullscreenImage() {
     const fullscreen = document.getElementById('imageFullscreen');
     fullscreen.style.display = 'none';
+}
+
+function recreateCardCreator(button, listId, inputData) {
+    if (!activeCardCreations.has(listId)) {
+        activeCardCreations.add(listId);
+    }
+
+    const cardCreator = document.createElement('div');
+    cardCreator.className = 'simple-card-creator';
+    cardCreator.innerHTML = `
+        <textarea class="edit-input" placeholder="Entrez le titre de la carte...">${inputData.value}</textarea>
+        <div class="card-actions">
+            <input type="file" id="imageInput-${listId}" accept="image/*" style="display: none;">
+            <button class="image-btn" onclick="document.getElementById('imageInput-${listId}').click()">
+                📷 Image
+            </button>
+            <div class="action-buttons">
+                <button class="save-btn">Ajouter</button>
+                <button class="cancel-btn">✕</button>
+            </div>
+        </div>
+        <div class="image-preview-container" style="display: ${inputData.hasImage ? 'flex' : 'none'};">
+            <div class="image-preview">${inputData.imageHtml}</div>
+            <button class="remove-image">✕</button>
+        </div>
+    `;
+
+    button.style.display = 'none';
+    const listContent = button.parentElement;
+    listContent.insertBefore(cardCreator, button);
+
+    // Réattacher les événements
+    import('./card.js').then(cardModule => {
+        cardModule.setupCardCreator(cardCreator, listId, button);
+        
+        // Restaurer le focus si nécessaire
+        if (inputData.focused) {
+            const textarea = cardCreator.querySelector('.edit-input');
+            if (textarea) {
+                textarea.focus();
+                // Positionner le curseur à la fin du texte
+                textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+            }
+        }
+    });
+}
+
+function openListSortMenu(button, listId) {
+    // Fermer tout menu existant
+    closeListSortMenu();
+    
+    const menu = document.createElement('div');
+    menu.className = 'list-sort-menu';
+    menu.innerHTML = `
+        <div class="list-sort-menu-header">
+            <div class="list-sort-menu-title">Trier les cartes</div>
+        </div>
+        <button class="list-sort-option" data-sort="alpha-asc">
+            Titre (A-Z)
+        </button>
+        <button class="list-sort-option" data-sort="alpha-desc">
+            Titre (Z-A)
+        </button>
+    `;
+
+    // Positionner le menu
+    const listHeader = button.closest('.list-header');
+    listHeader.style.position = 'relative';
+    listHeader.appendChild(menu);
+
+    // Ajouter les gestionnaires d'événements
+    menu.querySelectorAll('.list-sort-option').forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const sortType = option.dataset.sort;
+            sortListCards(listId, sortType);
+            closeListSortMenu();
+        });
+    });
+
+    // Fermer le menu en cliquant ailleurs
+    setTimeout(() => {
+        document.addEventListener('click', closeListSortMenu, { once: true });
+    }, 0);
+
+    // Fermer avec Escape
+    document.addEventListener('keydown', handleEscapeKey);
+}
+
+function closeListSortMenu() {
+    document.querySelectorAll('.list-sort-menu').forEach(menu => menu.remove());
+    document.removeEventListener('keydown', handleEscapeKey);
+}
+
+function handleEscapeKey(e) {
+    if (e.key === 'Escape') {
+        closeListSortMenu();
+    }
+}
+
+function sortListCards(listId, sortType) {
+    const list = boardData.lists.find(l => l.id == listId);
+    if (!list) return;
+
+    const cards = [...list.cards];
+
+    switch (sortType) {
+        case 'alpha-asc':
+            cards.sort((a, b) => (a.text || '').localeCompare(b.text || ''));
+            break;
+        case 'alpha-desc':
+            cards.sort((a, b) => (b.text || '').localeCompare(a.text || ''));
+            break;
+    }
+
+    list.cards = cards;
+    syncBoardData();
+    renderBoard();
 }
