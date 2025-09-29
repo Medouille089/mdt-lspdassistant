@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trello</title>
+    <link rel="stylesheet" href="../styles/sidebar.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+</head>
+
+<body data-theme="black">
+    <div class="main-container">
+
+
+        <div id="sidebar-container"></div>
+        <h1>Trello</h1>
+        <div class="board-container">
+            <div class="board"></div>
+            <div class="add-list-container">
+                <button class="add-list-btn">+ Ajoutez une autre liste</button>
+            </div>
+        </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script type="module">
+            import { initialize } from './scripts/board.js';
+
+            // Rendre les fonctions globales pour les onclick dans le HTML
+            import { toggleCardCompact } from './scripts/card.js';
+            import { removeTag, showTagSelector, hideTagSelector, toggleTagFromCheckbox, editTag, deleteTag, showCreateTagDialog } from './scripts/tags.js';
+            import { openFullscreenImage, closeFullscreenImage } from './scripts/board.js';
+
+            window.toggleCardCompact = toggleCardCompact;
+            window.removeTag = removeTag;
+            window.showTagSelector = showTagSelector;
+            window.hideTagSelector = hideTagSelector;
+            window.toggleTagFromCheckbox = toggleTagFromCheckbox;
+            window.editTag = editTag;
+            window.deleteTag = deleteTag;
+            window.showCreateTagDialog = showCreateTagDialog;
+            window.openFullscreenImage = openFullscreenImage;
+            window.closeFullscreenImage = closeFullscreenImage;
+
+            document.addEventListener('DOMContentLoaded', initialize);
+        </script>
+        <script>
+            // loadSidebar.js adapté pour Trello
+            document.addEventListener('DOMContentLoaded', () => {
+                const container = document.getElementById('sidebar-container');
+
+                if (container) {
+                    fetch('../sidebar.html')
+                        .then(res => res.text())
+                        .then(html => {
+                            // Corriger tous les liens relatifs pour qu'ils pointent vers le bon dossier
+                            // Remplacer les href relatifs par des chemins absolus depuis le dossier LSPD
+                            html = html.replace(/href="([^"]*\.html)"/g, 'href="../$1"');
+
+                            // Corriger les images qui utilisent des chemins relatifs
+                            html = html.replace(/src="data\/images\//g, 'src="../data/images/');
+
+                            // Le lien trello doit pointer vers le dossier courant
+                            html = html.replace('href="../trello"', 'href="./"');
+
+                            // Lien vers le trello remplacé par /trello
+                            html = html.replace('href="../trello"', 'href="/trello"');
+
+                            container.innerHTML = html;
+
+                            // Charger les fonctionnalités JS du sidebar
+                            const script = document.createElement('script');
+                            script.src = '../scripts/sidebar.js';
+                            document.body.appendChild(script);
+                        })
+                        .catch(err => console.error("Erreur chargement sidebar :", err));
+                }
+            });
+        </script>
+
+        <!-- Modal -->
+        <div class="modal-overlay" id="cardModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modalTitle">Nom de la carte</h2>
+                    <div class="modal-actions">
+                        <button class="modal-more-btn" id="cardMoreActionsBtn" title="Plus d'actions">⋯</button>
+                        <button class="action-btn supp" id="deleteCardBtn">🗑️ Supprimer</button>
+                        <button class="modal-close" id="closeModal">×</button>
+                    </div>
+                </div>
+                <div class="modal-content">
+                    <!-- Tags -->
+                    <div class="modal-section">
+                        <div class="section-title">Étiquettes</div>
+                        <div class="tags-container" id="tagsContainer"></div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="modal-section">
+                        <div class="section-title">Description</div>
+                        <textarea class="description-textarea" id="descriptionText"
+                            placeholder="Ajouter une description plus détaillée..."></textarea>
+                        <button class="save-btn" id="saveDescription">Enregistrer</button>
+                    </div>
+
+                    <!-- Champs personnalisés -->
+                    <div class="modal-section">
+                        <div class="section-title">Champs personnalisés</div>
+                        <div class="custom-fields">
+                            <div class="field-group">
+                                <label class="field-label">États</label>
+                                <select class="field-select" id="etatField">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="10-98">✅ 10-98</option>
+                                    <option value="10-56">🚓 10-56</option>
+                                    <option value="10-40">🗓️ 10-40</option>
+                                    <option value="10-37">🏠 10-37</option>
+                                    <option value="10-38">🚓 10-38</option>
+                                    <option value="10-23">🛑 10-23</option>
+                                    <option value="code5">👁️ CODE 5</option>
+                                    <option value="10-60">💊 CODE 5 - 10-60</option>
+                                    <option value="10-31">💥 Code 5 - 10-31</option>
+                                    <option value="10-6">🚫 10-6 Procédures</option>
+                                    <option value="10-06">❓ 10-06 Divers</option>
+                                    <option value="bijouterie">💎 Bijouterie</option>
+                                    <option value="10-91">💲 10-91</option>
+                                    <option value="blesse">🩹 Blessé</option>
+                                    <option value="10-99">🔴 10-99</option>
+                                    <option value="pasajour">❗ PAS A JOUR</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Info Supp</label>
+                                <input type="text" class="field-select" id="infoSuppField1" placeholder="Ajouter info">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Info Supp +</label>
+                                <input type="text" class="field-select" id="infoSuppField2"
+                                    placeholder="Ajouter info +">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Localisation</label>
+                                <input type="text" class="field-select" id="localisationField"
+                                    placeholder="Ajouter localisation">
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Véhicule</label>
+                                <select class="field-select" id="vehiculeField">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="Torrence">Torrence</option>
+                                    <option value="Cruiser">Cruiser</option>
+                                    <option value="STX Helfire">STX Helfire</option>
+                                    <option value="Scoot">Scoot</option>
+                                    <option value="Gauntlet">Gauntlet</option>
+                                    <option value="Baller">Baller</option>
+                                    <option value="Coquette">Coquette</option>
+                                    <option value="Coquette D10">Coquette D10</option>
+                                    <option value="Cypher">Cypher</option>
+                                    <option value="Dominator">Dominator</option>
+                                    <option value="Granger">Granger</option>
+                                    <option value="Jugular">Jugular</option>
+                                    <option value="Vstr">Vstr</option>
+                                    <option value="Fugitive">Fugitive</option>
+                                    <option value="Komoda">Komoda</option>
+                                    <option value="Omnis GT">Omnis GT</option>
+                                    <option value="Tailgater S">Tailgater S</option>
+                                    <option value="Drafter">Drafter</option>
+                                    <option value="Kuruma">Kuruma</option>
+                                    <option value="Schafter v12">Schafter v12</option>
+                                    <option value="BF 400">BF 400</option>
+                                    <option value="Shinobi">Shinobi</option>
+                                    <option value="Caracara">Caracara</option>
+                                    <option value="Alamo">Alamo</option>
+                                    <option value="Centurion">Centurion</option>
+                                    <option value="Comet S2R">Comet S2R</option>
+                                    <option value="Transporteur">Transporteur</option>
+                                    <option value="Argento">Argento</option>
+                                    <option value="BuffaloH">BuffaloH</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">TD</label>
+                                <select class="field-select" id="tdField">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="moto 1">Moto 1</option>
+                                    <option value="moto 2">Moto 2</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Convoi</label>
+                                <select class="field-select" id="convoiField">
+                                    <option value="">Sélectionner...</option>
+                                    <option value="Transporteur">Transporteur</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="imageFullscreen" class="image-fullscreen">
+            <span class="close-fullscreen">&times;</span>
+            <img id="fullscreenImg" src="" alt="">
+        </div>
+
+        <!-- Template pour les listes avec structure de scroll -->
+        <template id="listTemplate">
+            <div class="list">
+                <div class="list-header">
+                    <h3 class="list-title editable-list-title">Nom de la liste</h3>
+                    <button class="delete-list-btn">🗑️</button>
+                </div>
+                <div class="list-content">
+                    <!-- Les cartes seront ajoutées ici dynamiquement -->
+                    <button class="add-card-btn">+ Ajouter une carte</button>
+                </div>
+            </div>
+        </template>
+    </div>
+</body>
+
+</html>
