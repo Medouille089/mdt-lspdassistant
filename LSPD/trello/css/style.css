@@ -997,12 +997,30 @@ h1 {
     background-color: var(--hover-gray);
 }
 
+.create-new-tag-btn {
+    margin: 8px 16px;
+    padding: 10px 16px;
+    background: #3a3c41;
+    border: none;
+    color: #dbdee1;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.create-new-tag-btn:hover {
+    background: #4a4c51;
+    color: #fff;
+}
+
 .tag-selector {
     display: flex;
     flex-direction: column;
     max-height: 420px;
     min-width: 320px;
-    max-width: 340px;
     background: var(--tertiary-bg);
     border-radius: 12px;
     box-shadow: 0 4px 24px #0008;
@@ -1012,7 +1030,6 @@ h1 {
     z-index: 1000;
     position: absolute;
     top: 40px;
-    right: 0;
 }
 
 .tag-selector-header {
@@ -1100,295 +1117,46 @@ h1 {
 .tag-item-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: var(--spacing-sm);
     padding: var(--spacing-xs) 0;
     border-radius: var(--radius-small);
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    cursor: grab;
+    user-select: none;
 }
 
 .tag-item-row:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-.tag-checkbox-container {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    flex: 1;
-    gap: var(--spacing-sm);
+.tag-item-row.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+    transform: rotate(2deg);
 }
 
-.tag-checkbox {
-    width: 18px;
-    height: 18px;
-    accent-color: #fff;
-    margin: 0;
-    cursor: pointer;
+.tag-item-row.drag-over {
+    border-top: 2px solid var(--accent-blue);
+    margin-top: 2px;
 }
 
-.tag-preview-full {
-    flex: 1;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-small);
-    color: var(--text-white);
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.tag-row {
-    display: flex;
-    align-items: center;
-    border-radius: 8px;
-    padding: 7px 12px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: box-shadow 0.2s;
-    box-shadow: 0 1px 4px #0002;
-    margin-bottom: 2px;
-    gap: 10px;
-}
-
-.tag-label {
-    flex: 1;
-    color: inherit;
-    text-shadow: 0 1px 2px #0006;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.tag-edit-btn {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 1rem;
-    margin-left: 8px;
-    cursor: pointer;
-    opacity: 0.7;
-    border-radius: 4px;
-    transition: background 0.2s, opacity 0.2s;
-    padding: 2px 6px;
-    align-self: center;
-}
-
-.tag-edit-btn:hover {
-    background: #444;
-    opacity: 1;
-}
-
-.create-new-tag-btn {
-    margin: 8px 16px;
-    padding: 10px 16px;
-    background: #3a3c41;
-    border: none;
-    color: #dbdee1;
-    cursor: pointer;
-    font-size: 14px;
+.tag-drag-handle {
+    cursor: grab;
+    color: var(--text-muted);
+    font-size: 12px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    min-width: 16px;
     text-align: center;
-    border-radius: 4px;
-    font-weight: 500;
-    transition: background-color 0.15s, color 0.15s;
 }
 
-.create-new-tag-btn:hover {
-    background: #4a4c51;
-    color: #fff;
-}
-
-/* === DIALOG POUR CARTES COMPACTES === */
-.compact-card-dialog-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--overlay-dark);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-}
-
-.compact-card-dialog {
-    background-color: var(--secondary-bg);
-    border-radius: var(--radius-xl);
-    width: 480px;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow-heavy);
-    color: var(--text-primary);
-    animation: dialogFadeIn 0.2s ease-out;
-}
-
-.compact-card-dialog-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--spacing-lg) var(--spacing-xl);
-    border-bottom: 1px solid var(--border-light);
-}
-
-.compact-card-dialog-header h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.compact-card-dialog-close {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-medium);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease;
-}
-
-.compact-card-dialog-close:hover {
-    background-color: var(--hover-gray);
-}
-
-.compact-card-dialog-content {
-    padding: var(--spacing-xl);
-}
-
-.compact-card-dialog-section {
-    margin-bottom: var(--spacing-xl);
-}
-
-.compact-card-dialog-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-sm);
-}
-
-.compact-card-text-input {
-    width: 100%;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-medium);
-    font-family: inherit;
-    font-size: 14px;
-    background-color: var(--tertiary-bg);
-    color: var(--text-primary);
-    box-sizing: border-box;
-}
-
-.compact-card-text-input:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-    box-shadow: var(--shadow-focus);
-}
-
-.compact-card-color-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-lg);
-}
-
-.compact-card-color-option {
-    width: 60px;
-    height: 40px;
-    border-radius: var(--radius-medium);
-    cursor: pointer;
-    position: relative;
-    transition: all 0.2s ease;
-    border: 2px solid transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.compact-card-color-option:hover {
-    transform: scale(1.05);
-    box-shadow: var(--shadow-medium);
-}
-
-.compact-card-color-option.selected {
-    border-color: var(--text-white);
-    box-shadow: var(--shadow-medium);
-    transform: scale(1.1);
-}
-
-.color-check {
-    color: var(--text-white);
-    font-weight: bold;
-    font-size: 16px;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.compact-card-color-option.selected .color-check {
+.tag-item-row:hover .tag-drag-handle {
     opacity: 1;
-}
-
-.compact-card-color-option[data-color="yellow"] .color-check {
-    color: #000000;
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.compact-card-preview {
-    padding: var(--spacing-lg);
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: var(--radius-medium);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.compact-card-preview .compact-card {
-    margin: 0;
-    cursor: default;
-}
-
-.compact-card-dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--spacing-md);
-    padding: var(--spacing-lg) var(--spacing-xl);
-    border-top: 1px solid var(--border-light);
-}
-
-.compact-card-dialog-btn {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border: none;
-    border-radius: var(--radius-medium);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.compact-card-dialog-btn.cancel {
-    background-color: transparent;
     color: var(--text-secondary);
-    border: 1px solid var(--border-medium);
 }
 
-.compact-card-dialog-btn.cancel:hover {
-    background-color: var(--hover-gray);
-    border-color: var(--border-dark);
-}
-
-.compact-card-dialog-btn.confirm {
-    background-color: var(--accent-blue);
-    color: var(--text-white);
-}
-
-.compact-card-dialog-btn.confirm:hover {
-    background-color: var(--accent-blue-dark);
+.tag-item-row.dragging .tag-drag-handle {
+    cursor: grabbing;
 }
 
 /* === AFFICHAGE PLEIN ÉCRAN DES IMAGES === */
