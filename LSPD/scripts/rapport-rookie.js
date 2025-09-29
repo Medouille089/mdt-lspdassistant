@@ -1,6 +1,44 @@
 let allRoles = [];
 let agentsCache = [];
 
+function showAnimation(type = 'success', message = '') {
+    return new Promise((resolve) => {
+        const container = document.getElementById('feedbackAnimation');
+        container.innerHTML = '';
+
+        const content = document.createElement('div');
+        content.className = 'feedback-inner';
+
+        if (type === 'success') {
+            content.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2" width="100" height="100">
+                    <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
+                    <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
+                </svg>
+                <p class="success">${message || 'Opération réussie !'}</p>
+            `;
+        } else {
+            content.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2" width="100" height="100">
+                    <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
+                    <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+                    <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
+                </svg>
+                <p class="error">${message || "Erreur lors de l'opération"}</p>
+            `;
+        }
+
+        container.appendChild(content);
+        container.style.display = 'flex';
+
+        setTimeout(() => {
+            container.style.display = 'none';
+            container.innerHTML = '';
+            resolve();
+        }, 1800);
+    });
+}
+
 // Charger les agents
 async function loadAgents() {
   try {
@@ -71,13 +109,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const result = await res.json();
       if (result.success) {
-        alert("✅ Rapport envoyé !");
+        showAnimation('success', 'Rapport envoyé !');
       } else {
-        alert("❌ Erreur : " + (result.error || "Inconnue"));
+        showAnimation('error', result.message || 'Erreur lors de l’envoi du rapport.');
       }
     } catch (err) {
       console.error("Erreur envoi rapport:", err);
-      alert("❌ Impossible d’envoyer le rapport.");
+      showAnimation('error', "❌ Impossible d’envoyer le rapport.");
     }
   });
 
