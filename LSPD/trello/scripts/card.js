@@ -13,6 +13,15 @@ export function attachCardEvents() {
             const listId = this.closest('.list').dataset.listId;
             openCardModal(cardId, listId);
         });
+
+        // Ajouter le menu contextuel (clic droit)
+        card.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const cardId = this.dataset.cardId;
+            const listId = this.closest('.list').dataset.listId;
+            showCardContextMenu(e, cardId, listId);
+        });
     });
 
     document.querySelectorAll('.add-card-btn').forEach(btn => {
@@ -59,7 +68,8 @@ export function addCard(button) {
     setupCardCreator(cardCreator, listId, button);
 }
 
-function setupCardCreator(cardCreator, listId, button) {
+// Exporter setupCardCreator pour pouvoir l'utiliser depuis board.js
+export function setupCardCreator(cardCreator, listId, button) {
     let processed = false;
     let selectedImage = null;
 
@@ -70,6 +80,18 @@ function setupCardCreator(cardCreator, listId, button) {
     const imagePreviewContainer = cardCreator.querySelector('.image-preview-container');
     const imagePreview = cardCreator.querySelector('.image-preview');
     const removeImageBtn = cardCreator.querySelector('.remove-image');
+
+    // Si une image était déjà présente, la restaurer
+    if (imagePreview.innerHTML) {
+        const imgElement = imagePreview.querySelector('img');
+        if (imgElement && imgElement.src) {
+            selectedImage = {
+                data: imgElement.src,
+                name: 'image-restaurée.jpg',
+                size: 0 // Taille inconnue pour une image restaurée
+            };
+        }
+    }
 
     async function handleImageSelection(file) {
         try {
@@ -175,7 +197,10 @@ function setupCardCreator(cardCreator, listId, button) {
         }
     });
 
-    textarea.focus();
+    // Ne pas auto-focus si le textarea a déjà du contenu (restauration)
+    if (!textarea.value) {
+        textarea.focus();
+    }
 }
 
 export function saveCardChanges() {
@@ -361,6 +386,102 @@ function showCompactCardDialog(card, defaultText, listId) {
 
     textInput.focus();
     textInput.select();
+}
+
+function showCardContextMenu(event, cardId, listId) {
+    // Fermer les menus existants
+    closeCardContextMenu();
+
+    const contextMenu = document.createElement('div');
+    contextMenu.className = 'card-context-menu';
+    contextMenu.innerHTML = `
+        <button class="context-menu-item danger" data-action="delete">
+            🗑️ Supprimer la carte
+        </button>
+        <button class="context-menu-item" data-action="duplicate">
+            📄 Dupliquer la carte
+        </button>
+        <button class="context-menu-item" data-action="compact">
+            ⤡ Compacter la carte
+        </button>
+    `;
+
+    // Positionner le menu
+    contextMenu.style.position = 'fixed';
+    contextMenu.style.left = event.clientX + 'px';
+    contextMenu.style.top = event.clientY + 'px';
+    contextMenu.style.zIndex = '9999';
+
+    document.body.appendChild(contextMenu);
+
+    // Ajuster la position si le menu sort de l'écran
+    const rect = contextMenu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) {
+        contextMenu.style.left = (event.clientX - rect.width) + 'px';
+    }
+    if (rect.bottom > window.innerHeight) {
+        contextMenu.style.top = (event.clientY - rect.height) + 'px';
+    }
+
+    // Gérer les clics sur les éléments du menu
+    contextMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const action = e.target.dataset.action;
+        
+        if (action === 'delete') {
+            deleteCard(cardId, listId);
+        } else if (action === 'duplicate') {
+            duplicateCard(cardId, listId);
+        } else if (action === 'compact') {
+            toggleCardCompact(cardId, listId);
+        }
+        
+        closeCardContextMenu();
+    });
+
+    // Fermer le menu si on clique ailleurs
+    setTimeout(() => {
+        document.addEventListener('click', closeCardContextMenu, { once: true });
+        document.addEventListener('contextmenu', closeCardContextMenu, { once: true });
+    }, 0);
+}
+
+function closeCardContextMenu() {
+    const existingMenu = document.querySelector('.card-context-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+}
+
+function deleteCard(cardId, listId) {
+    const list = boardData.lists.find(l => l.id === listId);
+    if (!list) return;
+
+    const card = list.cards.find(c => c.id === cardId);
+    if (!card) return;
+
+    if (confirm(`Êtes-vous sûr de vouloir supprimer la carte "${card.text}" ?`)) {
+        list.cards = list.cards.filter(c => c.id !== cardId);
+        syncBoardData();
+        renderBoard();
+    }
+}
+
+function duplicateCard(cardId, listId) {
+    const list = boardData.lists.find(l => l.id === listId);
+    if (!list) return;
+
+    const originalCard = list.cards.find(c => c.id === cardId);
+    if (!originalCard) return;
+
+    const cardIndex = list.cards.findIndex(c => c.id === cardId);
+    const duplicatedCard = JSON.parse(JSON.stringify(originalCard));
+    duplicatedCard.id = generateId();
+    duplicatedCard.text = duplicatedCard.text;
+
+    list.cards.splice(cardIndex + 1, 0, duplicatedCard);
+    syncBoardData();
+    renderBoard();
 }
 
 // Image utilities
