@@ -102,7 +102,7 @@ export function setupCardCreator(cardCreator, listId, button) {
 
             const resizedFile = await resizeImage(file);
             const base64Image = await imageToBase64(resizedFile);
-            
+
             selectedImage = {
                 data: base64Image,
                 name: file.name,
@@ -111,7 +111,7 @@ export function setupCardCreator(cardCreator, listId, button) {
 
             imagePreview.innerHTML = `<img src="${base64Image}" alt="Preview">`;
             imagePreviewContainer.style.display = 'flex';
-            
+
         } catch (error) {
             console.error('Erreur image:', error);
             alert('Erreur lors du traitement de l\'image');
@@ -277,7 +277,7 @@ export function toggleCardCompact(cardId, listId) {
     const list = boardData.lists.find(l => l.id === listId);
     const card = list?.cards.find(c => c.id === cardId);
     if (!card) return;
-    
+
     if (card.isCompact) {
         delete card.isCompact;
         delete card.compactText;
@@ -401,9 +401,6 @@ function showCardContextMenu(event, cardId, listId) {
         <button class="context-menu-item" data-action="duplicate">
             📄 Dupliquer la carte
         </button>
-        <button class="context-menu-item" data-action="compact">
-            ⤡ Compacter la carte
-        </button>
     `;
 
     // Positionner le menu
@@ -427,7 +424,7 @@ function showCardContextMenu(event, cardId, listId) {
     contextMenu.addEventListener('click', (e) => {
         e.stopPropagation();
         const action = e.target.dataset.action;
-        
+
         if (action === 'delete') {
             deleteCard(cardId, listId);
         } else if (action === 'duplicate') {
@@ -435,7 +432,7 @@ function showCardContextMenu(event, cardId, listId) {
         } else if (action === 'compact') {
             toggleCardCompact(cardId, listId);
         }
-        
+
         closeCardContextMenu();
     });
 
@@ -499,10 +496,10 @@ export function resizeImage(file, maxWidth = 400, maxHeight = 300, quality = 0.8
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
-        
+
         img.onload = () => {
             let { width, height } = img;
-            
+
             if (width > height) {
                 if (width > maxWidth) {
                     height = (height * maxWidth) / width;
@@ -514,13 +511,13 @@ export function resizeImage(file, maxWidth = 400, maxHeight = 300, quality = 0.8
                     height = maxHeight;
                 }
             }
-            
+
             canvas.width = width;
             canvas.height = height;
             ctx.drawImage(img, 0, 0, width, height);
             canvas.toBlob(resolve, 'image/jpeg', quality);
         };
-        
+
         img.src = URL.createObjectURL(file);
     });
 }
