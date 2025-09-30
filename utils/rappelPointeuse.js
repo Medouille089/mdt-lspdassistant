@@ -13,9 +13,6 @@ async function checkOvertimePunches() {
         LIMIT 1
     `);
 
-    // Met à jour la colonne pointeuse_alerte dans la table configlspd
-    // Exemple : await pool.query(`UPDATE configlspd SET pointeuse_alerte = $1`, [nouvelleValeur]);
-
     if (!configRes.rows.length) return;
 
     const { pointeuse_alert: alertChannelId, heure_pointeuse_alerte: heureAlerte } = configRes.rows[0];
@@ -38,10 +35,17 @@ async function checkOvertimePunches() {
         for (const row of result.rows) {
             const userId = row.id_discord;
 
+            // Récupérer le membre pour son displayName
+            const member = await alertChannel.guild.members.fetch(userId).catch(() => null);
+            const displayName = member ? member.displayName : "Utilisateur inconnu";
+
             const embed = new EmbedBuilder()
                 .setColor(0x0b1b5a)
                 .setTitle("Dépassement horaire")
-                .setDescription(`Vous avez dépassé l'horaire limite qui est de **${heure}h${minute.toString().padStart(2, '0')}**.\nMerci de couper votre pointeuse.`)
+                .setDescription(`${displayName} a dépassé l'horaire limite qui est de **${heure}h${minute.toString().padStart(2, '0')}**.`)
+                .addFields([
+                    { name: "ID's", value: `> <@${userId}> (\`${userId}\`)`, inline: true }
+                ])
                 .setThumbnail(clientDiscord.user.displayAvatarURL({ extension: 'png', size: 256 }))
                 .setFooter({
                     text: "LSPD Assistant",
@@ -49,7 +53,7 @@ async function checkOvertimePunches() {
                 })
                 .setTimestamp();
 
-            await alertChannel.send({ content: `<@${userId}>`, embeds: [embed] });
+            await alertChannel.send({ embeds: [embed] });
         }
     }
 }

@@ -37,16 +37,19 @@ export function renderCardTags() {
 
 function renderTagRow(tag, cardTags) {
     return `
-        <label class="tag-row" style="background-color: ${tag.color}; color: ${tag.textColor}; display: flex; align-items: center; padding: 8px 12px; border-radius: 4px; gap: 8px;">
-            <input type="checkbox" class="tag-checkbox" ${cardTags.includes(tag.id) ? 'checked' : ''} onchange="toggleTagFromCheckbox('${tag.id}', this.checked)" style="margin: 0; width: 20px; height: 20px;">
-            <span class="tag-label" style="flex: 1; font-size: 14px; font-weight: 500;">${tag.label}</span>
+        <div class="tag-item-row" draggable="true" data-tag-id="${tag.id}">
+            <span class="tag-drag-handle">⋮⋮</span>
+            <label class="tag-row" style="background-color: ${tag.color}; color: ${tag.textColor}; display: flex; align-items: center; padding: 8px 12px; border-radius: 4px; gap: 8px; flex: 1; cursor: pointer;">
+                <input type="checkbox" class="tag-checkbox" ${cardTags.includes(tag.id) ? 'checked' : ''} onchange="toggleTagFromCheckbox('${tag.id}', this.checked)" style="margin: 0; width: 20px; height: 20px;">
+                <span class="tag-label" style="flex: 1; font-size: 14px; font-weight: 500;">${tag.label}</span>
+            </label>
             <button class="tag-edit-btn" title="Modifier" onclick="editTag('${tag.id}')" style="background: none; border: none; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                 ✎
             </button>
             <button class="tag-delete-btn" title="Supprimer" onclick="deleteTag('${tag.id}')" style="background: none; border: none; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                 🗑️
             </button>
-        </label>
+        </div>
     `;
 }
 
@@ -70,10 +73,8 @@ export function showTagSelector() {
             <h3>Étiquettes</h3>
             <button class="tag-selector-close" onclick="hideTagSelector()">×</button>
         </div>
-        <input type="text" class="tag-search-input" placeholder="Parcourir les étiquettes...">
         <div class="tags-list-section">
-            <h4>Étiquettes</h4>
-            <div class="tags-list">
+            <div class="tags-list" id="sortable-tags-list">
                 ${renderTagsList(availableTags, cardTags)}
             </div>
         </div>
@@ -81,6 +82,7 @@ export function showTagSelector() {
     `;
 
     document.getElementById('tagsContainer').appendChild(selector);
+    attachTagDragEvents();
 }
 
 export function hideTagSelector() {
@@ -245,4 +247,113 @@ export function showCreateTagDialog() {
 function syncTagsToBoardData() {
     boardData.tags = availableTags;
     syncBoardData();
+}
+
+function attachTagDragEvents() {
+    const tagsList = document.getElementById('sortable-tags-list');
+    if (!tagsList) return;
+
+    let draggedElement = null;
+    let draggedTagId = null;
+
+    tagsList.addEventListener('dragstart', (e) => {
+        if (e.target.classList.contains('tag-item-row')) {
+            draggedElement = e.target;
+            draggedTagId = e.target.dataset.tagId;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+    });
+
+    tagsList.addEventListener('dragend', (e) => {
+        if (e.target.classList.contains('tag-item-row')) {
+            e.target.classList.remove('dragging');
+            // Nettoyer tous les indicateurs de drop
+            tagsList.querySelectorAll('.tag-item-row').forEach(row => {
+                row.classList.remove('drag-over');
+            });
+            draggedElement = null;
+            draggedTagId = null;
+        }
+    });
+
+    tagsList.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(tagsList, e.clientY);
+        
+        // Nettoyer les anciens indicateurs
+        tagsList.querySelectorAll('.tag-item-row').forEach(row => {
+            row.classList.remove('drag-over');
+        });
+
+        if (afterElement == null) {
+            // Ajouter à la fin
+            const lastRow = tagsList.querySelector('.tag-item-row:last-child');
+            if (lastRow && lastRow !== draggedElement) {
+                lastRow.classList.add('drag-over');
+            }
+        } else if (afterElement !== draggedElement) {
+            afterElement.classList.add('drag-over');
+        }
+    });
+
+    tagsList.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (!draggedElement || !draggedTagId) return;
+
+        const afterElement = getDragAfterElement(tagsList, e.clientY);
+        
+        // Trouver les indices dans le tableau des étiquettes
+        const draggedIndex = availableTags.findIndex(tag => tag.id === draggedTagId);
+        if (draggedIndex === -1) return;
+
+        let newIndex;
+        if (afterElement == null) {
+            // Déplacer à la fin
+            newIndex = availableTags.length - 1;
+        } else {
+            const afterTagId = afterElement.dataset.tagId;
+            const afterIndex = availableTags.findIndex(tag => tag.id === afterTagId);
+            newIndex = afterIndex;
+        }
+
+        // Réorganiser le tableau des étiquettes
+        if (draggedIndex !== newIndex) {
+            const [draggedTag] = availableTags.splice(draggedIndex, 1);
+            availableTags.splice(newIndex, 0, draggedTag);
+            
+            // Sauvegarder et re-rendre
+            syncTagsToBoardData();
+            updateTagsList();
+        }
+
+        // Nettoyer les indicateurs
+        tagsList.querySelectorAll('.tag-item-row').forEach(row => {
+            row.classList.remove('drag-over');
+        });
+    });
+}
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.tag-item-row:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function updateTagsList() {
+    const cardTags = getCardTags(currentCard, availableTags);
+    const tagsList = document.getElementById('sortable-tags-list');
+    if (tagsList) {
+        tagsList.innerHTML = renderTagsList(availableTags, cardTags);
+        attachTagDragEvents();
+    }
 }
