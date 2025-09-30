@@ -250,3 +250,187 @@ button:hover {
     stroke-dashoffset: 900;
   }
 }
+
+/* Styles pour la modal de modification des sessions */
+.user-sessions-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.user-sessions-modal {
+  background: #2a3f5f;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 90vw;
+  width: 1000px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-sessions-modal .modal-header {
+  background: #0b1b5a;
+  padding: 15px 20px;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+
+.user-sessions-modal .modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.user-sessions-modal .modal-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.user-sessions-modal .modal-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-sessions-modal .modal-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  color: #fff;
+}
+
+.sessions-container h3 {
+  color: #fff;
+  margin: 20px 0 10px 0;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #0b1b5a;
+}
+
+.sessions-container h3:first-child {
+  margin-top: 0;
+}
+
+.sessions-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+  background: #1e2a44;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sessions-table th {
+  background: #0b1b5a;
+  color: #fff;
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.sessions-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #4a5568;
+  color: #fff;
+}
+
+.sessions-table tr:last-child td {
+  border-bottom: none;
+}
+
+.sessions-table input {
+  background: #2a3f5f;
+  border: 1px solid #4a5568;
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: #fff;
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sessions-table input:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+.sessions-table input[type="number"] {
+  width: 80px;
+}
+
+.sessions-table input[type="datetime-local"] {
+  width: 150px;
+}
+
+.session-duration {
+  color: #a0aec0;
+  font-style: italic;
+  text-align: center;
+}
+
+.user-sessions-modal .modal-actions {
+  padding: 15px 20px;
+  border-top: 1px solid #4a5568;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  background: #1e2a44;
+  border-radius: 0 0 8px 8px;
+}
+
+.user-sessions-modal .btn-cancel,
+.user-sessions-modal .btn-save {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.user-sessions-modal .btn-cancel {
+  background: #6c757d;
+  color: #fff;
+}
+
+.user-sessions-modal .btn-cancel:hover {
+  background: #5a6268;
+}
+
+.user-sessions-modal .btn-save {
+  background: #28a745;
+  color: #fff;
+}
+
+.user-sessions-modal .btn-save:hover {
+  background: #218838;
+}
+
+/* Styles pour les boutons d'action */
+td button {
+  margin-right: 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
