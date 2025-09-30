@@ -140,7 +140,7 @@ async function loadUsersWithSalary() {
       <td>${hoursThisWeek.toFixed(2)} h</td>
       <td>${salaryLastWeek.toFixed(2)} $</td>
       <td>${hoursLastWeek.toFixed(2)} h</td>
-      <td>
+      <td id="actionsBtns">
         <button onclick="modifyUser('${user.discordId}')">✏️</button>
         <button onclick="deleteUser('${user.discordId}')">🗑️</button>
       </td>
@@ -538,10 +538,3 @@ async function forceStopPointeuse(discordId) {
         showFeedback("Erreur : " + err.error, false);
     }
 }
-
-window.addEventListener("DOMContentLoaded", () => {
-    loadActivePointeuses();
-});
-
-loadRoles();
-loadUsersWithSalary();
