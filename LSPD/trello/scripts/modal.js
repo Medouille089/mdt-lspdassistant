@@ -16,8 +16,10 @@ export function openCardModal(cardId, listId) {
 
     // Remplir les champs
     document.getElementById('modalTitle').textContent = card.text;
-    document.getElementById('descriptionText').value = card.description || '';
-    
+
+    // Initialiser la description
+    initializeDescription(card.description || '');
+
     // Champs personnalisés
     const fieldMappings = [
         ['etatField', 'etat'],
@@ -47,22 +49,31 @@ export function openCardModal(cardId, listId) {
 
     // Gestion de l'affichage d'image
     handleModalImage(card);
-    
+
     renderCardTags();
     document.getElementById('cardModal').classList.add('active');
+
+    // S'assurer qu'on commence en mode affichage (après l'activation du modal)
+    setTimeout(() => {
+        // Initialiser la description avec celle de la carte
+        const descriptionContainer = document.getElementById('descriptionContainer');
+        if (descriptionContainer) {
+            initializeDescription(card.description);
+        }
+    }, 10);
 }
 
 function handleModalImage(card) {
     const modalContent = document.querySelector('.modal-content');
     let existingImageDisplay = modalContent.querySelector('.modal-image-display');
-    
+
     if (card.type === 'image' && card.image) {
         if (!existingImageDisplay) {
             existingImageDisplay = document.createElement('div');
             existingImageDisplay.className = 'modal-image-display';
             modalContent.insertBefore(existingImageDisplay, modalContent.firstChild.nextSibling);
         }
-        
+
         existingImageDisplay.innerHTML = `
             <div class="modal-image-container">
                 <img src="${card.image.data}" alt="${card.text}" 
@@ -85,6 +96,129 @@ export function closeCardModal() {
     setCurrentListId(null);
 }
 
+let isEditingDescription = false;
+
+function initializeDescription(description) {
+    const container = document.getElementById('descriptionContainer');
+    if (!container) return;
+
+    isEditingDescription = false;
+    const maxLength = 150; // Caractères avant "Afficher plus"
+
+    if (!description || description.trim() === '') {
+        container.innerHTML = `
+            <div class="description-text clickable" onclick="startEditDescription()">
+                <span class="no-description">Cliquez pour ajouter une description...</span>
+            </div>
+        `;
+        return;
+    }
+
+    const text = description.trim();
+
+    if (text.length <= maxLength) {
+        // Description courte - affichage complet et cliquable
+        container.innerHTML = `
+            <div class="description-text clickable" onclick="startEditDescription()">
+                ${formatDescriptionText(text)}
+            </div>
+        `;
+    } else {
+        // Description longue - système "Afficher plus"
+        const truncatedText = text.substring(0, maxLength);
+        container.innerHTML = `
+            <div class="description-text" id="descriptionPreview">
+                ${formatDescriptionText(truncatedText)}...
+                <span class="show-more-link" onclick="event.stopPropagation(); toggleDescriptionView(true)">Afficher plus</span>
+            </div>
+            <div class="description-text clickable" id="descriptionFull" style="display: none;" onclick="startEditDescription()">
+                ${formatDescriptionText(text)}
+                <span class="show-less-link" onclick="event.stopPropagation(); toggleDescriptionView(false)">Afficher moins</span>
+            </div>
+        `;
+    }
+}
+
+function formatDescriptionText(text) {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+}
+
+function toggleDescriptionView(showFull) {
+    const preview = document.getElementById('descriptionPreview');
+    const full = document.getElementById('descriptionFull');
+
+    if (showFull) {
+        preview.style.display = 'none';
+        full.style.display = 'block';
+    } else {
+        preview.style.display = 'block';
+        full.style.display = 'none';
+    }
+}
+
+function startEditDescription() {
+    if (isEditingDescription) return;
+
+    const container = document.getElementById('descriptionContainer');
+    const currentDesc = currentCard ? currentCard.description || '' : '';
+
+    isEditingDescription = true;
+    container.innerHTML = `
+        <textarea class="description-textarea" id="descriptionTextarea" placeholder="Ajouter une description...">${currentDesc}</textarea>
+        <div class="description-actions">
+            <button class="save-btn" onclick="saveDescription()">Enregistrer</button>
+            <button class="cancel-btn" onclick="cancelEditDescription()">Annuler</button>
+        </div>
+    `;
+
+    document.getElementById('descriptionTextarea').focus();
+}
+
+function saveDescription() {
+    const textarea = document.getElementById('descriptionTextarea');
+    if (!textarea || !currentCard) return;
+
+    const newDescription = textarea.value;
+    currentCard.description = newDescription;
+
+    // Sauvegarder les changements
+    saveCardChanges();
+
+    // Revenir à l'affichage avec la nouvelle description
+    isEditingDescription = false;
+    initializeDescription(newDescription);
+}
+
+function cancelEditDescription() {
+    const currentDesc = currentCard ? currentCard.description || '' : '';
+    initializeDescription(currentDesc);
+}
+
+// Fonction globale pour le toggle
+window.toggleDescriptionView = function (showFull) {
+    const preview = document.getElementById('descriptionPreview');
+    const full = document.getElementById('descriptionFull');
+
+    if (preview && full) {
+        if (showFull) {
+            preview.style.display = 'none';
+            full.style.display = 'block';
+        } else {
+            preview.style.display = 'block';
+            full.style.display = 'none';
+        }
+    }
+};
+
+// Fonctions globales pour les onclick
+window.startEditDescription = startEditDescription;
+window.saveDescription = saveDescription;
+window.cancelEditDescription = cancelEditDescription;
+
 export function initializeModalEvents() {
     const closeModal = document.getElementById('closeModal');
     const cardModal = document.getElementById('cardModal');
@@ -104,9 +238,7 @@ export function initializeModalEvents() {
         });
     }
 
-    if (saveDescription) {
-        saveDescription.addEventListener('click', saveCardChanges);
-    }
+    // Note: La gestion de la description est maintenant faite via les fonctions globales
 
     if (deleteCardBtn) {
         deleteCardBtn.addEventListener('click', function () {
@@ -139,7 +271,7 @@ export function initializeModalEvents() {
 
     // Fermer le menu quand la modal se ferme
     const closeModalOriginal = closeCardModal;
-    closeCardModal = function() {
+    closeCardModal = function () {
         closeModalActionMenu();
         closeModalOriginal();
     };
@@ -152,7 +284,7 @@ export function initializeModalEvents() {
             field.addEventListener('input', saveCardChanges);
         }
     });
-    
+
     const etatField = document.getElementById('etatField');
     if (etatField) {
         if (etatField.value) {
@@ -160,8 +292,8 @@ export function initializeModalEvents() {
             etatField.style.backgroundColor = `${etatInfo.color}E6`;
             etatField.style.color = etatInfo.textColor;
         }
-        
-        etatField.addEventListener('change', function() {
+
+        etatField.addEventListener('change', function () {
             if (this.value) {
                 const etatInfo = getEtatLabel(this.value);
                 this.style.backgroundColor = `${etatInfo.color}E6`;
@@ -179,7 +311,7 @@ function closeModalActionMenu() {
     document.removeEventListener('keydown', modalMenuKeyHandler);
 }
 
-function modalMenuKeyHandler(e){ if(e.key==='Escape') closeModalActionMenu(); }
+function modalMenuKeyHandler(e) { if (e.key === 'Escape') closeModalActionMenu(); }
 
 function openModalActionMenu() {
     if (!currentCard) return;
@@ -214,9 +346,9 @@ function openModalActionMenu() {
                 }
                 setTimeout(showTagSelector, 30);
             } else if (act === 'copy-title') {
-                navigator.clipboard.writeText(currentCard.text || '').then(()=> {
+                navigator.clipboard.writeText(currentCard.text || '').then(() => {
                     b.textContent = '✅ Copié';
-                    setTimeout(()=> b.textContent='📋 Copier le titre',1200);
+                    setTimeout(() => b.textContent = '📋 Copier le titre', 1200);
                 });
             } else if (act === 'delete') {
                 document.getElementById('deleteCardBtn')?.click();
