@@ -20,7 +20,7 @@ router.get('/callback', (req, res, next) => {
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
       const config = await getConfig();
-      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, id_superadmin } = config;
+      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, doj_role_id, id_superadmin } = config;
 
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
@@ -49,6 +49,7 @@ router.get('/callback', (req, res, next) => {
       req.user.isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
       req.user.isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
       req.user.isSuperAdmin = isSuperAdmin;
+      req.user.isDoj = doj_role_id ? roleIds.includes(doj_role_id.trim()) : false;
 
       // Logs
       if (logs_channel) {
@@ -76,7 +77,7 @@ router.get('/callback', (req, res, next) => {
       }
 
       // Bloque si l’utilisateur n’a pas le rôle requis et n’est pas super admin
-      if (!hasRequiredRole) {
+      if (!hasRequiredRole || !req.user.isDoj) {
         return res.status(403).send(`
           <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Accès refusé</title></head><body>
           <h1>⛔ Accès refusé</h1>
@@ -124,6 +125,12 @@ const protectedPagesSupervisor = [
 
 const blockedForRookies = [
   'rapport-rookie.html'
+];
+
+const pagesForDoj = [
+  'viewIncident.html',
+  'viewArrestation.html',
+  'viewConvocation.html'
 ];
 
 // Middleware commun (protège toutes les routes listées)
@@ -249,6 +256,19 @@ router.use(blockedForRookies.map(page => `/${page}`), async (req, res, next) => 
     next();
   } catch (err) {
     console.error("Erreur blocage rookies :", err);
+    res.status(500).send('Erreur serveur');
+  }
+});
+
+
+// Middleware pages DOJ
+router.use(pagesForDoj.map(page => `/${page}`), async (req, res, next) => {
+  try {
+    if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
+    if (!req.user.isDoj) return res.status(403).send("Accès interdit. Rôle DOJ requis.");
+    next();
+  } catch (err) {
+    console.error("Erreur middleware DOJ :", err);
     res.status(500).send('Erreur serveur');
   }
 });
