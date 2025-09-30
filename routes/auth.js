@@ -6,7 +6,7 @@ const bot = require("../config/bot");
 const { getConfig } = require("../config/config");
 const { GUILD_ID } = require('../config/env');
 const path = require("path");
-const { checkAuth } = require("../config/middleware");
+const { checkAuth } = require("../config/middleware"); // ✅ ton middleware
 
 // Initialiser le Map global s'il n'existe pas
 if (!global.pendingRedirects) {
@@ -35,6 +35,7 @@ router.get("/login", (req, res, next) => {
 router.get('/callback', (req, res, next) => {
   if (!req.query.code) return res.status(403).send('Accès interdit.');
 
+  // Récupérer l'ID de redirection depuis le state OAuth
   const redirectId = req.query.state;
   if (redirectId) {
     console.log(`🔄 Récupération redirectId depuis state OAuth: ${redirectId}`);
@@ -48,7 +49,7 @@ router.get('/callback', (req, res, next) => {
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
       const config = await getConfig();
-      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id } = config;
+      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, id_superadmin } = config;
 
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
@@ -63,26 +64,16 @@ router.get('/callback', (req, res, next) => {
 
       const roleIds = member.roles.cache.map(r => r.id);
 
-      // Super admin check
       const isSuperAdmin = id_superadmin ? roleIds.includes(id_superadmin.trim()) : false;
-      const hasRequiredRole = required_role_id ? roleIds.includes(required_role_id.trim()) : false;
-      const hasDojRole = doj_role_id ? roleIds.includes(doj_role_id.trim()) : false;
 
-      let action;
+      const hasRequiredRole = isSuperAdmin ? true : roleIds.includes(required_role_id);
+      const action = hasRequiredRole
+        ? "s'est connecté(e) avec succès"
+        : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}>`;
 
-      if (hasRequiredRole) {
-        action = "s'est connecté(e) avec succès";
-      } else if (hasDojRole) {
-        action = `s'est connecté(e) avec le rôle DOJ <@&${doj_role_id}>`;
-      } else {
-        action = `a tenté(e) de se connecter sans le rôle <@&${required_role_id}>`;
-      }
-
-      // Variables de session
       req.user.roles = roleIds;
       req.user.isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
       req.user.isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
-      req.user.isDoj = hasDojRole;
       req.user.isSuperAdmin = isSuperAdmin;
 
       // Logs
@@ -96,7 +87,7 @@ router.get('/callback', (req, res, next) => {
 
           const embed = new EmbedBuilder()
             .setTitle(logTitle)
-            .setColor(hasRequiredRole || hasDojRole ? 0x0b1b5a : 0xdb4437)
+            .setColor(hasRequiredRole ? 0x0b1b5a : 0xdb4437)
             .setDescription(`${member.displayName || 'Utilisateur inconnu'} ${action}`)
             .addFields({
               name: "ID's",
@@ -110,8 +101,7 @@ router.get('/callback', (req, res, next) => {
         }
       }
 
-      // Bloque si l’utilisateur n’a pas le rôle requis, DOJ ou super admin
-      if (!hasRequiredRole && !hasDojRole && !isSuperAdmin) {
+      if (!hasRequiredRole) {
         return res.status(403).send(`
           <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Accès refusé</title></head><body>
           <h1>⛔ Accès refusé</h1>
@@ -121,12 +111,13 @@ router.get('/callback', (req, res, next) => {
         `);
       }
 
+      // Récupérer l'URL de redirection via l'ID stocké
       let redirectTo = '/protected';
       const redirectId = req._redirectId; 
 
       if (redirectId && global.pendingRedirects && global.pendingRedirects.has(redirectId)) {
         redirectTo = global.pendingRedirects.get(redirectId);
-        global.pendingRedirects.delete(redirectId);
+        global.pendingRedirects.delete(redirectId); // Nettoyer après utilisation
         console.log(`🔄 Récupération URL via redirectId ${redirectId}: ${redirectTo}`);
       } else {
         console.log(`❌ Impossible de récupérer l'URL pour redirectId: ${redirectId}`);
@@ -138,6 +129,7 @@ router.get('/callback', (req, res, next) => {
 
     } catch (err) {
       console.error("Erreur lors de l'envoi du log de connexion :", err);
+      // En cas d'erreur, rediriger aussi vers l'URL originale si elle existe
       const redirectTo = req.session.returnTo || '/protected';
       delete req.session.returnTo;
       res.redirect(redirectTo);
@@ -210,10 +202,12 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
 
     const roleIds = member.roles.cache.map(role => role.id);
 
+    // Super admin bypass
     if (id_superadmin && roleIds.includes(id_superadmin)) {
       return res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
     }
 
+    // Vérifie le rôle Command Staff
     if (!roleIds.includes(commandStaffRoleId)) {
       return res.redirect('/error.html');
     }
@@ -248,10 +242,12 @@ router.get(protectedPagesSupervisor.map(page => `/${page}`), async (req, res) =>
 
     const roleIds = member.roles.cache.map(role => role.id);
 
+    // Super admin bypass
     if (id_superadmin && roleIds.includes(id_superadmin)) {
       return res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
     }
 
+    // Vérifie Command Staff OU Supervisor
     if (!(roleIds.includes(commandStaffRoleId) || roleIds.includes(supervisorRoleId))) {
       return res.redirect('/error.html');
     }
@@ -282,10 +278,12 @@ router.use(blockedForRookies.map(page => `/${page}`), async (req, res, next) => 
 
     const roleIds = member.roles.cache.map(role => role.id);
 
+    // Récupère rookie_role_id depuis la BDD
     const { rows } = await require('../config/db').query(`SELECT rookie_role_id FROM lspd_grades LIMIT 1`);
     if (rows.length) {
       const rookieRoleId = rows[0].rookie_role_id?.trim();
 
+      // Si l'utilisateur est rookie → redirect vers error.html
       if (rookieRoleId && roleIds.includes(rookieRoleId)) {
         return res.redirect('/error.html');
       }
