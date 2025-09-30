@@ -346,7 +346,11 @@ function renderSessionRow(session) {
 function formatDateTimeLocal(dateString) {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toISOString().slice(0, 16);
+
+    const offset = date.getTimezoneOffset() * 60000;
+    const localDate = new Date(date.getTime() - offset);
+
+    return localDate.toISOString().slice(0, 16);
 }
 
 function getModifiedSessions(modal) {
