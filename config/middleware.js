@@ -3,11 +3,16 @@ const bot = require("./bot");
 const GUILD_ID = process.env.GUILD_ID;
 
 async function checkAuth(req, res, next) {
-  if (!req.isAuthenticated()) return res.redirect("/login");
+  if (!req.isAuthenticated()) {
+    // Stocker l'URL originale dans la session pour redirection après login
+    req.session.returnTo = req.originalUrl;
+    console.log(`🔒 Non authentifié, stockage returnTo: ${req.originalUrl}`);
+    return res.redirect("/login");
+  }
 
   try {
     const config = await getConfig();
-    const REQUIRED_ROLE_ID = String(config.required_role_id); 
+    const REQUIRED_ROLE_ID = String(config.required_role_id);
     const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
 
     const guild = await bot.guilds.fetch(GUILD_ID);
