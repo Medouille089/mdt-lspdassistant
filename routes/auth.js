@@ -8,11 +8,44 @@ const { GUILD_ID } = require('../config/env');
 const path = require("path");
 const { checkAuth } = require("../config/middleware"); // ✅ ton middleware
 
+// Initialiser le Map global s'il n'existe pas
+if (!global.pendingRedirects) {
+  global.pendingRedirects = new Map();
+}
+
 // Authentification avec Discord
-router.get("/login", passport.authenticate("discord"));
+router.get("/login", (req, res, next) => {
+  const redirectId = req.query.redirect;
+  console.log(`🔑 Route /login: redirectId = ${redirectId}`);
+
+  // Passer l'ID directement via le paramètre state d'OAuth au lieu de la session
+  if (redirectId) {
+    console.log(`🔑 Passage redirectId via state OAuth: ${redirectId}`);
+    // Modifier les options Passport pour inclure le state
+    req.authInfo = { state: redirectId };
+  }
+
+  next();
+}, (req, res, next) => {
+  // Configurer dynamiquement les options Passport avec le state
+  const options = {};
+  if (req.authInfo?.state) {
+    options.state = req.authInfo.state;
+  }
+  passport.authenticate("discord", options)(req, res, next);
+});
 
 router.get('/callback', (req, res, next) => {
   if (!req.query.code) return res.status(403).send('Accès interdit.');
+
+  // Récupérer l'ID de redirection depuis le state OAuth
+  const redirectId = req.query.state;
+  if (redirectId) {
+    console.log(`🔄 Récupération redirectId depuis state OAuth: ${redirectId}`);
+    // Stocker temporairement pour utilisation après l'auth
+    req._redirectId = redirectId;
+  }
+
   next();
 }, passport.authenticate('discord', { failureRedirect: '/' }),
   async (req, res) => {
@@ -20,7 +53,7 @@ router.get('/callback', (req, res, next) => {
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
       const config = await getConfig();
-      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, doj_role_id, id_superadmin } = config;
+      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, id_superadmin } = config;
 
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
@@ -49,7 +82,6 @@ router.get('/callback', (req, res, next) => {
       req.user.isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
       req.user.isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
       req.user.isSuperAdmin = isSuperAdmin;
-      req.user.isDoj = doj_role_id ? roleIds.includes(doj_role_id.trim()) : false;
 
       // Logs
       if (logs_channel) {
@@ -77,7 +109,7 @@ router.get('/callback', (req, res, next) => {
       }
 
       // Bloque si l’utilisateur n’a pas le rôle requis et n’est pas super admin
-      if (!hasRequiredRole || !req.user.isDoj) {
+      if (!hasRequiredRole) {
         return res.status(403).send(`
           <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Accès refusé</title></head><body>
           <h1>⛔ Accès refusé</h1>
@@ -87,11 +119,34 @@ router.get('/callback', (req, res, next) => {
         `);
       }
 
-      return res.redirect('/protected');
+      // Récupérer l'URL de redirection via l'ID stocké
+      let redirectTo = '/protected';
+      const redirectId = req._redirectId; // Utiliser l'ID depuis le callback, pas la session
+
+      console.log(`🔍 Debug redirection:`);
+      console.log(`  - redirectId from callback: ${redirectId}`);
+      console.log(`  - global.pendingRedirects exists: ${!!global.pendingRedirects}`);
+      console.log(`  - Map size: ${global.pendingRedirects ? global.pendingRedirects.size : 'N/A'}`);
+      console.log(`  - Has redirectId key: ${global.pendingRedirects ? global.pendingRedirects.has(redirectId) : 'N/A'}`);
+
+      if (redirectId && global.pendingRedirects && global.pendingRedirects.has(redirectId)) {
+        redirectTo = global.pendingRedirects.get(redirectId);
+        global.pendingRedirects.delete(redirectId); // Nettoyer après utilisation
+        console.log(`🔄 Récupération URL via redirectId ${redirectId}: ${redirectTo}`);
+      } else {
+        console.log(`❌ Impossible de récupérer l'URL pour redirectId: ${redirectId}`);
+      }
+
+      console.log(`🔄 Redirection après auth: redirectTo=${redirectTo}`);
+
+      return res.redirect(redirectTo);
 
     } catch (err) {
       console.error("Erreur lors de l'envoi du log de connexion :", err);
-      res.redirect('/protected');
+      // En cas d'erreur, rediriger aussi vers l'URL originale si elle existe
+      const redirectTo = req.session.returnTo || '/protected';
+      delete req.session.returnTo;
+      res.redirect(redirectTo);
     }
   }
 );
@@ -127,12 +182,6 @@ const blockedForRookies = [
   'rapport-rookie.html'
 ];
 
-const pagesForDoj = [
-  'viewIncident.html',
-  'viewArrestation.html',
-  'viewConvocation.html'
-];
-
 // Middleware commun (protège toutes les routes listées)
 router.use(
   ['/protected', ...protectedPages.map(page => `/${page}`), ...protectedPagesSupervisor.map(page => `/${page}`)],
@@ -147,6 +196,7 @@ router.get('/protected', (req, res) => {
 // Handler pages Command Staff uniquement
 router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
   try {
+    console.log(`📄 Accès à ${req.path}, isAuthenticated: ${req.isAuthenticated()}, user: ${req.user?.username || 'aucun'}`);
     if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
     const config = await getConfig();
@@ -256,19 +306,6 @@ router.use(blockedForRookies.map(page => `/${page}`), async (req, res, next) => 
     next();
   } catch (err) {
     console.error("Erreur blocage rookies :", err);
-    res.status(500).send('Erreur serveur');
-  }
-});
-
-
-// Middleware pages DOJ
-router.use(pagesForDoj.map(page => `/${page}`), async (req, res, next) => {
-  try {
-    if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
-    if (!req.user.isDoj) return res.status(403).send("Accès interdit. Rôle DOJ requis.");
-    next();
-  } catch (err) {
-    console.error("Erreur middleware DOJ :", err);
     res.status(500).send('Erreur serveur');
   }
 });
