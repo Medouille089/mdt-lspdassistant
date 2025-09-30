@@ -4,7 +4,6 @@ const GUILD_ID = process.env.GUILD_ID;
 
 async function checkAuth(req, res, next) {
   if (!req.isAuthenticated()) {
-    // Stocker l'URL originale dans la session pour redirection après login
     req.session.returnTo = req.originalUrl;
     console.log(`🔒 Non authentifié, stockage returnTo: ${req.originalUrl}`);
     return res.redirect("/login");
@@ -12,20 +11,25 @@ async function checkAuth(req, res, next) {
 
   try {
     const config = await getConfig();
-    const REQUIRED_ROLE_ID = String(config.required_role_id);
-    const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+    const REQUIRED_ROLE_ID = config.required_role_id?.trim();
+    const SUPER_ADMIN_ROLE = config.id_superadmin?.trim();
+    const DOJ_ROLE_ID = config.doj_role_id?.trim();
 
     const guild = await bot.guilds.fetch(GUILD_ID);
     const member = await guild.members.fetch(req.user.id);
-    const roleIds = member.roles.cache.map(role => role.id);
+    const roleIds = member.roles.cache.map(role => role.id.trim());
+
+    console.log("📌 Roles utilisateur :", roleIds);
 
     // Super admin bypass
-    if (SUPER_ADMIN_ROLE && roleIds.includes(SUPER_ADMIN_ROLE)) {
-      return next();
-    }
+    if (SUPER_ADMIN_ROLE && roleIds.includes(SUPER_ADMIN_ROLE)) return next();
 
-    const hasRole = roleIds.includes(REQUIRED_ROLE_ID);
-    if (!hasRole) {
+    const hasRequiredRole = REQUIRED_ROLE_ID && roleIds.includes(REQUIRED_ROLE_ID);
+    const hasDojRole = DOJ_ROLE_ID && roleIds.includes(DOJ_ROLE_ID);
+
+    console.log(`✅ hasRequiredRole=${hasRequiredRole}, hasDojRole=${hasDojRole}`);
+
+    if (!hasRequiredRole && !hasDojRole) {
       return res.status(403).send(`
         <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Accès refusé</title></head><body>
         <h1>⛔ Accès refusé</h1>
@@ -34,6 +38,11 @@ async function checkAuth(req, res, next) {
         </body></html>
       `);
     }
+
+    // Stocker les infos dans req.user pour réutiliser dans auth.js
+    req.user.isSuperAdmin = SUPER_ADMIN_ROLE && roleIds.includes(SUPER_ADMIN_ROLE);
+    req.user.isDoj = hasDojRole;
+    req.user.hasRequiredRole = hasRequiredRole;
 
     next();
   } catch (err) {
