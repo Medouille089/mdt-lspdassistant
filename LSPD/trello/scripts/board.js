@@ -8,7 +8,7 @@ import { initializeModalEvents, openCardModal } from './modal.js';
 export function renderBoard(preserveScroll = true) {
     if (preserveScroll) captureScrollState(scrollState);
     const board = document.querySelector('.board');
-    
+
     // Sauvegarder les états des inputs actifs
     const activeInputs = new Map();
     document.querySelectorAll('.simple-card-creator').forEach(creator => {
@@ -48,11 +48,11 @@ export function renderBoard(preserveScroll = true) {
     });
 
     attachEvents();
-    
+
     // Restaurer les créateurs de cartes actifs APRÈS le rendu
     requestAnimationFrame(() => {
         if (preserveScroll) restoreScrollState(scrollState);
-        
+
         // Restaurer les créateurs de cartes
         activeInputs.forEach((inputData, listId) => {
             const list = document.querySelector(`.list[data-list-id="${listId}"]`);
@@ -77,7 +77,7 @@ function renderCard(card, listId) {
     if (card.isCompact) {
         const shortId = card.compactText || extractShortId(card.text);
         const colorClass = card.compactColor ? `color-${card.compactColor}` : 'color-gray';
-        
+
         return `
             <div class="card compact-card ${colorClass}" data-card-id="${card.id}" draggable="true" title="${card.text}">
                 <div class="compact-card-content">
@@ -89,7 +89,7 @@ function renderCard(card, listId) {
 
     const customFieldsHtml = generateCustomFieldsHtml(card);
     let cardContentHtml = '';
-    
+
     if (card.type === 'image' && card.image) {
         cardContentHtml = `
             <div class="card-image">
@@ -107,7 +107,6 @@ function renderCard(card, listId) {
                 ${cardContentHtml}
                 ${cardTagsHtml ? `<div class="card-tags">${cardTagsHtml}</div>` : ''}
                 ${customFieldsHtml}
-                <button class="compact-card-btn" onclick="toggleCardCompact('${card.id}', '${listId}')" title="Compacter la carte">⤡</button>
             </div>
         </div>
     `;
@@ -140,7 +139,7 @@ export function updateSingleCardDOM(cardId, listId) {
 function attachEvents() {
     attachCardEvents();
     attachDragDropEvents();
-    
+
     // Événements pour l'édition des titres de listes
     document.querySelectorAll('.list-header .editable-list-title').forEach(titleElement => {
         titleElement.addEventListener('dblclick', function (e) {
@@ -193,10 +192,10 @@ export function initialize() {
 function addList(e) {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const addListBtn = document.querySelector('.add-list-btn');
     if (!addListBtn) return;
-    
+
     const container = addListBtn.parentElement;
     const listForm = document.createElement('div');
     listForm.className = 'list';
@@ -222,11 +221,11 @@ function addList(e) {
 
     function saveList() {
         if (listSaved) return;
-        
+
         const title = input.value.trim();
         if (title) {
             listSaved = true;
-            
+
             const newList = {
                 id: generateId(),
                 title: title,
@@ -363,7 +362,7 @@ function recreateCardCreator(button, listId, inputData) {
     // Réattacher les événements
     import('./card.js').then(cardModule => {
         cardModule.setupCardCreator(cardCreator, listId, button);
-        
+
         // Restaurer le focus si nécessaire
         if (inputData.focused) {
             const textarea = cardCreator.querySelector('.edit-input');
@@ -379,7 +378,7 @@ function recreateCardCreator(button, listId, inputData) {
 function openListSortMenu(button, listId) {
     // Fermer tout menu existant
     closeListSortMenu();
-    
+
     const menu = document.createElement('div');
     menu.className = 'list-sort-menu';
     menu.innerHTML = `
