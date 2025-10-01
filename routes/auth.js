@@ -8,11 +8,44 @@ const { GUILD_ID } = require('../config/env');
 const path = require("path");
 const { checkAuth } = require("../config/middleware"); // ✅ ton middleware
 
+// Initialiser le Map global s'il n'existe pas
+if (!global.pendingRedirects) {
+  global.pendingRedirects = new Map();
+}
+
 // Authentification avec Discord
-router.get("/login", passport.authenticate("discord"));
+router.get("/login", (req, res, next) => {
+  const redirectId = req.query.redirect;
+  console.log(`🔑 Route /login: redirectId = ${redirectId}`);
+
+  // Passer l'ID directement via le paramètre state d'OAuth au lieu de la session
+  if (redirectId) {
+    console.log(`🔑 Passage redirectId via state OAuth: ${redirectId}`);
+    // Modifier les options Passport pour inclure le state
+    req.authInfo = { state: redirectId };
+  }
+
+  next();
+}, (req, res, next) => {
+  // Configurer dynamiquement les options Passport avec le state
+  const options = {};
+  if (req.authInfo?.state) {
+    options.state = req.authInfo.state;
+  }
+  passport.authenticate("discord", options)(req, res, next);
+});
 
 router.get('/callback', (req, res, next) => {
   if (!req.query.code) return res.status(403).send('Accès interdit.');
+
+  // Récupérer l'ID de redirection depuis le state OAuth
+  const redirectId = req.query.state;
+  if (redirectId) {
+    console.log(`🔄 Récupération redirectId depuis state OAuth: ${redirectId}`);
+    // Stocker temporairement pour utilisation après l'auth
+    req._redirectId = redirectId;
+  }
+
   next();
 }, passport.authenticate('discord', { failureRedirect: '/' }),
   async (req, res) => {
@@ -86,11 +119,34 @@ router.get('/callback', (req, res, next) => {
         `);
       }
 
-      return res.redirect('/protected');
+      // Récupérer l'URL de redirection via l'ID stocké
+      let redirectTo = '/protected';
+      const redirectId = req._redirectId; // Utiliser l'ID depuis le callback, pas la session
+
+      console.log(`🔍 Debug redirection:`);
+      console.log(`  - redirectId from callback: ${redirectId}`);
+      console.log(`  - global.pendingRedirects exists: ${!!global.pendingRedirects}`);
+      console.log(`  - Map size: ${global.pendingRedirects ? global.pendingRedirects.size : 'N/A'}`);
+      console.log(`  - Has redirectId key: ${global.pendingRedirects ? global.pendingRedirects.has(redirectId) : 'N/A'}`);
+
+      if (redirectId && global.pendingRedirects && global.pendingRedirects.has(redirectId)) {
+        redirectTo = global.pendingRedirects.get(redirectId);
+        global.pendingRedirects.delete(redirectId); // Nettoyer après utilisation
+        console.log(`🔄 Récupération URL via redirectId ${redirectId}: ${redirectTo}`);
+      } else {
+        console.log(`❌ Impossible de récupérer l'URL pour redirectId: ${redirectId}`);
+      }
+
+      console.log(`🔄 Redirection après auth: redirectTo=${redirectTo}`);
+
+      return res.redirect(redirectTo);
 
     } catch (err) {
       console.error("Erreur lors de l'envoi du log de connexion :", err);
-      res.redirect('/protected');
+      // En cas d'erreur, rediriger aussi vers l'URL originale si elle existe
+      const redirectTo = req.session.returnTo || '/protected';
+      delete req.session.returnTo;
+      res.redirect(redirectTo);
     }
   }
 );
@@ -140,6 +196,7 @@ router.get('/protected', (req, res) => {
 // Handler pages Command Staff uniquement
 router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
   try {
+    console.log(`📄 Accès à ${req.path}, isAuthenticated: ${req.isAuthenticated()}, user: ${req.user?.username || 'aucun'}`);
     if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
     const config = await getConfig();
