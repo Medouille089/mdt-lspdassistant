@@ -314,7 +314,7 @@ function attachTagDragEvents() {
         } else {
             const afterTagId = afterElement.dataset.tagId;
             const afterIndex = availableTags.findIndex(tag => tag.id === afterTagId);
-            newIndex = afterIndex;
+            newIndex = Math.max(0, afterIndex);
         }
 
         // Réorganiser le tableau des étiquettes
@@ -322,8 +322,13 @@ function attachTagDragEvents() {
             const [draggedTag] = availableTags.splice(draggedIndex, 1);
             availableTags.splice(newIndex, 0, draggedTag);
             
-            // Sauvegarder et re-rendre
+            // Sauvegarder le nouvel ordre
             syncTagsToBoardData();
+            
+            // Mettre à jour l'affichage de toutes les cartes pour refléter le nouvel ordre
+            updateAllCardsTagsDisplay();
+            
+            // Re-rendre la liste des étiquettes
             updateTagsList();
         }
 
@@ -331,6 +336,20 @@ function attachTagDragEvents() {
         tagsList.querySelectorAll('.tag-item-row').forEach(row => {
             row.classList.remove('drag-over');
         });
+    });
+}
+
+function updateAllCardsTagsDisplay() {
+    console.log('Mise à jour de l\'ordre des étiquettes sur toutes les cartes');
+    
+    // Mettre à jour l'affichage des étiquettes dans la modal si elle est ouverte
+    if (currentCard && document.getElementById('cardModal').classList.contains('active')) {
+        renderCardTags();
+    }
+    
+    // Re-rendre tout le board pour mettre à jour l'affichage des étiquettes sur les cartes
+    import('./board.js').then(boardModule => {
+        boardModule.renderBoard(true); // Préserver le scroll
     });
 }
 

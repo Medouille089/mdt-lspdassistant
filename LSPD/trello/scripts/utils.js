@@ -18,11 +18,30 @@ export const extractAutoTags = (text) => {
         .map(([tagId]) => tagId);
 };
 
-export const getCardTags = (card, availableTags) => {
-    const autoTags = extractAutoTags(card.text);
-    const manualTags = card.tags || [];
-    return [...new Set([...autoTags, ...manualTags])];
-};
+export function getCardTags(card, availableTagsList) {
+    if (!card || !card.tags || !Array.isArray(card.tags)) {
+        return [];
+    }
+
+    // Trier les étiquettes de la carte selon l'ordre global des étiquettes disponibles
+    const sortedTags = [];
+    
+    // D'abord, ajouter les étiquettes dans l'ordre des availableTags
+    availableTagsList.forEach(availableTag => {
+        if (card.tags.includes(availableTag.id)) {
+            sortedTags.push(availableTag.id);
+        }
+    });
+    
+    // Ensuite, ajouter les étiquettes qui ne sont plus dans availableTags (pour la compatibilité)
+    card.tags.forEach(tagId => {
+        if (!sortedTags.includes(tagId)) {
+            sortedTags.push(tagId);
+        }
+    });
+
+    return sortedTags;
+}
 
 // Labels et styles
 export const ETAT_LABELS = {
