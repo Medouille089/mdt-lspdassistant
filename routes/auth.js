@@ -18,13 +18,16 @@ router.get("/login", (req, res, next) => {
   const redirectId = req.query.redirect;
   console.log(`🔑 Route /login: redirectId = ${redirectId}`);
 
+  // Passer l'ID directement via le paramètre state d'OAuth au lieu de la session
   if (redirectId) {
     console.log(`🔑 Passage redirectId via state OAuth: ${redirectId}`);
+    // Modifier les options Passport pour inclure le state
     req.authInfo = { state: redirectId };
   }
 
   next();
 }, (req, res, next) => {
+  // Configurer dynamiquement les options Passport avec le state
   const options = {};
   if (req.authInfo?.state) {
     options.state = req.authInfo.state;
@@ -39,6 +42,7 @@ router.get('/callback', (req, res, next) => {
   const redirectId = req.query.state;
   if (redirectId) {
     console.log(`🔄 Récupération redirectId depuis state OAuth: ${redirectId}`);
+    // Stocker temporairement pour utilisation après l'auth
     req._redirectId = redirectId;
   }
 
@@ -64,13 +68,16 @@ router.get('/callback', (req, res, next) => {
 
       const roleIds = member.roles.cache.map(r => r.id);
 
+      // Super admin check
       const isSuperAdmin = id_superadmin ? roleIds.includes(id_superadmin.trim()) : false;
 
+      // Vérifie si l’utilisateur a le rôle requis
       const hasRequiredRole = isSuperAdmin ? true : roleIds.includes(required_role_id);
       const action = hasRequiredRole
         ? "s'est connecté(e) avec succès"
         : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}>`;
 
+      // Variables de session
       req.user.roles = roleIds;
       req.user.isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
       req.user.isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
@@ -101,6 +108,7 @@ router.get('/callback', (req, res, next) => {
         }
       }
 
+      // Bloque si l’utilisateur n’a pas le rôle requis et n’est pas super admin
       if (!hasRequiredRole) {
         return res.status(403).send(`
           <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Accès refusé</title></head><body>
@@ -113,7 +121,13 @@ router.get('/callback', (req, res, next) => {
 
       // Récupérer l'URL de redirection via l'ID stocké
       let redirectTo = '/protected';
-      const redirectId = req._redirectId; 
+      const redirectId = req._redirectId; // Utiliser l'ID depuis le callback, pas la session
+
+      console.log(`🔍 Debug redirection:`);
+      console.log(`  - redirectId from callback: ${redirectId}`);
+      console.log(`  - global.pendingRedirects exists: ${!!global.pendingRedirects}`);
+      console.log(`  - Map size: ${global.pendingRedirects ? global.pendingRedirects.size : 'N/A'}`);
+      console.log(`  - Has redirectId key: ${global.pendingRedirects ? global.pendingRedirects.has(redirectId) : 'N/A'}`);
 
       if (redirectId && global.pendingRedirects && global.pendingRedirects.has(redirectId)) {
         redirectTo = global.pendingRedirects.get(redirectId);
@@ -150,7 +164,6 @@ const protectedPages = [
   'adminPointeuse.html',
   'adminMenu.html',
   'adminGrades.html',
-  'admin-absences.html',
   'admin-presence.html',
   'officers.html',
   'officerMenu.html',
@@ -161,6 +174,7 @@ const protectedPages = [
 // Pages protégées Command Staff + Supervisor
 const protectedPagesSupervisor = [
   'sanctions.html',
+  'admin-absences.html',
   'getSanctions.html'
 ];
 
@@ -296,4 +310,4 @@ router.use(blockedForRookies.map(page => `/${page}`), async (req, res, next) => 
   }
 });
 
-module.exports = router;
+module.exports = router;  

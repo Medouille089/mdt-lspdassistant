@@ -12,17 +12,15 @@ router.get('/api/user', checkAuth, async (req, res) => {
   try {
     const conf = await getConfig();
     const SUPER_ADMIN_ROLE = conf.id_superadmin ? String(conf.id_superadmin).trim() : null;
-    const DOJ_ROLE = conf.doj_role_id ? String(conf.doj_role_id).trim() : null;
 
     const guild = await bot.guilds.fetch(GUILD_ID);
     guild.members.cache.delete(user.id);
     const member = await guild.members.fetch(user.id);
-    const roleIds = member.roles.cache.map(role => role.id.trim());
+    const roleIds = member.roles.cache.map(role => role.id);
 
     const isSuperAdmin = SUPER_ADMIN_ROLE ? roleIds.includes(SUPER_ADMIN_ROLE) : false;
-    const isDoj = DOJ_ROLE ? roleIds.includes(DOJ_ROLE) : false;
 
-    // Si super-admin, on bypass
+    // Si super-admin, on bypass et ne l’enregistre pas dans la BDD
     if (isSuperAdmin) {
       return res.json({
         id: user.id,
@@ -33,28 +31,11 @@ router.get('/api/user', checkAuth, async (req, res) => {
         isSupervisor: true,
         isCommandStaff: true,
         isSuperAdmin: true,
-        isDoj: false,
         grade: "Administrateur"
       });
     }
 
-    // Si DOJ, grade spécifique
-    if (isDoj) {
-      return res.json({
-        id: user.id,
-        username: member.displayName || user.username,
-        avatar: user.avatar,
-        discriminator: user.discriminator,
-        roles: roleIds,
-        isSupervisor: false,
-        isCommandStaff: false,
-        isSuperAdmin: false,
-        isDoj: true,
-        grade: "DOJ"
-      });
-    }
-
-    // Sinon, récupération des grades depuis la BDD
+    // Récupération des grades depuis la BDD
     const { rows } = await pool.query('SELECT * FROM lspd_grades LIMIT 1');
     const row = rows[0];
     const gradeList = [
@@ -85,7 +66,7 @@ router.get('/api/user', checkAuth, async (req, res) => {
       }
     }
 
-    // 💾 Insère uniquement si pas super-admin / DOJ
+    // 💾 Insère uniquement si pas super-admin
     await pool.query(`
       INSERT INTO lspd_live_users (user_id, display_name, last_seen)
       VALUES ($1, $2, NOW())
@@ -103,7 +84,6 @@ router.get('/api/user', checkAuth, async (req, res) => {
       isSupervisor: user.isSupervisor,
       isCommandStaff: user.isCommandStaff,
       isSuperAdmin: user.isSuperAdmin,
-      isDoj,
       grade
     });
 
