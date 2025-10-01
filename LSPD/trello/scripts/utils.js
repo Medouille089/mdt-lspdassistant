@@ -74,32 +74,6 @@ export const COMPACT_CARD_COLORS = [
     { id: 'bluegray', label: 'BleuGris', color: '#206a83' }
 ];
 
-export function extractShortId(cardText) {
-    const patterns = [
-        /(\d{1,3}-\d{1,3})/,
-        /([A-Z]\d+-\d+)/i,
-        /Unit[- ]?(\d+)/i,
-        /([A-Z]{1,3}\d{1,3})/,
-        /(#\d+)/,
-        /(\w{2,4}-\w{2,4})/
-    ];
-    
-    for (const pattern of patterns) {
-        const match = cardText.match(pattern);
-        if (match) return match[1] || match[0];
-    }
-    
-    const words = cardText.trim().split(' ');
-    let result = '';
-    for (const word of words) {
-        if ((result + word).length <= 8) {
-            result += (result ? ' ' : '') + word;
-        } else break;
-    }
-    
-    return result || cardText.substring(0, 8);
-}
-
 export function generateCustomFieldsHtml(card) {
     if (!card) return '';
 

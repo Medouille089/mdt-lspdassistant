@@ -1,5 +1,5 @@
 import { boardData, scrollState, activeCardCreations, availableTags } from './state.js';
-import { captureScrollState, restoreScrollState, getCardTags, generateCustomFieldsHtml, extractShortId, generateId } from './utils.js';
+import { captureScrollState, restoreScrollState, getCardTags, generateCustomFieldsHtml, generateId } from './utils.js';
 import { syncBoardData } from './socket.js';
 import { attachCardEvents } from './card.js';
 import { attachDragDropEvents } from './dragdrop.js';
@@ -75,7 +75,7 @@ function renderCard(card, listId) {
     }).join('');
 
     if (card.isCompact) {
-        const shortId = card.compactText || extractShortId(card.text);
+        const shortId = card.compactText || card.text;
         const colorClass = card.compactColor ? `color-${card.compactColor}` : 'color-gray';
 
         return `
