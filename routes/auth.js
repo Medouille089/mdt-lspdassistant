@@ -176,7 +176,9 @@ const protectedPagesSupervisor = [
   'sanctions.html',
   'admin-absences.html',
   'getSanctions.html',
-  'sanctionMenu.html'
+  'sanctionMenu.html',
+  'superviseurMenu.html',
+  'convocAgent.html'
 ];
 
 const blockedForRookies = [
