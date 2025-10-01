@@ -38,7 +38,7 @@ body {
 }
 
 #noHover:hover {
-  background-color: #0b1b5a;
+  background-color: #F9A2AC;
   color: #ffffff;
 }
 
@@ -49,7 +49,7 @@ body {
   z-index: 10;
   width: 270px;
   height: 100vh;
-  background: #0b1b5a;
+  background: #F9A2AC;
   transition: all 0.4s ease;
 }
 
@@ -80,7 +80,7 @@ body.collapsed .main-container {
   text-align: center;
   margin-bottom: 30px;
   color: #EEF2FF;
-  background-color: #0b1b5a;
+  background-color: #F9A2AC;
   padding: 10px;
   font-size: 175%;
 }
@@ -204,7 +204,7 @@ body.collapsed .main-content {
   padding: 11px 15px;
   align-items: center;
   text-decoration: none;
-  border: 1px solid #0b1b5a;
+  border: 1px solid #F9A2AC;
   transition: 0.4s ease;
 }
 
@@ -230,7 +230,7 @@ body.collapsed .main-content {
   position: absolute;
   bottom: 35px;
   width: 100%;
-  background: #0b1b5a;
+  background: #F9A2AC;
 }
 
 .sidebar-nav .nav-item {
@@ -343,7 +343,7 @@ body.collapsed .main-content {
   position: fixed;
   bottom: 15px;
   right: 15px;
-  background: linear-gradient(135deg, #0b1b5acc, #0b1b5a95);
+  background: linear-gradient(135deg, #F9A2ACcc, #F9A2AC95);
   color: white;
   padding: 6px 12px;
   border-radius: 8px;

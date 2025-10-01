@@ -30,7 +30,7 @@
         <!-- Sidebar Header -->
         <header class="sidebar-header">
             <a href="#" class="header-logo">
-                <img src="data/images/lspd.png" alt="LSPD Logo" />
+                <img src="data/images/lspdcancer.png" alt="LSPD Logo" />
             </a>
             <!-- <button class="sidebar-toggler">
                 <span class="material-symbols-rounded">chevron_left</span>
@@ -51,12 +51,32 @@
                 </li>
 
                 <li class="nav-item">
+                    <a href="./trello/index.html" class="nav-link">
+                        <span class="material-symbols-rounded">view_kanban</span>
+                        <span class="nav-label">Trello</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="nav-item"><a class="nav-link dropdown-title">Trello</a></li>
+                    </ul>
+                </li>
+                
+                <li class="nav-item">
                     <a href="pointeuse.html" class="nav-link">
                         <span class="material-symbols-rounded">wallet</span>
                         <span class="nav-label">Pointeuse</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li class="nav-item"><a class="nav-link dropdown-title">Nouveau rapport</a></li>
+                        <li class="nav-item"><a class="nav-link dropdown-title">Pointeuse</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a href="annexeMenu.html" class="nav-link">
+                        <span class="material-symbols-rounded">bookmark</span>
+                        <span class="nav-label">Annexes</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="nav-item"><a class="nav-link dropdown-title">Annexes</a></li>
                     </ul>
                 </li>
 
@@ -66,7 +86,7 @@
                         <span class="nav-label">Nouveau rapport</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li class="nav-item"><a class="nav-link dropdown-title">Pointeuse</a></li>
+                        <li class="nav-item"><a class="nav-link dropdown-title">Nouveau rapport</a></li>
                     </ul>
                 </li>
 
@@ -119,33 +139,15 @@
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown-container onlySupervisor">
-                    <a href="#" class="nav-link dropdown-toggle">
+                <li class="nav-item onlySupervisor">
+                    <a href="superviseurMenu.html" class="nav-link">
                         <span class="material-symbols-rounded">brightness_alert</span>
-                        <span class="nav-label">Sanctions</span>
-                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
+                        <span class="nav-label">Superviseur</span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li class="nav-item"><a class="nav-link dropdown-title">Sanctions</a></li>
-                        <li class="nav-item"><a href="sanctions.html" class="nav-link dropdown-link">Nouvelle
-                                sanction</a>
-                        </li>
-                        <li class="nav-item"><a href="getSanctions.html" class="nav-link dropdown-link">Liste
-                                Sanctions</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link dropdown-title">Superviseur</a></li>
                     </ul>
                 </li>
-
-                <li class="nav-item">
-                    <a href="./trello/index.html" class="nav-link">
-                        <span class="material-symbols-rounded">view_kanban</span>
-                        <span class="nav-label">Trello</span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li class="nav-item"><a class="nav-link dropdown-title">Trello</a></li>
-                    </ul>
-                </li>
-
                 <li class="nav-item onlyCommandStaff">
                     <a href="adminMenu.html" class="nav-link">
                         <span class="material-symbols-rounded">admin_panel_settings</span>
