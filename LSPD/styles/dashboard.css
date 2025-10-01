@@ -44,7 +44,7 @@ body::before {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: #0b1b5a;
+    background-color: #F9A2AC;
     color: #fff;
     display: flex;
     justify-content: center;
@@ -196,7 +196,7 @@ body::before {
 table {
     width: 100%;
     border-collapse: collapse;
-    background: #344863;
+    background: #F9A2AC;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
@@ -204,7 +204,7 @@ table {
 }
 
 thead {
-    background: #1d284a;
+    background: #F9A2AC;
 }
 
 thead th {
@@ -222,12 +222,12 @@ tbody tr {
 }
 
 tbody tr:hover {
-    background: #2a3b67;
+    background: #F9A2AC;
 }
 
 tbody td {
     padding: 12px 15px;
-    border-top: 1px solid #2f3e57;
+    border-top: 1px solid #F9A2AC;
     color: #fff;
 }
 
@@ -236,7 +236,7 @@ tbody td {
   overflow-y: auto;
   padding-right: 8px;
   scrollbar-width: thin;
-  scrollbar-color: #0b1b5a transparent;
+  scrollbar-color: #F9A2AC transparent;
 }
 
 /* Scrollbar personnalisée pour Chrome, Edge, Safari */
@@ -245,10 +245,10 @@ tbody td {
 }
 
 .connected-agents-list::-webkit-scrollbar-track {
-  background: #0b1b5a;
+  background: #F9A2AC;
 }
 
 .connected-agents-list::-webkit-scrollbar-thumb {
-  background-color: #0b1b5a;
+  background-color: #F9A2AC;
   border-radius: 4px;
 }

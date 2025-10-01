@@ -14,26 +14,7 @@ if (!global.pendingRedirects) {
 }
 
 // Authentification avec Discord
-router.get("/login", (req, res, next) => {
-  const redirectId = req.query.redirect;
-  console.log(`🔑 Route /login: redirectId = ${redirectId}`);
-
-  // Passer l'ID directement via le paramètre state d'OAuth au lieu de la session
-  if (redirectId) {
-    console.log(`🔑 Passage redirectId via state OAuth: ${redirectId}`);
-    // Modifier les options Passport pour inclure le state
-    req.authInfo = { state: redirectId };
-  }
-
-  next();
-}, (req, res, next) => {
-  // Configurer dynamiquement les options Passport avec le state
-  const options = {};
-  if (req.authInfo?.state) {
-    options.state = req.authInfo.state;
-  }
-  passport.authenticate("discord", options)(req, res, next);
-});
+router.get("/login", passport.authenticate("discord"));
 
 router.get('/callback', (req, res, next) => {
   if (!req.query.code) return res.status(403).send('Accès interdit.');
