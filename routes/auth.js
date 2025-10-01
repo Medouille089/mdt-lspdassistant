@@ -175,7 +175,8 @@ const protectedPages = [
 const protectedPagesSupervisor = [
   'sanctions.html',
   'admin-absences.html',
-  'getSanctions.html'
+  'getSanctions.html',
+  'sanctionMenu.html'
 ];
 
 const blockedForRookies = [
