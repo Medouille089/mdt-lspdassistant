@@ -189,7 +189,7 @@ const whiteListedPagesDOJ = [
   'viewArrestation.html',
   'viewConvocation.html',
   'getIncident.html',
-  'getArrestation.html', 
+  'getArrestation.html',
   'getConvocation.html'
 ];
 

@@ -83,7 +83,7 @@ async function checkAuthOrDOJ(req, res, next) {
 
     // Ajouter une propriété pour savoir quel type d'utilisateur
     req.user.userType = hasLSPDRole ? 'LSPD' : 'DOJ';
-    
+
     next();
   } catch (err) {
     console.error("Erreur dans checkAuthOrDOJ :", err);

@@ -38,7 +38,7 @@ passport.use(
         // Récupérer la config pour l'ID du rôle DOJ
         const config = await getConfig();
         const dojRoleId = config.doj_role_id ? String(config.doj_role_id) : null;
-        
+
         // Détecter si l'utilisateur est DOJ
         profile.isDOJ = dojRoleId && guildMember.roles && guildMember.roles.includes(dojRoleId);
 
