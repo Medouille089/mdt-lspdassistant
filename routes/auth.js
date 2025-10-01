@@ -74,9 +74,9 @@ router.get('/callback', (req, res, next) => {
 
       // Vérifie si l’utilisateur a le rôle requis
       const hasRequiredRole = isSuperAdmin ? true : roleIds.includes(required_role_id);
-      const action = hasRequiredRole
+      const action = hasRequiredRole || req.user.isDOJ
         ? "s'est connecté(e) avec succès"
-        : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}>`;
+        : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}> ou sans être DOJ`;
 
       // Variables de session
       req.user.roles = roleIds;
@@ -96,11 +96,11 @@ router.get('/callback', (req, res, next) => {
 
           const embed = new EmbedBuilder()
             .setTitle(logTitle)
-            .setColor(hasRequiredRole ? 0x0b1b5a : 0xdb4437)
+            .setColor(hasRequiredRole || req.user.isDOJ ? 0x0b1b5a : 0xdb4437)
             .setDescription(`${member.displayName || 'Utilisateur inconnu'} ${action}`)
             .addFields({
               name: "ID's",
-              value: `> <@${req.user.id}> (\`${req.user.id}\`)${isSuperAdmin ? `\n> <@&${id_superadmin}> (\`${id_superadmin}\`)` : ""}`,
+              value: `> <@${req.user.id}> (\`${req.user.id}\`)${isSuperAdmin ? `\n> <@&${id_superadmin}> (\`${id_superadmin}\`)` : ""}${req.user.isDOJ ? `\n> <@&${doj_role_id}> (\`${doj_role_id}\`)` : ""}`,
               inline: false
             })
             .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
@@ -185,15 +185,14 @@ const blockedForRookies = [
 ];
 
 const whiteListedPagesDOJ = [
+  'dashboard.html',
   'viewIncident.html',
   'viewArrestation.html',
   'viewConvocation.html',
   'getIncident.html',
   'getArrestation.html',
   'getConvocation.html'
-];
-
-// Middleware commun (protège toutes les routes listées)
+];// Middleware commun (protège toutes les routes listées)
 router.use(
   ['/protected', ...protectedPages.map(page => `/${page}`), ...protectedPagesSupervisor.map(page => `/${page}`)],
   checkAuth
