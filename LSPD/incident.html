@@ -2,6 +2,8 @@
 <html lang="fr">
 
 <head>
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
   <meta charset="UTF-8" />
   <title>Rapport d'incident - LSPD Assistant</title>
   <link rel="icon" href="data/images/favicon.png" type="image/png">
@@ -14,6 +16,8 @@
 </head>
 
 <body>
+  <script src="scripts/annonce-popup.js"></script>
+  <script src="scripts/annonce-popup.js"></script>
   <div class="main-container">
     <div id="sidebar-container"></div>
     <h1>Rapport d'incident</h1>
@@ -58,8 +62,17 @@
           </div>
         </div>
 
+
         <label for="recit">Récit</label>
-        <textarea id="recit" name="recit"></textarea>
+        <div class="recit-spellcheck-wrapper">
+          <textarea id="recit" name="recit"></textarea>
+          <div class="recit-btn-row">
+            <button type="button" id="spellcheck-btn">Corriger l’orthographe</button>
+            <a href="https://chat.openai.com/" target="_blank" rel="noopener" id="gpt-btn">Chat GPT</a>
+          </div>
+        </div>
+
+        <div class="matricule-spacer"></div>
 
         <label for="implique">Matricules des officiers impliqués</label>
         <input type="text" id="implique" name="implique" />

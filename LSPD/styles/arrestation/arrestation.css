@@ -7,7 +7,6 @@ body {
     position: relative;
     z-index: 0;
     background: none;
-    /* on enlève le fond ici */
 }
 
 body::before {
@@ -18,7 +17,7 @@ body::before {
     right: 0;
     bottom: 0;
     z-index: -1;
-    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background: var(--background-gradient);
     background-repeat: no-repeat;
     background-size: cover;
 }
@@ -32,7 +31,7 @@ body::before {
     border-radius: 15px;
     padding: 40px 50px 100px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    border: 4px solid #0b1b5a;
+    border: 4px solid var(--main-color);
     position: relative;
 }
 
@@ -41,7 +40,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 3px solid #0b1b5a;
+    border-bottom: 3px solid var(--main-color);
     padding-bottom: 15px;
     margin-bottom: 30px;
 }
@@ -60,7 +59,7 @@ body::before {
     font-size: 26px;
     font-weight: bold;
     letter-spacing: 1px;
-    color: #0b1b5a;
+    color: var(--main-color);
 }
 
 .header-title h3 {
@@ -77,7 +76,7 @@ form label {
     margin-top: 25px;
     margin-bottom: 6px;
     font-size: 14px;
-    color: #0b1b5a;
+    color: var(--main-color);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -102,14 +101,14 @@ form textarea {
     background-color: #f9fafc;
     resize: none;
     box-sizing: border-box;
-    color: #0b1b5a;
+    color: var(--main-color);
     transition: border-color 0.2s ease;
 }
 
 .custom-file-upload {
     display: inline-block;
     padding: 12px 24px;
-    background-color: #0b1b5a;
+    background-color: var(--main-color);
     color: white;
     font-weight: bold;
     border-radius: 6px;
@@ -126,7 +125,7 @@ form input[type="datetime-local"]:focus,
 form .select-box:focus,
 form textarea:focus,
 form select:focus {
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
     outline: none;
     background-color: #eef1f5;
 }
@@ -139,7 +138,7 @@ form select:focus {
     border: 1px solid #c5cbd5;
     border-radius: 8px;
     background-color: #f9fafc;
-    color: #0b1b5a;
+    color: var(--main-color);
     cursor: pointer;
     transition: all 0.2s ease;
     box-sizing: border-box;
@@ -156,13 +155,13 @@ form select:focus {
 }
 
 #accusations-input:hover {
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
     background-color: #eef1f5;
     box-shadow: 0 2px 8px rgba(11, 27, 90, 0.1);
 }
 
 #accusations-input:focus {
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
     background-color: #eef1f5;
     box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
 }
@@ -170,7 +169,7 @@ form select:focus {
 /* Styles pour les options du select */
 #accusations-input option {
     background-color: #fff;
-    color: #0b1b5a;
+    color: var(--main-color);
     padding: 10px 15px;
     font-size: 15px;
     border: none;
@@ -189,7 +188,7 @@ form select:focus {
 /* Style pour le bouton Ajouter */
 .addInput input[type="button"] {
     padding: 12px 20px;
-    background-color: #0b1b5a;
+    background-color: var(--main-color);
     color: white;
     font-weight: bold;
     font-size: 14px;
@@ -203,7 +202,7 @@ form select:focus {
 }
 
 .addInput input[type="button"]:hover {
-    background-color: #15256b;
+    background-color: var(--main-color-normal);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(11, 27, 90, 0.2);
 }
@@ -268,12 +267,12 @@ form textarea {
     margin: 0;
     background-color: #fff;
     border-bottom: 1px solid #e2e8f0;
-    color: #0b1b5a;
+    color: var(--main-color);
     font-size: 15px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
-    border-left: 4px solid #0b1b5a;
+    border-left: 4px solid var(--main-color);
 }
 
 #listAccusations li:last-child {
@@ -314,7 +313,7 @@ form textarea {
 }
 
 .send-button {
-    background-color: #0b1b5a;
+    background-color: var(--main-color);
     color: white;
     border: none;
     padding: 12px 30px;
@@ -326,7 +325,7 @@ form textarea {
 }
 
 .send-button:hover {
-    background-color: #1a2c7a;
+    background-color: var(--main-color-normal);
 }
 
 /* Footer logo */
@@ -365,7 +364,7 @@ form textarea {
 .custom-file-upload {
     display: inline-block;
     padding: 12px 24px;
-    background-color: #0b1b5a;
+    background-color: var(--main-color);
     color: white;
     font-weight: bold;
     border-radius: 6px;
@@ -376,7 +375,7 @@ form textarea {
 }
 
 .custom-file-upload:hover {
-    background-color: #1a2c7a;
+    background-color: var(--main-color-normal);
 }
 
 /* Cache le vrai input */
@@ -430,7 +429,7 @@ form textarea {
     box-shadow: 0 4px 36px rgba(56, 158, 255, 0.07);
     margin-top: 8px;
     cursor: pointer;
-    border: 3px solid #4f8cff;
+    border: 3px solid var(--arrest-4f-color);
     transition: border 0.2s, box-shadow 0.2s;
 }
 
@@ -480,7 +479,7 @@ input[type="button"] {
     background-color: #f9fafc;
     resize: none;
     box-sizing: border-box;
-    color: #0b1b5a;
+    color: var(--main-color);
     transition: border-color 0.2s ease;
     cursor: pointer;
 }
@@ -503,13 +502,13 @@ form ul>li:hover {
 }
 
 .border {
-    border: 3px solid #1a2c7a;
+    border: 3px solid var(--main-color-normal);
     border-radius: 8px;
     padding: 10px;
     background-color: #f9fafc;
     resize: none;
     box-sizing: border-box;
-    color: #0b1b5a;
+    color: var(--main-color);
 }
 
 .border label {
@@ -649,7 +648,7 @@ form input[type="checkbox"] {
 }
 
 .selected-items .tag {
-    background: #007bff;
+    background: var(--arrest-4f-color);
     color: white;
     padding: 2px 6px;
     border-radius: 3px;

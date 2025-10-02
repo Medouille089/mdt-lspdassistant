@@ -16,7 +16,7 @@ body::before {
     right: 0;
     bottom: 0;
     z-index: -1;
-    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background: var(--background-gradient);
     background-repeat: no-repeat;
     background-size: cover;
 }
@@ -48,7 +48,7 @@ body::before {
 }
 
 .send-button {
-    background-color: #0b1b5a;
+    background-color: var(--button-bg);
     color: white;
     border: none;
     padding: 30px;
@@ -66,7 +66,7 @@ body::before {
 }
 
 .send-button:hover {
-    background-color: #091447;
+    background-color: var(--button-bg);
     transform: scale(1.02);
     box-shadow: 0 10px 20px rgba(11, 27, 90, 0.3);
 }
@@ -76,5 +76,5 @@ body::before {
 }
 
 .hidden {
-  display: none;
+    display: none;
 }
