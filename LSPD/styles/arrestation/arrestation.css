@@ -7,7 +7,6 @@ body {
     position: relative;
     z-index: 0;
     background: none;
-    /* on enlève le fond ici */
 }
 
 body::before {
@@ -18,7 +17,7 @@ body::before {
     right: 0;
     bottom: 0;
     z-index: -1;
-    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background: var(--background-gradient);
     background-repeat: no-repeat;
     background-size: cover;
 }

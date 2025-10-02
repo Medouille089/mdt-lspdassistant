@@ -9,7 +9,7 @@ textarea {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.85);
+    background-color: rgba(0, 0, 0, 0.85); /* overlay sombre */
     display: none;
     justify-content: center;
     align-items: center;
@@ -27,7 +27,7 @@ textarea {
     top: 20px;
     right: 30px;
     font-size: 32px;
-    color: white;
+    color: var(--white);
     cursor: pointer;
     font-weight: bold;
     z-index: 10000;
@@ -36,5 +36,5 @@ textarea {
 }
 
 #fullscreenClose:hover {
-    color: #ccc;
+    color: var(--text-muted-2); /* couleur plus claire au hover */
 }

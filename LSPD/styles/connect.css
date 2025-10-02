@@ -63,7 +63,7 @@ body::before {
     gap: 10px;
     /* espace entre logo et texte */
     padding: 15px 30px;
-    background-color: #0b1b5a;
+    background-color: var(--main-color);
     color: white;
     border: none;
     border-radius: 12px;
@@ -82,7 +82,7 @@ body::before {
 }
 
 .connect-button:hover {
-    background-color: #071138;
+    background-color: var(--main-color-dark);
     transform: scale(1.05);
 }
 
@@ -90,7 +90,7 @@ body::before {
     position: fixed;
     bottom: 15px;
     right: 15px;
-    background: linear-gradient(135deg, #0b1b5acc, #0b1b5a95);
+    background: var(--background-gradient);
     color: white;
     padding: 6px 12px;
     border-radius: 8px;
