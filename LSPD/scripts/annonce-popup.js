@@ -1,6 +1,6 @@
 // Script à inclure sur toutes les pages pour afficher la popup d'annonce dynamique
 
-(function() {
+(function () {
   let lastAnnonceId = null;
   let popupTimeout = null;
   let barreInterval = null;
@@ -80,10 +80,8 @@
 
   async function checkAnnonce() {
     try {
-      const [annonceRes, uid] = await Promise.all([
-        fetch('/api/annonce-active'),
-        getUserId()
-      ]);
+      const annonceRes = await fetch('/api/annonce-active');
+      const uid = await getUserId();
       if (!annonceRes.ok || !uid) return;
       const annonce = await annonceRes.json();
       if (annonce && annonce.id && annonce.texte && annonce.auteur) {
@@ -109,7 +107,7 @@
         if (old) old.remove();
         lastAnnonceId = null;
       }
-    } catch {}
+    } catch { }
   }
 
   // Premier check immédiat
