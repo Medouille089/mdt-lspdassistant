@@ -151,6 +151,7 @@ const protectedPages = [
   'officers.html',
   'officerMenu.html',
   'getOfficerSanction.html',
+  'admin-annonce.html',
   'tickets.html'
 ];
 
