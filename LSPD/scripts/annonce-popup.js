@@ -112,6 +112,6 @@
 
   // Premier check immédiat
   checkAnnonce();
-  // Puis polling toutes les 10s
-  setInterval(checkAnnonce, 10000);
+  // Puis polling toutes les 3s
+  setInterval(checkAnnonce, 3000);
 })();
