@@ -100,20 +100,20 @@ button:hover {
 
 /* Boutons spécifiques */
 #deleteBtn {
-    background-color: var(--pastel-red);
+    background-color: #dd2c2c;
 }
 
 #deleteBtn:hover {
-    background-color: #c24c5e;
+    background-color: #8b1b1b;
     color: var(--white);
 }
 
 #pointerBtn {
-    background-color: var(--pastel-green);
+    background-color: #65b451;
 }
 
 #pointerBtn:hover {
-    background-color: #a2d9ce;
+    background-color: #437537;
     color: var(--white);
 }
 
