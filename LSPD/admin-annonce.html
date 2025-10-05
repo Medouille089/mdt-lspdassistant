@@ -27,6 +27,7 @@
             color: var(--text-dark);
         }
 
+
         .annonce-admin-panel input,
         .annonce-admin-panel textarea {
             width: 100%;
@@ -37,6 +38,17 @@
             font-size: 15px;
             background: var(--input-bg);
             color: var(--input-text);
+        }
+        .annonce-admin-panel textarea {
+            min-height: 110px;
+            height: 300px;
+            width: 98vw;
+            max-width: 100%;
+            min-width: 400px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            resize: none;
         }
 
         .annonce-admin-panel input:focus,
@@ -85,7 +97,7 @@
 
         <div class="annonce-admin-panel">
             <label for="annonce-text">Contenu de l'annonce</label>
-            <textarea id="annonce-text" rows="4" maxlength="300" placeholder="Votre annonce..."></textarea>
+            <textarea id="annonce-text" rows="6" maxlength="300" placeholder="Votre annonce..."></textarea>
             <label for="annonce-duree">Durée d'affichage (secondes)</label>
             <input type="number" id="annonce-duree" min="3" max="120" value="10" />
             <button id="annonce-send">Envoyer l'annonce</button>

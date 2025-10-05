@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
+
 const pool = require('../config/db');
 const { checkAuth } = require('../config/middleware');
+const { getBot, getConfig } = require('../config/config');
+const { EmbedBuilder } = require('discord.js');
 
 
 // GET l'annonce active (hors dismiss utilisateur)
@@ -44,6 +47,41 @@ router.post('/api/annonce', checkAuth, async (req, res) => {
       'INSERT INTO lspd_annonce (texte, auteur, duree_sec, created_at, expires_at, active) VALUES ($1,$2,$3,$4,$5,TRUE)',
       [texte, auteur, Number(dureeSec), now, expires]
     );
+
+    // Log Discord dans logs_channel
+    try {
+      const bot = getBot();
+      const conf = getConfig();
+      const logsChannelId = conf.logs_channel;
+          if (logsChannelId) {
+            const logsChannel = await bot.channels.fetch(logsChannelId);
+            if (logsChannel?.isTextBased()) {
+              // Cherche le displayName brut (pas username)
+              let displayName = req.user?.displayName;
+              if (!displayName && bot && bot.guilds && req.user?.id) {
+                try {
+                  const guild = bot.guilds.cache.first() || (await bot.guilds.fetch());
+                  const member = await guild.members.fetch(req.user.id);
+                  displayName = member.displayName;
+                } catch {}
+              }
+              const embed = new EmbedBuilder()
+                .setColor(0xffc107)
+                .setTitle('Nouvelle annonce')
+                .setDescription(`${displayName || req.user?.username || 'Utilisateur inconnu'} a posté une annonce.`)
+                .addFields(
+                  { name: 'Contenu', value: '> ' + (texte.length > 200 ? texte.slice(0, 197) + '...' : texte), inline: false },
+                  { name: "ID's", value: `> <@${req.user.id}> (\`${req.user.id}\`)`, inline: false }
+                )
+                .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
+                .setTimestamp();
+              await logsChannel.send({ embeds: [embed] });
+            }
+          }
+    } catch (discordError) {
+      console.error('Erreur lors de la notification Discord (annonce):', discordError);
+    }
+
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: 'Erreur lors de l\'envoi de l\'annonce' });

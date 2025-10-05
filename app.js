@@ -214,6 +214,7 @@ const adminOfficer = require('./routes/officers');
 const rapportRookie = require('./routes/rapport-rookie');
 const convocAgent = require('./routes/convocAgent');
 const annonce = require('./routes/annonce');
+const faq = require('./routes/faq');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -237,6 +238,7 @@ app.use(adminOfficer);
 app.use(rapportRookie);
 app.use(convocAgent);
 app.use(annonce);
+app.use(faq);
 
 // Routes Trello
 app.get('/trello/health', async (req, res) => {
