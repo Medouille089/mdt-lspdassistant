@@ -1,4 +1,4 @@
-  /* :root {
+:root {
     --background-gradient: linear-gradient(#F1F3FF, #CBD4FF);
     --main-color: #0b1b5a;
     --main-color-dark: #08123a;
@@ -39,9 +39,9 @@
     --blink-red: #d40000;
     --placeholder-bg: #f2f2f2;
     --placeholder-text: #aaa;
-  } */
+  }
 
-  :root {
+  /* :root {
     --background-gradient: linear-gradient(#fde5e9, #f9c7cb);
     --main-color: #F9A2AC;
     --main-color-dark: #e88897;
@@ -95,4 +95,4 @@
     --placeholder-text: #c77b83;
     --arrest-4f-color: #ff99a6;
 
-  }
+  } */
