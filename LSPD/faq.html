@@ -6,7 +6,6 @@
     <title>Documentation - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/sidebar.css" />
-    <link rel="stylesheet" href="styles/dashboard.css" />
     <link rel="stylesheet" href="styles/checkmark.css" />
     <link rel="stylesheet" href="styles/popup.css" />
     <link rel="stylesheet" href="styles/confirm.css" />
@@ -16,9 +15,27 @@
     <link rel="stylesheet" href="styles/warningCancer.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <style>
+        html,
         body {
-            background: var(--main-bg);
-            color: var(--text-dark);
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            z-index: 0;
+            background: none;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background: var(--background-gradient);
+            background-repeat: no-repeat;
+            background-size: cover;
         }
 
         .faq-container {
