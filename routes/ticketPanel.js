@@ -219,6 +219,7 @@ router.get('/api/discord-roles', async (req, res) => {
 
         const roles = guild.roles.cache
             .filter(r => !r.managed)
+            .sort((a, b) => b.position - a.position) 
             .map(r => ({ id: r.id, name: r.name }));
         res.json(roles);
     } catch (err) {
@@ -289,6 +290,19 @@ router.get('/api/discord-channels', async (req, res) => {
 
         const channels = guild.channels.cache
             .filter(ch => ch.type === 0)
+            .sort((a, b) => {
+                // Si les salons sont dans la même catégorie, trier par position
+                if (a.parentId === b.parentId) {
+                    return a.position - b.position;
+                }
+                // Si l'un n'a pas de catégorie parent, il va en haut
+                if (!a.parentId) return -1;
+                if (!b.parentId) return 1;
+                // Sinon trier par position de la catégorie parent
+                const parentA = guild.channels.cache.get(a.parentId);
+                const parentB = guild.channels.cache.get(b.parentId);
+                return (parentA?.position || 0) - (parentB?.position || 0);
+            })
             .map(ch => ({ id: ch.id, name: ch.name, type: 'text' }));
 
         res.json(channels);
