@@ -1,5 +1,5 @@
-import { boardData, availableTags, setAvailableTags, currentCard } from './state.js';
-import { syncBoardData } from './socket.js';
+import { boardData, availableTags, setAvailableTags, currentCard, currentListId } from './state.js';
+import { submitOperation } from './socket.js';
 import { getCardTags, extractAutoTags } from './utils.js';
 import { saveCardChanges } from './card.js';
 import { renderBoard } from './board.js';
@@ -172,6 +172,7 @@ export function editTag(tagId) {
         tag.color = color;
         tag.textColor = textColor;
         syncTagsToBoardData();
+        submitOperation('UPSERT_TAG', { tag: { ...tag }, position: availableTags.findIndex(t => t.id === tag.id) });
         document.body.removeChild(dialog);
         showTagSelector();
         renderBoard();
@@ -194,6 +195,7 @@ export function deleteTag(tagId) {
     const newAvailableTags = availableTags.filter(t => t.id !== tagId);
     setAvailableTags(newAvailableTags);
     syncTagsToBoardData();
+    submitOperation('DELETE_TAG', { tagId });
     showTagSelector();
     renderBoard();
 }
@@ -238,6 +240,7 @@ export function showCreateTagDialog() {
         const newAvailableTags = [...availableTags, newTag];
         setAvailableTags(newAvailableTags);
         syncTagsToBoardData();
+        submitOperation('UPSERT_TAG', { tag: newTag, position: newAvailableTags.length - 1 });
         document.body.removeChild(dialog);
         showTagSelector();
         renderBoard();
@@ -245,8 +248,8 @@ export function showCreateTagDialog() {
 }
 
 function syncTagsToBoardData() {
-    boardData.tags = availableTags;
-    syncBoardData();
+    boardData.tags = availableTags.map(tag => ({ ...tag }));
+    submitOperation();
 }
 
 function attachTagDragEvents() {
@@ -314,16 +317,22 @@ function attachTagDragEvents() {
         } else {
             const afterTagId = afterElement.dataset.tagId;
             const afterIndex = availableTags.findIndex(tag => tag.id === afterTagId);
-            newIndex = afterIndex;
+            newIndex = Math.max(0, afterIndex);
         }
 
         // Réorganiser le tableau des étiquettes
         if (draggedIndex !== newIndex) {
             const [draggedTag] = availableTags.splice(draggedIndex, 1);
             availableTags.splice(newIndex, 0, draggedTag);
-            
-            // Sauvegarder et re-rendre
             syncTagsToBoardData();
+            submitOperation('REORDER_TAGS', {
+                orderedTagIds: availableTags.map(tag => tag.id)
+            });
+            
+            // Mettre à jour l'affichage de toutes les cartes pour refléter le nouvel ordre
+            updateAllCardsTagsDisplay();
+            
+            // Re-rendre la liste des étiquettes
             updateTagsList();
         }
 
@@ -331,6 +340,20 @@ function attachTagDragEvents() {
         tagsList.querySelectorAll('.tag-item-row').forEach(row => {
             row.classList.remove('drag-over');
         });
+    });
+}
+
+function updateAllCardsTagsDisplay() {
+    console.log('Mise à jour de l\'ordre des étiquettes sur toutes les cartes');
+    
+    // Mettre à jour l'affichage des étiquettes dans la modal si elle est ouverte
+    if (currentCard && document.getElementById('cardModal').classList.contains('active')) {
+        renderCardTags();
+    }
+    
+    // Re-rendre tout le board pour mettre à jour l'affichage des étiquettes sur les cartes
+    import('./board.js').then(boardModule => {
+        boardModule.renderBoard(true); // Préserver le scroll
     });
 }
 

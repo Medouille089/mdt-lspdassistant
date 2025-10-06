@@ -1,5 +1,5 @@
 import { boardData, draggedCard, draggedFromList, setDraggedCard, setDraggedFromList } from './state.js';
-import { syncBoardData } from './socket.js';
+import { submitOperation } from './socket.js';
 import { renderBoard } from './board.js';
 
 let isDraggingCard = false;
@@ -157,6 +157,6 @@ function moveCardToPosition(cardId, fromListId, toListId, afterElement) {
     }
     
     toList.cards.splice(insertIndex, 0, card);
-    syncBoardData();
+    submitOperation('MOVE_CARD', { cardId, fromListId, toListId, targetIndex: insertIndex });
     renderBoard();
 }
