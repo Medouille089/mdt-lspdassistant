@@ -163,7 +163,9 @@ class OperationsManager {
         const toList = this.findList(data?.toListId);
         if (!fromList) return { valid: false, error: `Liste source ${data?.fromListId} introuvable` };
         if (!toList) return { valid: false, error: `Liste destination ${data?.toListId} introuvable` };
-        if (fromList.cards.findIndex(c => c.id === data?.cardId) === -1) {
+        const cardInFromList = fromList.cards.some((c) => c.id === data?.cardId);
+        const cardExistsAnywhere = cardInFromList || !!this.findCardById(data?.cardId);
+        if (!cardExistsAnywhere) {
             return { valid: false, error: `Carte ${data?.cardId} introuvable` };
         }
         return { valid: true };
@@ -287,15 +289,42 @@ class OperationsManager {
     }
 
     applyMoveCard(data) {
-        const fromList = this.findList(data.fromListId);
+        const requestedFromList = this.findList(data.fromListId);
         const toList = this.findList(data.toListId);
-        const fromIndex = fromList.cards.findIndex(c => c.id === data.cardId);
-        const [card] = fromList.cards.splice(fromIndex, 1);
+
+        if (!requestedFromList || !toList) {
+            return { success: false, error: `Listes ${data.fromListId} ou ${data.toListId} introuvables` };
+        }
+
+        let sourceList = requestedFromList;
+        let fromIndex = sourceList.cards.findIndex((c) => c.id === data.cardId);
+
+        if (fromIndex === -1) {
+            const fallback = this.findCardById(data.cardId);
+            if (fallback) {
+                sourceList = fallback.list;
+                fromIndex = sourceList.cards.findIndex((c) => c.id === data.cardId);
+            }
+        }
+
+        if (fromIndex === -1) {
+            return { success: false, error: `Carte ${data.cardId} introuvable` };
+        }
+
+        const [card] = sourceList.cards.splice(fromIndex, 1);
+        if (!card?.id) {
+            return { success: false, error: `Données invalides pour la carte ${data.cardId}` };
+        }
 
         const targetIndex = this.clampPosition(
             Number.isInteger(data?.targetIndex) ? data.targetIndex : toList.cards.length,
             toList.cards.length
         );
+
+        const duplicateIndex = toList.cards.findIndex((existing) => existing.id === card.id);
+        if (duplicateIndex !== -1) {
+            toList.cards.splice(duplicateIndex, 1);
+        }
 
         toList.cards.splice(targetIndex, 0, card);
 
@@ -305,8 +334,8 @@ class OperationsManager {
                 type: 'MOVE_CARD',
                 data: {
                     cardId: data.cardId,
-                    fromListId: data.fromListId,
-                    toListId: data.toListId,
+                    fromListId: sourceList.id,
+                    toListId: toList.id,
                     targetIndex,
                     card: this.cloneCard(card)
                 }
@@ -316,21 +345,39 @@ class OperationsManager {
 
     applySetCardOrder(data) {
         const list = this.findList(data.listId);
+        if (!list) {
+            return { success: false, error: `Liste ${data.listId} introuvable` };
+        }
         const orderedIds = data.orderedCardIds;
-        const orderedSet = new Set(orderedIds);
+        if (!Array.isArray(orderedIds)) {
+            return { success: false, error: 'Ordre de cartes invalide' };
+        }
+        const seenIds = new Set();
+        const matchedIds = new Set();
 
         const orderedCards = orderedIds
-            .map(id => list.cards.find(card => card.id === id))
+            .filter((id) => {
+                if (seenIds.has(id)) return false;
+                seenIds.add(id);
+                return true;
+            })
+            .map((id) => {
+                const card = list.cards.find((candidate) => candidate.id === id);
+                if (card) matchedIds.add(id);
+                return card || null;
+            })
             .filter(Boolean);
-        const remainingCards = list.cards.filter(card => !orderedSet.has(card.id));
+
+        const remainingCards = list.cards.filter((card) => !matchedIds.has(card.id));
 
         list.cards = [...orderedCards, ...remainingCards];
+        const finalOrder = list.cards.map((card) => card.id);
 
         return {
             success: true,
             diff: {
                 type: 'SET_CARD_ORDER',
-                data: { listId: data.listId, orderedCardIds: orderedIds }
+                data: { listId: data.listId, orderedCardIds: finalOrder }
             }
         };
     }
