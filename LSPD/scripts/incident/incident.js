@@ -1,4 +1,86 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Ajout du listener pour le bouton de correction orthographique
+  setTimeout(() => { // S'assure que le DOM est prêt
+    const btn = document.getElementById('spellcheck-btn');
+    if (btn) {
+      btn.addEventListener('click', async () => {
+        const textarea = document.getElementById('recit');
+        if (!textarea) return;
+        const originalText = textarea.value;
+        btn.disabled = true;
+        btn.textContent = 'Correction...';
+        try {
+          const res = await fetch('https://api.languagetoolplus.com/v2/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              text: originalText,
+              language: 'fr',
+              enabledOnly: false
+            })
+          });
+          const data = await res.json();
+
+          if (data.matches && data.matches.length > 0) {
+            // Filtrer les corrections non pertinentes
+            const filteredMatches = data.matches.filter(match => {
+              const rule = match.rule;
+              const issueType = rule.issueType;
+              const category = rule.category?.id;
+
+              // Exclure les règles problématiques
+              const excludedCategories = [
+                'CASING', // Majuscules/minuscules (souvent des noms propres)
+                'COMPOUNDING', // Mots composés
+              ];
+
+              const excludedRules = [
+                'UPPERCASE_SENTENCE_START', // Majuscule en début de phrase
+                'FRENCH_WHITESPACE', // Espaces (peut être trop agressif)
+              ];
+
+              // Exclure si c'est un nom propre détecté
+              if (category && excludedCategories.includes(category)) {
+                return false;
+              }
+
+              if (excludedRules.includes(rule.id)) {
+                return false;
+              }
+
+              // Garder seulement les vraies fautes d'orthographe et grammaire
+              return issueType === 'misspelling' ||
+                issueType === 'grammar' ||
+                issueType === 'typographical';
+            });
+
+            if (filteredMatches.length === 0) {
+              alert('✅ Aucune correction nécessaire !');
+            } else {
+              // Appliquer les corrections de droite à gauche pour ne pas décaler les offsets
+              let corrected = originalText;
+              filteredMatches.sort((a, b) => b.offset - a.offset).forEach(match => {
+                if (match.replacements && match.replacements.length > 0) {
+                  corrected = corrected.slice(0, match.offset) +
+                    match.replacements[0].value +
+                    corrected.slice(match.offset + match.length);
+                }
+              });
+              textarea.value = corrected;
+              alert(`✅ ${filteredMatches.length} correction(s) appliquée(s) !`);
+            }
+          } else {
+            alert('✅ Aucune correction nécessaire !');
+          }
+        } catch (e) {
+          alert('Erreur lors de la correction : ' + e.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Corriger l’orthographe';
+        }
+      });
+    }
+  }, 500);
   fetch("/api/user")
     .then((res) => res.json())
     .then((user) => {
@@ -67,9 +149,9 @@ async function compressImage(file, quality = 0.6) {
   });
 }
 
-let attachedImages = []; 
+let attachedImages = [];
 async function previewAttachments(event) {
-  const files = Array.from(event.target.files); 
+  const files = Array.from(event.target.files);
   const preview = document.getElementById('attachmentsPreview');
 
   for (const file of files) {
@@ -102,7 +184,7 @@ async function renderPreview() {
       removeBtn.addEventListener('click', () => {
         attachedImages.splice(i, 1);
         renderPreview();
-        document.getElementById('pieces').value = ''; 
+        document.getElementById('pieces').value = '';
       });
 
       wrapper.appendChild(img);
