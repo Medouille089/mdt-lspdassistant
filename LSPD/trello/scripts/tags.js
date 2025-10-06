@@ -1,5 +1,5 @@
-import { boardData, availableTags, setAvailableTags, currentCard } from './state.js';
-import { syncBoardData } from './socket.js';
+import { boardData, availableTags, setAvailableTags, currentCard, currentListId } from './state.js';
+import { submitOperation } from './socket.js';
 import { getCardTags, extractAutoTags } from './utils.js';
 import { saveCardChanges } from './card.js';
 import { renderBoard } from './board.js';
@@ -172,6 +172,7 @@ export function editTag(tagId) {
         tag.color = color;
         tag.textColor = textColor;
         syncTagsToBoardData();
+        submitOperation('UPSERT_TAG', { tag: { ...tag }, position: availableTags.findIndex(t => t.id === tag.id) });
         document.body.removeChild(dialog);
         showTagSelector();
         renderBoard();
@@ -194,6 +195,7 @@ export function deleteTag(tagId) {
     const newAvailableTags = availableTags.filter(t => t.id !== tagId);
     setAvailableTags(newAvailableTags);
     syncTagsToBoardData();
+    submitOperation('DELETE_TAG', { tagId });
     showTagSelector();
     renderBoard();
 }
@@ -238,6 +240,7 @@ export function showCreateTagDialog() {
         const newAvailableTags = [...availableTags, newTag];
         setAvailableTags(newAvailableTags);
         syncTagsToBoardData();
+        submitOperation('UPSERT_TAG', { tag: newTag, position: newAvailableTags.length - 1 });
         document.body.removeChild(dialog);
         showTagSelector();
         renderBoard();
@@ -245,8 +248,8 @@ export function showCreateTagDialog() {
 }
 
 function syncTagsToBoardData() {
-    boardData.tags = availableTags;
-    syncBoardData();
+    boardData.tags = availableTags.map(tag => ({ ...tag }));
+    submitOperation();
 }
 
 function attachTagDragEvents() {
@@ -321,9 +324,10 @@ function attachTagDragEvents() {
         if (draggedIndex !== newIndex) {
             const [draggedTag] = availableTags.splice(draggedIndex, 1);
             availableTags.splice(newIndex, 0, draggedTag);
-            
-            // Sauvegarder le nouvel ordre
             syncTagsToBoardData();
+            submitOperation('REORDER_TAGS', {
+                orderedTagIds: availableTags.map(tag => tag.id)
+            });
             
             // Mettre à jour l'affichage de toutes les cartes pour refléter le nouvel ordre
             updateAllCardsTagsDisplay();

@@ -1,5 +1,5 @@
 import { boardData, currentCard, currentListId, activeCardCreations, availableTags } from './state.js';
-import { syncBoardData } from './socket.js';
+import { submitOperation } from './socket.js';
 import { generateId, COMPACT_CARD_COLORS } from './utils.js';
 import { renderBoard, updateSingleCardDOM } from './board.js';
 import { openCardModal } from './modal.js';
@@ -59,7 +59,11 @@ function editCompactCardTitle(cardId, listId, cardElement) {
                 card.compactText = newTitle;
             }
             
-            syncBoardData();
+            const updates = card.isCompact
+                ? { text: newTitle, compactText: card.compactText }
+                : { text: newTitle };
+
+            submitOperation('UPDATE_CARD', { listId, cardId: card.id, updates });
             renderBoard();
         } else {
             // Restaurer l'affichage original
@@ -154,7 +158,7 @@ export function attachCardEvents() {
     });
 }
 
-export function addCard(button) {
+export async function addCard(button) {
     const list = button.closest('.list');
     const listId = list.dataset.listId;
 
@@ -276,8 +280,9 @@ export function setupCardCreator(cardCreator, listId, button) {
         const targetList = boardData.lists.find(l => l.id == listId);
         if (targetList) {
             targetList.cards.push(cardData);
+            const position = targetList.cards.length - 1;
             cleanup();
-            syncBoardData();
+            submitOperation('CREATE_CARD', { listId, card: cardData, position });
             renderBoard();
         }
     }
@@ -347,11 +352,20 @@ export function saveCardChanges() {
         ['tdField', 'td'],
         ['convoiField', 'convoi']
     ];
+    const updates = {
+        description: currentCard.description,
+        etat: currentCard.etat,
+        etatLabel: currentCard.etatLabel,
+        tags: Array.isArray(currentCard.tags) ? [...currentCard.tags] : []
+    };
     fieldMappings.forEach(([fieldId, cardProp]) => {
-        currentCard[cardProp] = document.getElementById(fieldId).value;
+        const element = document.getElementById(fieldId);
+        const value = element ? element.value : '';
+        currentCard[cardProp] = value;
+        updates[cardProp] = value;
     });
 
-    syncBoardData();
+    submitOperation('UPDATE_CARD', { listId, cardId, updates });
     updateSingleCardDOM(cardId, listId);
 }
 
@@ -369,16 +383,27 @@ export function editCardTitle() {
     input.focus();
     input.select();
 
+    let handled = false;
+
     function saveTitle() {
+        if (handled) return;
+        handled = true;
+
         const newTitle = input.value.trim();
         if (newTitle && newTitle !== currentText) {
             currentCard.text = newTitle;
             titleElement.textContent = newTitle;
             renderCardTags();
-            syncBoardData();
+            submitOperation('UPDATE_CARD', {
+                listId: currentListId,
+                cardId: currentCard.id,
+                updates: { text: newTitle }
+            });
             renderBoard();
         }
-        input.remove();
+        if (input.isConnected) {
+            input.remove();
+        }
         titleElement.style.display = '';
     }
 
@@ -405,7 +430,11 @@ export function toggleCardCompact(cardId, listId) {
         delete card.isCompact;
         delete card.compactText;
         delete card.compactColor;
-        syncBoardData();
+        submitOperation('UPDATE_CARD', {
+            listId,
+            cardId,
+            updates: { isCompact: null, compactText: null, compactColor: null }
+        });
         renderBoard();
     } else {
         showCompactCardDialog(card, card.text, listId);
@@ -507,9 +536,13 @@ function showCompactCardDialog(card, defaultText, listId) {
         card.isCompact = true;
         card.compactText = finalText;
         card.compactColor = selectedColor;
-        closeDialog();
-        syncBoardData();
+        submitOperation('UPDATE_CARD', {
+            listId,
+            cardId: card.id,
+            updates: { isCompact: true, compactText: finalText, compactColor: selectedColor }
+        });
         renderBoard();
+        closeDialog();
     }
 
     // Event listeners pour fermer
@@ -631,7 +664,7 @@ function deleteCard(cardId, listId) {
 
     if (confirm(`Êtes-vous sûr de vouloir supprimer la carte "${card.text}" ?`)) {
         list.cards = list.cards.filter(c => c.id !== cardId);
-        syncBoardData();
+        submitOperation('DELETE_CARD', { listId, cardId });
         renderBoard();
     }
 }
@@ -648,8 +681,9 @@ function duplicateCard(cardId, listId) {
     duplicatedCard.id = generateId();
     duplicatedCard.text = duplicatedCard.text;
 
-    list.cards.splice(cardIndex + 1, 0, duplicatedCard);
-    syncBoardData();
+    const insertIndex = cardIndex + 1;
+    list.cards.splice(insertIndex, 0, duplicatedCard);
+    submitOperation('CREATE_CARD', { listId, card: duplicatedCard, position: insertIndex });
     renderBoard();
 }
 
@@ -737,9 +771,13 @@ function showCompactCardColorPicker(cardId, listId) {
 
     function confirmColorChange() {
         card.compactColor = selectedColor;
-        closeDialog();
-        syncBoardData();
+        submitOperation('UPDATE_CARD', {
+            listId,
+            cardId,
+            updates: { compactColor: selectedColor }
+        });
         renderBoard();
+        closeDialog();
     }
 
     // Event listeners pour fermer
@@ -762,10 +800,14 @@ function showCompactCardColorPicker(cardId, listId) {
         }
     };
     document.addEventListener('keydown', escapeHandler);
+
+    // Focus sur l'input
+    setTimeout(() => {
+        colorOptions[0].focus();
+    }, 100);
 }
 
-// Image utilities
-export function imageToBase64(file) {
+function imageToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
@@ -779,10 +821,8 @@ export function resizeImage(file, maxWidth = 400, maxHeight = 300, quality = 0.8
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
-
         img.onload = () => {
             let { width, height } = img;
-
             if (width > height) {
                 if (width > maxWidth) {
                     height = (height * maxWidth) / width;
@@ -794,13 +834,11 @@ export function resizeImage(file, maxWidth = 400, maxHeight = 300, quality = 0.8
                     height = maxHeight;
                 }
             }
-
             canvas.width = width;
             canvas.height = height;
             ctx.drawImage(img, 0, 0, width, height);
             canvas.toBlob(resolve, 'image/jpeg', quality);
         };
-
         img.src = URL.createObjectURL(file);
     });
 }

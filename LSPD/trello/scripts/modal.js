@@ -1,9 +1,9 @@
 import { boardData, currentCard, currentListId, setCurrentCard, setCurrentListId, availableTags } from './state.js';
-import { syncBoardData } from './socket.js';
 import { saveCardChanges, editCardTitle, toggleCardCompact } from './card.js';
 import { getEtatLabel, generateId } from './utils.js';
 import { renderBoard } from './board.js';
 import { renderCardTags, hideTagSelector, showTagSelector } from './tags.js';
+import { submitOperation } from './socket.js';
 
 export function openCardModal(cardId, listId) {
     const list = boardData.lists.find(l => l.id == listId);
@@ -77,7 +77,6 @@ function handleModalImage(card) {
         existingImageDisplay.remove();
     }
 }
-
 export function closeCardModal() {
     document.getElementById('cardModal').classList.remove('active');
     hideTagSelector();
@@ -112,9 +111,11 @@ export function initializeModalEvents() {
         deleteCardBtn.addEventListener('click', function () {
             if (currentCard && confirm('Êtes-vous sûr de vouloir supprimer cette carte ?')) {
                 const targetList = boardData.lists.find(l => l.id === currentListId);
-                targetList.cards = targetList.cards.filter(c => c.id != currentCard.id);
+                if (targetList) {
+                    targetList.cards = targetList.cards.filter(c => c.id !== currentCard.id);
+                }
                 closeCardModal();
-                syncBoardData();
+                submitOperation('DELETE_CARD', { listId: currentListId, cardId: currentCard.id });
                 renderBoard();
             }
         });
@@ -124,7 +125,6 @@ export function initializeModalEvents() {
         modalTitle.addEventListener('dblclick', editCardTitle);
     }
 
-    // Menu d'actions
     const moreBtn = document.getElementById('cardMoreActionsBtn');
     if (moreBtn) {
         moreBtn.addEventListener('click', (e) => {
@@ -137,14 +137,12 @@ export function initializeModalEvents() {
         });
     }
 
-    // Fermer le menu quand la modal se ferme
     const closeModalOriginal = closeCardModal;
     closeCardModal = function() {
         closeModalActionMenu();
         closeModalOriginal();
     };
 
-    // Auto-save pour les champs personnalisés
     ['etatField', 'infoSuppField1', 'infoSuppField2', 'localisationField', 'vehiculeField', 'tdField', 'convoiField'].forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
@@ -152,7 +150,7 @@ export function initializeModalEvents() {
             field.addEventListener('input', saveCardChanges);
         }
     });
-    
+
     const etatField = document.getElementById('etatField');
     if (etatField) {
         if (etatField.value) {
@@ -160,7 +158,7 @@ export function initializeModalEvents() {
             etatField.style.backgroundColor = `${etatInfo.color}E6`;
             etatField.style.color = etatInfo.textColor;
         }
-        
+
         etatField.addEventListener('change', function() {
             if (this.value) {
                 const etatInfo = getEtatLabel(this.value);
@@ -173,14 +171,11 @@ export function initializeModalEvents() {
         });
     }
 }
-
 function closeModalActionMenu() {
     document.querySelectorAll('.card-modal-action-menu').forEach(m => m.remove());
     document.removeEventListener('keydown', modalMenuKeyHandler);
 }
-
 function modalMenuKeyHandler(e){ if(e.key==='Escape') closeModalActionMenu(); }
-
 function openModalActionMenu() {
     if (!currentCard) return;
     closeModalActionMenu();
@@ -189,7 +184,6 @@ function openModalActionMenu() {
     const list = boardData.lists.find(l => l.cards.some(c => c.id === currentCard.id));
     const listId = list?.id;
     const compactLabel = currentCard.isCompact ? '🗗 Étendre la carte' : '⤡ Compacter la carte';
-
     const menu = document.createElement('div');
     menu.className = 'card-modal-action-menu';
     menu.innerHTML = `
@@ -199,7 +193,6 @@ function openModalActionMenu() {
         <button data-act="copy-title">📋 Copier le titre</button>
     `;
     btn.parentElement.appendChild(menu);
-
     menu.querySelectorAll('button').forEach(b => {
         b.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -209,9 +202,6 @@ function openModalActionMenu() {
             } else if (act === 'compact') {
                 toggleCardCompact(currentCard.id, listId);
             } else if (act === 'labels') {
-                if (!document.getElementById('cardModal').classList.contains('active')) {
-                    openCardModal(currentCard.id, listId);
-                }
                 setTimeout(showTagSelector, 30);
             } else if (act === 'copy-title') {
                 navigator.clipboard.writeText(currentCard.text || '').then(()=> {
@@ -224,7 +214,6 @@ function openModalActionMenu() {
             if (act !== 'copy-title') closeModalActionMenu();
         });
     });
-
     setTimeout(() => {
         document.addEventListener('click', outsideModalMenu, { once: true });
     }, 0);
@@ -233,7 +222,6 @@ function openModalActionMenu() {
     }
     document.addEventListener('keydown', modalMenuKeyHandler);
 }
-
 function duplicateCurrentFromModal(listId) {
     if (!currentCard || !listId) return;
     const list = boardData.lists.find(l => l.id === listId);
@@ -244,6 +232,6 @@ function duplicateCurrentFromModal(listId) {
     clone.id = generateId();
     clone.text = (clone.text || '');
     list.cards.splice(idx + 1, 0, clone);
-    syncBoardData();
+    submitOperation('CREATE_CARD', { listId, card: clone, position: idx + 1 });
     renderBoard();
 }
