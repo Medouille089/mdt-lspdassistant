@@ -36,6 +36,7 @@ body::before {
   z-index: 1;
   min-height: 100vh;
   color: var(--black);
+  padding: 0 2rem 2rem 2rem;
 }
 
 #overlay {

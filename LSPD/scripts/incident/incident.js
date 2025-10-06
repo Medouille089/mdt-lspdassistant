@@ -223,8 +223,21 @@ function initSelectBox(container, items) {
     try {
       const regex = new RegExp(inputEl.value, 'i');
       renderOptions(regex);
+      listEl.style.display = 'block';
     } catch {
       listEl.innerHTML = '';
+    }
+  });
+
+  // Afficher la liste quand on clique sur le champ
+  inputEl.addEventListener('focus', () => {
+    listEl.style.display = 'block';
+  });
+
+  // Masquer la liste quand on clique ailleurs
+  document.addEventListener('click', (e) => {
+    if (!container.contains(e.target)) {
+      listEl.style.display = 'none';
     }
   });
 
