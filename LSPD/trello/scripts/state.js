@@ -1,4 +1,14 @@
-export let boardData = { lists: [], tags: [] };
+const DEFAULT_BOARD = Object.freeze({ lists: [], tags: [] });
+
+function normalizeBoardData(data = DEFAULT_BOARD) {
+    return {
+        lists: Array.isArray(data?.lists) ? data.lists : [],
+        tags: Array.isArray(data?.tags) ? data.tags : []
+    };
+}
+
+export let boardData = normalizeBoardData();
+export let boardVersion = 0;
 export let availableTags = JSON.parse(localStorage.getItem('availableTags') || '[]');
 export let currentCard = null;
 export let currentListId = null;
@@ -9,7 +19,11 @@ export let activeCardCreations = new Set();
 export let scrollState = { boardX: 0, lists: {} };
 
 export function setBoardData(data) {
-    boardData = data;
+    boardData = normalizeBoardData(data);
+}
+
+export function setBoardVersion(version = 0) {
+    boardVersion = Number.isInteger(version) ? version : 0;
 }
 
 export function setAvailableTags(tags) {
