@@ -1,68 +1,46 @@
-// --------------------
-// FEEDBACK / ANIMATION
-// --------------------
-function showAnimation(type = 'success', message = '') {
-    return new Promise((resolve) => {
-        const container = document.getElementById('feedbackAnimation');
-        container.innerHTML = '';
-
-        const content = document.createElement('div');
-        content.className = 'feedback-inner';
-
-        if (type === 'success') {
-            content.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2" width="100" height="100">
-                    <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
-                    <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
-                </svg>
-                <p class="success">${message || 'Opération réussie !'}</p>
-            `;
-        } else {
-            content.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2" width="100" height="100">
-                    <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
-                    <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
-                    <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
-                </svg>
-                <p class="error">${message || "Erreur lors de l'opération"}</p>
-            `;
-        }
-
-        container.appendChild(content);
-        container.style.display = 'flex';
-
-        setTimeout(() => {
-            container.style.display = 'none';
-            container.innerHTML = '';
-            resolve();
-        }, 1800);
-    });
+// Fonctions utilitaires pour loader et feedback
+function showLoader(show = true) {
+    const loader = document.getElementById('loaderOverlay');
+    if (loader) loader.style.display = show ? 'flex' : 'none';
 }
 
-// --------------------
-// CHARGEMENT HEURE ALERTE
-// --------------------
-async function loadAlertTime() {
-    try {
-        const res = await fetch('/config/pointeuse/heure');
-        if (!res.ok) throw new Error("Erreur chargement heure");
-        const data = await res.json();
-        if (data.heure_pointeuse_alerte) {
-            document.getElementById('alertTime').value = data.heure_pointeuse_alerte;
-        }
-    } catch (err) {
-        console.warn("Impossible de charger l'heure d'alerte :", err);
+function showFeedback(message, isSuccess = true) {
+    const feedback = document.getElementById('feedbackAnimation');
+    if (!feedback) return;
+
+    feedback.innerHTML = '';
+    const content = document.createElement('div');
+    content.className = 'feedback-inner';
+
+    if (isSuccess) {
+        content.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+        <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
+        <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
+      </svg>
+      <p class="success">${message}</p>
+    `;
+    } else {
+        content.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+        <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
+        <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+        <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
+      </svg>
+      <p class="error">${message}</p>
+    `;
     }
 
-}
+    feedback.appendChild(content);
+    feedback.style.display = 'flex';
 
-// --------------------
-// GESTION DES ROLES
-// --------------------
-async function loadRoles() {
+    setTimeout(() => {
+        feedback.style.display = 'none';
+    }, 3000);
+} async function loadRoles() {
     const res = await fetch('/config/pointeuse');
     if (!res.ok) {
-        await showAnimation('error', "Erreur lors du chargement des rôles");
+        showFeedback("Erreur lors du chargement des rôles", false);
         return;
     }
     const data = await res.json();
@@ -70,20 +48,21 @@ async function loadRoles() {
     tbody.innerHTML = '';
     data.forEach(role => {
         const tr = document.createElement('tr');
-        tr.dataset.id = role.id;
+        tr.dataset.id = role.id;  // <-- ajout de l'attribut data-id pour update/delete
         tr.innerHTML = `
-            <td><input type="text" value="${role.discord_role_id}"></td>
-            <td><input type="text" value="${role.role_name}"></td>
-            <td><input type="number" step="0.01" value="${role.salary_rate}"></td>
-            <td><input type="number" value="${role.rank}"></td>
-            <td>
-                <button onclick="updateRole(this)">Modifier</button>
-                <button onclick="deleteRole('${role.id}')">Supprimer</button>
-            </td>
-        `;
+      <td><input type="text" value="${role.discord_role_id}"></td>
+      <td><input type="text" value="${role.role_name}"></td>
+      <td><input type="number" step="0.01" value="${role.salary_rate}"></td>
+      <td><input type="number" value="${role.rank}"></td>
+      <td>
+        <button onclick="updateRole(this)">Modifier</button>
+        <button onclick="deleteRole('${role.id}')">Supprimer</button>
+      </td>
+    `;
         tbody.appendChild(tr);
     });
 }
+
 
 async function updateRole(button) {
     const tr = button.closest('tr');
@@ -94,50 +73,49 @@ async function updateRole(button) {
     const rank = parseInt(tr.children[3].querySelector('input').value);
 
     if (!id || !discord_role_id || !role_name || isNaN(salary_rate) || isNaN(rank)) {
-        await showAnimation('error', "Tous les champs doivent être remplis correctement.");
+        showFeedback("Tous les champs doivent être remplis correctement.", false);
         return;
     }
 
-    const confirmed = await customEditConfirm(`Voulez-vous vraiment modifier le rôle "${role_name}" ?`);
-    if (!confirmed) return;
-
+    showLoader(true);
     const res = await fetch('/config/pointeuse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, discord_role_id, role_name, salary_rate, rank }),
     });
 
+    showLoader(false);
     if (!res.ok) {
-        await showAnimation('error', "Erreur lors de la modification du rôle");
+        showFeedback("Erreur lors de la modification", false);
         return;
     }
 
-    await showAnimation('success', `Rôle "${role_name}" modifié avec succès !`);
+    showFeedback("Rôle modifié avec succès", true);
     await loadRoles();
 }
 
 async function deleteRole(roleId) {
-    const confirmed = await customConfirm("Supprimer ce rôle ?");
-    if (!confirmed) return;
+    if (!confirm("Supprimer ce rôle ?")) return;
 
-    const res = await fetch(`/config/pointeuse/${roleId}`, { method: 'DELETE' });
+    showLoader(true);
+    const res = await fetch(`/config/pointeuse/${roleId}`, {
+        method: 'DELETE',
+    });
+
+    showLoader(false);
     if (!res.ok) {
-        await showAnimation('error', "Erreur lors de la suppression du rôle");
+        showFeedback("Erreur lors de la suppression du rôle", false);
         return;
     }
 
-    await showAnimation('success', "Rôle supprimé avec succès !");
+    showFeedback("Rôle supprimé avec succès", true);
     await loadRoles();
-
 }
 
-// --------------------
-// UTILISATEURS ET SALAIRES
-// --------------------
 async function loadUsersWithSalary() {
     const res = await fetch('/admin/users-salaries');
     if (!res.ok) {
-        await showAnimation('error', "Erreur lors du chargement des utilisateurs");
+        showFeedback("Erreur lors du chargement des utilisateurs", false);
         return;
     }
     const users = await res.json();
@@ -145,8 +123,10 @@ async function loadUsersWithSalary() {
     tbody.innerHTML = '';
 
     for (const user of users) {
+        // Récupère le pseudo Discord
         const userRes = await fetch(`/api/user/${user.discordId}`);
         const userData = await userRes.json();
+
         const salaryThisWeek = Number(user.salaryThisWeek) || 0;
         const hoursThisWeek = Number(user.hoursThisWeek) || 0;
         const salaryLastWeek = Number(user.salaryLastWeek) || 0;
@@ -154,35 +134,246 @@ async function loadUsersWithSalary() {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${userData.displayName || "Inconnu"}</td>
-            <td>${user.discordId}</td>
-            <td>${salaryThisWeek.toFixed(2)} $</td>
-            <td>${hoursThisWeek.toFixed(2)} h</td>
-            <td>${salaryLastWeek.toFixed(2)} $</td>
-            <td>${hoursLastWeek.toFixed(2)} h</td>
-            <td><button onclick="deleteUser('${user.discordId}')">Supprimer</button></td>
-        `;
+      <td>${userData.displayName || "Inconnu"}</td>
+      <td>${user.discordId}</td>
+      <td>${salaryThisWeek.toFixed(2)} $</td>
+      <td>${hoursThisWeek.toFixed(2)} h</td>
+      <td>${salaryLastWeek.toFixed(2)} $</td>
+      <td>${hoursLastWeek.toFixed(2)} h</td>
+      <td id="actionsBtns">
+        <button onclick="modifyUser('${user.discordId}')">✏️</button>
+        <button onclick="deleteUser('${user.discordId}')">🗑️</button>
+      </td>
+    `;
         tbody.appendChild(tr);
     }
 }
 
 async function deleteUser(userId) {
-    const confirmed = await customConfirm("Supprimer toutes les données de cet utilisateur ?");
-    if (!confirmed) return;
+    if (!confirm("Supprimer toutes les données de cet utilisateur ?")) return;
 
+    showLoader(true);
     const res = await fetch('/admin/pointeuse/users/' + userId, { method: 'DELETE' });
+    showLoader(false);
+
     if (!res.ok) {
-        await showAnimation('error', "Erreur lors de la suppression de l'utilisateur");
+        showFeedback("Erreur lors de la suppression de l'utilisateur", false);
         return;
     }
 
-    await showAnimation('success', "Utilisateur supprimé avec succès !");
+    showFeedback("Utilisateur supprimé avec succès", true);
     await loadUsersWithSalary();
 }
 
 // --------------------
-// AJOUT / MODIFICATION ROLE
+// MODIFICATION DES SESSIONS UTILISATEUR
 // --------------------
+async function modifyUser(userId) {
+    try {
+        showLoader(true);
+        const res = await fetch(`/admin/pointeuse/sessions/${userId}`);
+        showLoader(false);
+
+        if (!res.ok) {
+            showFeedback("Erreur lors du chargement des sessions", false);
+            return;
+        }
+
+        const sessions = await res.json();
+        await showUserSessionsModal(userId, sessions);
+    } catch (err) {
+        showLoader(false);
+        showFeedback("Erreur lors du chargement des sessions", false);
+        console.error(err);
+    }
+}
+
+async function showUserSessionsModal(userId, sessions) {
+    const userRes = await fetch(`/api/user/${userId}`);
+    const userData = await userRes.json();
+    const displayName = userData.displayName || userId;
+
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'user-sessions-modal-overlay';
+        modal.innerHTML = `
+      <div class="user-sessions-modal">
+        <div class="modal-header">
+          <h2>Sessions de pointeuse - ${displayName}</h2>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-content">
+          <div class="sessions-container">
+            ${renderSessionsTable(sessions)}
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel">Annuler</button>
+          <button class="btn-save">Sauvegarder les modifications</button>
+        </div>
+      </div>
+    `;
+
+        document.body.appendChild(modal);
+
+        const closeBtn = modal.querySelector('.modal-close');
+        const cancelBtn = modal.querySelector('.btn-cancel');
+        const saveBtn = modal.querySelector('.btn-save');
+
+        function closeModal() {
+            document.body.removeChild(modal);
+            resolve(false);
+        }
+
+        async function saveChanges() {
+            try {
+                showLoader(true);
+                const modifiedSessions = getModifiedSessions(modal);
+
+                for (const session of modifiedSessions) {
+                    const res = await fetch(`/admin/pointeuse/session/${session.id}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            start_time: session.start_time,
+                            end_time: session.end_time
+                        })
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`Erreur modification session ${session.id}`);
+                    }
+                }
+
+                showLoader(false);
+                showFeedback("Sessions modifiées avec succès !", true);
+                await loadUsersWithSalary();
+                document.body.removeChild(modal);
+                resolve(true);
+            } catch (err) {
+                showLoader(false);
+                showFeedback("Erreur lors de la sauvegarde", false);
+                console.error(err);
+            }
+        }
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        saveBtn.addEventListener('click', saveChanges);
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    });
+}
+
+function renderSessionsTable(sessions) {
+    if (sessions.length === 0) {
+        return '<p>Aucune session trouvée pour cette semaine et la semaine dernière.</p>';
+    }
+
+    const thisWeekSessions = sessions.filter(s => s.week_type === 'cette_semaine');
+    const lastWeekSessions = sessions.filter(s => s.week_type === 'semaine_derniere');
+
+    let html = '';
+
+    if (thisWeekSessions.length > 0) {
+        html += `
+      <h3>Cette semaine (${thisWeekSessions.length} sessions)</h3>
+      <table class="sessions-table">
+        <thead>
+          <tr>
+            <th>Début</th>
+            <th>Fin</th>
+            <th>Durée (h)</th>
+            <th>Rôle</th>
+            <th>Salaire gagné ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${thisWeekSessions.map(session => renderSessionRow(session)).join('')}
+        </tbody>
+      </table>
+    `;
+    }
+
+    if (lastWeekSessions.length > 0) {
+        html += `
+      <h3>Semaine dernière (${lastWeekSessions.length} sessions)</h3>
+      <table class="sessions-table">
+        <thead>
+          <tr>
+            <th>Début</th>
+            <th>Fin</th>
+            <th>Durée (h)</th>
+            <th>Rôle</th>
+            <th>Salaire gagné ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lastWeekSessions.map(session => renderSessionRow(session)).join('')}
+        </tbody>
+      </table>
+    `;
+    }
+
+    return html;
+}
+
+function renderSessionRow(session) {
+    const startTime = new Date(session.start_time).toLocaleString('fr-FR');
+    const endTime = session.end_time ? new Date(session.end_time).toLocaleString('fr-FR') : 'En cours';
+    const hours = parseFloat(session.hours_worked || 0).toFixed(2);
+    const salary = parseFloat(session.salary_earned || 0).toFixed(2);
+
+    return `
+    <tr data-session-id="${session.id}" data-salary-rate="${session.salary_rate || 0}">
+      <td>
+        <input type="datetime-local" class="session-start" value="${formatDateTimeLocal(session.start_time)}">
+      </td>
+      <td>
+        <input type="datetime-local" class="session-end" value="${session.end_time ? formatDateTimeLocal(session.end_time) : ''}">
+      </td>
+      <td class="session-duration">${hours} h</td>
+      <td>${session.role_name || 'Inconnu'}</td>
+      <td class="session-salary-display">
+        ${salary} $
+      </td>
+    </tr>
+  `;
+}
+
+function formatDateTimeLocal(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+
+    const offset = date.getTimezoneOffset() * 60000;
+    const localDate = new Date(date.getTime() - offset);
+
+    return localDate.toISOString().slice(0, 16);
+}
+
+function getModifiedSessions(modal) {
+    const modifiedSessions = [];
+    const rows = modal.querySelectorAll('.sessions-table tbody tr');
+
+    rows.forEach(row => {
+        const sessionId = row.dataset.sessionId;
+        const startInput = row.querySelector('.session-start');
+        const endInput = row.querySelector('.session-end');
+
+        if (startInput && endInput) {
+            modifiedSessions.push({
+                id: sessionId,
+                start_time: startInput.value,
+                end_time: endInput.value
+            });
+        }
+    });
+
+    return modifiedSessions;
+}
+
 document.getElementById('add-role-form').addEventListener('submit', async e => {
     e.preventDefault();
     const body = {
@@ -194,41 +385,55 @@ document.getElementById('add-role-form').addEventListener('submit', async e => {
     };
 
     if (!body.discord_role_id || !body.role_name || isNaN(body.salary_rate) || isNaN(body.rank)) {
-        await showAnimation('error', "Tous les champs doivent être remplis correctement.");
+        showFeedback("Tous les champs doivent être remplis correctement.", false);
         return;
     }
 
+    showLoader(true);
     const res = await fetch('/config/pointeuse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
     });
 
+    showLoader(false);
     if (!res.ok) {
-        await showAnimation('error', "Erreur lors de l'ajout / modification du rôle");
+        showFeedback("Erreur lors de l'ajout / modification", false);
         return;
     }
 
+    showFeedback("Rôle ajouté avec succès", true);
     e.target.reset();
-    await showAnimation('success', `Rôle "${body.role_name}" ajouté / modifié avec succès !`);
     await loadRoles();
 });
 
-// --------------------
-// SAUVEGARDE HEURE ALERTE
-// --------------------
+
+async function loadAlertTime() {
+    try {
+        const res = await fetch('/config/pointeuse/heure');
+        if (!res.ok) throw new Error("Erreur chargement heure");
+        const data = await res.json();
+        if (data.heure_pointeuse_alerte) {
+            document.getElementById('alertTime').value = data.heure_pointeuse_alerte;
+        }
+    } catch (err) {
+        console.warn("Impossible de charger l'heure d'alerte :", err);
+    }
+}
+
 async function saveAlertTime() {
     const btn = document.getElementById('saveAlertTimeBtn');
     const status = document.getElementById('alertTimeStatus');
     const heure = document.getElementById('alertTime').value;
 
     if (!heure) {
-        await showAnimation('error', "Veuillez sélectionner une heure valide.");
+        showFeedback("Veuillez sélectionner une heure valide.", false);
         return;
     }
 
     btn.disabled = true;
     status.style.display = 'none';
+    showLoader(true);
 
     try {
         const res = await fetch('/config/pointeuse/heure', {
@@ -236,11 +441,14 @@ async function saveAlertTime() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ heure }),
         });
+
+        showLoader(false);
         if (!res.ok) throw new Error("Erreur sauvegarde heure");
 
-        await showAnimation('success', `Heure d'alerte pointage mise à jour : ${heure}`);
+        showFeedback("Heure d'alerte sauvegardée", true);
     } catch (err) {
-        await showAnimation('error', "Erreur lors de la sauvegarde de l'heure.");
+        showLoader(false);
+        showFeedback("Erreur lors de la sauvegarde de l'heure.", false);
         console.error(err);
     } finally {
         btn.disabled = false;
@@ -252,125 +460,6 @@ document.getElementById('saveAlertTimeBtn').addEventListener('click', e => {
     saveAlertTime();
 });
 
-// --------------------
-// CONFIRMATION CUSTOM
-// --------------------
-async function customConfirm(message) {
-    return new Promise((resolve) => {
-        const overlay = document.getElementById('customConfirmSend');
-        const p = overlay.querySelector('p');
-        const btnCancel = overlay.querySelector('.btn-blue');
-        const btnConfirm = overlay.querySelector('.btn-red');
-
-        p.textContent = message;
-        overlay.style.display = 'flex';
-
-        const cleanup = () => {
-            overlay.style.display = 'none';
-            btnCancel.removeEventListener('click', onCancel);
-            btnConfirm.removeEventListener('click', onConfirm);
-        };
-
-        const onCancel = () => { cleanup(); resolve(false); };
-        const onConfirm = () => { cleanup(); resolve(true); };
-
-        btnCancel.addEventListener('click', onCancel);
-        btnConfirm.addEventListener('click', onConfirm);
-    });
-}
-
-// CONFIRMATION CUSTOM POUR MODIFIER
-async function customEditConfirm(message) {
-    return new Promise((resolve) => {
-        const overlay = document.getElementById('customConfirmSend');
-        const p = overlay.querySelector('p');
-        const btnCancel = overlay.querySelector('.btn-blue');
-        const btnConfirm = overlay.querySelector('.btn-red');
-
-        p.textContent = message; // message pour modifier
-        overlay.style.display = 'flex';
-
-        // changer les boutons pour "Annuler" / "Confirmer modification"
-        btnConfirm.textContent = "Confirmer modification";
-        btnCancel.textContent = "Annuler";
-
-        const cleanup = () => {
-            overlay.style.display = 'none';
-            btnCancel.removeEventListener('click', onCancel);
-            btnConfirm.removeEventListener('click', onConfirm);
-            btnConfirm.textContent = "Confirmer"; // reset texte
-            btnCancel.textContent = "Annuler";     // reset texte
-        };
-
-        const onCancel = () => { cleanup(); resolve(false); };
-        const onConfirm = () => { cleanup(); resolve(true); };
-
-        btnCancel.addEventListener('click', onCancel);
-        btnConfirm.addEventListener('click', onConfirm);
-    });
-}
-
-// --------------------
-// ACTIVE POINTEUSES
-// --------------------
-async function getDisplayName(discordId) {
-    try {
-        const res = await fetch(`/api/user/${discordId}`);
-        if (!res.ok) return discordId;
-        const data = await res.json();
-        return data.displayName || discordId;
-    } catch {
-        return discordId;
-    }
-}
-
-async function loadActivePointeuses() {
-    const res = await fetch("/admin/pointeuses-actives");
-    if (!res.ok) {
-        await showAnimation('error', "Erreur lors du chargement des pointeuses actives");
-        return;
-    }
-    const data = await res.json();
-
-    const tbody = document.getElementById("active-pointeuses-body");
-    tbody.innerHTML = "";
-
-    const usersWithDisplayName = await Promise.all(
-        data.map(async (user) => {
-            const displayName = await getDisplayName(user.discord_id);
-            return { ...user, displayName };
-        })
-    );
-
-    usersWithDisplayName.forEach(user => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${user.displayName}</td>
-            <td>${user.discord_id}</td>
-            <td><button onclick="forceStopPointeuse('${user.discord_id}', '${user.displayName}')">Forcer arrêt</button></td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-async function forceStopPointeuse(discordId, displayName) {
-    const confirmed = await customConfirm(`Êtes-vous sûr de vouloir forcer l'arrêt de la pointeuse de ${displayName} ?`);
-    if (!confirmed) return;
-
-    const res = await fetch(`/admin/pointeuse/stop/${discordId}`, { method: "POST" });
-    if (!res.ok) {
-        const err = await res.json();
-        await showAnimation('error', "Erreur : " + (err.error || "Impossible d'arrêter la pointeuse"));
-        return;
-    }
-
-    await showAnimation('success', `Pointeuse de ${displayName} arrêtée avec succès !`);
-    await loadActivePointeuses();
-}
-
-// --------------------
-// INITIALISATION
-// --------------------
 document.addEventListener('DOMContentLoaded', async () => {
     const loader = document.getElementById('loaderOverlay');
     if (loader) loader.style.display = 'flex';
@@ -386,3 +475,66 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (loader) loader.style.display = 'none';
     }
 });
+
+
+async function getDisplayName(discordId) {
+    try {
+        const res = await fetch(`/api/user/${discordId}`);
+        if (!res.ok) return discordId; // fallback à l'id si erreur
+        const data = await res.json();
+        return data.displayName || discordId;
+    } catch {
+        return discordId;
+    }
+}
+
+async function loadActivePointeuses() {
+    const res = await fetch("/admin/pointeuses-actives");
+    if (!res.ok) {
+        showFeedback("Erreur lors du chargement des pointeuses actives", false);
+        return;
+    }
+    const data = await res.json();
+
+    const tbody = document.getElementById("active-pointeuses-body");
+    tbody.innerHTML = "";
+
+    // Récupérer les displayNames pour chaque user (parallélisation)
+    const usersWithDisplayName = await Promise.all(
+        data.map(async (user) => {
+            const displayName = await getDisplayName(user.discord_id);
+            return { ...user, displayName };
+        })
+    );
+
+    // Construire la table
+    usersWithDisplayName.forEach(user => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+      <td>${user.displayName}</td>
+      <td>${user.discord_id}</td>
+      <td><button onclick="forceStopPointeuse('${user.discord_id}')">Forcer arrêt</button></td>
+    `;
+
+        tbody.appendChild(tr);
+    });
+}
+
+async function forceStopPointeuse(discordId) {
+    if (!confirm("Êtes-vous sûr de vouloir forcer l'arrêt de cette pointeuse ?")) return;
+
+    showLoader(true);
+    const res = await fetch(`/admin/pointeuse/stop/${discordId}`, {
+        method: "POST"
+    });
+
+    showLoader(false);
+    if (res.ok) {
+        showFeedback("Pointeuse arrêtée avec succès", true);
+        loadActivePointeuses();
+    } else {
+        const err = await res.json();
+        showFeedback("Erreur : " + err.error, false);
+    }
+}

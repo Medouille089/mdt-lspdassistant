@@ -30,7 +30,7 @@ p {
   margin: 20px 0 60px;
   font-size: 1.25em;
   &.success {
-    color: #0b1b5a;
+    color: var(--bg);
   }
   &.error {
     color: #D06079;

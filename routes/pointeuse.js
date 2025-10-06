@@ -435,4 +435,107 @@ router.get('/api/user/:discordId', async (req, res) => {
   }
 });
 
+router.get("/admin/pointeuse/sessions/:discordId", async (req, res) => {
+  try {
+    const { discordId } = req.params;
+
+    const nowParis = DateTime.now().setZone("Europe/Paris");
+    const startOfWeek = nowParis.startOf("week").startOf("day");
+    const endOfWeek = startOfWeek.plus({ days: 6 }).endOf("day");
+    const startOfLastWeek = startOfWeek.minus({ weeks: 1 });
+    const endOfLastWeek = startOfWeek.minus({ seconds: 1 });
+
+    const query = `
+      SELECT p.id, p.id_discord, p.discord_role_id, p.start_time, p.end_time, p.salary_earned,
+             r.role_name, r.salary_rate,
+             EXTRACT(EPOCH FROM (COALESCE(p.end_time, NOW()) - p.start_time)) / 3600 as hours_worked,
+             CASE 
+               WHEN p.start_time BETWEEN $2 AND $3 THEN 'cette_semaine'
+               WHEN p.start_time BETWEEN $4 AND $5 THEN 'semaine_derniere'
+               ELSE 'autre'
+             END as week_type
+      FROM lspd_pointage p
+      LEFT JOIN lspd_config_pointage r ON p.discord_role_id = r.discord_role_id
+      WHERE p.id_discord = $1 
+        AND (
+          (p.start_time BETWEEN $2 AND $3) OR 
+          (p.start_time BETWEEN $4 AND $5)
+        )
+      ORDER BY p.start_time DESC
+    `;
+
+    const result = await pool.query(query, [
+      discordId,
+      startOfWeek.toISO(),
+      endOfWeek.toISO(),
+      startOfLastWeek.toISO(),
+      endOfLastWeek.toISO()
+    ]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erreur récupération sessions :", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// Route pour modifier une session de pointeuse spécifique
+router.post("/admin/pointeuse/session/:sessionId", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { start_time, end_time } = req.body;
+
+    if (!start_time || !end_time) {
+      return res.status(400).json({ error: "Les heures de début et fin sont requises" });
+    }
+
+    // D'abord récupérer les informations de la session pour avoir le taux horaire
+    const sessionQuery = `
+      SELECT p.discord_role_id, r.salary_rate
+      FROM lspd_pointage p
+      LEFT JOIN lspd_config_pointage r ON p.discord_role_id = r.discord_role_id
+      WHERE p.id = $1
+    `;
+
+    const sessionInfo = await pool.query(sessionQuery, [sessionId]);
+
+    if (sessionInfo.rows.length === 0) {
+      return res.status(404).json({ error: "Session non trouvée" });
+    }
+
+    const salaryRate = sessionInfo.rows[0].salary_rate || 0;
+
+    // Calculer la durée en heures
+    const startDateTime = new Date(start_time);
+    const endDateTime = new Date(end_time);
+    const durationHours = (endDateTime - startDateTime) / (1000 * 60 * 60); // Conversion en heures
+
+    // Calculer le salaire gagné
+    const calculatedSalary = durationHours * salaryRate;
+
+    const updateQuery = `
+      UPDATE lspd_pointage 
+      SET start_time = $1, end_time = $2, salary_earned = $3
+      WHERE id = $4
+      RETURNING *
+    `;
+
+    const result = await pool.query(updateQuery, [start_time, end_time, calculatedSalary, sessionId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Erreur lors de la mise à jour" });
+    }
+
+    res.json({
+      success: true,
+      session: result.rows[0],
+      calculatedSalary: calculatedSalary.toFixed(2),
+      durationHours: durationHours.toFixed(2)
+    });
+  } catch (err) {
+    console.error("Erreur modification session :", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
 module.exports = router;

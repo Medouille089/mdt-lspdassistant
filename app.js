@@ -489,6 +489,11 @@ app.use(
     secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: false, // false pour HTTP en développement
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 // 24 heures
+    }
   })
 );
 
@@ -516,7 +521,13 @@ app.use((req, res, next) => {
 
   // Tout le reste → nécessite une connexion
   if (!req.isAuthenticated?.()) {
-    return res.redirect('/login');
+    // Générer un ID unique pour cette redirection
+    const redirectId = require('crypto').randomUUID();
+    // Stocker l'URL originale avec l'ID
+    if (!global.pendingRedirects) global.pendingRedirects = new Map();
+    global.pendingRedirects.set(redirectId, req.originalUrl);
+    console.log(`🛡️ Auth guard: stockage returnTo = ${req.originalUrl} avec ID=${redirectId}`);
+    return res.redirect(`/login?redirect=${redirectId}`);
   }
 
   next();
@@ -543,6 +554,9 @@ const presenceIg = require("./routes/presenceig");
 const ticketPanelRoutes = require('./routes/ticketPanel');
 const adminOfficer = require('./routes/officers');
 const rapportRookie = require('./routes/rapport-rookie');
+const convocAgent = require('./routes/convocAgent');
+const annonce = require('./routes/annonce');
+const faq = require('./routes/faq');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -564,6 +578,9 @@ app.use('/api/presenceig', presenceIg);
 app.use(ticketPanelRoutes);
 app.use(adminOfficer);
 app.use(rapportRookie);
+app.use(convocAgent);
+app.use(annonce);
+app.use(faq);
 
 // Routes Trello
 app.get('/trello/health', async (req, res) => {
@@ -666,6 +683,10 @@ app.get("/trello", (req, res) => {
 
 // Start server
 async function startServer() {
+  // Charger la configuration LSPD
+  const { loadConfig } = require("./config/config");
+  await loadConfig();
+
   // Initialiser la base de données Trello
   await initTrelloDatabase();
 

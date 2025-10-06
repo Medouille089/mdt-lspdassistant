@@ -16,7 +16,7 @@ body::before {
     right: 0;
     bottom: 0;
     z-index: -1;
-    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background: var(--background-gradient);
     background-repeat: no-repeat;
     background-size: cover;
 }
@@ -29,7 +29,7 @@ body::before {
     border-radius: 15px;
     padding: 40px 50px 100px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    border: 4px solid #0b1b5a;
+    border: 4px solid var(--main-color);
     position: relative;
 }
 
@@ -37,7 +37,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 3px solid #0b1b5a;
+    border-bottom: 3px solid var(--main-color);
     padding-bottom: 15px;
     margin-bottom: 30px;
 }
@@ -56,7 +56,7 @@ body::before {
     font-size: 26px;
     font-weight: bold;
     letter-spacing: 1px;
-    color: #0b1b5a;
+    color: var(--main-color);
 }
 
 .header-title h3 {
@@ -72,7 +72,7 @@ form label {
     margin-top: 25px;
     margin-bottom: 6px;
     font-size: 14px;
-    color: #0b1b5a;
+    color: var(--main-color);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -90,7 +90,7 @@ form textarea {
     background-color: #f9fafc;
     resize: none;
     box-sizing: border-box;
-    color: #0b1b5a;
+    color: var(--main-color);
     transition: border-color 0.2s ease;
 }
 
@@ -99,7 +99,7 @@ form input[type="date"]:focus,
 form input[type="time"]:focus,
 form select:focus,
 form textarea:focus {
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
     outline: none;
     background-color: #eef1f5;
 }
@@ -123,7 +123,7 @@ form select {
 }
 
 form select:hover {
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
     background-color: #eef1f5;
 }
 
@@ -139,7 +139,7 @@ form select:hover {
 }
 
 .checkbox-wrapper-34 {
-    --blue: #0b1b5a;
+    --blue: var(--main-color);
     --g08: #E1E5EB;
     --g04: #848ea1;
     margin-top: 10px;
@@ -233,7 +233,7 @@ form select:hover {
 }
 
 .send-button {
-    background-color: #0b1b5a;
+    background-color: var(--main-color);
     color: white;
     border: none;
     padding: 15px 40px;
@@ -246,7 +246,7 @@ form select:hover {
 }
 
 .send-button:hover {
-    background-color: #1a2c7a;
+    background-color: var(--main-color-normal);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(11, 27, 90, 0.3);
 }

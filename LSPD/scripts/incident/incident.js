@@ -1,4 +1,44 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Ajout du listener pour le bouton de correction orthographique
+  setTimeout(() => { // S'assure que le DOM est prêt
+    const btn = document.getElementById('spellcheck-btn');
+    if (btn) {
+      btn.addEventListener('click', async () => {
+        const textarea = document.getElementById('recit');
+        if (!textarea) return;
+        const originalText = textarea.value;
+        btn.disabled = true;
+        btn.textContent = 'Correction...';
+        try {
+          const res = await fetch('https://api.languagetoolplus.com/v2/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              text: originalText,
+              language: 'fr',
+              enabledOnly: false
+            })
+          });
+          const data = await res.json();
+          let corrected = originalText;
+          if (data.matches && data.matches.length > 0) {
+            // Applique les corrections de droite à gauche pour ne pas décaler les offsets
+            data.matches.sort((a, b) => b.offset - a.offset).forEach(match => {
+              if (match.replacements && match.replacements.length > 0) {
+                corrected = corrected.slice(0, match.offset) + match.replacements[0].value + corrected.slice(match.offset + match.length);
+              }
+            });
+            textarea.value = corrected;
+          }
+        } catch (e) {
+          alert('Erreur lors de la correction : ' + e.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Corriger l’orthographe';
+        }
+      });
+    }
+  }, 500);
   fetch("/api/user")
     .then((res) => res.json())
     .then((user) => {
@@ -183,8 +223,21 @@ function initSelectBox(container, items) {
     try {
       const regex = new RegExp(inputEl.value, 'i');
       renderOptions(regex);
+      listEl.style.display = 'block';
     } catch {
       listEl.innerHTML = '';
+    }
+  });
+
+  // Afficher la liste quand on clique sur le champ
+  inputEl.addEventListener('focus', () => {
+    listEl.style.display = 'block';
+  });
+
+  // Masquer la liste quand on clique ailleurs
+  document.addEventListener('click', (e) => {
+    if (!container.contains(e.target)) {
+      listEl.style.display = 'none';
     }
   });
 

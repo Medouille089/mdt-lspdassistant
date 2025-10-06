@@ -7,12 +7,27 @@ const { getConfig } = require("../config/config");
 const { GUILD_ID } = require('../config/env');
 const path = require("path");
 const { checkAuth } = require("../config/middleware"); // ✅ ton middleware
+const { checkAuthOrDOJ } = require("../config/middleware"); // ✅ nouveau middleware pour DOJ
+
+// Initialiser le Map global s'il n'existe pas
+if (!global.pendingRedirects) {
+  global.pendingRedirects = new Map();
+}
 
 // Authentification avec Discord
 router.get("/login", passport.authenticate("discord"));
 
 router.get('/callback', (req, res, next) => {
   if (!req.query.code) return res.status(403).send('Accès interdit.');
+
+  // Récupérer l'ID de redirection depuis le state OAuth
+  const redirectId = req.query.state;
+  if (redirectId) {
+    console.log(`🔄 Récupération redirectId depuis state OAuth: ${redirectId}`);
+    // Stocker temporairement pour utilisation après l'auth
+    req._redirectId = redirectId;
+  }
+
   next();
 }, passport.authenticate('discord', { failureRedirect: '/' }),
   async (req, res) => {
@@ -20,7 +35,7 @@ router.get('/callback', (req, res, next) => {
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
       const config = await getConfig();
-      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, id_superadmin } = config;
+      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id } = config;
 
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
@@ -40,15 +55,16 @@ router.get('/callback', (req, res, next) => {
 
       // Vérifie si l’utilisateur a le rôle requis
       const hasRequiredRole = isSuperAdmin ? true : roleIds.includes(required_role_id);
-      const action = hasRequiredRole
+      const action = hasRequiredRole || req.user.isDOJ
         ? "s'est connecté(e) avec succès"
-        : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}>`;
+        : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}> ou sans être DOJ`;
 
       // Variables de session
       req.user.roles = roleIds;
       req.user.isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
       req.user.isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
       req.user.isSuperAdmin = isSuperAdmin;
+      req.user.isDOJ = doj_role_id ? roleIds.includes(doj_role_id.trim()) : false;
 
       // Logs
       if (logs_channel) {
@@ -61,11 +77,11 @@ router.get('/callback', (req, res, next) => {
 
           const embed = new EmbedBuilder()
             .setTitle(logTitle)
-            .setColor(hasRequiredRole ? 0x0b1b5a : 0xdb4437)
+            .setColor(hasRequiredRole || req.user.isDOJ ? 0x0b1b5a : 0xdb4437)
             .setDescription(`${member.displayName || 'Utilisateur inconnu'} ${action}`)
             .addFields({
               name: "ID's",
-              value: `> <@${req.user.id}> (\`${req.user.id}\`)${isSuperAdmin ? `\n> <@&${id_superadmin}> (\`${id_superadmin}\`)` : ""}`,
+              value: `> <@${req.user.id}> (\`${req.user.id}\`)${isSuperAdmin ? `\n> <@&${id_superadmin}> (\`${id_superadmin}\`)` : ""}${req.user.isDOJ ? `\n> <@&${doj_role_id}> (\`${doj_role_id}\`)` : ""}`,
               inline: false
             })
             .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
@@ -75,22 +91,45 @@ router.get('/callback', (req, res, next) => {
         }
       }
 
-      // Bloque si l’utilisateur n’a pas le rôle requis et n’est pas super admin
-      if (!hasRequiredRole) {
+      // Bloque si l’utilisateur n’a pas le rôle requis et n’est pas super admin ou n'est pas DOJ
+      if (!hasRequiredRole && !req.user.isDOJ) {
         return res.status(403).send(`
           <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Accès refusé</title></head><body>
-          <h1>⛔ Accès refusé</h1>
+          <h1>⛔ Accès refusé auth.js</h1>
           <p>Désolé <strong>${req.user.username}</strong>, vous n’avez pas le rôle requis pour accéder à cette page.</p>
           <a href="/logout">Se déconnecter</a>
           </body></html>
         `);
       }
 
-      return res.redirect('/protected');
+      // Récupérer l'URL de redirection via l'ID stocké
+      let redirectTo = '/protected';
+      const redirectId = req._redirectId; // Utiliser l'ID depuis le callback, pas la session
+
+      console.log(`🔍 Debug redirection:`);
+      console.log(`  - redirectId from callback: ${redirectId}`);
+      console.log(`  - global.pendingRedirects exists: ${!!global.pendingRedirects}`);
+      console.log(`  - Map size: ${global.pendingRedirects ? global.pendingRedirects.size : 'N/A'}`);
+      console.log(`  - Has redirectId key: ${global.pendingRedirects ? global.pendingRedirects.has(redirectId) : 'N/A'}`);
+
+      if (redirectId && global.pendingRedirects && global.pendingRedirects.has(redirectId)) {
+        redirectTo = global.pendingRedirects.get(redirectId);
+        global.pendingRedirects.delete(redirectId); // Nettoyer après utilisation
+        console.log(`🔄 Récupération URL via redirectId ${redirectId}: ${redirectTo}`);
+      } else {
+        console.log(`❌ Impossible de récupérer l'URL pour redirectId: ${redirectId}`);
+      }
+
+      console.log(`🔄 Redirection après auth: redirectTo=${redirectTo}`);
+
+      return res.redirect(redirectTo);
 
     } catch (err) {
       console.error("Erreur lors de l'envoi du log de connexion :", err);
-      res.redirect('/protected');
+      // En cas d'erreur, rediriger aussi vers l'URL originale si elle existe
+      const redirectTo = req.session.returnTo || '/protected';
+      delete req.session.returnTo;
+      res.redirect(redirectTo);
     }
   }
 );
@@ -108,28 +147,46 @@ const protectedPages = [
   'adminPointeuse.html',
   'adminMenu.html',
   'adminGrades.html',
-  'admin-absences.html',
   'admin-presence.html',
   'officers.html',
   'officerMenu.html',
   'getOfficerSanction.html',
+  'admin-annonce.html',
   'tickets.html'
 ];
 
 // Pages protégées Command Staff + Supervisor
 const protectedPagesSupervisor = [
   'sanctions.html',
-  'getSanctions.html'
+  'admin-absences.html',
+  'getSanctions.html',
+  'sanctionMenu.html',
+  'superviseurMenu.html',
+  'convocAgent.html'
 ];
 
 const blockedForRookies = [
   'rapport-rookie.html'
 ];
 
-// Middleware commun (protège toutes les routes listées)
+const whiteListedPagesDOJ = [
+  'dashboard.html',
+  'viewIncident.html',
+  'viewArrestation.html',
+  'viewConvocation.html',
+  'getIncident.html',
+  'getArrestation.html',
+  'getConvocation.html'
+];// Middleware commun (protège toutes les routes listées)
 router.use(
   ['/protected', ...protectedPages.map(page => `/${page}`), ...protectedPagesSupervisor.map(page => `/${page}`)],
   checkAuth
+);
+
+// Middleware spécial pour les pages accessibles au DOJ
+router.use(
+  whiteListedPagesDOJ.map(page => `/${page}`),
+  checkAuthOrDOJ
 );
 
 // /protected
@@ -137,9 +194,17 @@ router.get('/protected', (req, res) => {
   res.sendFile(path.join(__dirname, '../LSPD/dashboard.html'));
 });
 
+// Handler pour les pages accessibles au DOJ
+router.get(whiteListedPagesDOJ.map(page => `/${page}`), (req, res) => {
+  const requestedPage = req.path.slice(1); // Enlever le '/' du début
+  console.log(`📄 Page DOJ demandée: ${requestedPage} par ${req.user?.username} (Type: ${req.user?.userType})`);
+  res.sendFile(path.join(__dirname, '../LSPD', requestedPage));
+});
+
 // Handler pages Command Staff uniquement
 router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
   try {
+    console.log(`📄 Accès à ${req.path}, isAuthenticated: ${req.isAuthenticated()}, user: ${req.user?.username || 'aucun'}`);
     if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
     const config = await getConfig();
@@ -253,4 +318,4 @@ router.use(blockedForRookies.map(page => `/${page}`), async (req, res, next) => 
   }
 });
 
-module.exports = router;
+module.exports = router;  

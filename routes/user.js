@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { checkAuth } = require("../config/middleware");
+const { checkAuth, checkAuthOrDOJ } = require("../config/middleware");
 const bot = require("../config/bot");
 const { GUILD_ID } = require("../config/env");
 const { getConfig } = require("../config/config");
 const pool = require('../config/db');
 
-router.get('/api/user', checkAuth, async (req, res) => {
+router.get('/api/user', checkAuthOrDOJ, async (req, res) => {
   const user = req.user;
 
   try {
@@ -32,6 +32,23 @@ router.get('/api/user', checkAuth, async (req, res) => {
         isCommandStaff: true,
         isSuperAdmin: true,
         grade: "Administrateur"
+      });
+    }
+
+    // Vérifier si l'utilisateur est DOJ
+    const isDOJ = req.user.isDOJ || false;
+    if (isDOJ) {
+      return res.json({
+        id: user.id,
+        username: member.displayName || user.username,
+        avatar: user.avatar,
+        discriminator: user.discriminator,
+        roles: roleIds,
+        isSupervisor: false,
+        isCommandStaff: false,
+        isSuperAdmin: false,
+        isDOJ: true,
+        grade: "DOJ"
       });
     }
 
@@ -84,6 +101,7 @@ router.get('/api/user', checkAuth, async (req, res) => {
       isSupervisor: user.isSupervisor,
       isCommandStaff: user.isCommandStaff,
       isSuperAdmin: user.isSuperAdmin,
+      isDOJ: false,
       grade
     });
 

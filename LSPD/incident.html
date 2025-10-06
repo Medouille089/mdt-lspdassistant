@@ -2,6 +2,8 @@
 <html lang="fr">
 
 <head>
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
   <meta charset="UTF-8" />
   <title>Rapport d'incident - LSPD Assistant</title>
   <link rel="icon" href="data/images/favicon.png" type="image/png">
@@ -14,6 +16,8 @@
 </head>
 
 <body>
+  <script src="scripts/annonce-popup.js"></script>
+  <script src="scripts/annonce-popup.js"></script>
   <div class="main-container">
     <div id="sidebar-container"></div>
     <h1>Rapport d'incident</h1>
@@ -58,8 +62,16 @@
           </div>
         </div>
 
+
         <label for="recit">Récit</label>
-        <textarea id="recit" name="recit"></textarea>
+        <div class="recit-spellcheck-wrapper">
+          <textarea id="recit" name="recit"></textarea>
+          <div class="recit-btn-row">
+            <a href="https://chat.openai.com/?q=Corrige%20les%20fautes%20d%27orthographes%20pr%C3%A9sentes%20dans%20le%20texte%20que%20je%20te%20fournis%20sans%20changer%20le%20sens%2C%20ni%20reformuler%20le%20texte." target="_blank" rel="noopener" id="gpt-btn">Chat GPT</a>
+          </div>
+        </div>
+
+        <div class="matricule-spacer"></div>
 
         <label for="implique">Matricules des officiers impliqués</label>
         <input type="text" id="implique" name="implique" />
@@ -75,12 +87,12 @@
           </div>
         </div>
 
-        <label for="pieces">Pièces jointes (Images)</label>
+        <label for="pieces">Les pièces jointes sont à envoyer manuellement dans le thread ou la situation.</label>
         <div class="file-upload-wrapper">
-          <label for="pieces" class="custom-file-upload">
+          <label for="pieces" class="custom-file-upload" style="display: none;">
             Sélectionner des fichiers
           </label>
-          <input type="file" id="pieces" name="pieces" accept="image/*" multiple />
+          <input type="file" id="pieces" name="pieces" accept="image/*" multiple disabled/>
         </div>
       </form>
       <div class="image-container">

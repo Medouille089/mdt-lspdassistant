@@ -337,7 +337,11 @@ export function saveCardChanges() {
     const listId = currentListId;
     const cardId = currentCard.id;
 
-    currentCard.description = document.getElementById('descriptionText').value;
+    // Sauvegarder la description seulement si l'élément existe
+    const descriptionElement = document.getElementById('descriptionText');
+    if (descriptionElement) {
+        currentCard.description = descriptionElement.value;
+    }
 
     const etatSelect = document.getElementById('etatField');
     const selectedOption = etatSelect.options[etatSelect.selectedIndex];
