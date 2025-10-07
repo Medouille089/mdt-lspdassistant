@@ -148,9 +148,6 @@ const protectedPages = [
   'adminMenu.html',
   'adminGrades.html',
   'admin-presence.html',
-  'officers.html',
-  'officerMenu.html',
-  'getOfficerSanction.html',
   'admin-annonce.html',
   'tickets.html'
 ];
@@ -163,7 +160,10 @@ const protectedPagesSupervisor = [
   'sanctionMenu.html',
   'superviseurMenu.html',
   'convocAgent.html',
+  'officerMenu.html',
+  'getOfficerSanction.html',
   'getConvocationsAgents.html',
+  'officers.html',
   'convocAgentMenu.html'
 ];
 
