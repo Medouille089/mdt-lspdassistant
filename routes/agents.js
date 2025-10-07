@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { checkAuth } = require("../config/middleware");
+const pool = require("../config/db");
 
 router.get('/api/user', checkAuth, async (req, res) => {
   const user = req.user;
@@ -22,6 +23,293 @@ router.get('/api/user', checkAuth, async (req, res) => {
   } catch (err) {
     console.error('Erreur fetch user:', err);
     res.status(500).json({ error: 'Impossible de récupérer les infos utilisateur.' });
+  }
+});
+
+// GET /api/agent-profile/:userId - Récupérer le profil d'un agent
+router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = req.user;
+
+    console.log('Demande profil:', { 
+      requestedUser: userId, 
+      currentUser: user.id, 
+      isSupervisor: user.isSupervisor, 
+      isCommandStaff: user.isCommandStaff 
+    });
+
+    // Simplifier les permissions - permettre à tous les utilisateurs connectés de voir les profils
+    console.log('Utilisateur:', { id: user.id, isSupervisor: user.isSupervisor, isCommandStaff: user.isCommandStaff, roles: user.roles });
+    
+    // Autoriser l'accès pour tous les utilisateurs connectés (temporaire pour déboguer)
+    console.log('Autorisation accordée pour le profil');
+
+    const result = await pool.query(
+      'SELECT * FROM lspd_agent_profiles WHERE discord_id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      // Créer un profil vide si il n'existe pas
+      const newProfile = await pool.query(
+        'INSERT INTO lspd_agent_profiles (discord_id) VALUES ($1) RETURNING *',
+        [userId]
+      );
+      return res.json(newProfile.rows[0]);
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Erreur récupération profil agent:', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// PUT /api/agent-profile/:userId - Mettre à jour le profil d'un agent
+router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = req.user;
+    const { photo_url, armes, vehicules, matricule, nom, prenom, specialites } = req.body;
+
+    // Autoriser l'édition pour tous (temporaire pour déboguer)
+    console.log('Édition du profil autorisée pour:', user.id);
+
+    // Mode édition désactivé temporairement - autoriser toutes les modifications
+
+    // Mettre à jour le profil
+    const result = await pool.query(
+      `UPDATE lspd_agent_profiles 
+       SET photo_url = $1, armes = $2, vehicules = $3, matricule = $4, 
+           nom = $5, prenom = $6, date_modification = NOW()
+       WHERE discord_id = $7 
+       RETURNING *`,
+      [photo_url, JSON.stringify(armes), JSON.stringify(vehicules), matricule, nom, prenom, userId]
+    );
+
+    if (result.rows.length === 0) {
+      // Créer le profil s'il n'existe pas
+      const newProfile = await pool.query(
+        `INSERT INTO lspd_agent_profiles 
+         (discord_id, photo_url, armes, vehicules, matricule, nom, prenom)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [userId, photo_url, JSON.stringify(armes), JSON.stringify(vehicules), matricule, nom, prenom]
+      );
+      return res.json(newProfile.rows[0]);
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Erreur mise à jour profil agent:', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// POST /api/agent-profile/:userId/edit-mode - Activer le mode édition
+router.post('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = req.user;
+
+    // Autoriser l'activation du mode édition pour tous (temporaire pour déboguer)
+    console.log('Activation mode édition autorisée pour:', user.id);
+
+    // Vérifier si quelqu'un d'autre est en mode édition
+    const editCheck = await pool.query(
+      'SELECT is_editing, edited_by, edit_started_at FROM lspd_agent_profiles WHERE discord_id = $1',
+      [userId]
+    );
+    
+    if (editCheck.rows.length > 0) {
+      const { is_editing, edited_by, edit_started_at } = editCheck.rows[0];
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      
+      if (is_editing && edited_by && edited_by !== user.id && 
+          edit_started_at && new Date(edit_started_at) > fiveMinutesAgo) {
+        return res.status(423).json({ 
+          error: 'Ce profil est en cours de modification par un autre utilisateur',
+          lockedBy: edited_by
+        });
+      }
+    }
+
+    // Activer le mode édition
+    await pool.query(
+      `UPDATE lspd_agent_profiles 
+       SET is_editing = true, edited_by = $1, edit_started_at = NOW()
+       WHERE discord_id = $2`,
+      [user.id, userId]
+    );
+
+    res.json({ success: true, editMode: true });
+  } catch (err) {
+    console.error('Erreur activation mode édition:', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// DELETE /api/agent-profile/:userId/edit-mode - Désactiver le mode édition
+router.delete('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = req.user;
+
+    // Désactiver le mode édition seulement si c'est le même utilisateur
+    await pool.query(
+      `UPDATE lspd_agent_profiles 
+       SET is_editing = false, edited_by = NULL, edit_started_at = NULL
+       WHERE discord_id = $1 AND edited_by = $2`,
+      [userId, user.id]
+    );
+
+    res.json({ success: true, editMode: false });
+  } catch (err) {
+    console.error('Erreur désactivation mode édition:', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// GET /api/agent-formations/:userId - Récupérer les formations d'un agent
+router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = req.user;
+
+    // Simplifier les permissions pour les formations
+    console.log('Formations - Utilisateur:', { id: user.id, isSupervisor: user.isSupervisor, isCommandStaff: user.isCommandStaff });
+    
+    // Autoriser l'accès aux formations pour tous (temporaire pour déboguer)
+    console.log('Autorisation accordée pour les formations');
+
+    // Récupérer la configuration des formations depuis la table lspd_formations
+    const formationsConfig = await pool.query('SELECT * FROM lspd_formations LIMIT 1');
+
+    if (formationsConfig.rows.length === 0) {
+      console.log('Aucune configuration de formation trouvée');
+      return res.json([]);
+    }
+
+    const config = formationsConfig.rows[0];
+
+    // Définir les formations disponibles avec leurs noms et rôles Discord
+    const formationsAvailables = [
+      { nom: 'Négociateur', discord_role_id: config.negociateur_role_id },
+      { nom: 'Lead Terrain', discord_role_id: config.lead_terrain_role_id },
+      { nom: 'Dispatcher', discord_role_id: config.dispatcher_role_id },  
+      { nom: 'Mary Unit', discord_role_id: config.mary_unit_role_id },
+      { nom: 'Nautics Unit', discord_role_id: config.nautics_unit_role_id },
+      { nom: 'VIR', discord_role_id: config.vir_role_id },
+      { nom: 'Convoi', discord_role_id: config.convoie_role_id },
+      { nom: 'ASD', discord_role_id: config.asd_role_id }
+    ].filter(formation => formation.discord_role_id && formation.discord_role_id.trim() !== ''); // Exclure les formations sans rôle défini
+
+    // Récupérer les rôles de l'utilisateur ciblé depuis Discord
+    let targetUserRoles = [];
+    
+    try {
+      // Essayer de récupérer les rôles via l'API Discord
+      const discordResponse = await fetch(`/api/discord/member/${userId}`);
+      if (discordResponse.ok) {
+        const memberData = await discordResponse.json();
+        targetUserRoles = memberData.roles || [];
+        console.log('Rôles Discord récupérés pour', userId, ':', targetUserRoles);
+      } else {
+        // Fallback : si c'est notre propre profil, utiliser nos rôles de session
+        if (user.id === userId) {
+          targetUserRoles = user.roles || [];
+        }
+        console.log('Fallback rôles pour', userId, ':', targetUserRoles);
+      }
+    } catch (error) {
+      console.warn('Erreur récupération rôles Discord:', error);
+      // Fallback : si c'est notre propre profil, utiliser nos rôles de session
+      if (user.id === userId) {
+        targetUserRoles = user.roles || [];
+      }
+    }
+    
+    console.log('Debug formations:', {
+      userId,
+      currentUserId: user.id,
+      targetUserRoles,
+      formationsAvailables: formationsAvailables.map(f => ({ nom: f.nom, roleId: f.discord_role_id }))
+    });
+    
+    // Filtrer les formations que l'utilisateur possède
+    const userFormations = formationsAvailables.filter(formation => 
+      targetUserRoles.includes(formation.discord_role_id)
+    );
+
+    console.log('Formations trouvées pour l\'utilisateur:', userFormations);
+    res.json(userFormations);
+  } catch (err) {
+    console.error('Erreur récupération formations:', err);
+    // Retourner une liste vide en cas d'erreur plutôt qu'une erreur 500
+    res.json([]);
+  }
+});
+
+
+// GET /api/agent-grade/:userId - Récupérer le grade d'un agent  
+router.get('/api/agent-grade/:userId', checkAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log('Récupération grade pour:', userId);
+
+    // Charger config grades
+    const gradesConfig = await pool.query('SELECT * FROM lspd_grades LIMIT 1');
+    if (gradesConfig.rows.length === 0) {
+      return res.json({ grade: 'Agent' });
+    }
+    const config = gradesConfig.rows[0];
+
+    const gradeHierarchy = [
+      { nom: 'Chief', role_id: config.chief_role_id },
+      { nom: 'Commandant', role_id: config.commandant_role_id },
+      { nom: 'Capitaine', role_id: config.capitaine_role_id },
+      { nom: 'Lieutenant Chef', role_id: config.lieutenant_chef_role_id },
+      { nom: 'Lieutenant', role_id: config.lieutenant_role_id },
+      { nom: 'Sergent Chef', role_id: config.sergent_chef_role_id },
+      { nom: 'Sergent II', role_id: config.sergent_2_role_id },
+      { nom: 'Sergent I', role_id: config.sergent_1_role_id },
+      { nom: 'SLO', role_id: config.slo_role_id },
+      { nom: 'Officier III', role_id: config.officier_3_role_id },
+      { nom: 'Officier II', role_id: config.officier_2_role_id },
+      { nom: 'Officier I', role_id: config.officier_1_role_id },
+      { nom: 'Rookie', role_id: config.rookie_role_id }
+    ].filter(g => g.role_id && g.role_id.trim() !== '');
+
+    let userRoles = [];
+    try {
+      const bot = require('../config/bot');
+      const guildId = process.env.GUILD_ID;
+      const guild = bot.guilds.cache.get(guildId);
+      if (guild) {
+        const member = await guild.members.fetch(userId).catch(() => null);
+        if (member) {
+          userRoles = member.roles.cache.map(r => r.id);
+        }
+      }
+    } catch (e) {
+      console.warn('Impossible de récupérer les rôles via bot, fallback:', e.message);
+    }
+
+    // Fallback si vide: utiliser session si c'est soi-même
+    if (!userRoles.length && req.user?.id === userId) {
+      userRoles = req.user.roles || [];
+    }
+
+    for (const grade of gradeHierarchy) {
+      if (userRoles.includes(grade.role_id)) {
+        return res.json({ grade: grade.nom });
+      }
+    }
+
+    return res.json({ grade: 'Agent' });
+  } catch (err) {
+    console.error('Erreur récupération grade:', err);
+    return res.json({ grade: 'Agent' });
   }
 });
 

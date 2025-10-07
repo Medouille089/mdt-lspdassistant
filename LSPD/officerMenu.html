@@ -71,6 +71,14 @@
             // on ne passe que l'ID, le displayName sera récupéré côté getOfficerSanctions
             window.location.href = `getOfficerSanctions.html?userId=${userId}`;
         });
+
+        // Redirection vers la page des informations de l'agent
+        document.getElementById('info-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!userId) return;
+
+            window.location.href = `infosagent.html?userId=${userId}`;
+        });
     </script>
 </body>
 

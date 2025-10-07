@@ -62,60 +62,43 @@ async function fetchUser() {
 
     // Affichage profil
     const container = document.getElementById('userProfile');
+    // Le conteneur parent est déjà dans <a class="nav-link"><span id="userProfile"></span></a>
+    // On insère seulement le contenu, le hover se fera sur l'ancre .nav-link (zone complète)
     container.innerHTML = `
-      <div id="profileBox" style="display: flex; align-items: center; cursor: pointer; gap: 10px;">
-        <img src="${avatarUrl}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid #FFFFFF;">
-        <div style="display: flex; flex-direction: column; color: #FFFFFF;">
-          <div style="font-weight: 700; font-size: ${fontSize};">${user.username}</div>
-          <div style="font-weight: 500; font-size: 0.8rem; color: #CCCCCC;">${user.grade}</div>
-        </div>
-      </div>
-      <div id="profileMenu" style="
-        display: block;
-        opacity: 0;
-        pointer-events: none;
-        font-weight: bold;
-        cursor: pointer;
-        color: #FFFFFF;
-        width: max-content;
-        position: absolute;
-        right: 0;
-        z-index: 10;
-      ">
-      </div>
-    `;
+      <span class="profile-inline" style="display:flex;align-items:center;gap:10px;">
+        <img class=\"profile-avatar\" src=\"${avatarUrl}\" alt=\"Avatar\" style=\"width:40px;height:40px;border-radius:50%;border:1px solid #FFFFFF;transition:border-color .18s;flex-shrink:0;\">
+        <span class=\"profile-texts\" style=\"display:flex;flex-direction:column;line-height:1.15;\">
+          <span class=\"profile-username\" style=\"font-weight:700;font-size:${fontSize};color:#FFFFFF;transition:color .18s;\">${user.username}</span>
+          <span class=\"profile-grade\" style=\"font-weight:500;font-size:0.8rem;color:#CCCCCC;transition:color .18s;\">${user.grade}</span>
+        </span>
+      </span>`;
 
-    const profileBox = document.getElementById('profileBox');
-    const profileMenu = document.getElementById('profileMenu');
+    const navLinkAnchor = container.closest('a.nav-link');
+    if (navLinkAnchor) {
+      navLinkAnchor.style.cursor = 'pointer';
+      navLinkAnchor.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = `infosagent.html?userId=${user.id}`;
+      });
 
-    let menuVisible = false;
-
-    profileBox.addEventListener('click', (e) => {
-      e.stopPropagation();
-      menuVisible = !menuVisible;
-      if (menuVisible) {
-        profileMenu.style.opacity = '1';
-        profileMenu.style.pointerEvents = 'auto';
-        profileMenu.style.transform = 'translateY(0)';
-      } else {
-        profileMenu.style.opacity = '0';
-        profileMenu.style.pointerEvents = 'none';
-        profileMenu.style.transform = 'translateY(-5px)';
-      }
-    });
-
-    profileMenu.addEventListener('click', () => {
-      window.location.href = '/logout';
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!profileBox.contains(e.target) && !profileMenu.contains(e.target)) {
-        menuVisible = false;
-        profileMenu.style.opacity = '0';
-        profileMenu.style.pointerEvents = 'none';
-        profileMenu.style.transform = 'translateY(-5px)';
-      }
-    });
+      const BLUE = '#0b1b5a';
+      navLinkAnchor.addEventListener('mouseenter', () => {
+        const usernameEl = navLinkAnchor.querySelector('.profile-username');
+        const gradeEl = navLinkAnchor.querySelector('.profile-grade');
+        const avatarEl = navLinkAnchor.querySelector('.profile-avatar');
+        if (usernameEl) usernameEl.style.color = BLUE;
+        if (gradeEl) gradeEl.style.color = BLUE;
+        if (avatarEl) avatarEl.style.borderColor = BLUE;
+      });
+      navLinkAnchor.addEventListener('mouseleave', () => {
+        const usernameEl = navLinkAnchor.querySelector('.profile-username');
+        const gradeEl = navLinkAnchor.querySelector('.profile-grade');
+        const avatarEl = navLinkAnchor.querySelector('.profile-avatar');
+        if (usernameEl) usernameEl.style.color = '#FFFFFF';
+        if (gradeEl) gradeEl.style.color = '#CCCCCC';
+        if (avatarEl) avatarEl.style.borderColor = '#FFFFFF';
+      });
+    }
 
     // Ensuite dans JS :
     document.querySelectorAll('.onlySupervisor').forEach(el => {
