@@ -44,6 +44,10 @@ function showFeedback(message, isSuccess = true) {
         return;
     }
     const data = await res.json();
+    
+    // Trier les rôles par nom (role_name) par ordre alphabétique
+    data.sort((a, b) => a.role_name.localeCompare(b.role_name));
+    
     const tbody = document.getElementById('roles-body');
     tbody.innerHTML = '';
     data.forEach(role => {
