@@ -162,7 +162,9 @@ const protectedPagesSupervisor = [
   'getSanctions.html',
   'sanctionMenu.html',
   'superviseurMenu.html',
-  'convocAgent.html'
+  'convocAgent.html',
+  'getConvocationsAgents.html',
+  'convocAgentMenu.html'
 ];
 
 const blockedForRookies = [
