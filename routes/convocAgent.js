@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getBot, getConfig } = require('../config/config');
 const { EmbedBuilder } = require('discord.js');
+const pool = require('../config/db');
 
 // Helper → formatage date en JJ/MM/AAAA
 function formatDate(dateStr) {
@@ -13,7 +14,7 @@ function formatDate(dateStr) {
 router.post('/api/convocations', async (req, res) => {
     try {
         const { agentId, date, lieu, raison, officier, grade } = req.body;
-        if (!agentId || !date || !lieu || !raison) 
+        if (!agentId || !date || !lieu || !raison)
             return res.status(400).json({ error: "Champs obligatoires manquants" });
 
         const bot = getBot();
@@ -42,6 +43,14 @@ router.post('/api/convocations', async (req, res) => {
             await member.send({ embeds: [embed] }).catch(() => console.log('MP impossible'));
         }
 
+        // --- Enregistrement en base de données ---
+        await pool.query(`
+            INSERT INTO lspd_convocations_agents (
+                agent_convoque_id, agent_convoque_nom, agent_convoquant_id, 
+                agent_convoquant_nom, agent_convoquant_grade, date, lieu, raison
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `, [agentId, agentName, req.user?.id || "inconnu", officier, grade, date, lieu, raison]);
+
         // --- Log Discord ---
         const config = getConfig();
         const logsChannelId = config.logs_channel;
@@ -56,7 +65,7 @@ router.post('/api/convocations', async (req, res) => {
                         { name: 'Lieu', value: lieu },
                         { name: 'Raison', value: raison },
                         { name: 'Grade', value: grade },
-                        { 
+                        {
                             name: "ID's",
                             value: `> Convoqueur : <@${req.user?.id || "inconnu"}> (\`${req.user?.id || "inconnu"}\`)\n> Convoqué : <@${agentId}> (\`${agentId}\`)`
                         }
@@ -73,6 +82,19 @@ router.post('/api/convocations', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Erreur lors de l\'envoi de la convocation' });
+    }
+});
+
+router.get("/api/getConvocationsAgents", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT * FROM lspd_convocations_agents 
+            ORDER BY created_at DESC
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Erreur lors de la récupération des convocations d'agents :", error);
+        res.status(500).json({ error: "Erreur lors de la récupération des convocations d'agents." });
     }
 });
 

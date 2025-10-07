@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <meta charset="UTF-8" />
+  <title>Détails Convocation Agent - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/sanctions.css">
+  <link rel="stylesheet" href="styles/popup.css">
+</head>
+
+<body>
+  <script src="scripts/annonce-popup.js"></script>
+  <div id="loaderOverlay" class="loader-overlay">
+    <div class="loader-spinner"></div>
+  </div>
+  <div class="main-container">
+    <div id="sidebar-container"></div>
+    <h1>Détails de la Convocation Agent</h1>
+    <div class="sanction-container">
+      <div class="form-content">
+        <label for="agent">Agent convoqué :</label>
+        <input type="text" id="agent" readonly>
+
+        <label for="date">Date :</label>
+        <input type="date" id="date" readonly>
+
+        <label for="lieu">Lieu :</label>
+        <input type="text" id="lieu" readonly>
+
+        <label for="raison">Raison :</label>
+        <textarea id="raison" readonly></textarea>
+
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="officier">Agent convoquant :</label>
+            <input type="text" id="officier" readonly>
+          </div>
+          <div class="user-info-field">
+            <label for="grade">Grade :</label>
+            <input type="text" id="grade" readonly>
+          </div>
+        </div>
+
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="created_at">Date de création :</label>
+            <input type="text" id="created_at" readonly>
+          </div>
+        </div>
+
+        <div class="button-container">
+          <button type="button" id="backButton" class="btn btn-secondary">← Retour à la liste</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="scripts/loadSidebar.js"></script>
+  <script src="scripts/convocation/viewConvocationAgent.js"></script>
+</body>
+
+</html>
