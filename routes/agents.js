@@ -51,10 +51,51 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      // Créer un profil vide si il n'existe pas
+      // Déterminer avatar Discord par défaut (pour soi ou cible si staff)
+      let defaultPhoto = null;
+      try {
+        const canFetchTarget = user && (user.id === userId || user.isSupervisor || user.isCommandStaff || user.isSuperAdmin);
+        if (canFetchTarget) {
+          // Si on crée pour un autre user (staff), tenter de récupérer via API interne discord/member
+            if (user.id !== userId) {
+              try {
+                const { getBot } = require('../config/config');
+                const bot = getBot();
+                const guild = bot.guilds.cache.get(process.env.GUILD_ID);
+                if (guild) {
+                  const member = await guild.members.fetch(userId).catch(() => null);
+                  if (member) {
+                    if (member.user.avatar) {
+                      defaultPhoto = `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png?size=256`;
+                    } else {
+                      const hashIdx = member.user.discriminator && member.user.discriminator !== '0'
+                        ? parseInt(member.user.discriminator) % 5
+                        : (parseInt(member.user.id.slice(-3), 10) % 5);
+                      defaultPhoto = `https://cdn.discordapp.com/embed/avatars/${hashIdx}.png`;
+                    }
+                  }
+                }
+              } catch(apiErr) {
+                console.warn('Fetch avatar membre cible (bot) échoué, fallback sur session si même user:', apiErr.message);
+              }
+            }
+            // Si toujours rien ou c'est soi-même
+            if (!defaultPhoto && user && user.id === userId) {
+              if (user.avatar) {
+                defaultPhoto = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256`;
+              } else if (user.discriminator) {
+                const discrimIndex = parseInt(user.discriminator) % 5;
+                defaultPhoto = `https://cdn.discordapp.com/embed/avatars/${discrimIndex}.png`;
+              }
+            }
+        }
+      } catch (e) {
+        console.warn('Impossible de calculer avatar par défaut:', e);
+      }
+
       const newProfile = await pool.query(
-        'INSERT INTO lspd_agent_profiles (discord_id) VALUES ($1) RETURNING *',
-        [userId]
+        'INSERT INTO lspd_agent_profiles (discord_id, photo_url) VALUES ($1, $2) RETURNING *',
+        [userId, defaultPhoto]
       );
       return res.json(newProfile.rows[0]);
     }
@@ -209,7 +250,7 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
     
     try {
       // Essayer de récupérer les rôles via l'API Discord
-      const discordResponse = await fetch(`/api/discord/member/${userId}`);
+  const discordResponse = await fetch(`${req.protocol}://${req.get('host')}/api/discord/member/${userId}`);
       if (discordResponse.ok) {
         const memberData = await discordResponse.json();
         targetUserRoles = memberData.roles || [];
