@@ -48,27 +48,29 @@ for (const file of commandFiles) {
 }
 
 async function registerCommands() {
-  const commands = bot.commands.map((cmd) => cmd.data.toJSON());
-  const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+  const all = bot.commands.map(c => c.data.toJSON());
+  const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+
+  // Politique: /rappel uniquement global (pour DM), autres aussi en guild pour rapidité
+  const guildCommands = all.filter(c => c.name !== 'rappel');
+  const globalCommands = all; // inclut /rappel
 
   try {
-    console.log("📤 Enregistrement des commandes slash (guild + global pour DM)...");
-    // Guild (rapide pour développement)
+    console.log('📤 MAJ commandes: guild (sans /rappel) + global (toutes)');
     await rest.put(
       Routes.applicationGuildCommands(
         process.env.CLIENT_ID,
         process.env.GUILD_ID
       ),
-      { body: commands }
+      { body: guildCommands }
     );
-    // Global (nécessaire pour DM) - peut prendre jusqu'à 1h à apparaître
     await rest.put(
       Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: commands }
+      { body: globalCommands }
     );
-    console.log("✅ Commandes enregistrées (guild + global)");
+    console.log('✅ Commandes mises à jour');
   } catch (err) {
-    console.error("❌ Erreur en enregistrant les commandes :", err);
+    console.error('❌ Erreur en enregistrant les commandes :', err);
   }
 }
 
