@@ -42,28 +42,6 @@ if (useDatabase) {
 
 // Fonctions pour le Trello Board
 async function testTrelloConnection() {
-  if (!useDatabase) return false;
-
-  let retries = 3;
-  while (retries > 0) {
-    try {
-      const client = await pool.connect();
-      await client.query('SELECT NOW()');
-      client.release();
-      console.log('✅ Connexion PostgreSQL Trello réussie');
-      return true;
-    } catch (err) {
-      console.error(`❌ Erreur de connexion PostgreSQL Trello (${retries} tentatives restantes):`, err.message);
-      retries--;
-      if (retries > 0) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-    }
-  }
-
-  console.warn('Basculement Trello en mode mémoire locale après échec de connexion');
-  useDatabase = false;
-  return false;
     if (!useDatabase) return false;
 
     let retries = 3;
@@ -72,9 +50,10 @@ async function testTrelloConnection() {
             const client = await pool.connect();
             await client.query('SELECT NOW()');
             client.release();
+            console.log('✅ Connexion PostgreSQL Trello réussie');
             return true;
         } catch (err) {
-            console.error(`❌ Erreur de connexion PostgreSQL (${retries} tentatives restantes):`, err.message);
+            console.error(`❌ Erreur de connexion PostgreSQL Trello (${retries} tentatives restantes):`, err.message);
             retries--;
             if (retries > 0) {
                 await new Promise(resolve => setTimeout(resolve, 2000));
@@ -82,21 +61,21 @@ async function testTrelloConnection() {
         }
     }
 
-    console.warn('Basculement en mode mémoire locale après échec de connexion');
+    console.warn('Basculement Trello en mode mémoire locale après échec de connexion');
     useDatabase = false;
     return false;
 }
 
 async function initTrelloDatabase() {
-  if (!useDatabase) return;
+    if (!useDatabase) return;
 
-  const connected = await testTrelloConnection();
-  if (!connected) return;
+    const connected = await testTrelloConnection();
+    if (!connected) return;
 
-  try {
-    const client = await pool.connect();
+    try {
+        const client = await pool.connect();
 
-    await client.query(`
+        await client.query(`
             CREATE TABLE IF NOT EXISTS trello_boards (
                 id SERIAL PRIMARY KEY,
                 data JSONB NOT NULL,
@@ -104,50 +83,50 @@ async function initTrelloDatabase() {
             )
         `);
 
-    const result = await client.query('SELECT COUNT(*) FROM trello_boards');
-    if (parseInt(result.rows[0].count) === 0) {
-      await client.query(
-        'INSERT INTO trello_boards (data) VALUES ($1)',
-        [JSON.stringify({ lists: [] })]
-      );
-      console.log('✅ Board Trello par défaut créé');
-    }
+        const result = await client.query('SELECT COUNT(*) FROM trello_boards');
+        if (parseInt(result.rows[0].count) === 0) {
+            await client.query(
+                'INSERT INTO trello_boards (data) VALUES ($1)',
+                [JSON.stringify({ lists: [] })]
+            );
+            console.log('✅ Board Trello par défaut créé');
+        }
 
-    client.release();
-    console.log('✅ Base de données Trello initialisée');
-  } catch (err) {
-    console.error('❌ Erreur lors de l\'initialisation de la base de données Trello:', err);
-    console.warn('Basculement Trello en mode mémoire locale');
-    useDatabase = false;
-  }
+        client.release();
+        console.log('✅ Base de données Trello initialisée');
+    } catch (err) {
+        console.error('❌ Erreur lors de l\'initialisation de la base de données Trello:', err);
+        console.warn('Basculement Trello en mode mémoire locale');
+        useDatabase = false;
+    }
 }
 
 async function loadBoardData() {
-  if (!useDatabase) {
-    return boardData;
-  }
-
-  try {
-    const client = await pool.connect();
-    const result = await client.query('SELECT data FROM trello_boards ORDER BY id LIMIT 1');
-    client.release();
-
-    if (result.rows.length > 0) {
-      console.log('📊 Données Trello chargées depuis PostgreSQL');
-      return result.rows[0].data;
+    if (!useDatabase) {
+        return boardData;
     }
 
-    return { lists: [] };
-  } catch (err) {
-    console.error('❌ Erreur lors du chargement des données Trello:', err);
-    return boardData;
-  }
+    try {
+        const client = await pool.connect();
+        const result = await client.query('SELECT data FROM trello_boards ORDER BY id LIMIT 1');
+        client.release();
+
+        if (result.rows.length > 0) {
+            console.log('📊 Données Trello chargées depuis PostgreSQL');
+            return result.rows[0].data;
+        }
+
+        return { lists: [] };
+    } catch (err) {
+        console.error('❌ Erreur lors du chargement des données Trello:', err);
+        return boardData;
+    }
 }
 
 async function saveBoardData(newBoardData) {
-  boardData = newBoardData;
+    boardData = newBoardData;
 
-  if (!useDatabase) return;
+    if (!useDatabase) return;
 
     for (let attempt = 1; attempt <= DB_SAVE_MAX_RETRIES; attempt++) {
         let client;
@@ -360,17 +339,17 @@ async function persistBoard(client, normalized) {
     }
 
     await client.query('UPDATE trello_boards SET updated_at = NOW() WHERE id = $1', [DEFAULT_BOARD_ID]);
-  try {
-    const client = await pool.connect();
-    await client.query(
-      'UPDATE trello_boards SET data = $1, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT MIN(id) FROM trello_boards)',
-      [JSON.stringify(newBoardData)]
-    );
-    client.release();
-    console.log('💾 Données Trello sauvegardées en base PostgreSQL');
-  } catch (err) {
-    console.error('❌ Erreur lors de la sauvegarde Trello:', err);
-  }
+    try {
+        const client = await pool.connect();
+        await client.query(
+            'UPDATE trello_boards SET data = $1, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT MIN(id) FROM trello_boards)',
+            [JSON.stringify(newBoardData)]
+        );
+        client.release();
+        console.log('💾 Données Trello sauvegardées en base PostgreSQL');
+    } catch (err) {
+        console.error('❌ Erreur lors de la sauvegarde Trello:', err);
+    }
 }
 
 // Middleware session
@@ -557,9 +536,9 @@ io.on("connection", async (socket) => {
         socket.emit("boardSync", { boardData: syncedBoard, version: syncedVersion });
     });
 
-  socket.on("disconnect", () => {
-    console.log("🔌 Connexion Trello fermée");
-  });
+    socket.on("disconnect", () => {
+        console.log("🔌 Connexion Trello fermée");
+    });
 });
 
 // Static frontend
