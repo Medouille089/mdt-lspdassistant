@@ -6,7 +6,7 @@ const { getBot, getConfig } = require('../config/config');
 const { checkAuth } = require('../config/middleware');
 const { EmbedBuilder } = require("discord.js");
 
-router.get('/api/absence', async (req, res) => {
+router.get('/api/absence', checkAuth, async (req, res) => {
     try {
         const query = `
             SELECT 
@@ -269,15 +269,15 @@ router.put('/api/absence/:id/statut', async (req, res) => {
                 .setTitle(`Mise à jour d'absence - ID ${absenceModifiee.id}`)
                 .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a mis à jour le statut de l'absence.`)
                 .addFields(
-                    { 
-                        name: "Infos de l'absence", 
-                        value: `> Officier: ${absenceModifiee.officier}\n> Grade: ${absenceModifiee.grade}\n> Type: ${absenceModifiee.type_absence}\n> Motif: ${absenceModifiee.motif}\n> Statut: ${statutTexte[statut]}`, 
-                        inline: false 
+                    {
+                        name: "Infos de l'absence",
+                        value: `> Officier: ${absenceModifiee.officier}\n> Grade: ${absenceModifiee.grade}\n> Type: ${absenceModifiee.type_absence}\n> Motif: ${absenceModifiee.motif}\n> Statut: ${statutTexte[statut]}`,
+                        inline: false
                     },
-                    { 
-                        name: "ID Discord", 
-                        value: `> <@${req.user.id}> (${req.user.id})`, 
-                        inline: false 
+                    {
+                        name: "ID Discord",
+                        value: `> <@${req.user.id}> (${req.user.id})`,
+                        inline: false
                     }
                 )
                 .setFooter({
