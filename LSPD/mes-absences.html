@@ -30,7 +30,7 @@
             </div>
             <div class="header-right">
                 <button class="btn-success" id="btnNewEvent" onclick="openEventModal()" style="display: none;">
-                    ➕ Nouvel Événement
+                    Nouvel Événement
                 </button>
                 <button class="btn-secondary" onclick="window.location.href='absence.html'">
                     Nouvelle Absence
@@ -155,7 +155,6 @@
     <!-- Modal pour les détails -->
     <div id="absenceModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
             <h2>Détails</h2>
             <div id="absenceDetails"></div>
         </div>
@@ -164,7 +163,6 @@
     <!-- Modal pour ajouter un événement -->
     <div id="eventModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeEventModal()">&times;</span>
             <h2>Nouvel Événement</h2>
             <form id="eventForm">
                 <div class="form-group">

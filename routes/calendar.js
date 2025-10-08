@@ -5,17 +5,14 @@ const { checkAuth } = require('../config/middleware');
 const { getConfig } = require('../config/config');
 const bot = require('../config/bot');
 const { EmbedBuilder } = require('discord.js');
+const { GUILD_ID } = require('../config/env');
 
-// Récupérer les grades disponibles
 router.get('/api/calendar/grades', checkAuth, async (req, res) => {
     try {
         const { rows } = await db.query('SELECT * FROM lspd_grades LIMIT 1');
         const row = rows[0];
 
-        const config = await getConfig();
-        const guild = await bot.guilds.fetch(config.guild_id);
-
-        const gradesList = [
+        const grades = [
             { id: row.rookie_role_id, name: 'Cadet' },
             { id: row.officier_1_role_id, name: 'Officier I' },
             { id: row.officier_2_role_id, name: 'Officier II' },
@@ -28,21 +25,8 @@ router.get('/api/calendar/grades', checkAuth, async (req, res) => {
             { id: row.lieutenant_chef_role_id, name: 'Lieutenant Chef' },
             { id: row.capitaine_role_id, name: 'Capitaine' },
             { id: row.commandant_role_id, name: 'Commandant' },
-            { id: row.chief_role_id, name: 'Chef du département' }
+            { id: row.chief_role_id, name: 'Chief' }
         ].filter(g => g.id);
-
-        // Récupérer les noms réels depuis Discord
-        const grades = [];
-        for (const grade of gradesList) {
-            try {
-                const role = await guild.roles.fetch(grade.id);
-                if (role) {
-                    grades.push({ id: grade.id, name: role.name });
-                }
-            } catch (err) {
-                console.error(`Erreur récupération rôle ${grade.id}:`, err);
-            }
-        }
 
         res.json(grades);
     } catch (error) {
@@ -51,23 +35,52 @@ router.get('/api/calendar/grades', checkAuth, async (req, res) => {
     }
 });
 
-// Récupérer les membres du serveur Discord
 router.get('/api/calendar/members', checkAuth, async (req, res) => {
     try {
-        const config = await getConfig();
-        const guild = await bot.guilds.fetch(config.guild_id);
-        await guild.members.fetch();
+        if (!bot.isReady()) {
+            return res.status(503).json({ error: 'Bot Discord en cours de démarrage, réessayez dans quelques secondes' });
+        }
 
-        const members = guild.members.cache
-            .filter(member => !member.user.bot)
-            .map(member => ({
+        const configRes = await db.query("SELECT required_role_id FROM configlspd LIMIT 1");
+        const REQUIRED_ROLE = configRes.rows[0]?.required_role_id?.trim();
+
+        if (!REQUIRED_ROLE) {
+            return res.json([]);
+        }
+
+        if (!GUILD_ID) {
+            return res.status(500).json({ error: 'Configuration manquante' });
+        }
+
+        const guild = bot.guilds.cache.get(GUILD_ID);
+
+        if (!guild) {
+            return res.status(500).json({ error: 'Guild Discord introuvable' });
+        }
+
+        try {
+            await guild.members.fetch();
+        } catch (fetchError) {
+            console.error('Erreur lors du fetch des membres:', fetchError);
+        }
+
+        const members = [];
+
+        guild.members.cache.forEach(member => {
+            if (member.user.bot) return;
+            if (!member.roles.cache.has(REQUIRED_ROLE)) return;
+
+            members.push({
                 id: member.user.id,
                 username: member.user.username,
                 displayName: member.displayName,
                 avatar: member.user.displayAvatarURL()
-            }))
-            .sort((a, b) => a.displayName.localeCompare(b.displayName));
+            });
+        });
 
+        members.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+        console.log(`${members.length} membres LSPD trouvés`);
         res.json(members);
     } catch (error) {
         console.error('Erreur lors de la récupération des membres:', error);
@@ -109,7 +122,6 @@ router.get('/api/calendar/events', checkAuth, async (req, res) => {
     }
 });
 
-// Récupérer les événements d'une période
 router.get('/api/calendar/events/periode/:debut/:fin', checkAuth, async (req, res) => {
     try {
         const { debut, fin } = req.params;
@@ -145,7 +157,6 @@ router.get('/api/calendar/events/periode/:debut/:fin', checkAuth, async (req, re
     }
 });
 
-// Créer un nouvel événement
 router.post('/api/calendar/events', checkAuth, async (req, res) => {
     try {
         const {
@@ -234,7 +245,6 @@ router.post('/api/calendar/events', checkAuth, async (req, res) => {
     }
 });
 
-// Mettre à jour un événement
 router.put('/api/calendar/events/:id', checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -289,7 +299,6 @@ router.put('/api/calendar/events/:id', checkAuth, async (req, res) => {
 
         const updatedEvent = result.rows[0];
 
-        // Envoyer un log Discord
         try {
             await sendEventLog(updatedEvent, 'modification');
         } catch (logError) {
@@ -311,12 +320,10 @@ router.put('/api/calendar/events/:id', checkAuth, async (req, res) => {
     }
 });
 
-// Supprimer un événement
 router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Récupérer l'événement avant suppression pour le log
         const selectQuery = 'SELECT * FROM evenements_calendrier WHERE id = $1';
         const selectResult = await db.query(selectQuery, [id]);
 
@@ -331,7 +338,6 @@ router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
         const deleteQuery = 'DELETE FROM evenements_calendrier WHERE id = $1';
         await db.query(deleteQuery, [id]);
 
-        // Envoyer un log Discord
         try {
             await sendEventLog(deletedEvent, 'suppression');
         } catch (logError) {
@@ -352,7 +358,6 @@ router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
     }
 });
 
-// Fonction pour envoyer un log Discord
 async function sendEventLog(event, action) {
     try {
         const conf = await getConfig();

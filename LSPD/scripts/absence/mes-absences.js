@@ -37,19 +37,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 fetch('/api/calendar/members')
             ]);
 
-            availableGrades = await gradesResponse.json();
-            availableMembers = await membersResponse.json();
 
-            // Remplir les sélecteurs dans le modal
+            if (!gradesResponse.ok) {
+                const errorText = await gradesResponse.text();
+                availableGrades = [];
+            } else {
+                availableGrades = await gradesResponse.json();
+            }
+
+            if (!membersResponse.ok) {
+                const errorText = await membersResponse.text();
+                console.error('Erreur membres:', errorText);
+                availableMembers = [];
+            } else {
+                availableMembers = await membersResponse.json();
+            }
+
             populateGradesSelector();
             populateMembersSelector();
         } catch (error) {
             console.error('Erreur lors du chargement des grades et membres:', error);
+            availableGrades = [];
+            availableMembers = [];
         }
     }
 
     function populateGradesSelector() {
         const select = document.getElementById('eventGrades');
+        if (!select) {
+            console.error('Élément eventGrades introuvable !');
+            return;
+        }
         select.innerHTML = '';
 
         availableGrades.forEach(grade => {
@@ -62,6 +80,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function populateMembersSelector() {
         const select = document.getElementById('eventPersonnes');
+        if (!select) {
+            console.error('Élément eventPersonnes introuvable !');
+            return;
+        }
         select.innerHTML = '';
 
         availableMembers.forEach(member => {
@@ -183,12 +205,19 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('typeFilterList').addEventListener('change', updateListView);
         document.getElementById('searchFilter').addEventListener('input', updateListView);
 
-        document.querySelector('.close').addEventListener('click', closeModal);
+        // Fermer les modals avec clic en dehors ou touche Échap
         window.addEventListener('click', (event) => {
             if (event.target === document.getElementById('absenceModal')) {
                 closeModal();
             }
             if (event.target === document.getElementById('eventModal')) {
+                closeEventModal();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeModal();
                 closeEventModal();
             }
         });
@@ -571,7 +600,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showDayDetails(date, absences, events) {
-        console.log('showDayDetails appelé:', { date, absences, events });
 
         const modal = document.getElementById('absenceModal');
         const detailsDiv = document.getElementById('absenceDetails');
@@ -593,14 +621,53 @@ document.addEventListener('DOMContentLoaded', function () {
             html += `<div class="details-section"><h4>Evenements (${events.length})</h4>`;
             events.forEach(event => {
                 html += `
-                    <div class="detail-item" style="border-left: 4px solid ${event.couleur || '#3498db'}">
-                        <strong>${event.titre}</strong>
-                        <p>Type: ${event.type_evenement}</p>
-                        ${event.lieu ? `<p>Lieu: ${event.lieu}</p>` : ''}
-                        ${event.description ? `<p>${event.description}</p>` : ''}
-                        <p><small>Par ${event.auteur}</small></p>
-                    </div>
+                    <div class="detail-item" style="border-left: 4px solid ${event.couleur || '#3498db'}; background: ${event.couleur ? event.couleur + '15' : '#e3f2fd'};">
+                        <strong style="font-size: 16px; color: ${event.couleur || '#3498db'};">${event.titre}</strong>
+                        <p><strong>Type:</strong> ${event.type_evenement}</p>
                 `;
+
+                // Afficher les dates et heures
+                const dateDebut = new Date(event.date_debut);
+                const dateFin = new Date(event.date_fin);
+                const heureDebut = dateDebut.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                const heureFin = dateFin.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+                html += `<p><strong>Horaire:</strong> ${heureDebut} - ${heureFin}</p>`;
+
+                if (event.lieu) {
+                    html += `<p><strong>Lieu:</strong> ${event.lieu}</p>`;
+                }
+
+                if (event.description) {
+                    html += `<p style="margin-top: 10px; font-style: italic;">${event.description}</p>`;
+                }
+
+                // Afficher les grades concernés
+                if (event.grades_concernes && event.grades_concernes.length > 0) {
+                    const gradesNoms = event.grades_concernes.map(gradeId => {
+                        const grade = availableGrades.find(g => g.id === gradeId);
+                        return grade ? grade.name : gradeId;
+                    });
+                    html += `<p><strong>Grades concernés:</strong> ${gradesNoms.join(', ')}</p>`;
+                }
+
+                // Afficher les personnes concernées
+                if (event.personnes_concernees && event.personnes_concernees.length > 0) {
+                    const personnesNoms = event.personnes_concernees.map(personneId => {
+                        const personne = availableMembers.find(m => m.id === personneId);
+                        return personne ? personne.displayName : personneId;
+                    });
+                    html += `<p><strong>Personnes concernées:</strong> ${personnesNoms.join(', ')}</p>`;
+                }
+
+                // Si aucun filtre, indiquer que c'est pour tout le monde
+                if ((!event.grades_concernes || event.grades_concernes.length === 0) &&
+                    (!event.personnes_concernees || event.personnes_concernees.length === 0)) {
+                    html += `<p><strong>Visibilité:</strong> Tous les membres LSPD</p>`;
+                }
+
+                html += `<p style="margin-top: 10px;"><small class="event-author">Créé par ${event.auteur}</small></p>`;
+                html += `</div>`;
             });
             html += '</div>';
         }
@@ -626,18 +693,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         detailsDiv.innerHTML = html;
         modal.style.display = 'flex';
-        console.log('Modal affichée');
     }
 
     function showAbsenceDetails(absences) {
-        console.log('showAbsenceDetails:', absences);
         if (absences && absences.length > 0) {
             showDayDetails(new Date(absences[0].date_debut), absences, []);
         }
     }
 
     function showEventDetails(event) {
-        console.log('showEventDetails:', event);
         if (event) {
             showDayDetails(new Date(event.date_debut), [], [event]);
         }

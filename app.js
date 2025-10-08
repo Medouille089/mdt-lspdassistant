@@ -460,8 +460,8 @@ app.use(rapportRookie);
 // Routes Trello
 app.get('/trello/health', async (req, res) => {
     if (!useDatabase) {
-        return res.json({ 
-            status: 'OK', 
+        return res.json({
+            status: 'OK',
             database: 'Mode mémoire locale (pas de DATABASE_URL)',
             timestamp: new Date().toISOString()
         });
@@ -472,17 +472,17 @@ app.get('/trello/health', async (req, res) => {
         const result = await client.query('SELECT NOW() as time');
         const serverTime = result.rows[0].time;
         client.release();
-        
-        res.json({ 
-            status: 'OK', 
+
+        res.json({
+            status: 'OK',
             database: 'PostgreSQL Connected',
             server_time: serverTime,
             timestamp: new Date().toISOString()
         });
     } catch (err) {
-        res.status(500).json({ 
-            status: 'ERROR', 
-            database: 'PostgreSQL Disconnected', 
+        res.status(500).json({
+            status: 'ERROR',
+            database: 'PostgreSQL Disconnected',
             error: err.message,
             timestamp: new Date().toISOString()
         });
@@ -492,7 +492,7 @@ app.get('/trello/health', async (req, res) => {
 app.get('/trello/debug', (req, res) => {
     res.json({
         has_database_url: !!process.env.DATABASE_URL,
-        database_url_preview: process.env.DATABASE_URL ? 
+        database_url_preview: process.env.DATABASE_URL ?
             process.env.DATABASE_URL.substring(0, 20) + '...' : 'non défini',
         use_database: useDatabase,
         node_env: process.env.NODE_ENV,
@@ -508,7 +508,7 @@ io.on("connection", async (socket) => {
     boardData = currentBoard;
     socket.emit("boardSync", { boardData: currentBoard, version });
 
-    socket.on("operation", async (operation, ack = () => {}) => {
+    socket.on("operation", async (operation, ack = () => { }) => {
         const result = operationsManager.applyOperation(operation);
 
         if (!result.success) {
@@ -558,30 +558,18 @@ app.get("/trello", (req, res) => {
 
 // Start server
 async function startServer() {
-  // Charger la configuration LSPD
-  const { loadConfig } = require("./config/config");
-  await loadConfig();
+    // Charger la configuration LSPD
+    const { loadConfig } = require("./config/config");
+    await loadConfig();
 
-  // Initialiser la base de données Trello
-  await initTrelloDatabase();
+    // Initialiser la base de données Trello
+    await initTrelloDatabase();
 
-  // Charger les données initiales Trello
-  try {
-    boardData = await loadBoardData();
-  } catch (err) {
-    console.error('Erreur lors du chargement initial Trello:', err);
-  }
-
-    operationsManager.loadBoardState(boardData);
-    boardData = operationsManager.getBoardState().boardData;
-
-  httpServer.listen(port, () => {
-    console.clear();
-    console.log(`🚀 Serveur LSPD + Trello démarré sur http://localhost:${port}/connect.html`);
-    if (useDatabase) {
-      console.log('📊 Mode PostgreSQL Trello activé');
-    } else {
-      console.log('💾 Mode mémoire locale Trello');
+    // Charger les données initiales Trello
+    try {
+        boardData = await loadBoardData();
+    } catch (err) {
+        console.error('Erreur lors du chargement initial Trello:', err);
     }
 
     operationsManager.loadBoardState(boardData);
@@ -617,5 +605,3 @@ process.on('SIGTERM', async () => {
     }
     process.exit(0);
 });
-
-startOvertimeScheduler();

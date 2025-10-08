@@ -558,11 +558,12 @@ body {
 
 .modal-content {
     background-color: white;
-    margin: 5% auto;
     padding: 30px;
     border-radius: 15px;
-    width: 80%;
-    max-width: 600px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 85vh;
+    overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     border: 3px solid var(--main-color);
     position: relative;
@@ -571,21 +572,11 @@ body {
 .modal-content h2 {
     color: var(--main-color);
     margin-bottom: 20px;
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    position: absolute;
-    top: 15px;
-    right: 25px;
-}
-
-.close:hover {
-    color: var(--main-color);
+    position: sticky;
+    top: -30px;
+    background: white;
+    padding: 20px 0;
+    z-index: 10;
 }
 
 /* Responsive */
@@ -623,6 +614,17 @@ body {
     .view-toggle {
         flex-direction: column;
         align-items: center;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-width: 95vw;
+        max-height: 90vh;
+        padding: 20px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -820,7 +822,9 @@ p {
 
 .form-group select[multiple] {
     min-height: 120px;
+    max-height: 180px;
     padding: 5px;
+    overflow-y: auto;
 }
 
 .form-group select[multiple] option {
@@ -837,12 +841,35 @@ p {
 .form-group select[multiple] option:checked {
     background: #3498db;
     color: white;
+    font-weight: 600;
 }
 
 .form-group small {
     display: block;
     margin-top: 5px;
     font-style: italic;
+}
+
+.modal-content::-webkit-scrollbar,
+.form-group select[multiple]::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track,
+.form-group select[multiple]::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb,
+.form-group select[multiple]::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover,
+.form-group select[multiple]::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
 .form-group input:focus,
@@ -898,8 +925,14 @@ p {
     background: #f8f9fa;
     padding: 15px;
     border-radius: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     border-left: 4px solid var(--main-color);
+    transition: all 0.3s ease;
+}
+
+.detail-item:hover {
+    transform: translateX(3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .detail-item.approved {
@@ -920,16 +953,25 @@ p {
 .detail-item strong {
     color: #333;
     font-size: 16px;
+    display: block;
+    margin-bottom: 8px;
 }
 
 .detail-item p {
     margin: 8px 0;
     color: #666;
+    line-height: 1.6;
+}
+
+.detail-item p strong {
+    display: inline;
+    font-size: 14px;
+    color: var(--main-color);
 }
 
 .event-author {
-    font-size: 13px;
-    color: #666;
+    font-size: 12px;
+    color: #999;
     font-style: italic;
 }
 
