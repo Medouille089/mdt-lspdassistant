@@ -18,11 +18,30 @@ export const extractAutoTags = (text) => {
         .map(([tagId]) => tagId);
 };
 
-export const getCardTags = (card, availableTags) => {
-    const autoTags = extractAutoTags(card.text);
-    const manualTags = card.tags || [];
-    return [...new Set([...autoTags, ...manualTags])];
-};
+export function getCardTags(card, availableTagsList) {
+    if (!card || !card.tags || !Array.isArray(card.tags)) {
+        return [];
+    }
+
+    // Trier les étiquettes de la carte selon l'ordre global des étiquettes disponibles
+    const sortedTags = [];
+    
+    // D'abord, ajouter les étiquettes dans l'ordre des availableTags
+    availableTagsList.forEach(availableTag => {
+        if (card.tags.includes(availableTag.id)) {
+            sortedTags.push(availableTag.id);
+        }
+    });
+    
+    // Ensuite, ajouter les étiquettes qui ne sont plus dans availableTags (pour la compatibilité)
+    card.tags.forEach(tagId => {
+        if (!sortedTags.includes(tagId)) {
+            sortedTags.push(tagId);
+        }
+    });
+
+    return sortedTags;
+}
 
 // Labels et styles
 export const ETAT_LABELS = {
@@ -54,32 +73,6 @@ export const COMPACT_CARD_COLORS = [
     { id: 'purple', label: 'Violet', color: '#803fa5' },
     { id: 'bluegray', label: 'BleuGris', color: '#206a83' }
 ];
-
-export function extractShortId(cardText) {
-    const patterns = [
-        /(\d{1,3}-\d{1,3})/,
-        /([A-Z]\d+-\d+)/i,
-        /Unit[- ]?(\d+)/i,
-        /([A-Z]{1,3}\d{1,3})/,
-        /(#\d+)/,
-        /(\w{2,4}-\w{2,4})/
-    ];
-    
-    for (const pattern of patterns) {
-        const match = cardText.match(pattern);
-        if (match) return match[1] || match[0];
-    }
-    
-    const words = cardText.trim().split(' ');
-    let result = '';
-    for (const word of words) {
-        if ((result + word).length <= 8) {
-            result += (result ? ' ' : '') + word;
-        } else break;
-    }
-    
-    return result || cardText.substring(0, 8);
-}
 
 export function generateCustomFieldsHtml(card) {
     if (!card) return '';

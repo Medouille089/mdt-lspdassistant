@@ -2,16 +2,20 @@
 <html lang="fr">
 
 <head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
     <meta charset="UTF-8" />
     <title>Tableau de bord - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/sidebar.css" />
     <link rel="stylesheet" href="styles/dashboard.css" />
     <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/warningCancer.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
+    <script src="scripts/annonce-popup.js"></script>
     <!-- Overlay de bienvenue -->
     <div id="overlay">
         <span id="overlayMessage"></span>
@@ -26,6 +30,9 @@
 
     <div class="main-container">
         <div id="sidebar-container"></div>
+        <div class="warning-modern">
+            <span>🎀 Octobre Rose sur le site, pour soutenir <a target="_blank" href="https://www.cancerdusein.org/81-association/230-faire-un-don">cancerdusein.org</a> ou <a target="_blank" href="https://www.ligue-cancer.net/octobre-rose">ligue-cancer.net</a> 🎀</span>
+        </div>
         <h1>Tableau de bord</h1>
 
         <div class="dashboard-container">

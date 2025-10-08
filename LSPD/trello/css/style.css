@@ -1449,3 +1449,307 @@ h1 {
     width: 16px;
     text-align: center;
 }
+
+/* === DIALOG POUR CARTES COMPACTES === */
+.compact-card-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--overlay-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 1;
+}
+
+.compact-card-dialog {
+    background-color: var(--secondary-bg);
+    border-radius: var(--radius-xl);
+    width: 480px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-heavy);
+    color: var(--text-primary);
+    animation: dialogFadeIn 0.3s ease-out;
+    border: 1px solid #4a5159;
+}
+
+.compact-card-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: 1px solid #4a5159;
+    background-color: #343a40;
+}
+
+.compact-card-dialog-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.compact-card-dialog-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.compact-card-dialog-close:hover {
+    background-color: var(--hover-gray);
+}
+
+.compact-card-dialog-content {
+    padding: var(--spacing-xl);
+}
+
+.compact-card-dialog-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.compact-card-dialog-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.compact-card-text-input {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid #4a5159;
+    border-radius: var(--radius-medium);
+    font-family: inherit;
+    font-size: 14px;
+    background-color: #3a4149;
+    color: #ffffff;
+    box-sizing: border-box;
+}
+
+.compact-card-text-input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-focus);
+    background-color: #434951;
+}
+
+.compact-card-color-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.compact-card-color-option {
+    width: 80px;
+    height: 50px;
+    border-radius: var(--radius-medium);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    border: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compact-card-color-option:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-medium);
+}
+
+.compact-card-color-option.selected {
+    border-color: var(--text-white);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.color-check {
+    color: var(--text-white);
+    font-weight: bold;
+    font-size: 18px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.compact-card-color-option.selected .color-check {
+    opacity: 1;
+}
+
+.compact-card-preview {
+    padding: var(--spacing-lg);
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-medium);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.compact-card-preview .compact-card {
+    margin: 0;
+    cursor: default;
+    pointer-events: none;
+}
+
+.compact-card-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-top: 1px solid #4a5159;
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.compact-card-dialog-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: none;
+    border-radius: var(--radius-medium);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 80px;
+}
+
+.compact-card-dialog-btn.cancel {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-medium);
+}
+
+.compact-card-dialog-btn.cancel:hover {
+    background-color: var(--hover-gray);
+    border-color: var(--border-dark);
+}
+
+.compact-card-dialog-btn.confirm {
+    background-color: var(--accent-blue);
+    color: var(--text-white);
+}
+
+.compact-card-dialog-btn.confirm:hover {
+    background-color: var(--accent-blue-dark);
+}
+
+/* === COLOR PICKER POUR CARTES COMPACTES === */
+.compact-card-color-picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--overlay-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 1;
+}
+
+.compact-card-color-picker {
+    background-color: var(--secondary-bg);
+    border-radius: var(--radius-xl);
+    width: 400px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-heavy);
+    color: var(--text-primary);
+    animation: dialogFadeIn 0.3s ease-out;
+    border: 1px solid #4a5159;
+}
+
+.compact-card-color-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: 1px solid #4a5159;
+    background-color: #343a40;
+}
+
+.compact-card-color-picker-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.compact-card-color-picker-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.compact-card-color-picker-close:hover {
+    background-color: var(--hover-gray);
+}
+
+.compact-card-color-picker-content {
+    padding: var(--spacing-xl);
+}
+
+.compact-card-color-picker-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-top: 1px solid #4a5159;
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.compact-card-color-picker-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: none;
+    border-radius: var(--radius-medium);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 80px;
+}
+
+.compact-card-color-picker-btn.cancel {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-medium);
+}
+
+.compact-card-color-picker-btn.cancel:hover {
+    background-color: var(--hover-gray);
+    border-color: var(--border-dark);
+}
+
+.compact-card-color-picker-btn.confirm {
+    background-color: var(--accent-blue);
+    color: var(--text-white);
+}
+
+.compact-card-color-picker-btn.confirm:hover {
+    background-color: var(--accent-blue-dark);
+}

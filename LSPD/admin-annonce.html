@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Admin - Annonce dynamique</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/incident/incident.css" />
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <style>
+        .annonce-admin-panel {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--main-header-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px #0002;
+            padding: 32px;
+            border: 2px solid var(--main-color);
+        }
+
+        .annonce-admin-panel label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+
+        .annonce-admin-panel input,
+        .annonce-admin-panel textarea {
+            width: 100%;
+            margin-bottom: 18px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--main-color);
+            font-size: 15px;
+            background: var(--input-bg);
+            color: var(--input-text);
+        }
+        .annonce-admin-panel textarea {
+            min-height: 110px;
+            height: 300px;
+            width: 98vw;
+            max-width: 100%;
+            min-width: 400px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            resize: none;
+        }
+
+        .annonce-admin-panel input:focus,
+        .annonce-admin-panel textarea:focus {
+            border-color: var(--main-color-dark);
+            outline: none;
+            background: var(--input-bg-focus);
+        }
+
+        .annonce-admin-panel button {
+            background: var(--main-color);
+            color: var(--button-text);
+            border: none;
+            border-radius: 6px;
+            padding: 10px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .annonce-admin-panel button:hover {
+            background: var(--main-color-normal);
+        }
+
+        .annonce-success {
+            color: #388e3c;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        .annonce-error {
+            color: #d32f2f;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+
+        <h1>Faire une annonce</h1>
+
+        <div class="annonce-admin-panel">
+            <label for="annonce-text">Contenu de l'annonce</label>
+            <textarea id="annonce-text" rows="6" maxlength="300" placeholder="Votre annonce..."></textarea>
+            <label for="annonce-duree">Durée d'affichage (secondes)</label>
+            <input type="number" id="annonce-duree" min="3" max="120" value="10" />
+            <button id="annonce-send">Envoyer l'annonce</button>
+            <div id="annonce-feedback"></div>
+        </div>
+    </div>
+    <script src="scripts/loadSidebar.js"></script>
+    <script>
+        document.getElementById('annonce-send').onclick = async function () {
+            const texte = document.getElementById('annonce-text').value.trim();
+            const dureeSec = parseInt(document.getElementById('annonce-duree').value, 10);
+            const feedback = document.getElementById('annonce-feedback');
+            feedback.textContent = '';
+            if (!texte || !dureeSec) {
+                feedback.textContent = 'Veuillez remplir tous les champs.';
+                feedback.className = 'annonce-error';
+                return;
+            }
+            let auteur = 'Admin';
+            try {
+                const userRes = await fetch('/api/user');
+                if (userRes.ok) {
+                    const user = await userRes.json();
+                    auteur = user.username || 'Admin';
+                }
+            } catch { }
+            try {
+                const res = await fetch('/api/annonce', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texte, auteur, dureeSec })
+                });
+                if (res.ok) {
+                    feedback.textContent = 'Annonce envoyée !';
+                    feedback.className = 'annonce-success';
+                    document.getElementById('annonce-text').value = '';
+                } else {
+                    const err = await res.json();
+                    feedback.textContent = err.error || 'Erreur lors de l\'envoi.';
+                    feedback.className = 'annonce-error';
+                }
+            } catch (e) {
+                feedback.textContent = 'Erreur réseau.';
+                feedback.className = 'annonce-error';
+            }
+        };
+    </script>
+</body>
+
+</html>

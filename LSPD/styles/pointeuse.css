@@ -17,7 +17,7 @@ body::before {
     bottom: 0;
     z-index: -1;
     /* derrière tout */
-    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background: var(--background-gradient);
     background-repeat: no-repeat;
     background-size: cover;
 }
@@ -32,15 +32,15 @@ h1 {
   text-align: center;
   margin-bottom: 30px;
   font-weight: 700;
-  color: #e0e7ff;
+  color: var(--text-light);
 }
 
 h2 {
   text-align: center;
   margin: 60px 0 25px;
   padding: 6px 0;
-  background-color: #0b1b5a;
-  color: #eef2ff;
+  background-color: var(--main-color-dark);
+  color: var(--text-light);
   border-radius: 8px;
   font-weight: 600;
   font-size: 1.4rem;
@@ -53,8 +53,8 @@ h2 {
   padding: 14px 40px;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #eef2ff;
-  background-color: #0b1b5a;
+  color: var(--button-text);
+  background-color: var(--button-bg);
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -62,7 +62,7 @@ h2 {
 }
 
 #btn-start-stop:hover {
-  background-color: #08123a;
+  background-color: var(--button-bg-hover);
 }
 
 /* Status texte */
@@ -71,7 +71,7 @@ h2 {
   font-size: 1.1rem;
   margin-bottom: 20px;
   font-weight: 600;
-  color: #0b1b5a;
+  color: var(--main-color-dark);
 }
 
 /* Tableaux */
@@ -79,15 +79,15 @@ table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background: #344863;
+  background: var(--table-bg);
   border-radius: 8px;
   overflow: hidden;
   font-size: 1rem;
-  color: #eef2ff;
+  color: var(--text-light);
 }
 
 thead {
-  background: #1d284a;
+  background: var(--table-header-bg);
 }
 
 thead th {
@@ -96,7 +96,7 @@ thead th {
   font-weight: 600;
   cursor: default;
   user-select: none;
-  border-bottom: 2px solid #22335a;
+  border-bottom: 2px solid var(--border-table);
 }
 
 tbody tr {
@@ -104,7 +104,7 @@ tbody tr {
 }
 
 tbody tr:nth-child(even) {
-  background-color: #2e3b5b;
+  background-color: var(--table-hover-bg);
 }
 
 tbody td {
@@ -115,10 +115,14 @@ tbody td {
 /* Paragraphs sous tableaux */
 .p, #last-weeks-list {
   text-align: center;
-  color: #d0d7ff;
+  color: var(--text-light);
   margin-top: 8px;
   font-weight: 600;
   font-size: 1.1rem;
+}
+
+.p {
+  color: var(--main-color-dark);
 }
 
 /* Liste 3 dernières semaines */
@@ -128,12 +132,8 @@ tbody td {
   margin-top: 0;
 }
 
-.p {
-    color: #0b1b5a;
-}
-
 #last-weeks-list li {
-  background-color: #1f2c4f;
+  background-color: var(--table-header-bg);
   margin: 6px auto;
   max-width: 600px;
   border-radius: 6px;
@@ -151,8 +151,8 @@ input[type="number"] {
   border-radius: 6px;
   border: none;
   font-size: 1rem;
-  color: #0b1b5a;
-  background-color: #eef2ff;
+  color: var(--input-text);
+  background-color: var(--input-bg);
   box-sizing: border-box;
   transition: box-shadow 0.3s ease;
 }
@@ -161,15 +161,15 @@ input[type="text"]:focus,
 input[type="date"]:focus,
 input[type="number"]:focus {
   outline: none;
-  box-shadow: 0 0 8px #0b1b5a;
+  box-shadow: 0 0 8px var(--main-color-dark);
 }
 
 /* Boutons dans tableaux (rôles, etc) */
 button {
   padding: 0.3rem 1.1rem;
   font-size: 0.95rem;
-  background-color: #0b1b5a;
-  color: white;
+  background-color: var(--button-bg);
+  color: var(--button-text);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -177,5 +177,5 @@ button {
 }
 
 button:hover {
-  background-color: #08123a;
+  background-color: var(--button-bg-hover);
 }

@@ -1,6 +1,6 @@
 import { boardData, scrollState, activeCardCreations, availableTags } from './state.js';
-import { captureScrollState, restoreScrollState, getCardTags, generateCustomFieldsHtml, extractShortId, generateId } from './utils.js';
-import { syncBoardData } from './socket.js';
+import { captureScrollState, restoreScrollState, getCardTags, generateCustomFieldsHtml, generateId } from './utils.js';
+import { submitOperation } from './socket.js';
 import { attachCardEvents } from './card.js';
 import { attachDragDropEvents } from './dragdrop.js';
 import { initializeModalEvents, openCardModal } from './modal.js';
@@ -75,7 +75,7 @@ function renderCard(card, listId) {
     }).join('');
 
     if (card.isCompact) {
-        const shortId = card.compactText || extractShortId(card.text);
+        const shortId = card.compactText || card.text;
         const colorClass = card.compactColor ? `color-${card.compactColor}` : 'color-gray';
 
         return `
@@ -233,7 +233,7 @@ function addList(e) {
             };
 
             boardData.lists.push(newList);
-            syncBoardData();
+            submitOperation('CREATE_LIST', { list: newList, position: boardData.lists.length - 1 });'addList', newList; // Remplace syncBoardData par submitOperation
 
             if (container.contains(listForm)) {
                 container.replaceChild(addListBtn, listForm);
@@ -296,7 +296,7 @@ function editListTitle(listElement, listId) {
             if (list) {
                 list.title = newTitle;
                 titleElement.textContent = newTitle;
-                syncBoardData();
+                submitOperation('UPDATE_LIST', { listId, updates: { title: newTitle } });'editListTitle', { listId, newTitle }; // Remplace syncBoardData par submitOperation
             }
         }
         input.remove();
@@ -444,6 +444,6 @@ function sortListCards(listId, sortType) {
     }
 
     list.cards = cards;
-    syncBoardData();
+    submitOperation('SET_CARD_ORDER', { listId, orderedCardIds: cards.map(card => card.id) });'sortListCards', { listId, sortType }; // Remplace syncBoardData par submitOperation
     renderBoard();
 }

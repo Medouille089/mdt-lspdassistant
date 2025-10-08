@@ -44,6 +44,10 @@ function showFeedback(message, isSuccess = true) {
         return;
     }
     const data = await res.json();
+    
+    // Trier les rôles par nom (role_name) par ordre alphabétique
+    data.sort((a, b) => a.role_name.localeCompare(b.role_name));
+    
     const tbody = document.getElementById('roles-body');
     tbody.innerHTML = '';
     data.forEach(role => {
@@ -122,6 +126,9 @@ async function loadUsersWithSalary() {
     const tbody = document.getElementById('users-salary-body');
     tbody.innerHTML = '';
 
+    // Créer un tableau avec les displayNames pour le tri
+    const usersWithDisplayNames = [];
+    
     for (const user of users) {
         // Récupère le pseudo Discord
         const userRes = await fetch(`/api/user/${user.discordId}`);
@@ -132,21 +139,36 @@ async function loadUsersWithSalary() {
         const salaryLastWeek = Number(user.salaryLastWeek) || 0;
         const hoursLastWeek = Number(user.hoursLastWeek) || 0;
 
+        usersWithDisplayNames.push({
+            displayName: userData.displayName || "Inconnu",
+            discordId: user.discordId,
+            salaryThisWeek,
+            hoursThisWeek,
+            salaryLastWeek,
+            hoursLastWeek
+        });
+    }
+    
+    // Trier par nom d'utilisateur (displayName) par ordre alphabétique
+    usersWithDisplayNames.sort((a, b) => a.displayName.localeCompare(b.displayName));
+    
+    // Créer les lignes du tableau triées
+    usersWithDisplayNames.forEach(user => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td>${userData.displayName || "Inconnu"}</td>
+      <td>${user.displayName}</td>
       <td>${user.discordId}</td>
-      <td>${salaryThisWeek.toFixed(2)} $</td>
-      <td>${hoursThisWeek.toFixed(2)} h</td>
-      <td>${salaryLastWeek.toFixed(2)} $</td>
-      <td>${hoursLastWeek.toFixed(2)} h</td>
+      <td>${user.salaryThisWeek.toFixed(2)} $</td>
+      <td>${user.hoursThisWeek.toFixed(2)} h</td>
+      <td>${user.salaryLastWeek.toFixed(2)} $</td>
+      <td>${user.hoursLastWeek.toFixed(2)} h</td>
       <td id="actionsBtns">
         <button onclick="modifyUser('${user.discordId}')">✏️</button>
         <button onclick="deleteUser('${user.discordId}')">🗑️</button>
       </td>
     `;
         tbody.appendChild(tr);
-    }
+    });
 }
 
 async function deleteUser(userId) {
@@ -506,6 +528,9 @@ async function loadActivePointeuses() {
             return { ...user, displayName };
         })
     );
+
+    // Trier par nom d'utilisateur (displayName) par ordre alphabétique
+    usersWithDisplayName.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
     // Construire la table
     usersWithDisplayName.forEach(user => {

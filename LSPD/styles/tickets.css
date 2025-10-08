@@ -16,7 +16,7 @@ body::before {
     right: 0;
     bottom: 0;
     z-index: -1;
-    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background: var(--background-gradient);
 }
 
 /* === LAYOUT PRINCIPAL === */
@@ -38,17 +38,17 @@ body::before {
     max-width: 900px;
     width: 100%;
     margin: auto;
-    background: #fff;
+    background: var(--white);
     border-radius: 15px;
     padding: 40px 50px 100px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    border: 4px solid #0b1b5a;
+    border: 4px solid var(--main-color-dark);
     position: relative;
 }
 
 /* Titres */
 h1 {
-    color: #0b1b5a;
+    color: var(--main-color-dark);
     font-size: 2rem;
     margin-bottom: 24px;
     text-align: center;
@@ -56,13 +56,13 @@ h1 {
 
 h2,
 h3 {
-    color: #0b1b5a;
+    color: var(--main-color-dark);
     margin-bottom: 12px;
 }
 
 /* === FORMULAIRES === */
 label {
-    color: #0b1b5a;
+    color: var(--main-color-dark);
     font-weight: 500;
     margin-top: 18px;
     margin-bottom: 6px;
@@ -76,8 +76,8 @@ textarea {
     width: 100%;
     padding: 10px 12px;
     border-radius: 8px;
-    border: 2px solid #CBD4FF;
-    background: #f7f9ff;
+    border: 2px solid var(--text-light);
+    background: var(--input-bg);
     font-size: 1rem;
     margin-bottom: 12px;
     transition: border-color 0.2s;
@@ -91,7 +91,7 @@ input[type="color"] {
 input:focus,
 select:focus,
 textarea:focus {
-    border-color: #0b1b5a;
+    border-color: var(--main-color-dark);
     outline: none;
 }
 
@@ -107,8 +107,8 @@ textarea {
     margin-bottom: 10px;
 }
 
-.form-row>input,
-.form-row>select {
+.form-row > input,
+.form-row > select {
     flex: 1;
 }
 
@@ -122,8 +122,8 @@ textarea {
 /* Boutons discrets */
 button,
 .send-button {
-    background: #0b1b5a;
-    color: #fff;
+    background: var(--main-color-dark);
+    color: var(--white);
     border: none;
     border-radius: 8px;
     padding: 10px 20px;
@@ -136,7 +136,7 @@ button,
 
 button:hover,
 .send-button:hover {
-    background: #1436a3;
+    background: var(--button-bg-hover);
 }
 
 /* Roles tags */
@@ -148,8 +148,8 @@ button:hover,
 }
 
 .roles-list .tag {
-    background: #0b1b5a;
-    color: #fff;
+    background: var(--main-color-dark);
+    color: var(--white);
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 14px;
@@ -165,25 +165,25 @@ button:hover,
 
 /* Category box */
 .category {
-    border: 2px solid #CBD4FF;
+    border: 2px solid var(--text-light);
     border-radius: 12px;
     padding: 15px 20px;
     margin-bottom: 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #f7f9ff;
+    background: var(--input-bg);
     transition: all 0.2s;
 }
 
 .category:hover {
-    background: #eef1f5;
+    background: var(--input-bg-focus);
     box-shadow: 0 4px 15px rgba(11, 27, 90, 0.1);
 }
 
 .category button {
-    background: #0b1b5a;
-    color: #fff;
+    background: var(--main-color-dark);
+    color: var(--white);
     border: none;
     padding: 6px 10px;
     border-radius: 6px;
@@ -192,7 +192,7 @@ button:hover,
 }
 
 .category button:hover {
-    background: #1436a3;
+    background: var(--button-bg-hover);
 }
 
 /* Switch */
@@ -204,7 +204,7 @@ button:hover,
 /* HR */
 hr {
     border: none;
-    border-bottom: 2px solid #0b1b5a;
+    border-bottom: 2px solid var(--main-color-dark);
     margin: 30px 0;
 }
 

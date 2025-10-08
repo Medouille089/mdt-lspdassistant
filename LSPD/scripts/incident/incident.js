@@ -20,57 +20,15 @@ document.addEventListener("DOMContentLoaded", () => {
             })
           });
           const data = await res.json();
-
+          let corrected = originalText;
           if (data.matches && data.matches.length > 0) {
-            // Filtrer les corrections non pertinentes
-            const filteredMatches = data.matches.filter(match => {
-              const rule = match.rule;
-              const issueType = rule.issueType;
-              const category = rule.category?.id;
-
-              // Exclure les règles problématiques
-              const excludedCategories = [
-                'CASING', // Majuscules/minuscules (souvent des noms propres)
-                'COMPOUNDING', // Mots composés
-              ];
-
-              const excludedRules = [
-                'UPPERCASE_SENTENCE_START', // Majuscule en début de phrase
-                'FRENCH_WHITESPACE', // Espaces (peut être trop agressif)
-              ];
-
-              // Exclure si c'est un nom propre détecté
-              if (category && excludedCategories.includes(category)) {
-                return false;
+            // Applique les corrections de droite à gauche pour ne pas décaler les offsets
+            data.matches.sort((a, b) => b.offset - a.offset).forEach(match => {
+              if (match.replacements && match.replacements.length > 0) {
+                corrected = corrected.slice(0, match.offset) + match.replacements[0].value + corrected.slice(match.offset + match.length);
               }
-
-              if (excludedRules.includes(rule.id)) {
-                return false;
-              }
-
-              // Garder seulement les vraies fautes d'orthographe et grammaire
-              return issueType === 'misspelling' ||
-                issueType === 'grammar' ||
-                issueType === 'typographical';
             });
-
-            if (filteredMatches.length === 0) {
-              alert('✅ Aucune correction nécessaire !');
-            } else {
-              // Appliquer les corrections de droite à gauche pour ne pas décaler les offsets
-              let corrected = originalText;
-              filteredMatches.sort((a, b) => b.offset - a.offset).forEach(match => {
-                if (match.replacements && match.replacements.length > 0) {
-                  corrected = corrected.slice(0, match.offset) +
-                    match.replacements[0].value +
-                    corrected.slice(match.offset + match.length);
-                }
-              });
-              textarea.value = corrected;
-              alert(`✅ ${filteredMatches.length} correction(s) appliquée(s) !`);
-            }
-          } else {
-            alert('✅ Aucune correction nécessaire !');
+            textarea.value = corrected;
           }
         } catch (e) {
           alert('Erreur lors de la correction : ' + e.message);
@@ -265,8 +223,21 @@ function initSelectBox(container, items) {
     try {
       const regex = new RegExp(inputEl.value, 'i');
       renderOptions(regex);
+      listEl.style.display = 'block';
     } catch {
       listEl.innerHTML = '';
+    }
+  });
+
+  // Afficher la liste quand on clique sur le champ
+  inputEl.addEventListener('focus', () => {
+    listEl.style.display = 'block';
+  });
+
+  // Masquer la liste quand on clique ailleurs
+  document.addEventListener('click', (e) => {
+    if (!container.contains(e.target)) {
+      listEl.style.display = 'none';
     }
   });
 

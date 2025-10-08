@@ -1,17 +1,144 @@
-import { boardData, currentCard, currentListId, setCurrentCard, setCurrentListId, activeCardCreations, availableTags } from './state.js';
-import { syncBoardData } from './socket.js';
-import { generateId, getCardTags, getEtatLabel, COMPACT_CARD_COLORS, extractShortId } from './utils.js';
+import { boardData, currentCard, currentListId, activeCardCreations, availableTags } from './state.js';
+import { submitOperation } from './socket.js';
+import { generateId, COMPACT_CARD_COLORS } from './utils.js';
 import { renderBoard, updateSingleCardDOM } from './board.js';
 import { openCardModal } from './modal.js';
 import { renderCardTags } from './tags.js';
+
+function editCompactCardTitle(cardId, listId, cardElement) {
+    const list = boardData.lists.find(l => l.id === listId);
+    const card = list?.cards.find(c => c.id === cardId);
+    if (!card) return;
+
+    const textElement = cardElement.querySelector('.compact-card-text');
+    const currentText = card.text;
+
+    // Créer l'input d'édition
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentText;
+    input.className = 'compact-card-edit-input';
+    
+    // Styles pour l'input
+    input.style.cssText = `
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #0079bf;
+        border-radius: 4px;
+        color: #333;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 4px 8px;
+        width: calc(100% - 24px);
+        outline: none;
+        text-transform: none;
+        letter-spacing: normal;
+        position: absolute;
+        top: 50%;
+        left: 8px;
+        transform: translateY(-50%);
+        z-index: 20;
+        box-shadow: 0 0 8px rgba(0, 121, 191, 0.5);
+    `;
+
+    // Masquer le texte original et ajouter l'input
+    textElement.style.opacity = '0';
+    cardElement.style.position = 'relative';
+    cardElement.appendChild(input);
+
+    // Focus et sélection
+    input.focus();
+    input.select();
+
+    function saveTitle() {
+        const newTitle = input.value.trim();
+        if (newTitle && newTitle !== currentText) {
+            card.text = newTitle;
+            
+            // Mettre à jour le texte compact si nécessaire
+            if (card.isCompact && card.compactText) {
+                card.compactText = newTitle;
+            }
+            
+            const updates = card.isCompact
+                ? { text: newTitle, compactText: card.compactText }
+                : { text: newTitle };
+
+            submitOperation('UPDATE_CARD', { listId, cardId: card.id, updates });
+            renderBoard();
+        } else {
+            // Restaurer l'affichage original
+            cleanup();
+        }
+    }
+
+    function cleanup() {
+        if (input.parentNode) {
+            input.parentNode.removeChild(input);
+        }
+        textElement.style.opacity = '';
+    }
+
+    // Gestionnaires d'événements
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            saveTitle();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            cleanup();
+        }
+    });
+
+    input.addEventListener('blur', function (e) {
+        // Délai pour permettre d'autres interactions
+        setTimeout(() => {
+            if (document.contains(input)) {
+                saveTitle();
+            }
+        }, 100);
+    });
+
+    // Empêcher les clics sur l'input de déclencher d'autres événements
+    input.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    input.addEventListener('dblclick', function (e) {
+        e.stopPropagation();
+    });
+}
 
 export function attachCardEvents() {
     document.querySelectorAll('.card').forEach(card => {
         card.addEventListener('click', function (e) {
             e.stopPropagation();
+            
+            // Ne pas ouvrir la modal si c'est une carte compacte
+            if (this.classList.contains('compact-card')) {
+                return;
+            }
+            
             const cardId = this.dataset.cardId;
             const listId = this.closest('.list').dataset.listId;
             openCardModal(cardId, listId);
+        });
+
+        // Ajouter l'édition par double-clic pour toutes les cartes (compactes et normales)
+        card.addEventListener('dblclick', function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const cardId = this.dataset.cardId;
+            const listId = this.closest('.list').dataset.listId;
+            
+            if (this.classList.contains('compact-card')) {
+                editCompactCardTitle(cardId, listId, this);
+            } else {
+                // Pour les cartes normales, ouvrir la modal puis éditer le titre
+                openCardModal(cardId, listId);
+                setTimeout(() => editCardTitle(), 100);
+            }
         });
 
         // Ajouter le menu contextuel (clic droit)
@@ -31,7 +158,7 @@ export function attachCardEvents() {
     });
 }
 
-export function addCard(button) {
+export async function addCard(button) {
     const list = button.closest('.list');
     const listId = list.dataset.listId;
 
@@ -153,8 +280,9 @@ export function setupCardCreator(cardCreator, listId, button) {
         const targetList = boardData.lists.find(l => l.id == listId);
         if (targetList) {
             targetList.cards.push(cardData);
+            const position = targetList.cards.length - 1;
             cleanup();
-            syncBoardData();
+            submitOperation('CREATE_CARD', { listId, card: cardData, position });
             renderBoard();
         }
     }
@@ -228,11 +356,20 @@ export function saveCardChanges() {
         ['tdField', 'td'],
         ['convoiField', 'convoi']
     ];
+    const updates = {
+        description: currentCard.description,
+        etat: currentCard.etat,
+        etatLabel: currentCard.etatLabel,
+        tags: Array.isArray(currentCard.tags) ? [...currentCard.tags] : []
+    };
     fieldMappings.forEach(([fieldId, cardProp]) => {
-        currentCard[cardProp] = document.getElementById(fieldId).value;
+        const element = document.getElementById(fieldId);
+        const value = element ? element.value : '';
+        currentCard[cardProp] = value;
+        updates[cardProp] = value;
     });
 
-    syncBoardData();
+    submitOperation('UPDATE_CARD', { listId, cardId, updates });
     updateSingleCardDOM(cardId, listId);
 }
 
@@ -250,16 +387,27 @@ export function editCardTitle() {
     input.focus();
     input.select();
 
+    let handled = false;
+
     function saveTitle() {
+        if (handled) return;
+        handled = true;
+
         const newTitle = input.value.trim();
         if (newTitle && newTitle !== currentText) {
             currentCard.text = newTitle;
             titleElement.textContent = newTitle;
             renderCardTags();
-            syncBoardData();
+            submitOperation('UPDATE_CARD', {
+                listId: currentListId,
+                cardId: currentCard.id,
+                updates: { text: newTitle }
+            });
             renderBoard();
         }
-        input.remove();
+        if (input.isConnected) {
+            input.remove();
+        }
         titleElement.style.display = '';
     }
 
@@ -286,14 +434,24 @@ export function toggleCardCompact(cardId, listId) {
         delete card.isCompact;
         delete card.compactText;
         delete card.compactColor;
-        syncBoardData();
+        submitOperation('UPDATE_CARD', {
+            listId,
+            cardId,
+            updates: { isCompact: null, compactText: null, compactColor: null }
+        });
         renderBoard();
     } else {
-        showCompactCardDialog(card, extractShortId(card.text), listId);
+        showCompactCardDialog(card, card.text, listId);
     }
 }
 
 function showCompactCardDialog(card, defaultText, listId) {
+    // Fermer tout dialog existant
+    const existingDialog = document.querySelector('.compact-card-dialog-overlay');
+    if (existingDialog) {
+        existingDialog.remove();
+    }
+
     const dialog = document.createElement('div');
     dialog.className = 'compact-card-dialog-overlay';
     dialog.innerHTML = `
@@ -340,17 +498,28 @@ function showCompactCardDialog(card, defaultText, listId) {
 
     document.body.appendChild(dialog);
 
+    // Forcer l'affichage du dialog
+    requestAnimationFrame(() => {
+        dialog.style.display = 'flex';
+        dialog.style.opacity = '1';
+    });
+
     let selectedColor = 'gray';
     const textInput = dialog.querySelector('.compact-card-text-input');
     const colorOptions = dialog.querySelectorAll('.compact-card-color-option');
     const preview = dialog.querySelector('.compact-card-preview .compact-card');
     const previewText = dialog.querySelector('.compact-card-preview .compact-card-text');
+    const closeBtn = dialog.querySelector('.compact-card-dialog-close');
+    const cancelBtn = dialog.querySelector('.cancel');
+    const confirmBtn = dialog.querySelector('.confirm');
 
-    // Event handlers
+    // Event handlers pour l'input texte
     textInput.addEventListener('input', () => {
-        previewText.textContent = textInput.value || defaultText;
+        const newText = textInput.value.trim() || defaultText;
+        previewText.textContent = newText;
     });
 
+    // Event handlers pour les couleurs
     colorOptions.forEach(option => {
         option.addEventListener('click', () => {
             colorOptions.forEach(opt => opt.classList.remove('selected'));
@@ -361,51 +530,87 @@ function showCompactCardDialog(card, defaultText, listId) {
     });
 
     function closeDialog() {
-        document.body.removeChild(dialog);
+        if (dialog.parentNode) {
+            dialog.parentNode.removeChild(dialog);
+        }
     }
 
     function confirmCompact() {
+        const finalText = textInput.value.trim() || defaultText;
         card.isCompact = true;
-        card.compactText = textInput.value.trim() || defaultText;
+        card.compactText = finalText;
         card.compactColor = selectedColor;
-        closeDialog();
-        syncBoardData();
+        submitOperation('UPDATE_CARD', {
+            listId,
+            cardId: card.id,
+            updates: { isCompact: true, compactText: finalText, compactColor: selectedColor }
+        });
         renderBoard();
+        closeDialog();
     }
 
-    dialog.querySelector('.compact-card-dialog-close').addEventListener('click', closeDialog);
-    dialog.querySelector('.cancel').addEventListener('click', closeDialog);
-    dialog.querySelector('.confirm').addEventListener('click', confirmCompact);
+    // Event listeners pour fermer
+    closeBtn.addEventListener('click', closeDialog);
+    cancelBtn.addEventListener('click', closeDialog);
+    confirmBtn.addEventListener('click', confirmCompact);
 
+    // Fermer en cliquant sur l'overlay
     dialog.addEventListener('click', (e) => {
-        if (e.target === dialog) closeDialog();
+        if (e.target === dialog) {
+            closeDialog();
+        }
     });
 
-    document.addEventListener('keydown', function escapeHandler(e) {
+    // Fermer avec Escape
+    const escapeHandler = (e) => {
         if (e.key === 'Escape') {
             closeDialog();
             document.removeEventListener('keydown', escapeHandler);
         }
-    });
+    };
+    document.addEventListener('keydown', escapeHandler);
 
-    textInput.focus();
-    textInput.select();
+    // Focus sur l'input
+    setTimeout(() => {
+        textInput.focus();
+        textInput.select();
+    }, 100);
 }
 
 function showCardContextMenu(event, cardId, listId) {
     // Fermer les menus existants
     closeCardContextMenu();
 
+    const list = boardData.lists.find(l => l.id === listId);
+    const card = list?.cards.find(c => c.id === cardId);
+    if (!card) return;
+
     const contextMenu = document.createElement('div');
     contextMenu.className = 'card-context-menu';
-    contextMenu.innerHTML = `
-        <button class="context-menu-item danger" data-action="delete">
-            🗑️ Supprimer la carte
-        </button>
-        <button class="context-menu-item" data-action="duplicate">
-            📄 Dupliquer la carte
-        </button>
-    `;
+    
+    // Menu différent pour les cartes compactes
+    if (card.isCompact) {
+        contextMenu.innerHTML = `
+            <button class="context-menu-item" data-action="change-color">
+                🎨 Modifier la couleur
+            </button>
+            <button class="context-menu-item" data-action="duplicate">
+                📄 Dupliquer la carte
+            </button>
+            <button class="context-menu-item danger" data-action="delete">
+                🗑️ Supprimer la carte
+            </button>
+        `;
+    } else {
+        contextMenu.innerHTML = `
+            <button class="context-menu-item" data-action="duplicate">
+                📄 Dupliquer la carte
+            </button>
+            <button class="context-menu-item danger" data-action="delete">
+                🗑️ Supprimer la carte
+            </button>
+        `;
+    }
 
     // Positionner le menu
     contextMenu.style.position = 'fixed';
@@ -433,8 +638,8 @@ function showCardContextMenu(event, cardId, listId) {
             deleteCard(cardId, listId);
         } else if (action === 'duplicate') {
             duplicateCard(cardId, listId);
-        } else if (action === 'compact') {
-            toggleCardCompact(cardId, listId);
+        } else if (action === 'change-color') {
+            showCompactCardColorPicker(cardId, listId);
         }
 
         closeCardContextMenu();
@@ -463,7 +668,7 @@ function deleteCard(cardId, listId) {
 
     if (confirm(`Êtes-vous sûr de vouloir supprimer la carte "${card.text}" ?`)) {
         list.cards = list.cards.filter(c => c.id !== cardId);
-        syncBoardData();
+        submitOperation('DELETE_CARD', { listId, cardId });
         renderBoard();
     }
 }
@@ -480,13 +685,133 @@ function duplicateCard(cardId, listId) {
     duplicatedCard.id = generateId();
     duplicatedCard.text = duplicatedCard.text;
 
-    list.cards.splice(cardIndex + 1, 0, duplicatedCard);
-    syncBoardData();
+    const insertIndex = cardIndex + 1;
+    list.cards.splice(insertIndex, 0, duplicatedCard);
+    submitOperation('CREATE_CARD', { listId, card: duplicatedCard, position: insertIndex });
     renderBoard();
 }
 
-// Image utilities
-export function imageToBase64(file) {
+function showCompactCardColorPicker(cardId, listId) {
+    const list = boardData.lists.find(l => l.id === listId);
+    const card = list?.cards.find(c => c.id === cardId);
+    if (!card || !card.isCompact) return;
+
+    // Fermer tout dialog existant
+    const existingDialog = document.querySelector('.compact-card-color-picker-overlay');
+    if (existingDialog) {
+        existingDialog.remove();
+    }
+
+    const dialog = document.createElement('div');
+    dialog.className = 'compact-card-color-picker-overlay';
+    dialog.innerHTML = `
+        <div class="compact-card-color-picker">
+            <div class="compact-card-dialog-header">
+                <h3>Changer la couleur</h3>
+                <button class="compact-card-dialog-close">×</button>
+            </div>
+            <div class="compact-card-dialog-content">
+                <div class="compact-card-dialog-section">
+                    <label class="compact-card-dialog-label">Couleur :</label>
+                    <div class="compact-card-color-grid">
+                        ${COMPACT_CARD_COLORS.map(colorOption => `
+                            <div class="compact-card-color-option ${colorOption.id === (card.compactColor || 'gray') ? 'selected' : ''}" 
+                                 data-color="${colorOption.id}" 
+                                 style="background-color: ${colorOption.color}"
+                                 title="${colorOption.label}">
+                                <span class="color-check">✓</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="compact-card-dialog-section">
+                    <label class="compact-card-dialog-label">Aperçu :</label>
+                    <div class="compact-card-preview">
+                        <div class="compact-card color-${card.compactColor || 'gray'}">
+                            <div class="compact-card-content">
+                                <span class="compact-card-text">${card.compactText || card.text}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="compact-card-dialog-actions">
+                <button class="compact-card-dialog-btn cancel">Annuler</button>
+                <button class="compact-card-dialog-btn confirm">Confirmer</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    // Forcer l'affichage du dialog
+    requestAnimationFrame(() => {
+        dialog.style.display = 'flex';
+        dialog.style.opacity = '1';
+    });
+
+    let selectedColor = card.compactColor || 'gray';
+    const colorOptions = dialog.querySelectorAll('.compact-card-color-option');
+    const preview = dialog.querySelector('.compact-card-preview .compact-card');
+    const closeBtn = dialog.querySelector('.compact-card-dialog-close');
+    const cancelBtn = dialog.querySelector('.cancel');
+    const confirmBtn = dialog.querySelector('.confirm');
+
+    // Event handlers pour les couleurs
+    colorOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            colorOptions.forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+            selectedColor = option.dataset.color;
+            preview.className = `compact-card color-${selectedColor}`;
+        });
+    });
+
+    function closeDialog() {
+        if (dialog.parentNode) {
+            dialog.parentNode.removeChild(dialog);
+        }
+    }
+
+    function confirmColorChange() {
+        card.compactColor = selectedColor;
+        submitOperation('UPDATE_CARD', {
+            listId,
+            cardId,
+            updates: { compactColor: selectedColor }
+        });
+        renderBoard();
+        closeDialog();
+    }
+
+    // Event listeners pour fermer
+    closeBtn.addEventListener('click', closeDialog);
+    cancelBtn.addEventListener('click', closeDialog);
+    confirmBtn.addEventListener('click', confirmColorChange);
+
+    // Fermer en cliquant sur l'overlay
+    dialog.addEventListener('click', (e) => {
+        if (e.target === dialog) {
+            closeDialog();
+        }
+    });
+
+    // Fermer avec Escape
+    const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+            closeDialog();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+
+    // Focus sur l'input
+    setTimeout(() => {
+        colorOptions[0].focus();
+    }, 100);
+}
+
+function imageToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
@@ -500,10 +825,8 @@ export function resizeImage(file, maxWidth = 400, maxHeight = 300, quality = 0.8
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
-
         img.onload = () => {
             let { width, height } = img;
-
             if (width > height) {
                 if (width > maxWidth) {
                     height = (height * maxWidth) / width;
@@ -515,13 +838,11 @@ export function resizeImage(file, maxWidth = 400, maxHeight = 300, quality = 0.8
                     height = maxHeight;
                 }
             }
-
             canvas.width = width;
             canvas.height = height;
             ctx.drawImage(img, 0, 0, width, height);
             canvas.toBlob(resolve, 'image/jpeg', quality);
         };
-
         img.src = URL.createObjectURL(file);
     });
 }
