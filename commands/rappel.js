@@ -66,10 +66,13 @@ module.exports = {
       // Convertir en UTC pour stockage
       const remindAtUtc = targetMoment.clone().utc().format();
 
-      await db.query(
-        `INSERT INTO lspd_reminders (user_id, channel_id, remind_at, reason, dm_only) VALUES ($1, $2, $3, $4, $5)`,
+      const insertRes = await db.query(
+        `INSERT INTO lspd_reminders (user_id, channel_id, remind_at, reason, dm_only)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
         [interaction.user.id, interaction.channel?.id || 'dm', remindAtUtc, reason, isDM]
       );
+      const reminderId = insertRes.rows[0].id;
 
       const botUser = interaction.client.user;
       const fields = [
@@ -87,14 +90,20 @@ module.exports = {
         .setFooter({ text: 'LSPD Assistant', iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 }) })
         .setTimestamp();
 
+      const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+      const cancelRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`reminder_cancel:${reminderId}`)
+          .setLabel('Annuler le rappel')
+          .setStyle(ButtonStyle.Danger)
+      );
+
       if (isDM) {
-        // Pas d'ephemeral en DM: réponse normale
-        await interaction.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed], components: [cancelRow] });
       } else {
-        // En serveur: ephemeral + MP
         await interaction.reply({ embeds: [embed], flags: 64 });
         try {
-          await interaction.user.send({ embeds: [embed] });
+          await interaction.user.send({ embeds: [embed], components: [cancelRow] });
         } catch (_) { /* ignore */ }
       }
       return;

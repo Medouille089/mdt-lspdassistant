@@ -89,6 +89,45 @@ bot.on(Events.InteractionCreate, async (interaction) => {
     return; // on sort si c'était une commande
   }
 
+  // Gestion bouton annulation rappel
+  try {
+    if (interaction.isButton() && interaction.customId.startsWith('reminder_cancel:')) {
+      const idStr = interaction.customId.split(':')[1];
+      const reminderId = parseInt(idStr, 10);
+      if (isNaN(reminderId)) {
+        return interaction.reply({ content: '❌ ID invalide.', flags: 64 });
+      }
+
+      // Vérifier existence et ownership
+      const { rows } = await db.query('SELECT id, user_id FROM lspd_reminders WHERE id=$1', [reminderId]);
+      if (!rows.length) {
+        return interaction.reply({ content: '⚠️ Rappel déjà annulé ou inexistant.', flags: 64, ephemeral: true });
+      }
+      if (rows[0].user_id !== interaction.user.id) {
+        return interaction.reply({ content: '❌ Vous ne pouvez pas annuler ce rappel.', flags: 64 });
+      }
+
+      await db.query('DELETE FROM lspd_reminders WHERE id=$1', [reminderId]);
+
+      // Désactiver le bouton sur le message original si possible
+      try {
+        const msg = interaction.message;
+        const components = msg.components.map(row => {
+          row.components.forEach(c => { if (c.data?.custom_id === interaction.customId || c.customId === interaction.customId) { c.setDisabled(true).setLabel('Rappel annulé'); } });
+          return row;
+        });
+        await msg.edit({ components });
+      } catch (_) { /* ignore */ }
+
+      return interaction.reply({ content: '✅ Rappel annulé.', flags: 64 });
+    }
+  } catch (btnErr) {
+    console.error('Erreur interaction bouton rappel:', btnErr);
+    if (!interaction.replied) {
+      try { await interaction.reply({ content: '❌ Erreur annulation.', flags: 64 }); } catch (_) {}
+    }
+  }
+
   // Gestion des tickets
   await handleTicket(interaction, bot);
 });
