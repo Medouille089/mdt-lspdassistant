@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
     let currentDate = new Date();
-    let userAbsences = [];
+    let currentWeekStart = getWeekStart(new Date());
+    let allAbsences = [];
+    let allEvents = [];
     let currentUser = null;
+    let currentView = 'month';
 
     loadUserData();
     initializePage();
@@ -11,35 +14,51 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const response = await fetch('/api/user');
             currentUser = await response.json();
-            loadUserAbsences();
+
+            // Afficher le bouton "Nouvel Événement" seulement pour les grades supérieurs
+            const authorizedGrades = ['Chef du département', 'Chef adjoint', 'Capitaine', 'Lieutenant', 'Sergent'];
+            if (currentUser.grade && authorizedGrades.includes(currentUser.grade)) {
+                document.getElementById('btnNewEvent').style.display = 'block';
+            }
+
+            await Promise.all([loadAllAbsences(), loadAllEvents()]);
         } catch (error) {
             console.error('Erreur lors du chargement des données utilisateur:', error);
         }
     }
 
-    async function loadUserAbsences() {
+    async function loadAllAbsences() {
         try {
             showLoader();
-            const response = await fetch('/api/absence/mes-absences');
+            const response = await fetch('/api/absence');
 
             if (!response.ok) {
                 throw new Error('Erreur lors du chargement des absences');
             }
 
-            userAbsences = await response.json();
-
+            allAbsences = await response.json();
             updateStatistics();
-            updateCalendar();
-            updateAbsencesList();
+            updateCurrentView();
             hideLoader();
         } catch (error) {
             console.error('Erreur lors du chargement des absences:', error);
             hideLoader();
-            document.querySelector('.main-container').innerHTML += `
-                <div style="background: #ffebee; border: 2px solid #f44336; color: #c62828; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center;">
-                    <strong>Erreur:</strong> Impossible de charger vos absences. Veuillez vous reconnecter.
-                </div>
-            `;
+        }
+    }
+
+    async function loadAllEvents() {
+        try {
+            const response = await fetch('/api/calendar/events');
+
+            if (!response.ok) {
+                throw new Error('Erreur lors du chargement des événements');
+            }
+
+            allEvents = await response.json();
+            updateStatistics();
+            updateCurrentView();
+        } catch (error) {
+            console.error('Erreur lors du chargement des événements:', error);
         }
     }
 
@@ -47,6 +66,10 @@ document.addEventListener('DOMContentLoaded', function () {
         updateCalendar();
         document.getElementById('currentMonth').textContent =
             currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('eventDateDebut').value = today;
+        document.getElementById('eventDateFin').value = today;
     }
 
     function setupEventListeners() {
@@ -60,36 +83,67 @@ document.addEventListener('DOMContentLoaded', function () {
             updateCalendar();
         });
 
-        document.getElementById('calendarView').addEventListener('click', () => {
-            showCalendarView();
+        document.getElementById('prevWeek').addEventListener('click', () => {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            updateWeekView();
+        });
+
+        document.getElementById('nextWeek').addEventListener('click', () => {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            updateWeekView();
+        });
+
+        document.getElementById('monthView').addEventListener('click', () => {
+            showMonthView();
+        });
+
+        document.getElementById('weekView').addEventListener('click', () => {
+            showWeekView();
         });
 
         document.getElementById('listView').addEventListener('click', () => {
             showListView();
         });
 
-
-        document.getElementById('statusFilter').addEventListener('change', updateAbsencesList);
-        document.getElementById('typeFilter').addEventListener('change', updateAbsencesList);
+        document.getElementById('statusFilter').addEventListener('change', updateListView);
+        document.getElementById('typeFilterList').addEventListener('change', updateListView);
+        document.getElementById('searchFilter').addEventListener('input', updateListView);
 
         document.querySelector('.close').addEventListener('click', closeModal);
         window.addEventListener('click', (event) => {
             if (event.target === document.getElementById('absenceModal')) {
                 closeModal();
             }
+            if (event.target === document.getElementById('eventModal')) {
+                closeEventModal();
+            }
         });
+
+        document.getElementById('eventForm').addEventListener('submit', handleEventSubmit);
     }
 
     function updateStatistics() {
-        const total = userAbsences.length;
-        const approved = userAbsences.filter(a => a.statut === 'approuve').length;
-        const pending = userAbsences.filter(a => a.statut === 'en_attente').length;
-        const rejected = userAbsences.filter(a => a.statut === 'refuse').length;
+        // Ne compter que les absences non refusées
+        const validAbsences = allAbsences.filter(a => a.statut !== 'refuse');
+        const total = validAbsences.length;
+        const approved = allAbsences.filter(a => a.statut === 'approuve').length;
+        const pending = allAbsences.filter(a => a.statut === 'en_attente').length;
+        const totalEvents = allEvents.length;
 
         document.getElementById('totalAbsences').textContent = total;
         document.getElementById('approvedAbsences').textContent = approved;
         document.getElementById('pendingAbsences').textContent = pending;
-        document.getElementById('rejectedAbsences').textContent = rejected;
+        document.getElementById('totalEvents').textContent = totalEvents;
+    }
+
+    function updateCurrentView() {
+        if (currentView === 'month') {
+            updateCalendar();
+        } else if (currentView === 'week') {
+            updateWeekView();
+        } else if (currentView === 'list') {
+            updateListView();
+        }
     }
 
     function updateCalendar() {
@@ -100,14 +154,12 @@ document.addEventListener('DOMContentLoaded', function () {
             new Date(year, month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
         const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
         const startDate = new Date(firstDay);
         startDate.setDate(startDate.getDate() - firstDay.getDay());
 
         const calendarGrid = document.getElementById('calendarGrid');
         calendarGrid.innerHTML = '';
 
-        // Ajouter les en-têtes des jours
         const dayHeaders = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
         dayHeaders.forEach(day => {
             const header = document.createElement('div');
@@ -119,7 +171,6 @@ document.addEventListener('DOMContentLoaded', function () {
             calendarGrid.appendChild(header);
         });
 
-        // Générer 42 jours (6 semaines)
         for (let i = 0; i < 42; i++) {
             const cellDate = new Date(startDate);
             cellDate.setDate(startDate.getDate() + i);
@@ -147,188 +198,435 @@ document.addEventListener('DOMContentLoaded', function () {
             dayCell.classList.add('today');
         }
 
-        const dayAbsences = userAbsences.filter(absence => {
+        const dayAbsences = allAbsences.filter(absence => {
+            // Filtrer les absences refusées
+            if (absence.statut === 'refuse') return false;
+
             const startDate = new Date(absence.date_debut);
             const endDate = new Date(absence.date_fin);
-            return date >= startDate && date <= endDate;
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+            const checkDate = new Date(date);
+            checkDate.setHours(12, 0, 0, 0);
+            return checkDate >= startDate && checkDate <= endDate;
         });
 
-        if (dayAbsences.length > 0) {
-            dayCell.classList.add('has-absence');
+        const dayEvents = allEvents.filter(event => {
+            const startDate = new Date(event.date_debut);
+            const endDate = new Date(event.date_fin);
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+            const checkDate = new Date(date);
+            checkDate.setHours(12, 0, 0, 0);
+            return checkDate >= startDate && checkDate <= endDate;
+        });
 
-            let mainStatus = 'approved';
-            if (dayAbsences.some(a => a.statut === 'refuse')) {
-                mainStatus = 'rejected';
-            } else if (dayAbsences.some(a => a.statut === 'en_attente')) {
-                mainStatus = 'pending';
-            }
+        const allItems = [...dayAbsences, ...dayEvents];
 
-            dayCell.classList.add(mainStatus);
+        if (allItems.length > 0) {
+            dayCell.classList.add('has-items');
 
-            dayAbsences.forEach(absence => {
-                const indicator = document.createElement('div');
-                indicator.className = `absence-indicator ${absence.statut === 'approuve' ? 'approved' : absence.statut === 'en_attente' ? 'pending' : 'rejected'}`;
-                dayCell.appendChild(indicator);
+            // Afficher les 3 premiers items avec leur info
+            allItems.slice(0, 3).forEach(item => {
+                const itemCard = document.createElement('div');
+                itemCard.className = 'calendar-item-card';
+
+                if (item.statut) {
+                    // C'est une absence
+                    itemCard.classList.add(item.statut === 'approuve' ? 'approved' : 'pending');
+                    itemCard.innerHTML = `<span class="item-text">${item.officier}</span>`;
+                    itemCard.title = `${item.officier} - ${item.type_absence}`;
+                } else {
+                    // C'est un événement
+                    itemCard.classList.add('event');
+                    itemCard.style.borderLeftColor = item.couleur || '#3498db';
+                    itemCard.innerHTML = `<span class="item-text">${item.titre}</span>`;
+                    itemCard.title = item.titre;
+                }
+
+                dayCell.appendChild(itemCard);
             });
 
+            if (allItems.length > 3) {
+                const moreIndicator = document.createElement('div');
+                moreIndicator.className = 'more-indicator';
+                moreIndicator.textContent = `+${allItems.length - 3}`;
+                dayCell.appendChild(moreIndicator);
+            }
+
             dayCell.addEventListener('click', () => {
-                showAbsenceDetails(dayAbsences);
+                showDayDetails(date, dayAbsences, dayEvents);
             });
         }
 
         return dayCell;
     }
 
-    function updateAbsencesList() {
+    function getWeekStart(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
+    }
+
+    function updateWeekView() {
+        const weekGrid = document.getElementById('weekGrid');
+        weekGrid.innerHTML = '';
+
+        const weekEnd = new Date(currentWeekStart);
+        weekEnd.setDate(currentWeekStart.getDate() + 6);
+
+        document.getElementById('currentWeek').textContent =
+            `${currentWeekStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+
+        const header = document.createElement('div');
+        header.className = 'week-header';
+
+        const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        dayNames.forEach((dayName, index) => {
+            const dayDate = new Date(currentWeekStart);
+            dayDate.setDate(currentWeekStart.getDate() + index);
+
+            const headerCell = document.createElement('div');
+            headerCell.className = 'week-day-header';
+            headerCell.innerHTML = `
+                <div class="day-name">${dayName}</div>
+                <div class="day-date">${dayDate.getDate()}/${dayDate.getMonth() + 1}</div>
+            `;
+            header.appendChild(headerCell);
+        });
+        weekGrid.appendChild(header);
+
+        const content = document.createElement('div');
+        content.className = 'week-content';
+
+        for (let i = 0; i < 7; i++) {
+            const dayDate = new Date(currentWeekStart);
+            dayDate.setDate(currentWeekStart.getDate() + i);
+
+            const dayColumn = document.createElement('div');
+            dayColumn.className = 'week-day-column';
+
+            const dayAbsences = allAbsences.filter(absence => {
+                // Filtrer les absences refusées
+                if (absence.statut === 'refuse') return false;
+
+                const startDate = new Date(absence.date_debut);
+                const endDate = new Date(absence.date_fin);
+                startDate.setHours(0, 0, 0, 0);
+                endDate.setHours(23, 59, 59, 999);
+                const checkDate = new Date(dayDate);
+                checkDate.setHours(12, 0, 0, 0);
+                return checkDate >= startDate && checkDate <= endDate;
+            });
+
+            const dayEvents = allEvents.filter(event => {
+                const startDate = new Date(event.date_debut);
+                const endDate = new Date(event.date_fin);
+                startDate.setHours(0, 0, 0, 0);
+                endDate.setHours(23, 59, 59, 999);
+                const checkDate = new Date(dayDate);
+                checkDate.setHours(12, 0, 0, 0);
+                return checkDate >= startDate && checkDate <= endDate;
+            });
+
+            dayEvents.forEach(event => {
+                const eventCard = document.createElement('div');
+                eventCard.className = 'week-event-card event';
+                eventCard.style.borderLeft = `4px solid ${event.couleur || '#3498db'}`;
+                eventCard.innerHTML = `
+                    <div class="event-title">${event.titre}</div>
+                    <div class="event-time">${event.type_evenement}</div>
+                `;
+                eventCard.addEventListener('click', () => showEventDetails(event));
+                dayColumn.appendChild(eventCard);
+            });
+
+            dayAbsences.forEach(absence => {
+                const absenceCard = document.createElement('div');
+                absenceCard.className = `week-event-card ${absence.statut === 'approuve' ? 'approved' : absence.statut === 'en_attente' ? 'pending' : 'rejected'}`;
+                absenceCard.innerHTML = `
+                    <div class="event-title">${absence.officier}</div>
+                    <div class="event-time">${absence.type_absence}</div>
+                `;
+                absenceCard.addEventListener('click', () => showAbsenceDetails([absence]));
+                dayColumn.appendChild(absenceCard);
+            });
+
+            content.appendChild(dayColumn);
+        }
+        weekGrid.appendChild(content);
+    }
+
+    function updateListView() {
+        const typeFilter = document.getElementById('typeFilterList').value;
         const statusFilter = document.getElementById('statusFilter').value;
-        const typeFilter = document.getElementById('typeFilter').value;
+        const searchQuery = document.getElementById('searchFilter').value.toLowerCase();
 
-        let filteredAbsences = [...userAbsences];
+        let items = [];
 
-        if (statusFilter) {
-            filteredAbsences = filteredAbsences.filter(a => a.statut === statusFilter);
+        if (typeFilter === '' || typeFilter === 'absence') {
+            let filteredAbsences = [...allAbsences];
+
+            // Filtrer les absences refusées
+            filteredAbsences = filteredAbsences.filter(a => a.statut !== 'refuse');
+
+            if (statusFilter) {
+                filteredAbsences = filteredAbsences.filter(a => a.statut === statusFilter);
+            }
+
+            if (searchQuery) {
+                filteredAbsences = filteredAbsences.filter(a =>
+                    a.officier.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            items.push(...filteredAbsences.map(a => ({ ...a, type: 'absence' })));
         }
 
-        if (typeFilter) {
-            filteredAbsences = filteredAbsences.filter(a => a.type_absence === typeFilter);
+        if (typeFilter === '' || typeFilter === 'evenement') {
+            let filteredEvents = [...allEvents];
+
+            if (searchQuery) {
+                filteredEvents = filteredEvents.filter(e =>
+                    e.titre.toLowerCase().includes(searchQuery) ||
+                    e.auteur.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            items.push(...filteredEvents.map(e => ({ ...e, type: 'evenement' })));
         }
 
-
-        filteredAbsences.sort((a, b) => new Date(b.date_creation) - new Date(a.date_creation));
+        items.sort((a, b) => new Date(b.date_debut) - new Date(a.date_debut));
 
         const container = document.getElementById('absencesList');
         container.innerHTML = '';
 
-        if (filteredAbsences.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">Aucune absence trouvée pour les critères sélectionnés.</p>';
+        if (items.length === 0) {
+            container.innerHTML = '<div class="no-results">Aucun element trouve</div>';
             return;
         }
 
-        filteredAbsences.forEach(absence => {
-            const card = createAbsenceCard(absence);
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'absence-card';
+
+            if (item.type === 'absence') {
+                card.innerHTML = `
+                    <div class="absence-header">
+                        <div class="absence-info">
+                            <span class="absence-name">${item.officier}</span>
+                            <span class="absence-grade">${item.grade}</span>
+                        </div>
+                        <span class="absence-status ${item.statut}">
+                            ${item.statut === 'approuve' ? 'Approuvee' : item.statut === 'en_attente' ? 'En attente' : 'Refusee'}
+                        </span>
+                    </div>
+                    <div class="absence-body">
+                        <div class="absence-dates">
+                            <span>Du ${formatDate(item.date_debut)} au ${formatDate(item.date_fin)}</span>
+                        </div>
+                        <div class="absence-type">
+                            <span>Type: ${item.type_absence}</span>
+                        </div>
+                        <div class="absence-motif">
+                            <strong>Motif:</strong> ${item.motif}
+                        </div>
+                    </div>
+                `;
+                card.addEventListener('click', () => showAbsenceDetails([item]));
+            } else {
+                card.innerHTML = `
+                    <div class="absence-header" style="border-left: 4px solid ${item.couleur || '#3498db'}">
+                        <div class="absence-info">
+                            <span class="absence-name">${item.titre}</span>
+                            <span class="absence-grade">${item.type_evenement}</span>
+                        </div>
+                        <span class="event-author">Par ${item.auteur}</span>
+                    </div>
+                    <div class="absence-body">
+                        <div class="absence-dates">
+                            <span>Du ${formatDate(item.date_debut)} au ${formatDate(item.date_fin)}</span>
+                        </div>
+                        ${item.lieu ? `<div class="absence-type"><span>Lieu: ${item.lieu}</span></div>` : ''}
+                        ${item.description ? `<div class="absence-motif"><strong>Description:</strong> ${item.description}</div>` : ''}
+                    </div>
+                `;
+                card.addEventListener('click', () => showEventDetails(item));
+            }
+
             container.appendChild(card);
         });
     }
 
-    function createAbsenceCard(absence) {
-        const card = document.createElement('div');
-        card.className = `absence-card ${absence.statut === 'approuve' ? 'approved' : absence.statut === 'en_attente' ? 'pending' : 'rejected'}`;
-
-        const statusText = {
-            'en_attente': 'En attente',
-            'approuve': 'Approuvée',
-            'refuse': 'Refusée'
-        };
-
-        const typeText = {
-            'conge': 'Congé',
-            'maladie': 'Maladie',
-            'personnel': 'Personnel',
-            'formation': 'Formation'
-        };
-
-        card.innerHTML = `
-            <div class="absence-header">
-                <span class="absence-type">${typeText[absence.type_absence] || absence.type_absence}</span>
-                <span class="absence-status ${absence.statut === 'approuve' ? 'approved' : absence.statut === 'en_attente' ? 'pending' : 'rejected'}">${statusText[absence.statut]}</span>
-            </div>
-            <div class="absence-dates">
-                <span><strong>Du:</strong> ${formatDate(absence.date_debut)} ${absence.heure_debut || ''}</span>
-                <span><strong>Au:</strong> ${formatDate(absence.date_fin)} ${absence.heure_fin || ''}</span>
-            </div>
-            <div class="absence-motif">
-                <strong>Motif:</strong> ${absence.motif}
-            </div>
-        `;
-
-        card.addEventListener('click', () => {
-            showAbsenceDetails([absence]);
-        });
-
-        return card;
-    }
-
-    function showAbsenceDetails(absences) {
-        const modal = document.getElementById('absenceModal');
-        const details = document.getElementById('absenceDetails');
-
-        if (absences.length === 1) {
-            const absence = absences[0];
-            const statusText = {
-                'en_attente': 'En attente',
-                'approuve': 'Approuvée',
-                'refuse': 'Refusée'
-            };
-
-            const typeText = {
-                'conge': 'Congé',
-                'maladie': 'Maladie',
-                'personnel': 'Personnel',
-                'formation': 'Formation'
-            };
-
-            details.innerHTML = `
-                <div style="margin-bottom: 20px;">
-                    <h3 style="color: #0b1b5a; margin-bottom: 15px;">Demande d'absence</h3>
-                    <p><strong>Type:</strong> ${typeText[absence.type_absence] || absence.type_absence}</p>
-                    <p><strong>Statut:</strong> <span class="absence-status ${absence.statut === 'approuve' ? 'approved' : absence.statut === 'en_attente' ? 'pending' : 'rejected'}">${statusText[absence.statut]}</span></p>
-                    <p><strong>Du:</strong> ${formatDate(absence.date_debut)} ${absence.heure_debut || ''}</p>
-                    <p><strong>Au:</strong> ${formatDate(absence.date_fin)} ${absence.heure_fin || ''}</p>
-                    <p><strong>Motif:</strong> ${absence.motif}</p>
-                    <p><strong>Justificatif urgent:</strong> ${absence.justificatif ? 'Oui' : 'Non'}</p>
-                    <p><strong>Demande créée le:</strong> ${formatDateTime(absence.date_creation)}</p>
-                    ${absence.date_modification ? `<p><strong>Dernière modification:</strong> ${formatDateTime(absence.date_modification)}</p>` : ''}
-                </div>
-            `;
-        } else {
-            const statusText = {
-                'en_attente': 'En attente',
-                'approuve': 'Approuvée',
-                'refuse': 'Refusée'
-            };
-            details.innerHTML = `
-                <div style="margin-bottom: 20px;">
-                    <h3 style="color: #0b1b5a; margin-bottom: 15px;">Absences de la journée (${absences.length})</h3>
-                    ${absences.map(absence => `
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
-                            <p><strong>Type:</strong> ${absence.type_absence}</p>
-                            <p><strong>Statut:</strong> <span class="absence-status ${absence.statut === 'approuve' ? 'approved' : absence.statut === 'en_attente' ? 'pending' : 'rejected'}">${statusText[absence.statut]}</span></p>
-                            <p><strong>Motif:</strong> ${absence.motif}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        modal.style.display = 'block';
-    }
-
-    function showCalendarView() {
-        document.getElementById('calendarView').classList.add('active');
-        document.getElementById('listView').classList.remove('active');
+    function showMonthView() {
+        currentView = 'month';
         document.getElementById('calendar-container').style.display = 'block';
+        document.getElementById('week-container').style.display = 'none';
         document.getElementById('list-container').style.display = 'none';
+
+        document.querySelectorAll('.view-toggle .btn-filter').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('monthView').classList.add('active');
+
+        updateCalendar();
+    }
+
+    function showWeekView() {
+        currentView = 'week';
+        document.getElementById('calendar-container').style.display = 'none';
+        document.getElementById('week-container').style.display = 'block';
+        document.getElementById('list-container').style.display = 'none';
+
+        document.querySelectorAll('.view-toggle .btn-filter').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('weekView').classList.add('active');
+
+        currentWeekStart = getWeekStart(new Date());
+        updateWeekView();
     }
 
     function showListView() {
-        document.getElementById('listView').classList.add('active');
-        document.getElementById('calendarView').classList.remove('active');
-        document.getElementById('list-container').style.display = 'block';
+        currentView = 'list';
         document.getElementById('calendar-container').style.display = 'none';
-        updateAbsencesList();
+        document.getElementById('week-container').style.display = 'none';
+        document.getElementById('list-container').style.display = 'block';
+
+        document.querySelectorAll('.view-toggle .btn-filter').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('listView').classList.add('active');
+
+        updateListView();
     }
 
-    function closeModal() {
-        document.getElementById('absenceModal').style.display = 'none';
+    function showDayDetails(date, absences, events) {
+        console.log('showDayDetails appelé:', { date, absences, events });
+
+        const modal = document.getElementById('absenceModal');
+        const detailsDiv = document.getElementById('absenceDetails');
+
+        if (!modal || !detailsDiv) {
+            console.error('Modal ou detailsDiv non trouvé');
+            return;
+        }
+
+        const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+        let html = `<h3 style="color: var(--main-color); margin-bottom: 20px;">${dateStr}</h3>`;
+
+        if (events.length === 0 && absences.length === 0) {
+            html += '<p>Aucun événement ou absence pour cette date.</p>';
+        }
+
+        if (events.length > 0) {
+            html += `<div class="details-section"><h4>Evenements (${events.length})</h4>`;
+            events.forEach(event => {
+                html += `
+                    <div class="detail-item" style="border-left: 4px solid ${event.couleur || '#3498db'}">
+                        <strong>${event.titre}</strong>
+                        <p>Type: ${event.type_evenement}</p>
+                        ${event.lieu ? `<p>Lieu: ${event.lieu}</p>` : ''}
+                        ${event.description ? `<p>${event.description}</p>` : ''}
+                        <p><small>Par ${event.auteur}</small></p>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+
+        if (absences.length > 0) {
+            html += `<div class="details-section"><h4>Absences (${absences.length})</h4>`;
+            absences.forEach(absence => {
+                const statusText = absence.statut === 'approuve' ? '✅ Approuvee' :
+                    absence.statut === 'en_attente' ? '⏳ En attente' :
+                        '❌ Refusee';
+                html += `
+                    <div class="detail-item ${absence.statut}">
+                        <strong>${absence.officier}</strong> - ${absence.grade}
+                        <p>Type: ${absence.type_absence}</p>
+                        <p>Du ${new Date(absence.date_debut).toLocaleDateString('fr-FR')} au ${new Date(absence.date_fin).toLocaleDateString('fr-FR')}</p>
+                        <p>Motif: ${absence.motif}</p>
+                        <p><strong>Statut: ${statusText}</strong></p>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+
+        detailsDiv.innerHTML = html;
+        modal.style.display = 'flex';
+        console.log('Modal affichée');
+    }
+
+    function showAbsenceDetails(absences) {
+        console.log('showAbsenceDetails:', absences);
+        if (absences && absences.length > 0) {
+            showDayDetails(new Date(absences[0].date_debut), absences, []);
+        }
+    }
+
+    function showEventDetails(event) {
+        console.log('showEventDetails:', event);
+        if (event) {
+            showDayDetails(new Date(event.date_debut), [], [event]);
+        }
+    }
+
+    async function handleEventSubmit(e) {
+        e.preventDefault();
+
+        const eventData = {
+            titre: document.getElementById('eventTitle').value,
+            description: document.getElementById('eventDescription').value,
+            dateDebut: document.getElementById('eventDateDebut').value,
+            dateFin: document.getElementById('eventDateFin').value,
+            heureDebut: document.getElementById('eventHeureDebut').value || '00:00',
+            heureFin: document.getElementById('eventHeureFin').value || '23:59',
+            typeEvenement: document.getElementById('eventType').value,
+            couleur: document.getElementById('eventCouleur').value,
+            lieu: document.getElementById('eventLieu').value,
+            auteur: currentUser?.guild_member?.nick || currentUser?.username || 'Inconnu'
+        };
+
+        try {
+            showLoader();
+            const response = await fetch('/api/calendar/events', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(eventData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur lors de la creation de l\'evenement');
+            }
+
+            await loadAllEvents();
+            closeEventModal();
+            document.getElementById('eventForm').reset();
+
+            alert('Evenement cree avec succes !');
+            hideLoader();
+        } catch (error) {
+            console.error('Erreur lors de la creation de l\'evenement:', error);
+            alert('Erreur lors de la creation de l\'evenement');
+            hideLoader();
+        }
     }
 
     function formatDate(dateString) {
         return new Date(dateString).toLocaleDateString('fr-FR');
     }
 
-    function formatDateTime(dateString) {
-        return new Date(dateString).toLocaleString('fr-FR');
+    function closeModal() {
+        document.getElementById('absenceModal').style.display = 'none';
     }
+
+    window.openEventModal = function () {
+        document.getElementById('eventModal').style.display = 'flex';
+    };
+
+    window.closeEventModal = function () {
+        document.getElementById('eventModal').style.display = 'none';
+    };
 
     function showLoader() {
         document.getElementById('loaderOverlay').style.display = 'flex';
