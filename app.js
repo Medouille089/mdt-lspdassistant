@@ -589,19 +589,43 @@ async function startServer() {
 
 startServer();
 
-// Gestion gracieuse de l'arrêt
-process.on('SIGINT', async () => {
-    console.log('🛑 Arrêt du serveur...');
-    if (useDatabase && pool) {
-        await pool.end();
+// ================== Gestion gracieuse de l'arrêt ==================
+let shuttingDown = false;
+async function gracefulShutdown(signal) {
+    if (shuttingDown) {
+        return; // Empêche double exécution
     }
-    process.exit(0);
+    shuttingDown = true;
+    console.log(`🛑 Signal ${signal} reçu - arrêt du serveur...`);
+    try {
+        if (useDatabase && pool) {
+            try {
+                await pool.end();
+                console.log('✅ Pool PostgreSQL fermé.');
+            } catch (e) {
+                if (e && /end on pool more than once/i.test(e.message)) {
+                    console.warn('⚠️ pool.end déjà appelé, ignore.');
+                } else {
+                    console.error('Erreur fermeture pool:', e.message);
+                }
+            }
+        }
+        // Fermer le serveur HTTP si nécessaire
+        if (httpServer && httpServer.close) {
+            await new Promise(resolve => httpServer.close(resolve));
+            console.log('✅ Serveur HTTP fermé.');
+        }
+    } finally {
+        process.exit(0);
+    }
+}
+
+['SIGINT','SIGTERM'].forEach(sig => {
+    process.once(sig, () => gracefulShutdown(sig));
 });
 
-process.on('SIGTERM', async () => {
-    console.log('🛑 Arrêt du serveur...');
-    if (useDatabase && pool) {
-        await pool.end();
-    }
-    process.exit(0);
+// En cas d'arrêt via Ctrl+C répété, forcer après délai
+process.once('SIGINT', () => {
+    if (!shuttingDown) return; 
+    setTimeout(() => { if (shuttingDown) { console.warn('Forçage arrêt.'); process.exit(1); } }, 5000);
 });
