@@ -134,6 +134,7 @@ async function loadBoardData() {
                 type: c.type,
                 image: c.image,
                 tags: tagsPerCard.get(c.id) || [],
+                updated_at: c.updated_at,
                 // Propriétés métadonnées extraites
                 ...metadata,
                 // Assurer que les propriétés compactes sont présentes
@@ -270,7 +271,7 @@ async function persistBoardToDatabase(data) {
             const imagePayload = (card.image && typeof card.image === 'object') ? card.image : null;
 
             // Extraire les propriétés standards vs métadonnées
-            const standardProps = ['id', 'text', 'description', 'type', 'image', 'tags', 'list_id', 'position'];
+            const standardProps = ['id', 'text', 'description', 'type', 'image', 'tags', 'list_id', 'position', 'updated_at'];
             const metadata = {};
 
             // Collecter toutes les propriétés personnalisées dans metadata
@@ -282,10 +283,13 @@ async function persistBoardToDatabase(data) {
 
             // Fusionner avec metadata existant
             const finalMetadata = { ...metadata, ...(card.metadata || {}) };
+            
+            // Utiliser le updated_at de la carte, ou NOW() si absent
+            const cardUpdatedAt = card.updated_at || new Date().toISOString();
 
             await client.query(`
         INSERT INTO trello_cards (id, board_id, list_id, position, text, description, type, image, metadata, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         ON CONFLICT (id) DO UPDATE SET
           list_id = EXCLUDED.list_id,
           position = EXCLUDED.position,
@@ -294,7 +298,7 @@ async function persistBoardToDatabase(data) {
           type = EXCLUDED.type,
           image = EXCLUDED.image,
           metadata = EXCLUDED.metadata,
-          updated_at = NOW()
+          updated_at = EXCLUDED.updated_at
       `, [
                 card.id,
                 DEFAULT_BOARD_ID,
@@ -304,7 +308,8 @@ async function persistBoardToDatabase(data) {
                 card.description || '',
                 card.type || 'text',
                 imagePayload,
-                finalMetadata
+                finalMetadata,
+                cardUpdatedAt // ← Utiliser le timestamp de la carte en mémoire
             ]);
 
             // Sauvegarder les tags de la carte

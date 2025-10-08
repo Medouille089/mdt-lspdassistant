@@ -517,6 +517,9 @@ class OperationsManager {
             if (value === null) delete card[key];
             else card[key] = value;
         });
+        
+        // Mettre à jour automatiquement le timestamp
+        card.updated_at = new Date().toISOString();
     }
 
     findList(listId) {
