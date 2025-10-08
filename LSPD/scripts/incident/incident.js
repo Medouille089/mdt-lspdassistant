@@ -107,9 +107,9 @@ async function compressImage(file, quality = 0.6) {
   });
 }
 
-let attachedImages = []; 
+let attachedImages = [];
 async function previewAttachments(event) {
-  const files = Array.from(event.target.files); 
+  const files = Array.from(event.target.files);
   const preview = document.getElementById('attachmentsPreview');
 
   for (const file of files) {
@@ -142,7 +142,7 @@ async function renderPreview() {
       removeBtn.addEventListener('click', () => {
         attachedImages.splice(i, 1);
         renderPreview();
-        document.getElementById('pieces').value = ''; 
+        document.getElementById('pieces').value = '';
       });
 
       wrapper.appendChild(img);
