@@ -78,7 +78,8 @@ async function fetchUser() {
       navLinkAnchor.style.cursor = 'pointer';
       navLinkAnchor.addEventListener('click', (e) => {
         e.preventDefault();
-        window.location.href = `infosagent.html?userId=${user.id}`;
+  // Utiliser un chemin absolu pour fonctionner depuis n'importe quel sous-dossier (ex: /LSPD/trello/)
+  window.location.href = `/infosagent.html?userId=${user.id}`;
       });
 
       const BLUE = '#0b1b5a';
