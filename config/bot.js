@@ -139,8 +139,11 @@ bot.on(Events.MessageCreate, async (message) => {
   try {
     if (message.author.bot) return;
     if (!message.guild) return; // uniquement en serveur (ajuster si besoin DM)
+    // Skip en local si demandé
+    if (process.env.IS_LOCAL && process.env.IS_LOCAL.toLowerCase() === 'true') return;
 
-    if (message.content.trim().toLowerCase() === '!bonjour') {
+    const content = message.content.trim().toLowerCase();
+    if (content === '!bonjour') {
       // Supprime le message d'origine si possible
       if (message.deletable) {
         message.delete().catch(() => {});
@@ -156,6 +159,13 @@ bot.on(Events.MessageCreate, async (message) => {
         timestamp: new Date().toISOString(),
       };
       await message.channel.send({ embeds: [embed] });
+      return;
+    }
+
+    // Simple ping -> pong
+    if (content === '!ping') {
+      // Réponse rapide (pas d'embed nécessaire). On peut ajouter le temps de latence si voulu plus tard.
+      return message.reply('pong');
     }
   } catch (e) {
     console.error('Erreur commande !bonjour:', e.message);
