@@ -15,11 +15,10 @@ body {
 }
 
 .main-container {
-    max-width: 1400px;
-    margin: 0 auto;
+    width: calc(100% - 280px);
+    margin-left: 280px;
     padding: 20px;
     min-height: 100vh;
-    margin-left: 280px;
 }
 
 /* Header */
@@ -817,6 +816,34 @@ p {
     border-radius: 8px;
     font-size: 14px;
     transition: border-color 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.form-group select[multiple] {
+    min-height: 120px;
+    padding: 5px;
+}
+
+.form-group select[multiple] option {
+    padding: 8px 10px;
+    border-radius: 4px;
+    margin: 2px 0;
+    cursor: pointer;
+}
+
+.form-group select[multiple] option:hover {
+    background: #e3f2fd;
+}
+
+.form-group select[multiple] option:checked {
+    background: #3498db;
+    color: white;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    font-style: italic;
 }
 
 .form-group input:focus,

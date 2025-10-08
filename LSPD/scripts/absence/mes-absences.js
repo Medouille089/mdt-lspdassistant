@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let allEvents = [];
     let currentUser = null;
     let currentView = 'month';
+    let availableGrades = [];
+    let availableMembers = [];
 
     loadUserData();
     initializePage();
@@ -15,16 +17,59 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch('/api/user');
             currentUser = await response.json();
 
-            // Afficher le bouton "Nouvel Événement" seulement pour les grades supérieurs
-            const authorizedGrades = ['Chef du département', 'Chef adjoint', 'Capitaine', 'Lieutenant', 'Sergent'];
-            if (currentUser.grade && authorizedGrades.includes(currentUser.grade)) {
-                document.getElementById('btnNewEvent').style.display = 'block';
-            }
+            // Afficher le bouton "Nouvel Événement" pour tout le monde
+            document.getElementById('btnNewEvent').style.display = 'block';
 
-            await Promise.all([loadAllAbsences(), loadAllEvents()]);
+            await Promise.all([
+                loadAllAbsences(),
+                loadAllEvents(),
+                loadGradesAndMembers()
+            ]);
         } catch (error) {
             console.error('Erreur lors du chargement des données utilisateur:', error);
         }
+    }
+
+    async function loadGradesAndMembers() {
+        try {
+            const [gradesResponse, membersResponse] = await Promise.all([
+                fetch('/api/calendar/grades'),
+                fetch('/api/calendar/members')
+            ]);
+
+            availableGrades = await gradesResponse.json();
+            availableMembers = await membersResponse.json();
+
+            // Remplir les sélecteurs dans le modal
+            populateGradesSelector();
+            populateMembersSelector();
+        } catch (error) {
+            console.error('Erreur lors du chargement des grades et membres:', error);
+        }
+    }
+
+    function populateGradesSelector() {
+        const select = document.getElementById('eventGrades');
+        select.innerHTML = '';
+
+        availableGrades.forEach(grade => {
+            const option = document.createElement('option');
+            option.value = grade.id;
+            option.textContent = grade.name;
+            select.appendChild(option);
+        });
+    }
+
+    function populateMembersSelector() {
+        const select = document.getElementById('eventPersonnes');
+        select.innerHTML = '';
+
+        availableMembers.forEach(member => {
+            const option = document.createElement('option');
+            option.value = member.id;
+            option.textContent = member.displayName;
+            select.appendChild(option);
+        });
     }
 
     async function loadAllAbsences() {
@@ -54,12 +99,41 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error('Erreur lors du chargement des événements');
             }
 
-            allEvents = await response.json();
+            const allEventsData = await response.json();
+
+            // Filtrer les événements selon les grades et personnes concernés
+            allEvents = allEventsData.filter(event => isEventVisibleForUser(event));
+
             updateStatistics();
             updateCurrentView();
         } catch (error) {
             console.error('Erreur lors du chargement des événements:', error);
         }
+    }
+
+    function isEventVisibleForUser(event) {
+        // Si aucun filtre n'est défini, l'événement est visible pour tous
+        const hasGradesFilter = event.grades_concernes && Array.isArray(event.grades_concernes) && event.grades_concernes.length > 0;
+        const hasPersonnesFilter = event.personnes_concernees && Array.isArray(event.personnes_concernees) && event.personnes_concernees.length > 0;
+
+        if (!hasGradesFilter && !hasPersonnesFilter) {
+            return true; // Visible pour tous
+        }
+
+        // Vérifier si l'utilisateur est dans la liste des personnes concernées
+        if (hasPersonnesFilter && event.personnes_concernees.includes(currentUser.id)) {
+            return true;
+        }
+
+        // Vérifier si l'utilisateur a un des grades concernés
+        if (hasGradesFilter && currentUser.roles) {
+            const userHasGrade = event.grades_concernes.some(gradeId => currentUser.roles.includes(gradeId));
+            if (userHasGrade) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     function initializePage() {
@@ -572,6 +646,14 @@ document.addEventListener('DOMContentLoaded', function () {
     async function handleEventSubmit(e) {
         e.preventDefault();
 
+        // Récupérer les grades sélectionnés
+        const gradesSelect = document.getElementById('eventGrades');
+        const gradesConcernes = Array.from(gradesSelect.selectedOptions).map(opt => opt.value);
+
+        // Récupérer les personnes sélectionnées
+        const personnesSelect = document.getElementById('eventPersonnes');
+        const personnesConcernees = Array.from(personnesSelect.selectedOptions).map(opt => opt.value);
+
         const eventData = {
             titre: document.getElementById('eventTitle').value,
             description: document.getElementById('eventDescription').value,
@@ -582,7 +664,9 @@ document.addEventListener('DOMContentLoaded', function () {
             typeEvenement: document.getElementById('eventType').value,
             couleur: document.getElementById('eventCouleur').value,
             lieu: document.getElementById('eventLieu').value,
-            auteur: currentUser?.guild_member?.nick || currentUser?.username || 'Inconnu'
+            auteur: currentUser?.guild_member?.nick || currentUser?.username || 'Inconnu',
+            gradesConcernes: gradesConcernes.length > 0 ? gradesConcernes : null,
+            personnesConcernees: personnesConcernees.length > 0 ? personnesConcernees : null
         };
 
         try {
