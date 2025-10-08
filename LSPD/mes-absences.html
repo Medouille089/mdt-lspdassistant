@@ -24,10 +24,14 @@
             <div class="header-left">
                 <img src="data/images/lspd.png" alt="LSPD Logo" class="logo">
                 <div class="header-title">
-                    <p>Consulter et suivre mes demandes d'absence</p>
+                    <h1>Calendrier Partagé LSPD</h1>
+                    <p>Consulter les absences et événements de tous les officiers</p>
                 </div>
             </div>
             <div class="header-right">
+                <button class="btn-success" id="btnNewEvent" onclick="openEventModal()" style="display: none;">
+                    ➕ Nouvel Événement
+                </button>
                 <button class="btn-secondary" onclick="window.location.href='absence.html'">
                     Nouvelle Absence
                 </button>
@@ -38,13 +42,13 @@
         </header>
 
         <section class="stats-section">
-            <h2>Mes Statistiques</h2>
+            <h2>Statistiques Globales</h2>
             <div class="stats-grid">
                 <div class="stat-card total">
                     <div class="stat-icon"></div>
                     <div class="stat-content">
                         <div class="stat-number" id="totalAbsences">0</div>
-                        <div class="stat-label">Total demandes</div>
+                        <div class="stat-label">Absences totales</div>
                     </div>
                 </div>
                 <div class="stat-card approved">
@@ -61,11 +65,11 @@
                         <div class="stat-label">En attente</div>
                     </div>
                 </div>
-                <div class="stat-card rejected">
+                <div class="stat-card event">
                     <div class="stat-icon"></div>
                     <div class="stat-content">
-                        <div class="stat-number" id="rejectedAbsences">0</div>
-                        <div class="stat-label">Refusées</div>
+                        <div class="stat-number" id="totalEvents">0</div>
+                        <div class="stat-label">Événements</div>
                     </div>
                 </div>
             </div>
@@ -74,11 +78,12 @@
         <section class="content-section">
             <!-- Toggle entre calendrier et liste -->
             <div class="view-toggle">
-                <button class="btn-filter active" id="calendarView">📅 Vue Calendrier</button>
+                <button class="btn-filter active" id="monthView">📅 Vue Mois</button>
+                <button class="btn-filter" id="weekView">� Vue Semaine</button>
                 <button class="btn-filter" id="listView">📋 Vue Liste</button>
             </div>
 
-            <!-- Vue Calendrier -->
+            <!-- Vue Calendrier Mensuel -->
             <div id="calendar-container" class="view-container">
                 <div class="calendar-header">
                     <button id="prevMonth" class="btn-nav">❮</button>
@@ -91,16 +96,32 @@
                 <div class="calendar-legend">
                     <div class="legend-item">
                         <span class="legend-color approved"></span>
-                        <span>Approuvée</span>
+                        <span>Absence approuvée</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-color pending"></span>
-                        <span>En attente</span>
+                        <span>Absence en attente</span>
                     </div>
                     <div class="legend-item">
                         <span class="legend-color rejected"></span>
-                        <span>Refusée</span>
+                        <span>Absence refusée</span>
                     </div>
+                    <div class="legend-item">
+                        <span class="legend-color event"></span>
+                        <span>Événement</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vue Semaine -->
+            <div id="week-container" class="view-container" style="display: none;">
+                <div class="calendar-header">
+                    <button id="prevWeek" class="btn-nav">❮</button>
+                    <h2 id="currentWeek"></h2>
+                    <button id="nextWeek" class="btn-nav">❯</button>
+                </div>
+                <div class="week-grid" id="weekGrid">
+                    <!-- La vue semaine sera générée par JavaScript -->
                 </div>
             </div>
 
@@ -108,19 +129,19 @@
             <div id="list-container" class="view-container" style="display: none;">
                 <div class="filters-section">
                     <div class="filters">
+                        <select id="typeFilterList" class="filter-select">
+                            <option value="">Tous les types</option>
+                            <option value="absence">Absences</option>
+                            <option value="evenement">Événements</option>
+                        </select>
                         <select id="statusFilter" class="filter-select">
                             <option value="">Tous les statuts</option>
                             <option value="en_attente">En attente</option>
                             <option value="approuve">Approuvée</option>
                             <option value="refuse">Refusée</option>
                         </select>
-                        <select id="typeFilter" class="filter-select">
-                            <option value="">Tous les types</option>
-                            <option value="conge">Congé</option>
-                            <option value="maladie">Maladie</option>
-                            <option value="personnel">Personnel</option>
-                            <option value="formation">Formation</option>
-                        </select>
+                        <input type="text" id="searchFilter" class="filter-select"
+                            placeholder="Rechercher un officier...">
                     </div>
                 </div>
 
@@ -131,12 +152,96 @@
         </section>
     </div>
 
-    <!-- Modal pour détails de l'absence -->
+    <!-- Modal pour les détails -->
     <div id="absenceModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Détails de l'absence</h2>
+            <h2>Détails</h2>
             <div id="absenceDetails"></div>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter un événement -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEventModal()">&times;</span>
+            <h2>Nouvel Événement</h2>
+            <form id="eventForm">
+                <div class="form-group">
+                    <label for="eventTitle">Titre *</label>
+                    <input type="text" id="eventTitle" required placeholder="Ex: Réunion hebdomadaire">
+                </div>
+
+                <div class="form-group">
+                    <label for="eventType">Type d'événement *</label>
+                    <select id="eventType" required>
+                        <option value="reunion">Réunion</option>
+                        <option value="formation">Formation</option>
+                        <option value="operation">Opération</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventDateDebut">Date de début *</label>
+                        <input type="date" id="eventDateDebut" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventHeureDebut">Heure de début</label>
+                        <input type="time" id="eventHeureDebut">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventDateFin">Date de fin *</label>
+                        <input type="date" id="eventDateFin" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventHeureFin">Heure de fin</label>
+                        <input type="time" id="eventHeureFin">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventLieu">Lieu</label>
+                    <input type="text" id="eventLieu" placeholder="Ex: Salle de briefing">
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDescription">Description</label>
+                    <textarea id="eventDescription" rows="4" placeholder="Détails de l'événement..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventGrades">Grades concernés (laisser vide pour tous)</label>
+                    <select id="eventGrades" multiple size="5">
+                        <!-- Options chargées dynamiquement -->
+                    </select>
+                    <small style="color: #666; font-size: 12px;">Maintenez Ctrl (Cmd sur Mac) pour sélectionner
+                        plusieurs grades</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventPersonnes">Personnes spécifiques concernées</label>
+                    <select id="eventPersonnes" multiple size="5">
+                        <!-- Options chargées dynamiquement -->
+                    </select>
+                    <small style="color: #666; font-size: 12px;">Maintenez Ctrl (Cmd sur Mac) pour sélectionner
+                        plusieurs personnes</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventCouleur">Couleur</label>
+                    <input type="color" id="eventCouleur" value="#3498db">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeEventModal()">Annuler</button>
+                    <button type="submit" class="btn-primary">Créer l'événement</button>
+                </div>
+            </form>
         </div>
     </div>
 
