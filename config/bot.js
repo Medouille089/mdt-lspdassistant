@@ -23,6 +23,7 @@ const bot = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.MessageContent,
   ],
 });
 
@@ -51,7 +52,8 @@ async function registerCommands() {
   const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
   try {
-    console.log("📤 Enregistrement des commandes slash...");
+    console.log("📤 Enregistrement des commandes slash (guild + global pour DM)...");
+    // Guild (rapide pour développement)
     await rest.put(
       Routes.applicationGuildCommands(
         process.env.CLIENT_ID,
@@ -59,7 +61,12 @@ async function registerCommands() {
       ),
       { body: commands }
     );
-    console.log("✅ Commandes enregistrées avec succès !");
+    // Global (nécessaire pour DM) - peut prendre jusqu'à 1h à apparaître
+    await rest.put(
+      Routes.applicationCommands(process.env.CLIENT_ID),
+      { body: commands }
+    );
+    console.log("✅ Commandes enregistrées (guild + global)");
   } catch (err) {
     console.error("❌ Erreur en enregistrant les commandes :", err);
   }
@@ -84,6 +91,34 @@ bot.on(Events.InteractionCreate, async (interaction) => {
 
   // Gestion des tickets
   await handleTicket(interaction, bot);
+});
+
+// Commande préfixe !bonjour
+bot.on(Events.MessageCreate, async (message) => {
+  try {
+    if (message.author.bot) return;
+    if (!message.guild) return; // uniquement en serveur (ajuster si besoin DM)
+
+    if (message.content.trim().toLowerCase() === '!bonjour') {
+      // Supprime le message d'origine si possible
+      if (message.deletable) {
+        message.delete().catch(() => {});
+      }
+
+      const avatar = bot.user.displayAvatarURL({ extension: 'png', size: 256 });
+      const embed = {
+        title: '🌟 Mémo politesse 🌟',
+        description: '# Un ticket, une politesse !\nUn petit `BONJOUR` / `BONSOIR` / `COUCOU` / `SALUT` ne mange pas de pain. C\'est toujours bien plus agréable pour nous.\n\nMerci d\'égayer nos journées !',
+        color: 0x0b1b5a,
+        thumbnail: { url: avatar },
+        footer: { text: 'LSPD Assistant', icon_url: avatar },
+        timestamp: new Date().toISOString(),
+      };
+      await message.channel.send({ embeds: [embed] });
+    }
+  } catch (e) {
+    console.error('Erreur commande !bonjour:', e.message);
+  }
 });
 
 function pluralize(count, zeroIsPlural = false) {
@@ -196,6 +231,85 @@ async function startBot() {
       console.log("Anciennes présences supprimées !");
     };
     cron.schedule("0 3 * * *", purgeOldPresence);
+
+    // --- Scheduler des rappels (/rappel) ---
+    const processReminders = async () => {
+      try {
+        // On récupère les rappels échus (remind_at <= now) limit pour éviter flood
+        const due = await db.query(
+          `SELECT id, user_id, channel_id, remind_at, reason, dm_only
+           FROM lspd_reminders
+           WHERE remind_at <= NOW()
+           ORDER BY remind_at ASC
+           LIMIT 20`);
+        if (!due.rows.length) return; // rien à faire
+
+        for (const r of due.rows) {
+          try {
+            let channel = null;
+            if (!r.dm_only) {
+              channel = await bot.channels.fetch(r.channel_id).catch(() => null);
+              if (!channel || !channel.isTextBased()) {
+                // Salon disparu -> suppression silencieuse
+                await db.query('DELETE FROM lspd_reminders WHERE id=$1', [r.id]);
+                continue;
+              }
+            }
+
+            const parisTime = moment.utc(r.remind_at).tz('Europe/Paris');
+            const botAvatar = bot.user.displayAvatarURL({ extension: 'png', size: 256 });
+            const publicFields = [
+              { name: 'Date', value: parisTime.format('DD/MM/YYYY'), inline: true },
+              { name: 'Heure', value: parisTime.format('HH:mm'), inline: true }
+            ];
+            if (r.reason && r.reason.trim().length) {
+              publicFields.push({ name: 'Raison', value: r.reason, inline: false });
+            }
+            let publicEmbed = null;
+            if (!r.dm_only) {
+              publicEmbed = {
+                title: 'Rappel',
+                color: 0x0b1b5a,
+                fields: publicFields,
+                footer: { text: 'LSPD Assistant', icon_url: botAvatar },
+                timestamp: new Date().toISOString()
+              };
+              await channel.send({ content: `<@${r.user_id}>`, embeds: [publicEmbed] });
+            }
+
+            // DM user avec rappel + salon (en bas)
+            try {
+              const user = await bot.users.fetch(r.user_id).catch(() => null);
+              if (user) {
+                const dmFields = [...publicFields];
+                if (!r.dm_only) {
+                  dmFields.push({ name: 'Salon', value: `<#${r.channel_id}>`, inline: false });
+                }
+                const dmEmbed = {
+                  title: 'Rappel',
+                  color: 0x0b1b5a,
+                  fields: dmFields,
+                  footer: { text: 'LSPD Assistant', icon_url: botAvatar },
+                  timestamp: new Date().toISOString()
+                };
+                await user.send({ embeds: [dmEmbed] });
+              }
+            } catch (dmErr) {
+              // silent
+            }
+            await db.query('DELETE FROM lspd_reminders WHERE id=$1', [r.id]);
+          } catch (sendErr) {
+            console.error('Erreur envoi rappel:', sendErr.message);
+            // On laisse l'entrée pour réessayer plus tard (empêche perte si bug momentané)
+          }
+        }
+      } catch (e) {
+        console.error('Erreur processReminders:', e.message);
+      }
+    };
+
+    // Toutes les minutes
+    cron.schedule('* * * * *', processReminders);
   });
 
   setBot(bot);
