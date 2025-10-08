@@ -20,7 +20,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "standard-version": "^9.5.0"
   },
   "dependencies": {
     "discord.js": "^14.21.0",
