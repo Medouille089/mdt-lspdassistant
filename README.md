@@ -18,7 +18,7 @@ Permet la centralisation des profils agents, rapports, convocations, sanctions, 
 | Présence & Pointeuse | Suivi, rappels programmés (`rappelPointeuse`) |
 | Absences | Déclaration et administration |
 | Rapport Rookie | Suivi des nouveaux agents |
-| Board Trello-like | Temps réel via Socket.IO + persistance PostgreSQL + fallback mémoire |
+| Trello | Temps réel via Socket.IO + persistance PostgreSQL + fallback mémoire |
 | PDF / Export | Génération (via `pdfkit` / `puppeteer` selon modules) |
 | Intégration Discord | Rôles, avatars, webhooks, logs, récupération dynamique des membres |
 | Sécurité | Vérification de rôle requis + SuperAdmin + support DOJ conditionnel |
