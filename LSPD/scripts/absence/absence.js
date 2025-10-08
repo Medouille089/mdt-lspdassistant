@@ -5,21 +5,36 @@ document.addEventListener('DOMContentLoaded', function () {
     // Afficher le loader au démarrage
     loader.style.display = "flex";
 
-    fetch("/api/user")
-        .then((res) => res.json())
-        .then((user) => {
+
+    async function loadUserData() {
+        try {
+            let user;
+
+            if (window.clientCache && typeof window.clientCache.getOrFetch === 'function') {
+                user = await window.clientCache.getOrFetch('user', async () => {
+                    const res = await fetch('/api/user');
+                    if (!res.ok) throw new Error('Non connecté');
+                    return await res.json();
+                }, window.CLIENT_CACHE_TTL ? window.CLIENT_CACHE_TTL.USER : 300);
+            } else {
+                const res = await fetch('/api/user');
+                if (!res.ok) throw new Error('Non connecté');
+                user = await res.json();
+            }
+
             document.getElementById("officier").value = user.username;
             document.getElementById("grade").value = user.grade;
-        })
-        .catch((err) => {
+        } catch (err) {
             console.error("Erreur chargement utilisateur :", err);
             document.getElementById("officier").value = "Erreur de chargement";
             document.getElementById("grade").value = "";
-        })
-        .finally(() => {
+        } finally {
             // Cacher le loader après le fetch
             loader.style.display = "none";
-        });
+        }
+    }
+
+    loadUserData();
 
     const dateDebutInput = document.getElementById('dateDebut');
     const dateFinInput = document.getElementById('dateFin');

@@ -5,9 +5,20 @@ const { createForumPost } = require('../utils/createForumPost');
 const { getBot, getConfig } = require('../config/config');
 const { checkAuth } = require('../config/middleware');
 const { EmbedBuilder } = require("discord.js");
+const { cache } = require('../config/cache');
 
 router.get('/api/absence', checkAuth, async (req, res) => {
     try {
+        const cacheKey = 'absence:all';
+        const cachedData = cache.get(cacheKey);
+
+        if (cachedData) {
+            console.log('✅ Cache HIT: absence:all');
+            return res.json(cachedData);
+        }
+
+        console.log('💾 Cache MISS: absence:all - Fetching from DB...');
+
         const query = `
             SELECT 
                 id,
@@ -28,6 +39,10 @@ router.get('/api/absence', checkAuth, async (req, res) => {
         `;
 
         const result = await db.query(query);
+
+        cache.set(cacheKey, result.rows, 180);
+        console.log('💾 Cache SET: absence:all (TTL: 3min)');
+
         res.json(result.rows);
     } catch (error) {
         console.error('Erreur lors de la récupération des absences:', error);
@@ -41,6 +56,18 @@ router.get('/api/absence', checkAuth, async (req, res) => {
 // Route pour récupérer les absences de l'utilisateur connecté
 router.get('/api/absence/mes-absences', checkAuth, async (req, res) => {
     try {
+        const userId = req.user?.guild_member.nick;
+
+        const cacheKey = `absence:user:${userId}`;
+        const cachedData = cache.get(cacheKey);
+
+        if (cachedData) {
+            console.log(`✅ Cache HIT: absence:user:${userId}`);
+            return res.json(cachedData);
+        }
+
+        console.log(`💾 Cache MISS: absence:user:${userId} - Fetching from DB...`);
+
         const query = `
             SELECT 
                 id,
@@ -61,8 +88,12 @@ router.get('/api/absence/mes-absences', checkAuth, async (req, res) => {
             ORDER BY date_creation DESC
         `;
 
-        const result = await db.query(query, [req.user?.guild_member.nick]);
-        console.log(`Récupération des absences pour l'utilisateur: ${req.user?.guild_member.nick}`);
+        const result = await db.query(query, [userId]);
+        console.log(`Récupération des absences pour l'utilisateur: ${userId}`);
+
+        cache.set(cacheKey, result.rows, 180);
+        console.log(`💾 Cache SET: absence:user:${userId} (TTL: 3min)`);
+
         res.json(result.rows);
     } catch (error) {
         console.error('Erreur lors de la récupération des absences utilisateur:', error);
@@ -201,6 +232,9 @@ router.post('/api/absence', async (req, res) => {
             console.error('Erreur lors de la notification Discord:', discordError);
         }
 
+        cache.deletePattern('absence:*');
+        console.log('🗑️ Cache invalidé: absence:* (après POST)');
+
         res.status(201).json({
             message: 'Absence créée avec succès',
             absence: nouvelleAbsence
@@ -293,6 +327,9 @@ router.put('/api/absence/:id/statut', async (req, res) => {
             console.error('Erreur lors de la notification Discord:', discordError);
         }
 
+        cache.deletePattern('absence:*');
+        console.log('🗑️ Cache invalidé: absence:* (après PUT)');
+
         res.json({
             message: 'Statut de l\'absence mis à jour avec succès',
             absence: absenceModifiee
@@ -320,6 +357,9 @@ router.delete('/api/absence/:id', async (req, res) => {
                 message: 'Aucune absence trouvée avec cet ID'
             });
         }
+
+        cache.deletePattern('absence:*');
+        console.log('🗑️ Cache invalidé: absence:* (après DELETE)');
 
         res.json({
             message: 'Absence supprimée avec succès',

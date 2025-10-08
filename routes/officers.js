@@ -4,9 +4,20 @@ const { checkAuth } = require("../config/middleware");
 const bot = require("../config/bot");
 const { GUILD_ID } = require("../config/env");
 const pool = require("../config/db");
+const { cache, CACHE_DURATIONS } = require("../config/cache");
 
 router.get("/api/officers", checkAuth, async (req, res) => {
   try {
+    const cacheKey = 'officers:list';
+    const cachedData = cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log('✅ Cache HIT: officers');
+      return res.json(cachedData);
+    }
+
+    console.log('💾 Cache MISS: officers - Fetching from Discord...');
+
     // Récupérer required_role_id depuis la table configlspd
     const configRes = await pool.query("SELECT required_role_id FROM configlspd LIMIT 1");
     const REQUIRED_ROLE = configRes.rows[0]?.required_role_id?.trim();
@@ -67,8 +78,11 @@ router.get("/api/officers", checkAuth, async (req, res) => {
     // Trier par gradeIndex descendant (plus haut grade en premier)
     agents.sort((a, b) => b.gradeIndex - a.gradeIndex);
 
-    // Retirer gradeIndex avant d’envoyer
+    // Retirer gradeIndex avant d'envoyer
     const finalAgents = agents.map(({ id, displayName, grade }) => ({ id, displayName, grade }));
+
+    cache.set(cacheKey, finalAgents, CACHE_DURATIONS.GUILD_MEMBERS);
+    console.log('💾 Cache SET: officers (TTL: 10min)');
 
     res.json(finalAgents);
 

@@ -5,11 +5,21 @@ const bot = require("../config/bot");
 const { GUILD_ID } = require("../config/env");
 const { getConfig } = require("../config/config");
 const pool = require('../config/db');
+const { cache, CACHE_DURATIONS } = require('../config/cache');
+const { cacheUser } = require('../config/cacheMiddleware');
 
 router.get('/api/user', checkAuthOrDOJ, async (req, res) => {
   const user = req.user;
 
   try {
+    const cacheKey = `user:${user.id}`;
+    const cachedUser = cache.get(cacheKey);
+
+    if (cachedUser) {
+      console.log(`✅ Cache HIT: ${cacheKey}`);
+      return res.json(cachedUser);
+    }
+
     const conf = await getConfig();
     const SUPER_ADMIN_ROLE = conf.id_superadmin ? String(conf.id_superadmin).trim() : null;
 
@@ -91,8 +101,7 @@ router.get('/api/user', checkAuthOrDOJ, async (req, res) => {
       DO UPDATE SET display_name = $2, last_seen = NOW()
     `, [user.id, member.displayName || user.username]);
 
-    res.set('Cache-Control', 'no-store');
-    res.json({
+    const userData = {
       id: user.id,
       username: member.displayName || user.username,
       avatar: user.avatar,
@@ -103,7 +112,13 @@ router.get('/api/user', checkAuthOrDOJ, async (req, res) => {
       isSuperAdmin: user.isSuperAdmin,
       isDOJ: false,
       grade
-    });
+    };
+
+    cache.set(cacheKey, userData, CACHE_DURATIONS.USER_SESSION);
+    console.log(`💾 Cache SET: ${cacheKey}`);
+
+    res.set('Cache-Control', 'no-store');
+    res.json(userData);
 
   } catch (err) {
     console.error('Erreur fetch member:', err);

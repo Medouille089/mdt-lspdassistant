@@ -2,9 +2,19 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const moment = require('moment-timezone');
+const { cache, CACHE_DURATIONS } = require('../config/cache');
 
 router.get('/api/dashboard', async (req, res) => {
   try {
+    const cacheKey = 'dashboard:stats';
+    const cachedData = cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log('✅ Cache HIT: dashboard');
+      return res.json(cachedData);
+    }
+
+    console.log('💾 Cache MISS: dashboard - Fetching from DB...');
     const parisNow = moment().tz('Europe/Paris');
     const todayStart = parisNow.clone().startOf('day').format('YYYY-MM-DD');
     const todayEnd = parisNow.clone().endOf('day').format('YYYY-MM-DD');
@@ -64,12 +74,17 @@ router.get('/api/dashboard', async (req, res) => {
       };
     });
 
-    res.json({
+    const dashboardData = {
       totalReports,
       interventionsToday,
       braceletCount,
       latestReports
-    });
+    };
+
+    cache.set(cacheKey, dashboardData, 120); // 120 secondes
+    console.log('💾 Cache SET: dashboard (TTL: 2min)');
+
+    res.json(dashboardData);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erreur chargement dashboard' });

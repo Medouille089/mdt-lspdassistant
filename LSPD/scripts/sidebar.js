@@ -45,9 +45,20 @@ if (window.innerWidth <= 1024) {
 
 async function fetchUser() {
   try {
-    const res = await fetch('/api/user');
-    if (!res.ok) throw new Error('Non connecté');
-    const user = await res.json();
+    let user;
+
+
+    if (window.clientCache && typeof window.clientCache.getOrFetch === 'function') {
+      user = await window.clientCache.getOrFetch('user', async () => {
+        const res = await fetch('/api/user');
+        if (!res.ok) throw new Error('Non connecté');
+        return await res.json();
+      }, window.CLIENT_CACHE_TTL ? window.CLIENT_CACHE_TTL.USER : 300);
+    } else {
+      const res = await fetch('/api/user');
+      if (!res.ok) throw new Error('Non connecté');
+      user = await res.json();
+    }
 
     // Avatar
     const avatarUrl = user.avatar
@@ -78,8 +89,8 @@ async function fetchUser() {
       navLinkAnchor.style.cursor = 'pointer';
       navLinkAnchor.addEventListener('click', (e) => {
         e.preventDefault();
-  // Utiliser un chemin absolu pour fonctionner depuis n'importe quel sous-dossier (ex: /LSPD/trello/)
-  window.location.href = `/infosagent.html?userId=${user.id}`;
+        // Utiliser un chemin absolu pour fonctionner depuis n'importe quel sous-dossier (ex: /LSPD/trello/)
+        window.location.href = `/infosagent.html?userId=${user.id}`;
       });
 
       const BLUE = '#0b1b5a';
@@ -138,4 +149,3 @@ async function fetchUser() {
 }
 
 fetchUser();
-fetch('/api/user').then(res => res.json()).then(console.log);

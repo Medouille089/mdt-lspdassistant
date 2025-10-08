@@ -1,15 +1,27 @@
-document.addEventListener("DOMContentLoaded", () => {
-  fetch("/api/user")
-    .then((res) => res.json())
-    .then((user) => {
-      document.getElementById("officier").value = user.username;
-      document.getElementById("grade").value = user.grade;
-    })
-    .catch((err) => {
-      console.error("Erreur chargement utilisateur :", err);
-      document.getElementById("officier").value = "Erreur de chargement";
-      document.getElementById("grade").value = "";
-    });
+document.addEventListener("DOMContentLoaded", async () => {
+
+  try {
+    let user;
+
+    if (window.clientCache && typeof window.clientCache.getOrFetch === 'function') {
+      user = await window.clientCache.getOrFetch('user', async () => {
+        const res = await fetch('/api/user');
+        if (!res.ok) throw new Error('Non connecté');
+        return await res.json();
+      }, window.CLIENT_CACHE_TTL ? window.CLIENT_CACHE_TTL.USER : 300);
+    } else {
+      const res = await fetch('/api/user');
+      if (!res.ok) throw new Error('Non connecté');
+      user = await res.json();
+    }
+
+    document.getElementById("officier").value = user.username;
+    document.getElementById("grade").value = user.grade;
+  } catch (err) {
+    console.error("Erreur chargement utilisateur :", err);
+    document.getElementById("officier").value = "Erreur de chargement";
+    document.getElementById("grade").value = "";
+  }
 
   // Charger les accusations depuis la DB
   loadAccusations();
