@@ -267,6 +267,7 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
           await channel.send({ embeds: [embed] });
         }
       }
+      
     } catch (logErr) {
       console.warn('Log modification profil échoué:', logErr.message);
     }
