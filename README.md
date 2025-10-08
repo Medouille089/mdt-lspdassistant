@@ -183,12 +183,10 @@ Actuellement aucun test auto (script `npm test` placeholder). Recommandations:
 MIT – voir `LICENSE.md`.
 
 ## 👥 Auteurs
-**Medouille**, **RyZzen**, **Porka (Kelyan)** – contributions & maintenance.
+**Medouille**, **Porka**, **Trello by Hash** – contributions & maintenance.
 
 ---
 
-Pour support: contacter `medouille_` ou `ryzzen_` sur Discord.
+Pour support: contacter `medouille_` ou `porka.` sur Discord.
 
----
 
-> Ce README est généré pour offrir une vision claire et opérationnelle du projet. N'hésite pas à le compléter selon les évolutions.
