@@ -1,5 +1,5 @@
 import { boardData, scrollState, activeCardCreations, availableTags } from './state.js';
-import { captureScrollState, restoreScrollState, getCardTags, generateCustomFieldsHtml, generateId } from './utils.js';
+import { captureScrollState, restoreScrollState, getCardTags, generateCustomFieldsHtml, generateId, formatRelativeTime } from './utils.js';
 import { submitOperation } from './socket.js';
 import { attachCardEvents } from './card.js';
 import { attachDragDropEvents } from './dragdrop.js';
@@ -74,6 +74,11 @@ function renderCard(card, listId) {
         return tagInfo ? `<span class="card-tag" style="background-color: ${tagInfo.color}" title="${tagInfo.label}"></span>` : '';
     }).join('');
 
+    // Timestamp "modifié il y a ..."
+    const timestamp = card.updated_at 
+        ? `<span class="card-timestamp" title="Dernière modification">${formatRelativeTime(card.updated_at)}</span>`
+        : '';
+
     if (card.isCompact) {
         const shortId = card.compactText || card.text;
         const colorClass = card.compactColor ? `color-${card.compactColor}` : 'color-gray';
@@ -103,6 +108,7 @@ function renderCard(card, listId) {
 
     return `
         <div class="card ${card.type === 'image' ? 'image-card' : ''}" data-card-id="${card.id}" draggable="true">
+            ${timestamp}
             <div class="card-content">
                 ${cardContentHtml}
                 ${cardTagsHtml ? `<div class="card-tags">${cardTagsHtml}</div>` : ''}
