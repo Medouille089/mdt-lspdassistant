@@ -51,12 +51,16 @@ async function registerCommands() {
   const all = bot.commands.map(c => c.data.toJSON());
   const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
-  // Politique: /rappel uniquement global (pour DM), autres aussi en guild pour rapidité
-  const guildCommands = all.filter(c => c.name !== 'rappel');
-  const globalCommands = all; // inclut /rappel
+  // Liste des commandes qui doivent fonctionner en DM
+  const globalNames = ['rappel'];
+  const globalCommands = all.filter(c => globalNames.includes(c.name));
+  const guildCommands = all.filter(c => !globalNames.includes(c.name));
+
+  const isLocal = (process.env.IS_LOCAL || '').toLowerCase() === 'true';
 
   try {
-    console.log('📤 MAJ commandes: guild (sans /rappel) + global (toutes)');
+    console.log('📤 MAJ commandes: guild-only=', guildCommands.map(c=>c.name), ' global=', globalCommands.map(c=>c.name), ' IS_LOCAL=', isLocal);
+    // Toujours enregistrer les guild commands (MAJ instantanée)
     await rest.put(
       Routes.applicationGuildCommands(
         process.env.CLIENT_ID,
@@ -64,10 +68,16 @@ async function registerCommands() {
       ),
       { body: guildCommands }
     );
-    await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: globalCommands }
-    );
+
+    if (!isLocal) {
+      // En prod seulement: publier les global (plus lentes à propager, pas de doublon car limitées)
+      await rest.put(
+        Routes.applicationCommands(process.env.CLIENT_ID),
+        { body: globalCommands }
+      );
+    } else {
+      console.log('⏭️  IS_LOCAL=true : skip publication global');
+    }
     console.log('✅ Commandes mises à jour');
   } catch (err) {
     console.error('❌ Erreur en enregistrant les commandes :', err);
