@@ -121,8 +121,8 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
 // PUT /api/agent-profile/:userId - Mettre à jour le profil d'un agent
 router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
   try {
-    const { userId } = req.params;
-    const user = req.user;
+    const { userId } = req.params; // cible
+    const user = req.user; // acteur
     let { photo_url, armes, vehicules, matricule, nom, prenom, specialites } = req.body;
 
     // Normaliser armes / vehicules (peuvent arriver en string JSON ou déjà en array)
@@ -143,6 +143,18 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     // Mode édition désactivé temporairement - autoriser toutes les modifications
 
     // Mettre à jour le profil
+    // Récupérer l'ancien profil pour diff AVANT update
+    const oldRes = await pool.query('SELECT * FROM lspd_agent_profiles WHERE discord_id = $1', [userId]);
+    const oldProfileRaw = oldRes.rows[0] || null;
+    let oldProfile = null;
+    if (oldProfileRaw) {
+      oldProfile = { ...oldProfileRaw };
+      try { if (typeof oldProfile.armes === 'string') oldProfile.armes = JSON.parse(oldProfile.armes || '[]'); } catch { oldProfile.armes = []; }
+      try { if (typeof oldProfile.vehicules === 'string') oldProfile.vehicules = JSON.parse(oldProfile.vehicules || '[]'); } catch { oldProfile.vehicules = []; }
+      if (!Array.isArray(oldProfile.armes)) oldProfile.armes = [];
+      if (!Array.isArray(oldProfile.vehicules)) oldProfile.vehicules = [];
+    }
+
     const result = await pool.query(
       `UPDATE lspd_agent_profiles 
        SET photo_url = $1, armes = $2, vehicules = $3, matricule = $4, 
@@ -170,6 +182,95 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     try { updated.armes = JSON.parse(updated.armes || '[]'); } catch { updated.armes = []; }
     try { updated.vehicules = JSON.parse(updated.vehicules || '[]'); } catch { updated.vehicules = []; }
     res.json(updated);
+
+    // ===== LOG DISCORD =====
+    try {
+      const { getConfig, getBot } = require('../config/config');
+      const conf = getConfig();
+      const logsChannelId = conf.logs_channel;
+      if (logsChannelId) {
+        const bot = getBot();
+        const guild = bot.guilds.cache.get(process.env.GUILD_ID) || await bot.guilds.fetch(process.env.GUILD_ID);
+        // Fetch display names
+        const actorMember = await guild.members.fetch(user.id).catch(() => null);
+        const targetMember = await guild.members.fetch(userId).catch(() => null);
+  const actorName = actorMember?.displayName || user.username || user.id;
+  const targetName = targetMember?.displayName || ((updated.prenom && updated.nom) ? `${updated.prenom} ${updated.nom}`.trim() : (updated.nom || updated.prenom || userId));
+        const selfEdit = user.id === userId;
+
+  // Les champs updated.armes / updated.vehicules ont été parsés juste avant (arrays)
+  // Utiliser directement les valeurs en fallback sur celles reçues dans la requête (armes/vehicules variables locales)
+  let newArmes = Array.isArray(updated.armes) ? updated.armes : (Array.isArray(armes) ? armes : []);
+  let newVehicules = Array.isArray(updated.vehicules) ? updated.vehicules : (Array.isArray(vehicules) ? vehicules : []);
+  // Filtrer entrées vides
+  newArmes = newArmes.filter(a => a && a.nom);
+  newVehicules = newVehicules.filter(v => v && v.nom);
+
+        // Diff helper
+        const stringifyEquip = (list, type) => list.map(e => type === 'arme' ? `${e.nom}${e.numero_serie ? ' (#'+e.numero_serie+')' : ''}` : `${e.nom}${e.immatriculation ? ' [ '+e.immatriculation+' ]' : ''}`);
+        const diffList = (oldList = [], newList = [], type) => {
+          const oldS = new Set(stringifyEquip(oldList, type));
+          const newS = new Set(stringifyEquip(newList, type));
+          const added = [...newS].filter(x => !oldS.has(x));
+          const removed = [...oldS].filter(x => !newS.has(x));
+          return { added, removed };
+        };
+
+        const armesDiff = diffList(oldProfile?.armes || [], newArmes, 'arme');
+        const vehiculesDiff = diffList(oldProfile?.vehicules || [], newVehicules, 'vehicule');
+
+        const fieldChanges = [];
+
+        const trackSimple = (label, oldVal, newVal) => {
+          const o = (oldVal || '').trim();
+            const n = (newVal || '').trim();
+            if (o !== n) {
+              fieldChanges.push({ name: label, value: `Ancien: ${o || '—'}\nNouveau: ${n || '—'}`, inline: false });
+            }
+        };
+        trackSimple('Matricule', oldProfile?.matricule, matricule);
+        trackSimple('Nom', oldProfile?.nom, nom);
+        trackSimple('Prénom', oldProfile?.prenom, prenom);
+        if ((oldProfile?.photo_url || '') !== (photo_url || '')) {
+          fieldChanges.push({ name: 'Photo', value: `Ancien: ${oldProfile?.photo_url || '—'}\nNouveau: ${photo_url || '—'}`, inline: false });
+        }
+        if (armesDiff.added.length || armesDiff.removed.length) {
+          let value = '';
+          if (armesDiff.added.length) value += `➕ ${armesDiff.added.join('\n➕ ')}\n`;
+          if (armesDiff.removed.length) value += `➖ ${armesDiff.removed.join('\n➖ ')}`;
+          fieldChanges.push({ name: 'Armes modifiées', value: value.slice(0, 1000) || '—', inline: false });
+        }
+        if (vehiculesDiff.added.length || vehiculesDiff.removed.length) {
+          let value = '';
+          if (vehiculesDiff.added.length) value += `➕ ${vehiculesDiff.added.join('\n➕ ')}\n`;
+          if (vehiculesDiff.removed.length) value += `➖ ${vehiculesDiff.removed.join('\n➖ ')}`;
+          fieldChanges.push({ name: 'Véhicules modifiés', value: value.slice(0, 1000) || '—', inline: false });
+        }
+
+        const { EmbedBuilder } = require('discord.js');
+        const channel = await bot.channels.fetch(logsChannelId).catch(() => null);
+        if (channel?.isTextBased()) {
+          const title = selfEdit
+            ? `${actorName} a modifié son profil`
+            : `${actorName} a modifié le profil de ${targetName}`;
+          const embed = new EmbedBuilder()
+            .setColor(0x0b1b5a)
+            .setTitle(title)
+            .setTimestamp();
+          if (fieldChanges.length) {
+            fieldChanges.slice(0, 10).forEach(fc => embed.addFields(fc));
+          } else {
+            embed.setDescription('Aucun changement détecté (données identiques).');
+          }
+          // IDs field
+          embed.addFields({ name: 'ID\'s', value: `> <@${user.id}> (\`${user.id}\`)\n> <@${userId}> (\`${userId}\`)`, inline: false });
+          await channel.send({ embeds: [embed] });
+        }
+      }
+      
+    } catch (logErr) {
+      console.warn('Log modification profil échoué:', logErr.message);
+    }
   } catch (err) {
     console.error('Erreur mise à jour profil agent:', err);
     res.status(500).json({ error: 'Erreur serveur' });

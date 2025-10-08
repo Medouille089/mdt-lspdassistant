@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/Medouille089/lspdassistant/compare/v1.3.0...v1.4.0) (2025-10-08)
+
+
+### Features
+
+* add calendar linked ([cd9d511](https://github.com/Medouille089/lspdassistant/commit/cd9d51166cb6331bac0c282b5f2d44f577da716b))
+* add calendar linked ([ba4f967](https://github.com/Medouille089/lspdassistant/commit/ba4f967e61ce8a1e1f5f3baea77263ff6f612378))
+
+
+### Bug Fixes
+
+* add logs ([3c8c451](https://github.com/Medouille089/lspdassistant/commit/3c8c451951ec96128092d896158f0dad85a8612e))
+* add logs ([02b9673](https://github.com/Medouille089/lspdassistant/commit/02b9673c0ce075be0513c3c2a32560a0bd998679))
+* add logs to profil ([2a8bb1b](https://github.com/Medouille089/lspdassistant/commit/2a8bb1b7afd7f5142b27037fb52f8ac895a600f8))
+* add some file ([d93090d](https://github.com/Medouille089/lspdassistant/commit/d93090d7faef2cad5a24049dccfa6c853d248d76))
+* app.js ([57ab653](https://github.com/Medouille089/lspdassistant/commit/57ab653f25ed1d7276a23645b2e21a7d4a9ecbb0))
+* Correcteur de con de merde ([b73a340](https://github.com/Medouille089/lspdassistant/commit/b73a34004fe71e0e09102885f31bbbc16b491518))
+* sidebar ([fd72c3d](https://github.com/Medouille089/lspdassistant/commit/fd72c3d7903fbc19d2ab999dbe76cfa484174a35))
+* Sort events (top). Mon is first day. ([2d56147](https://github.com/Medouille089/lspdassistant/commit/2d56147bb74c7f466b9fadff6e787ff3f36b283e))
+* update de la doc ([2088d03](https://github.com/Medouille089/lspdassistant/commit/2088d03dfdfc5223e753bce59939f86f40826858))
+
 ## [1.3.0](https://github.com/Medouille089/lspdassistant/compare/v1.2.0...v1.3.0) (2025-10-08)
 
 
