@@ -41,40 +41,98 @@ function formatDate(dateStr) {
 function addEquipmentRow(container, data = {}, type) {
     const div = document.createElement('div');
     div.className = 'equipment-item';
-    
-    if (type === 'arme') {
-        div.innerHTML = `
-            <div class="equipment-display">
-                <span class="equipment-name">${data.nom || ''}</span>
-                <span class="equipment-detail">${data.numero_serie || 'N/A'}</span>
-                <button type="button" class="remove-equipment-btn" onclick="removeEquipmentRow(this)">
+    const name = data.nom || '';
+    const detail = type === 'arme' ? (data.numero_serie || 'N/A') : (data.immatriculation || 'N/A');
+
+    div.innerHTML = `
+        <div class="equipment-display">
+            <span class="equipment-name" data-field="nom">${name}</span>
+            <span class="equipment-detail" data-field="detail">${detail}</span>
+            <div class="equipment-actions">
+                <button type="button" class="edit-equipment-btn" onclick="editEquipmentRow(this, '${type}')" title="Modifier">
+                    <span class="material-symbols-rounded">edit</span>
+                </button>
+                <button type="button" class="remove-equipment-btn" onclick="removeEquipmentRow(this)" title="Supprimer">
                     <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
-        `;
-    } else if (type === 'vehicule') {
-        div.innerHTML = `
-            <div class="equipment-display">
-                <span class="equipment-name">${data.nom || ''}</span>
-                <span class="equipment-detail">${data.immatriculation || 'N/A'}</span>
-                <button type="button" class="remove-equipment-btn" onclick="removeEquipmentRow(this)">
-                    <span class="material-symbols-rounded">close</span>
-                </button>
-            </div>
-        `;
-    }
-    
+        </div>`;
+
     // Stocker les données dans l'élément pour la récupération
     div.dataset.equipmentData = JSON.stringify(data);
-    
     container.appendChild(div);
     updateEquipmentVisibility();
 }
 
 // Fonction pour supprimer une ligne d'équipement
 function removeEquipmentRow(button) {
-    button.parentElement.remove();
+    const wrapper = button.closest('.equipment-item');
+    if (wrapper) wrapper.remove();
     updateEquipmentVisibility();
+}
+
+// Fonction pour éditer une ligne d'équipement
+function editEquipmentRow(button, type) {
+    if (!document.body.classList.contains('edit-mode')) return;
+    const item = button.closest('.equipment-item');
+    if (!item) return;
+
+    // Déjà en mode édition ? alors on sauvegarde
+    if (item.classList.contains('editing')) {
+        const nameInput = item.querySelector('input.equipment-edit-name');
+        const detailInput = item.querySelector('input.equipment-edit-detail');
+        if (!nameInput) return;
+        const newName = nameInput.value.trim();
+        const newDetail = detailInput ? detailInput.value.trim() : '';
+        let data;
+        try { data = JSON.parse(item.dataset.equipmentData || '{}'); } catch { data = {}; }
+        data.nom = newName;
+        if (type === 'arme') {
+            data.numero_serie = newDetail;
+        } else {
+            data.immatriculation = newDetail;
+        }
+        item.dataset.equipmentData = JSON.stringify(data);
+        // Remplacer par spans
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'equipment-name';
+        nameSpan.dataset.field = 'nom';
+        nameSpan.textContent = newName;
+        const detailSpan = document.createElement('span');
+        detailSpan.className = 'equipment-detail';
+        detailSpan.dataset.field = 'detail';
+        detailSpan.textContent = newDetail || 'N/A';
+        nameInput.replaceWith(nameSpan);
+        if (detailInput) detailInput.replaceWith(detailSpan);
+        item.classList.remove('editing');
+        button.querySelector('.material-symbols-rounded').textContent = 'edit';
+        return;
+    }
+
+    // Passer en mode édition inline
+    let data = {};
+    try { data = JSON.parse(item.dataset.equipmentData || '{}'); } catch { data = {}; }
+    const currentName = data.nom || '';
+    const currentDetail = type === 'arme' ? (data.numero_serie || '') : (data.immatriculation || '');
+    const nameSpan = item.querySelector('.equipment-name');
+    const detailSpan = item.querySelector('.equipment-detail');
+    if (!nameSpan) return;
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'equipment-edit-name';
+    nameInput.value = currentName;
+    nameInput.placeholder = 'Nom';
+    nameSpan.replaceWith(nameInput);
+    if (detailSpan) {
+        const detailInput = document.createElement('input');
+        detailInput.type = 'text';
+        detailInput.className = 'equipment-edit-detail';
+        detailInput.value = currentDetail;
+        detailInput.placeholder = type === 'arme' ? 'Numéro de série' : 'Immatriculation';
+        detailSpan.replaceWith(detailInput);
+    }
+    item.classList.add('editing');
+    button.querySelector('.material-symbols-rounded').textContent = 'save';
 }
 
 
@@ -123,9 +181,11 @@ function updateEquipmentVisibility() {
     
     document.querySelectorAll('.equipment-item').forEach(item => {
         const removeBtn = item.querySelector('.remove-equipment-btn');
+        const editBtn = item.querySelector('.edit-equipment-btn');
         const inputs = item.querySelectorAll('input');
         
         if (removeBtn) removeBtn.style.display = isEditModeActive ? 'block' : 'none';
+        if (editBtn) editBtn.style.display = isEditModeActive ? 'block' : 'none';
         inputs.forEach(input => input.disabled = !isEditModeActive);
     });
     
@@ -629,3 +689,4 @@ function activateEditModeLocal() {
 
 // Rendre les fonctions globalement accessibles
 window.removeEquipmentRow = removeEquipmentRow;
+window.editEquipmentRow = editEquipmentRow;

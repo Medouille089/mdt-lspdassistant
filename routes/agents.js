@@ -97,10 +97,21 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
         'INSERT INTO lspd_agent_profiles (discord_id, photo_url) VALUES ($1, $2) RETURNING *',
         [userId, defaultPhoto]
       );
-      return res.json(newProfile.rows[0]);
+      const created = newProfile.rows[0];
+      // Normaliser champs tableaux
+      created.armes = [];
+      created.vehicules = [];
+      return res.json(created);
     }
 
-    res.json(result.rows[0]);
+    // Parser armes / vehicules si stockés en JSON texte
+    const profile = result.rows[0];
+    try { if (typeof profile.armes === 'string') profile.armes = JSON.parse(profile.armes || '[]'); } catch { profile.armes = []; }
+    try { if (typeof profile.vehicules === 'string') profile.vehicules = JSON.parse(profile.vehicules || '[]'); } catch { profile.vehicules = []; }
+    if (!Array.isArray(profile.armes)) profile.armes = [];
+    if (!Array.isArray(profile.vehicules)) profile.vehicules = [];
+
+    res.json(profile);
   } catch (err) {
     console.error('Erreur récupération profil agent:', err);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -112,7 +123,19 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const user = req.user;
-    const { photo_url, armes, vehicules, matricule, nom, prenom, specialites } = req.body;
+    let { photo_url, armes, vehicules, matricule, nom, prenom, specialites } = req.body;
+
+    // Normaliser armes / vehicules (peuvent arriver en string JSON ou déjà en array)
+    const parseArray = (val) => {
+      if (!val) return [];
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') {
+        try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+      }
+      return [];
+    };
+    armes = parseArray(armes).filter(a => a && a.nom);
+    vehicules = parseArray(vehicules).filter(v => v && v.nom);
 
     // Autoriser l'édition pour tous (temporaire pour déboguer)
     console.log('Édition du profil autorisée pour:', user.id);
@@ -126,7 +149,7 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
            nom = $5, prenom = $6, date_modification = NOW()
        WHERE discord_id = $7 
        RETURNING *`,
-      [photo_url, JSON.stringify(armes), JSON.stringify(vehicules), matricule, nom, prenom, userId]
+      [photo_url, JSON.stringify(armes || []), JSON.stringify(vehicules || []), matricule, nom, prenom, userId]
     );
 
     if (result.rows.length === 0) {
@@ -135,12 +158,18 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
         `INSERT INTO lspd_agent_profiles 
          (discord_id, photo_url, armes, vehicules, matricule, nom, prenom)
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [userId, photo_url, JSON.stringify(armes), JSON.stringify(vehicules), matricule, nom, prenom]
+        [userId, photo_url, JSON.stringify(armes || []), JSON.stringify(vehicules || []), matricule, nom, prenom]
       );
-      return res.json(newProfile.rows[0]);
+      const created = newProfile.rows[0];
+      try { created.armes = JSON.parse(created.armes || '[]'); } catch { created.armes = []; }
+      try { created.vehicules = JSON.parse(created.vehicules || '[]'); } catch { created.vehicules = []; }
+      return res.json(created);
     }
 
-    res.json(result.rows[0]);
+    const updated = result.rows[0];
+    try { updated.armes = JSON.parse(updated.armes || '[]'); } catch { updated.armes = []; }
+    try { updated.vehicules = JSON.parse(updated.vehicules || '[]'); } catch { updated.vehicules = []; }
+    res.json(updated);
   } catch (err) {
     console.error('Erreur mise à jour profil agent:', err);
     res.status(500).json({ error: 'Erreur serveur' });
