@@ -9,27 +9,45 @@ module.exports = {
       .filter(role => role.name !== '@everyone')
       .sort((a, b) => b.position - a.position);
 
-    const roleList = roles.map(role => `${role} \`(${role.id})\``).join('\n');
+    const lines = roles.map(role => `${role} \`(${role.id})\``);
 
-    if (roleList.length > 4096) {
-      return interaction.reply({
-        content: "La liste dépasse 4096 caractères, impossible d’afficher tous les rôles dans un embed.",
-        flags : 64,
-      });
+    if (!lines.length) {
+      return interaction.reply({ content: 'Aucun rôle trouvé.', flags: 64 });
     }
 
     const botUser = interaction.client.user;
 
-    const embed = new EmbedBuilder()
-      .setTitle("Liste des rôles")
-      .setDescription(roleList || "Aucun rôle trouvé.")
-      .setColor(0x0b1b5a)
-      .setFooter({
-        text: 'LSPD Assistant',
-        iconURL: botUser.displayAvatarURL(),
-      })
-      .setTimestamp();
+    // Discord embed description hard limit = 4096 chars
+    const MAX = 4096;
+    const chunks = [];
+    let current = [];
+    let currentLen = 0;
+    for (const l of lines) {
+      const addLen = l.length + 1; // +1 for newline
+      if (currentLen + addLen > MAX) {
+        chunks.push(current.join('\n'));
+        current = [l];
+        currentLen = l.length + 1;
+      } else {
+        current.push(l);
+        currentLen += addLen;
+      }
+    }
+    if (current.length) chunks.push(current.join('\n'));
 
-    await interaction.reply({ embeds: [embed] });
+    const total = chunks.length;
+    const embeds = chunks.map((desc, idx) => new EmbedBuilder()
+      .setTitle(`Liste des rôles (${idx + 1}/${total})`)
+      .setDescription(desc)
+      .setColor(0x0b1b5a)
+      .setFooter({ text: 'LSPD Assistant', iconURL: botUser.displayAvatarURL() })
+      .setTimestamp()
+    );
+
+    // On envoie la première avec reply, les suivantes avec followUp
+    await interaction.reply({ embeds: [embeds[0]] });
+    for (let i = 1; i < embeds.length; i++) {
+      await interaction.followUp({ embeds: [embeds[i]] });
+    }
   },
 };

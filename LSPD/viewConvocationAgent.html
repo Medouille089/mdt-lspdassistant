@@ -4,7 +4,7 @@
 <head>
   <link rel="stylesheet" href="styles/annonce-popup.css" />
   <meta charset="UTF-8" />
-  <title>Convoquer un agent - LSPD Assistant</title>
+  <title>Détails Convocation Agent - LSPD Assistant</title>
   <link rel="icon" href="data/images/favicon.png" type="image/png">
   <link rel="stylesheet" href="styles/sidebar.css" />
   <link rel="stylesheet" href="styles/colors.css" />
@@ -22,22 +22,20 @@
   </div>
   <div class="main-container">
     <div id="sidebar-container"></div>
-    <h1>Nouvelle convocation</h1>
+    <h1>Détails de la Convocation Agent</h1>
     <div class="sanction-container">
-      <form id="convocationForm">
+      <div class="form-content">
         <label for="agent">Agent convoqué :</label>
-        <select id="agent">
-          <option value="">-- Choisir un agent --</option>
-        </select>
+        <input type="text" id="agent" readonly>
 
         <label for="date">Date :</label>
-        <input type="date" id="date">
+        <input type="date" id="date" readonly>
 
         <label for="lieu">Lieu :</label>
-        <input type="text" id="lieu">
+        <input type="text" id="lieu" readonly>
 
         <label for="raison">Raison :</label>
-        <textarea id="raison"></textarea>
+        <textarea id="raison" readonly></textarea>
 
         <div class="user-info-row">
           <div class="user-info-field">
@@ -50,27 +48,22 @@
           </div>
         </div>
 
-        <div class="button-container">
-          <button type="submit" id="submit">Envoyer convocation</button>
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="created_at">Date de création :</label>
+            <input type="text" id="created_at" readonly>
+          </div>
         </div>
-      </form>
-    </div>
-  </div>
-  </div>
 
-  <div id="customConfirmSend" class="custom-confirm-overlay" style="display:none;">
-    <div class="custom-confirm-box">
-      <p>Confirmer l'envoi de cette sanction ?</p>
-      <div class="custom-confirm-buttons">
-        <button class="btn btn-blue">Annuler</button>
-        <button class="btn btn-red">Confirmer</button>
+        <div class="button-container">
+          <button type="button" id="backButton" class="btn btn-secondary">← Retour à la liste</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
   <script src="scripts/loadSidebar.js"></script>
-  <script src="scripts/convocAgent.js"></script>
+  <script src="scripts/convocation/viewConvocationAgent.js"></script>
 </body>
 
 </html>

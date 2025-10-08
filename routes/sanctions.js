@@ -380,9 +380,28 @@ router.get('/api/discord/member/:userId', checkAuth, async (req, res) => {
 
         if (!member) return res.status(404).json({ error: "Membre introuvable" });
 
-        res.json({ displayName: member.displayName });
+        const user = member.user;
+        const roles = member.roles.cache.map(r => r.id);
+        const avatar = user.avatar
+            ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256`
+            : (() => {
+                // Discord a supprimé les discriminators (souvent '0'), fallback via hash simple sur l'ID
+                const base = user.discriminator && user.discriminator !== '0'
+                    ? parseInt(user.discriminator) % 5
+                    : (parseInt(user.id.slice(-3), 10) % 5);
+                return `https://cdn.discordapp.com/embed/avatars/${base}.png`;
+            })();
+
+        res.json({
+            id: user.id,
+            displayName: member.displayName,
+            username: user.username,
+            discriminator: user.discriminator,
+            avatar,
+            roles
+        });
     } catch (err) {
-        console.error(err);
+        console.error('Erreur route /api/discord/member:', err);
         res.status(500).json({ error: "Impossible de récupérer le membre Discord" });
     }
 });
