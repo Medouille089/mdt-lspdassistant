@@ -29,7 +29,6 @@ function cacheMiddleware(keyPrefix, ttl = 300, keyGenerator = null) {
         // Vérifier le cache
         const cached = cache.get(cacheKey);
         if (cached) {
-            console.log(`✅ Cache HIT: ${cacheKey}`);
             return res.json(cached);
         }
 
@@ -39,7 +38,6 @@ function cacheMiddleware(keyPrefix, ttl = 300, keyGenerator = null) {
             // Mettre en cache uniquement les réponses réussies
             if (res.statusCode >= 200 && res.statusCode < 300) {
                 cache.set(cacheKey, data, ttl);
-                console.log(`💾 Cache SET: ${cacheKey} (TTL: ${ttl}s)`);
             }
             return originalJson(data);
         };
@@ -98,7 +96,6 @@ function cacheConfig() {
  */
 function invalidateUserCache(userId) {
     cache.deletePattern(`user:${userId}*`);
-    console.log(`🔄 Cache utilisateur invalidé: ${userId}`);
 }
 
 /**
@@ -106,7 +103,6 @@ function invalidateUserCache(userId) {
  */
 function invalidateEventsCache() {
     cache.deletePattern('events:*');
-    console.log('🔄 Cache événements invalidé');
 }
 
 /**
@@ -114,7 +110,6 @@ function invalidateEventsCache() {
  */
 function invalidateMembersCache() {
     cache.deletePattern('members:*');
-    console.log('🔄 Cache membres invalidé');
 }
 
 /**
@@ -122,7 +117,6 @@ function invalidateMembersCache() {
  */
 function invalidateAllCache() {
     cache.clear();
-    console.log('🗑️ Tout le cache a été invalidé');
 }
 
 module.exports = {

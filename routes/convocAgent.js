@@ -40,7 +40,7 @@ router.post('/api/convocations', async (req, res) => {
                 .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL() })
                 .setTimestamp();
 
-            await member.send({ embeds: [embed] }).catch(() => console.log('MP impossible'));
+            await member.send({ embeds: [embed] }).catch(() => console.error('MP impossible'));
         }
 
         // --- Enregistrement en base de données ---

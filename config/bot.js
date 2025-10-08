@@ -59,7 +59,7 @@ async function registerCommands() {
   const isLocal = (process.env.IS_LOCAL || '').toLowerCase() === 'true';
 
   try {
-    console.log('📤 MAJ commandes: guild-only=', guildCommands.map(c=>c.name), ' global=', globalCommands.map(c=>c.name), ' IS_LOCAL=', isLocal);
+    
     // Toujours enregistrer les guild commands (MAJ instantanée)
     await rest.put(
       Routes.applicationGuildCommands(
@@ -76,9 +76,7 @@ async function registerCommands() {
         { body: globalCommands }
       );
     } else {
-      console.log('⏭️  IS_LOCAL=true : skip publication global');
     }
-    console.log('✅ Commandes mises à jour');
   } catch (err) {
     console.error('❌ Erreur en enregistrant les commandes :', err);
   }
@@ -245,7 +243,6 @@ async function startBot() {
   await bot.login(process.env.TOKEN);
 
   bot.once("ready", async () => {
-    console.log(`🤖 Bot connecté en tant que ${bot.user.tag}`);
 
     let index = 0;
     async function cyclePresence() {
@@ -272,12 +269,10 @@ async function startBot() {
         const nowParis = moment().tz("Europe/Paris").format("HH:mm");
 
         if (fiche_de_presence_hour && nowParis === fiche_de_presence_hour) {
-          console.log("📌 Envoi de la fiche de présence principale");
           await ficheDePresence.sendFicheDePresence(bot, false);
         }
 
         if (fiche_de_presence_rappel && nowParis === fiche_de_presence_rappel) {
-          console.log("📌 Envoi du rappel de la fiche de présence");
           await ficheDePresence.sendFicheDePresence(bot, true);
         }
       } catch (e) {
@@ -289,7 +284,6 @@ async function startBot() {
       await db.query(
         "DELETE FROM lspd_presenceig WHERE timestamp < NOW() - INTERVAL '14 days'"
       );
-      console.log("Anciennes présences supprimées !");
     };
     cron.schedule("0 3 * * *", purgeOldPresence);
 

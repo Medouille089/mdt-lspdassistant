@@ -13,11 +13,9 @@ router.get('/api/absence', checkAuth, async (req, res) => {
         const cachedData = cache.get(cacheKey);
 
         if (cachedData) {
-            console.log('✅ Cache HIT: absence:all');
             return res.json(cachedData);
         }
 
-        console.log('💾 Cache MISS: absence:all - Fetching from DB...');
 
         const query = `
             SELECT 
@@ -41,7 +39,6 @@ router.get('/api/absence', checkAuth, async (req, res) => {
         const result = await db.query(query);
 
         cache.set(cacheKey, result.rows, 180);
-        console.log('💾 Cache SET: absence:all (TTL: 3min)');
 
         res.json(result.rows);
     } catch (error) {
@@ -62,11 +59,8 @@ router.get('/api/absence/mes-absences', checkAuth, async (req, res) => {
         const cachedData = cache.get(cacheKey);
 
         if (cachedData) {
-            console.log(`✅ Cache HIT: absence:user:${userId}`);
             return res.json(cachedData);
         }
-
-        console.log(`💾 Cache MISS: absence:user:${userId} - Fetching from DB...`);
 
         const query = `
             SELECT 
@@ -89,10 +83,7 @@ router.get('/api/absence/mes-absences', checkAuth, async (req, res) => {
         `;
 
         const result = await db.query(query, [userId]);
-        console.log(`Récupération des absences pour l'utilisateur: ${userId}`);
-
         cache.set(cacheKey, result.rows, 180);
-        console.log(`💾 Cache SET: absence:user:${userId} (TTL: 3min)`);
 
         res.json(result.rows);
     } catch (error) {
@@ -233,7 +224,6 @@ router.post('/api/absence', async (req, res) => {
         }
 
         cache.deletePattern('absence:*');
-        console.log('🗑️ Cache invalidé: absence:* (après POST)');
 
         res.status(201).json({
             message: 'Absence créée avec succès',
@@ -328,7 +318,6 @@ router.put('/api/absence/:id/statut', async (req, res) => {
         }
 
         cache.deletePattern('absence:*');
-        console.log('🗑️ Cache invalidé: absence:* (après PUT)');
 
         res.json({
             message: 'Statut de l\'absence mis à jour avec succès',
@@ -359,7 +348,6 @@ router.delete('/api/absence/:id', async (req, res) => {
         }
 
         cache.deletePattern('absence:*');
-        console.log('🗑️ Cache invalidé: absence:* (après DELETE)');
 
         res.json({
             message: 'Absence supprimée avec succès',

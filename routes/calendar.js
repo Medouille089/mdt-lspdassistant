@@ -82,7 +82,6 @@ router.get('/api/calendar/members', checkAuth, cacheMembers(), async (req, res) 
 
         members.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
-        console.log(`${members.length} membres LSPD trouvés`);
         res.json(members);
     } catch (error) {
         console.error('Erreur lors de la récupération des membres:', error);
@@ -378,13 +377,11 @@ async function sendEventLog(event, action) {
     try {
         const conf = await getConfig();
         if (!conf.logs_channel) {
-            console.log('Canal de logs calendrier non configuré');
             return;
         }
 
         const logsChannel = await bot.channels.fetch(conf.logs_channel);
         if (!logsChannel?.isTextBased()) {
-            console.log('Canal de logs calendrier invalide');
             return;
         }
 
@@ -482,13 +479,11 @@ async function sendEventLog(event, action) {
 async function sendEventNotifications(event) {
     try {
         if (!bot.isReady()) {
-            console.log('Bot Discord non prêt pour les notifications');
             return;
         }
 
         const guild = bot.guilds.cache.get(GUILD_ID);
         if (!guild) {
-            console.log('Guild Discord introuvable pour les notifications');
             return;
         }
 
@@ -511,7 +506,6 @@ async function sendEventNotifications(event) {
             event.personnes_concernees.forEach(userId => usersToNotify.add(userId));
         }
 
-        console.log(`Envoi de notifications à ${usersToNotify.size} utilisateur(s)`);
 
         // Créer l'embed de notification
         const notifEmbed = new EmbedBuilder()
@@ -587,7 +581,6 @@ async function sendEventNotifications(event) {
             }
         }
 
-        console.log(`Notifications envoyées: ${successCount} succès, ${failCount} échecs`);
 
     } catch (error) {
         console.error('Erreur lors de l\'envoi des notifications:', error);

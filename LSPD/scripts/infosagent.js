@@ -177,7 +177,6 @@ function fillEquipmentInDOM(container, equipments, type) {
 // Fonction pour mettre à jour la visibilité des équipements selon le mode
 function updateEquipmentVisibility() {
     const isEditModeActive = document.body.classList.contains('edit-mode');
-    console.log('Mise à jour visibilité équipements, mode édition:', isEditModeActive);
     
     document.querySelectorAll('.equipment-item').forEach(item => {
         const removeBtn = item.querySelector('.remove-equipment-btn');
@@ -237,7 +236,6 @@ async function loadAgentProfile() {
     if (!currentUserId) return;
     
     try {
-        console.log('Chargement profil pour userId:', currentUserId);
         const res = await fetch(`/api/agent-profile/${currentUserId}`);
         
         if (!res.ok) {
@@ -247,7 +245,6 @@ async function loadAgentProfile() {
         }
         
         agentProfile = await res.json();
-        console.log('Profil chargé:', agentProfile);
         await displayProfile(agentProfile);
         
     } catch (err) {
@@ -288,13 +285,6 @@ async function displayProfile(profile) {
                    currentUserInfo.id === currentUserId ||
                    currentUserInfo.isSupervisor || 
                    currentUserInfo.isCommandStaff;
-
-    console.log('Permissions édition:', {
-        currentUserInfoId: currentUserInfo.id,
-        profileDiscordId: profile.discord_id,
-        currentUserId: currentUserId,
-        canEdit: canEdit
-    });
 
     // Afficher le bouton d'édition si autorisé
     if (canEdit) {
@@ -669,7 +659,6 @@ function setupPhotoPopup() {
 
 // Fonction pour activer le mode édition localement (sans API)
 function activateEditModeLocal() {
-    console.log('Activation mode édition local');
     
     isEditMode = true;
     document.body.classList.add('edit-mode');

@@ -2,7 +2,7 @@ const { cache } = require('./config/cache');
 
 setInterval(() => {
     const stats = cache.getStats();
-    console.log('\n📊 === CACHE STATS ===');
+    ('\n📊 === CACHE STATS ===');
     console.log(`🔑 Total keys: ${stats.size}`);
     console.log(`📦 Keys list: ${stats.keys.slice(0, 10).join(', ')}${stats.size > 10 ? '...' : ''}`);
 

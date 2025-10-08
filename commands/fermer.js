@@ -5,7 +5,6 @@ const { getBot } = require('../config/config');
 const moment = require('moment-timezone');
 
 async function createTranscriptMarkdown(channel) {
-    console.log("Création du transcript pour le channel", channel.id);
     const guild = channel.guild;
 
     // Récupérer le ticket depuis la BDD

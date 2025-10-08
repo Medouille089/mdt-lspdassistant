@@ -19,7 +19,6 @@ async function createOrGetThread(forum, situationsChannel, situationsArray, data
         if (situationData.id) {
           const existingThread = activeThreads.threads.get(situationData.id);
           if (existingThread) {
-            console.log(`Thread situation trouvé: ${existingThread.name} (${existingThread.id})`);
 
             // Envoie l'embed avec les images dans le thread existant
             if (files.length > 0) {
@@ -34,7 +33,6 @@ async function createOrGetThread(forum, situationsChannel, situationsArray, data
         }
       }
 
-      console.log("Aucun thread situation valide trouvé, création d'un nouveau thread dans le forum incidents");
     }
 
     // Création d'un nouveau thread dans le forum incidents
@@ -46,7 +44,6 @@ async function createOrGetThread(forum, situationsChannel, situationsArray, data
       }
     });
 
-    console.log(`Nouveau thread créé dans incidents: ${newThread.name} (${newThread.id})`);
     return newThread;
 
   } catch (error) {
@@ -273,7 +270,6 @@ router.put('/api/updateIncident', upload.array('pieces'), async (req, res) => {
     `, [date, heure, officier, grade, recit, implique, type, lieu, incidentId]);
 
     if (!discord_thread_id || discord_thread_id === 'null' || discord_thread_id === 'undefined') {
-      console.log("Pas de thread Discord à mettre à jour");
       return res.json({ message: "Incident mis à jour avec succès (sans Discord)." });
     }
 

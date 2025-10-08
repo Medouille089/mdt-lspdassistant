@@ -11,7 +11,6 @@ let processingOperations = 0;
 
 function initTrelloSocket(io) {
     io.on("connection", async (socket) => {
-        console.log("🔌 Nouvelle connexion Trello");
 
         const { boardData: currentBoard, version } = operationsManager.getBoardState();
         socket.emit("boardSync", { boardData: currentBoard, version });
@@ -60,14 +59,12 @@ function initTrelloSocket(io) {
         });
 
         socket.on("disconnect", () => {
-            console.log("🔌 Connexion Trello fermée");
         });
     });
 
     // Log de monitoring
     setInterval(() => {
         if (processingOperations > 0) {
-            console.log(`⏳ Opérations en cours: ${processingOperations}`);
         }
     }, 5000);
 }

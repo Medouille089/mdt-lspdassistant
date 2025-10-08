@@ -12,11 +12,9 @@ router.get("/api/officers", checkAuth, async (req, res) => {
     const cachedData = cache.get(cacheKey);
 
     if (cachedData) {
-      console.log('✅ Cache HIT: officers');
       return res.json(cachedData);
     }
 
-    console.log('💾 Cache MISS: officers - Fetching from Discord...');
 
     // Récupérer required_role_id depuis la table configlspd
     const configRes = await pool.query("SELECT required_role_id FROM configlspd LIMIT 1");
@@ -82,7 +80,6 @@ router.get("/api/officers", checkAuth, async (req, res) => {
     const finalAgents = agents.map(({ id, displayName, grade }) => ({ id, displayName, grade }));
 
     cache.set(cacheKey, finalAgents, CACHE_DURATIONS.GUILD_MEMBERS);
-    console.log('💾 Cache SET: officers (TTL: 10min)');
 
     res.json(finalAgents);
 

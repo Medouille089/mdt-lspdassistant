@@ -32,19 +32,6 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     const { userId } = req.params;
     const user = req.user;
 
-    console.log('Demande profil:', { 
-      requestedUser: userId, 
-      currentUser: user.id, 
-      isSupervisor: user.isSupervisor, 
-      isCommandStaff: user.isCommandStaff 
-    });
-
-    // Simplifier les permissions - permettre à tous les utilisateurs connectés de voir les profils
-    console.log('Utilisateur:', { id: user.id, isSupervisor: user.isSupervisor, isCommandStaff: user.isCommandStaff, roles: user.roles });
-    
-    // Autoriser l'accès pour tous les utilisateurs connectés (temporaire pour déboguer)
-    console.log('Autorisation accordée pour le profil');
-
     const result = await pool.query(
       'SELECT * FROM lspd_agent_profiles WHERE discord_id = $1',
       [userId]
@@ -137,8 +124,6 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     armes = parseArray(armes).filter(a => a && a.nom);
     vehicules = parseArray(vehicules).filter(v => v && v.nom);
 
-    // Autoriser l'édition pour tous (temporaire pour déboguer)
-    console.log('Édition du profil autorisée pour:', user.id);
 
     // Mode édition désactivé temporairement - autoriser toutes les modifications
 
@@ -283,8 +268,6 @@ router.post('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) 
     const { userId } = req.params;
     const user = req.user;
 
-    // Autoriser l'activation du mode édition pour tous (temporaire pour déboguer)
-    console.log('Activation mode édition autorisée pour:', user.id);
 
     // Vérifier si quelqu'un d'autre est en mode édition
     const editCheck = await pool.query(
@@ -347,17 +330,10 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
     const { userId } = req.params;
     const user = req.user;
 
-    // Simplifier les permissions pour les formations
-    console.log('Formations - Utilisateur:', { id: user.id, isSupervisor: user.isSupervisor, isCommandStaff: user.isCommandStaff });
-    
-    // Autoriser l'accès aux formations pour tous (temporaire pour déboguer)
-    console.log('Autorisation accordée pour les formations');
-
     // Récupérer la configuration des formations depuis la table lspd_formations
     const formationsConfig = await pool.query('SELECT * FROM lspd_formations LIMIT 1');
 
     if (formationsConfig.rows.length === 0) {
-      console.log('Aucune configuration de formation trouvée');
       return res.json([]);
     }
 
@@ -384,13 +360,11 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
       if (discordResponse.ok) {
         const memberData = await discordResponse.json();
         targetUserRoles = memberData.roles || [];
-        console.log('Rôles Discord récupérés pour', userId, ':', targetUserRoles);
       } else {
         // Fallback : si c'est notre propre profil, utiliser nos rôles de session
         if (user.id === userId) {
           targetUserRoles = user.roles || [];
         }
-        console.log('Fallback rôles pour', userId, ':', targetUserRoles);
       }
     } catch (error) {
       console.warn('Erreur récupération rôles Discord:', error);
@@ -400,19 +374,11 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
       }
     }
     
-    console.log('Debug formations:', {
-      userId,
-      currentUserId: user.id,
-      targetUserRoles,
-      formationsAvailables: formationsAvailables.map(f => ({ nom: f.nom, roleId: f.discord_role_id }))
-    });
-    
     // Filtrer les formations que l'utilisateur possède
     const userFormations = formationsAvailables.filter(formation => 
       targetUserRoles.includes(formation.discord_role_id)
     );
 
-    console.log('Formations trouvées pour l\'utilisateur:', userFormations);
     res.json(userFormations);
   } catch (err) {
     console.error('Erreur récupération formations:', err);
@@ -426,7 +392,6 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
 router.get('/api/agent-grade/:userId', checkAuth, async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log('Récupération grade pour:', userId);
 
     // Charger config grades
     const gradesConfig = await pool.query('SELECT * FROM lspd_grades LIMIT 1');

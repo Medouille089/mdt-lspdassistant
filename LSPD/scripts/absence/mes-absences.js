@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadGradesAndMembers() {
         try {
-            console.log('🔄 Chargement des grades et membres...');
             gradesAndMembersLoaded = false; // Reset au début
 
             const [gradesResponse, membersResponse] = await Promise.all([
@@ -41,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 fetch('/api/calendar/members')
             ]);
 
-            console.log('Réponses reçues:', gradesResponse.status, membersResponse.status);
 
             if (!gradesResponse.ok) {
                 const errorText = await gradesResponse.text();
@@ -49,7 +47,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 availableGrades = [];
             } else {
                 availableGrades = await gradesResponse.json();
-                console.log('✅ Grades chargés:', availableGrades.length);
             }
 
             if (!membersResponse.ok) {
@@ -58,13 +55,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 availableMembers = [];
             } else {
                 availableMembers = await membersResponse.json();
-                console.log('✅ Membres chargés:', availableMembers.length);
+
             }
 
             // Marquer comme chargé seulement si on a des données
             if (availableGrades.length > 0 || availableMembers.length > 0) {
                 gradesAndMembersLoaded = true;
-                console.log('✅ Données grades/membres chargées avec succès');
             }
 
             // Remplir les sélecteurs dans le modal

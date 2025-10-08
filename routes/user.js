@@ -16,7 +16,6 @@ router.get('/api/user', checkAuthOrDOJ, async (req, res) => {
     const cachedUser = cache.get(cacheKey);
 
     if (cachedUser) {
-      console.log(`✅ Cache HIT: ${cacheKey}`);
       return res.json(cachedUser);
     }
 
@@ -115,7 +114,6 @@ router.get('/api/user', checkAuthOrDOJ, async (req, res) => {
     };
 
     cache.set(cacheKey, userData, CACHE_DURATIONS.USER_SESSION);
-    console.log(`💾 Cache SET: ${cacheKey}`);
 
     res.set('Cache-Control', 'no-store');
     res.json(userData);

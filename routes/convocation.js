@@ -8,7 +8,6 @@ const pool = require("../config/db");
 const upload = multer();
 
 router.post("/upload-convocation", upload.single("image"), async (req, res) => {
-  console.log('--- Route POST /upload-convocation appelée ---');
 
   const bot = getBot();
   const user = req.user;
@@ -58,7 +57,6 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
         }
       });
 
-      console.log("Thread créé :", convocationThread.name);
 
       // Envoie l’image dans un second message
       const attachment = new AttachmentBuilder(imageFile.buffer, {
@@ -66,7 +64,6 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
       });
 
       await convocationThread.send({ files: [attachment] });
-      console.log("Image envoyée dans le thread.");
 
       bot.users.fetch(req.user?.id, false).then(async fetchedUser => {
         fetchedUser.send({
@@ -100,7 +97,6 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
           .setTimestamp();
 
         await logsChannel.send({ embeds: [embedLog] });
-        console.log("Log convocation envoyé");
       }
 
       res.json({ success: true, message: "Convocation envoyée avec succès." });

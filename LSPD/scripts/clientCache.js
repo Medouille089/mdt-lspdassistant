@@ -73,11 +73,9 @@ class ClientCache {
     async getOrFetch(key, fetchFunction, ttlSeconds = 300) {
         const cached = this.get(key);
         if (cached !== null) {
-            console.log(`✅ Cache HIT: ${key}`);
             return cached;
         }
 
-        console.log(`❌ Cache MISS: ${key} - Fetching...`);
         const value = await fetchFunction();
         this.set(key, value, ttlSeconds);
         return value;
@@ -111,7 +109,6 @@ class ClientCache {
             }
 
             if (cleaned > 0) {
-                console.log(`🧹 Cache nettoyé: ${cleaned} entrées expirées supprimées`);
             }
         } catch (error) {
             console.error('Erreur nettoyage cache:', error);
@@ -128,7 +125,6 @@ class ClientCache {
                 localStorage.removeItem(key);
             }
         }
-        console.log('🗑️ Cache vidé complètement');
     }
 
     /**
@@ -146,7 +142,6 @@ class ClientCache {
             }
         }
 
-        console.log(`🔄 ${invalidated} clés invalidées (pattern: ${pattern})`);
     }
 
     /**

@@ -10,11 +10,9 @@ router.get('/api/dashboard', async (req, res) => {
     const cachedData = cache.get(cacheKey);
 
     if (cachedData) {
-      console.log('✅ Cache HIT: dashboard');
       return res.json(cachedData);
     }
 
-    console.log('💾 Cache MISS: dashboard - Fetching from DB...');
     const parisNow = moment().tz('Europe/Paris');
     const todayStart = parisNow.clone().startOf('day').format('YYYY-MM-DD');
     const todayEnd = parisNow.clone().endOf('day').format('YYYY-MM-DD');
@@ -82,7 +80,6 @@ router.get('/api/dashboard', async (req, res) => {
     };
 
     cache.set(cacheKey, dashboardData, 120); // 120 secondes
-    console.log('💾 Cache SET: dashboard (TTL: 2min)');
 
     res.json(dashboardData);
   } catch (err) {

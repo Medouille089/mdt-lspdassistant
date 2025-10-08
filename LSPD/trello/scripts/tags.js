@@ -344,7 +344,6 @@ function attachTagDragEvents() {
 }
 
 function updateAllCardsTagsDisplay() {
-    console.log('Mise à jour de l\'ordre des étiquettes sur toutes les cartes');
     
     // Mettre à jour l'affichage des étiquettes dans la modal si elle est ouverte
     if (currentCard && document.getElementById('cardModal').classList.contains('active')) {
