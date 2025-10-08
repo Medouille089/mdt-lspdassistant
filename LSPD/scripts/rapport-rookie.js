@@ -84,6 +84,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("sanctionForm").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const submitBtn = document.getElementById("submit");
+    if (submitBtn) submitBtn.disabled = true;
 
     const data = {
       agent: document.getElementById("agent").value,
@@ -109,13 +111,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const result = await res.json();
       if (result.success) {
-        showAnimation('success', 'Rapport envoyé !');
+        await showAnimation('success', 'Rapport envoyé !');
+        location.reload();
       } else {
         showAnimation('error', result.message || 'Erreur lors de l’envoi du rapport.');
+        if (submitBtn) submitBtn.disabled = false;
       }
     } catch (err) {
       console.error("Erreur envoi rapport:", err);
       showAnimation('error', "❌ Impossible d’envoyer le rapport.");
+      if (submitBtn) submitBtn.disabled = false;
     }
   });
 

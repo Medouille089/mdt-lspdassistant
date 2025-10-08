@@ -20,7 +20,7 @@ body::before {
     bottom: 0;
     z-index: -1;
     /* derrière tout */
-    background: linear-gradient(#F1F3FF, #CBD4FF);
+      background: var(--background-gradient);
     background-repeat: no-repeat;
     background-size: cover;
 }

@@ -1,4 +1,3 @@
-/* Mes Absences Styles - Cohérent avec admin-absences */
 * {
     margin: 0;
     padding: 0;
@@ -28,7 +27,7 @@ body {
     padding: 25px 30px;
     margin-bottom: 25px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border: 3px solid #0b1b5a;
+    border: 3px solid var(--main-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -76,45 +75,45 @@ body {
 }
 
 .btn-primary {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
 }
 
 .btn-primary:hover {
-    background: #1a2c7a;
+    background: var(--main-color-normal);
     transform: translateY(-2px);
 }
 
 .btn-secondary {
     background: #f8f9fa;
-    color: #0b1b5a;
-    border: 2px solid #0b1b5a;
+    color: var(--main-color);
+    border: 2px solid var(--main-color);
 }
 
 .btn-secondary:hover {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
 }
 
 .btn-filter {
     background: #f8f9fa;
-    color: #0b1b5a;
+    color: var(--main-color);
     border: 2px solid #e0e0e0;
     margin: 0 5px;
 }
 
 .btn-filter.active {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
 }
 
 .btn-filter:hover {
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
 }
 
 .btn-nav {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
     border-radius: 50%;
     width: 40px;
@@ -126,7 +125,7 @@ body {
 }
 
 .btn-nav:hover {
-    background: #1a2c7a;
+    background: var(--main-color-normal);
     transform: scale(1.1);
 }
 
@@ -137,12 +136,12 @@ body {
     padding: 25px 30px;
     margin-bottom: 25px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border: 3px solid #0b1b5a;
+    border: 3px solid var(--main-color);
 }
 
 .stats-section h2 {
     margin-bottom: 20px;
-    color: #0b1b5a;
+    color: var(--main-color);
     font-size: 20px;
 }
 
@@ -219,7 +218,7 @@ body {
 .stat-number {
     font-size: 2rem;
     font-weight: bold;
-    color: #0b1b5a;
+    color: var(--main-color);
 }
 
 .stat-label {
@@ -233,7 +232,7 @@ body {
     border-radius: 15px;
     padding: 25px 30px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border: 3px solid #0b1b5a;
+    border: 3px solid var(--main-color);
 }
 
 .view-toggle {
@@ -252,7 +251,7 @@ body {
 }
 
 .calendar-header h2 {
-    color: #0b1b5a;
+    color: var(--main-color);
     font-size: 1.8rem;
     margin: 0;
 }
@@ -291,7 +290,7 @@ body {
 }
 
 .calendar-day.today {
-    background: linear-gradient(135deg, #0b1b5a, #1e3c72);
+    background: var(--watermark-gradient);
     color: white;
     font-weight: bold;
 }
@@ -438,10 +437,10 @@ body {
 
 .filter-select {
     padding: 12px 20px;
-    border: 2px solid #0b1b5a;
+    border: 2px solid var(--main-color);
     border-radius: 8px;
     background: white;
-    color: #0b1b5a;
+    color: var(--main-color);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -472,7 +471,7 @@ body {
 .absence-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
 }
 
 .absence-card.approved {
@@ -565,12 +564,12 @@ body {
     width: 80%;
     max-width: 600px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    border: 3px solid #0b1b5a;
+    border: 3px solid var(--main-color);
     position: relative;
 }
 
 .modal-content h2 {
-    color: #0b1b5a;
+    color: var(--main-color);
     margin-bottom: 20px;
 }
 
@@ -586,7 +585,7 @@ body {
 }
 
 .close:hover {
-    color: #0b1b5a;
+    color: var(--main-color);
 }
 
 /* Responsive */

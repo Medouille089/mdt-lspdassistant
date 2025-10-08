@@ -46,6 +46,7 @@ router.get('/admin', async (req, res) => {
                                 username: member ? (member.nickname || member.user.username) : u.username
                             };
                         })
+                        .sort((a, b) => a.username.localeCompare(b.username))
                 };
             })
         );

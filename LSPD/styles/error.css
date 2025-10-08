@@ -1,12 +1,12 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f0f6fc;
-    color: #1b2a41;
+    background-color: var(--input-bg);
+    color: var(--main-color-dark);    
     margin: 0;
 }
 
 .container {
-    min-height: calc(90vh - 140px); /* prend tout l'écran sauf le h1 */
+    min-height: calc(90vh - 140px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -14,25 +14,25 @@ body {
 }
 
 .error-card {
-    background-color: #ffffff;
-    border: 1px solid #d0e3f0;
+    background-color: var(--white); 
+    border: 1px solid var(--border-input); 
     border-radius: 16px;
     padding: 40px;
     max-width: 550px;
     width: 100%;
-    box-shadow: 0 6px 16px rgba(0, 51, 102, 0.08);
+    box-shadow: 0 6px 16px rgba(0, 51, 102, 0.08); 
     text-align: center;
 }
 
 .error-card p {
     font-size: 1.25rem;
     margin: 15px 0;
-    color: #3b4f68;
+    color: var(--table-header-bg); 
 }
 
 .errorBtn {
-    background-color: #0b1b5a;
-    color: white;
+    background-color: var(--main-color-dark); 
+    color: var(--white);
     border: none;
     border-radius: 10px;
     padding: 14px 28px;
@@ -44,7 +44,7 @@ body {
 }
 
 .errorBtn:hover {
-    background-color: #07113a;
+    background-color: var(--button-bg-hover);
     transform: translateY(-2px);
 }
 

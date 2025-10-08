@@ -2,33 +2,210 @@
 <html lang="fr">
 
 <head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
     <meta charset="UTF-8" />
-    <title>Accès interdit</title>
+    <title>Profil Agent - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
-    <link rel="stylesheet" href="styles/bracelet/bracelet.css">
-    <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/sidebar.css">
-    <link rel="stylesheet" href="styles/error.css">
+    <link rel="stylesheet" href="styles/infosagent.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
 </head>
 
 <body>
+    <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+
     <div class="main-container">
-        <div id="sidebar-container"></div>
+        <div class="agent-profile-container">
+            <!-- Header avec photo et nom -->
+            <div class="agent-header">
+                <div class="photo-section">
+                    <div class="photo-container" id="photo-container">
+                        <img id="photo_preview" src="" alt="Photo Agent" class="agent-photo clickable">
+                        <div class="photo-overlay">
+                            <span class="material-symbols-rounded">edit</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="agent-info">
+                    <h1 id="agent-name" class="agent-title">Agent</h1>
+                    <div class="agent-meta">
+                        <span class="badge" id="agent-badge">LSPD</span>
+                        <span class="agent-id" id="agent_id">ID: Loading...</span>
+                    </div>
+                </div>
+            </div>
 
-        <h1>Accès refusé</h1>
+            <!-- Formulaire principal -->
+            <form id="profileForm" class="profile-form">
+                <!-- Section Informations personnelles -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <span class="material-symbols-rounded">person</span>
+                        Informations personnelles
+                    </h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="matricule">Matricule</label>
+                            <input type="text" id="matricule" placeholder="Ex: 52">
+                        </div>
+                        <div class="form-group">
+                            <label for="prenom">Prénom</label>
+                            <input type="text" id="prenom" placeholder="Prénom">
+                        </div>
+                        <div class="form-group">
+                            <label for="nom">Nom</label>
+                            <input type="text" id="nom" placeholder="Nom">
+                        </div>
 
-        <div class="container">
-            <div class="error-card">
-                <p>Page en travaux.</p>
-                <button class="errorBtn" onclick="history.back()">
-                    Retour en arrière
+                    </div>
+                </div>
+
+                <!-- Section Équipement -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <span class="material-symbols-rounded">security</span>
+                        Équipement
+                    </h3>
+                    <div class="equipment-grid">
+                        <!-- Armes -->
+                        <div class="equipment-category">
+                            <h4>Armes</h4>
+                            <div class="equipment-headers armes" style="display: none;">
+                                <span>Nom de l'arme</span>
+                                <span>Numéro de série</span>
+                                <span></span>
+                            </div>
+                            <div id="armes-container" class="equipment-list">
+                                <!-- Les armes seront ajoutées dynamiquement -->
+                            </div>
+                            <div class="add-equipment-form">
+                                <div class="equipment-input-row">
+                                    <input type="text" id="new-arme-nom" placeholder="Nom de l'arme"
+                                        class="equipment-field">
+                                    <input type="text" id="new-arme-serie" placeholder="Numéro de série"
+                                        class="equipment-field">
+                                    <button type="button" id="add-arme-btn" class="add-equipment-btn">
+                                        <span class="material-symbols-rounded">add</span>
+                                        Ajouter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Véhicules -->
+                        <div class="equipment-category">
+                            <h4>Véhicules</h4>
+                            <div class="equipment-headers vehicules" style="display: none;">
+                                <span>Nom du véhicule</span>
+                                <span>Immatriculation</span>
+                                <span></span>
+                            </div>
+                            <div id="vehicules-container" class="equipment-list">
+                                <!-- Les véhicules seront ajoutés dynamiquement -->
+                            </div>
+                            <div class="add-equipment-form">
+                                <div class="equipment-input-row">
+                                    <input type="text" id="new-vehicule-nom" placeholder="Nom du véhicule"
+                                        class="equipment-field">
+                                    <input type="text" id="new-vehicule-immat" placeholder="Immatriculation"
+                                        class="equipment-field">
+                                    <button type="button" id="add-vehicule-btn" class="add-equipment-btn">
+                                        <span class="material-symbols-rounded">add</span>
+                                        Ajouter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Informations système -->
+                <div class="form-section info-section">
+                    <h3 class="section-title">
+                        <span class="material-symbols-rounded">info</span>
+                        Informations système
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item" style="display: none;">
+                            <label>Date de création</label>
+                            <span id="date_creation">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Dernière modification</label>
+                            <span id="date_modification">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="action-buttons">
+                    <button type="button" id="back-btn" class="btn btn-secondary">
+                        <span class="material-symbols-rounded">arrow_back</span>
+                        Retour
+                    </button>
+                    <button type="button" id="edit-mode-btn" class="btn btn-warning" style="display: none;">
+                        <span class="material-symbols-rounded">edit</span>
+                        Modifier le profil
+                    </button>
+                    <button type="submit" id="save-btn" class="btn btn-primary" style="display: none;">
+                        <span class="material-symbols-rounded">save</span>
+                        Sauvegarder
+                    </button>
+                    <button type="button" id="cancel-edit-btn" class="btn btn-secondary" style="display: none;">
+                        <span class="material-symbols-rounded">close</span>
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div><!-- /.agent-profile-container -->
+    </div>
+
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Popup pour modifier la photo -->
+    <div id="photoPopup" class="popup-overlay" style="display: none;">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3>Modifier la photo de profil</h3>
+                <button type="button" id="closePhotoPopup" class="popup-close">
+                    <span class="material-symbols-rounded">close</span>
                 </button>
             </div>
+            <div class="popup-body">
+                <div class="form-group">
+                    <label for="photoUrlInput">URL de l'image :</label>
+                    <input type="url" id="photoUrlInput" placeholder="https://exemple.com/photo.jpg"
+                        class="popup-input">
+                </div>
+                <div class="photo-preview-container">
+                    <img id="photoPreviewPopup" src="" alt="Aperçu" class="photo-preview-popup" style="display: none;">
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button type="button" id="cancelPhotoBtn" class="btn btn-secondary">Annuler</button>
+                <button type="button" id="savePhotoBtn" class="btn btn-primary">Sauvegarder</button>
+            </div>
         </div>
-
-        <script src="scripts/loadSidebar.js"></script>
     </div>
+
+    <!-- Lightbox consultation photo -->
+    <div id="photoLightbox" class="photo-lightbox-overlay" style="display:none;">
+        <div class="photo-lightbox-wrapper">
+            <button type="button" class="photo-lightbox-close" id="closePhotoLightbox" aria-label="Fermer">
+                <span class="material-symbols-rounded">close</span>
+            </button>
+            <img id="photoLightboxImage" src="" alt="Photo agent" class="photo-lightbox-image" />
+        </div>
+    </div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/infosagent.js"></script>
 </body>
 
 </html>

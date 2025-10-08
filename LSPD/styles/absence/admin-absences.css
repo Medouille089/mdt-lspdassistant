@@ -26,7 +26,7 @@ body {
     padding: 25px 30px;
     margin-bottom: 25px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border: 3px solid #0b1b5a;
+    border: 3px solid var(--main-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -77,23 +77,23 @@ body {
 }
 
 .btn-primary {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
 }
 
 .btn-primary:hover {
-    background: #1a2c7a;
+    background: var(--main-color-normal);
     transform: translateY(-2px);
 }
 
 .btn-secondary {
     background: #f8f9fa;
-    color: #0b1b5a;
-    border: 2px solid #0b1b5a;
+    color: var(--main-color);
+    border: 2px solid var(--main-color);
 }
 
 .btn-secondary:hover {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
 }
 
@@ -126,14 +126,14 @@ body {
 }
 
 .btn-nav {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
     padding: 8px 12px;
     font-size: 18px;
 }
 
 .btn-search {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
     padding: 8px 12px;
 }
@@ -153,7 +153,7 @@ body {
 .stats-section h2,
 .calendar-section h2,
 .requests-section h2 {
-    color: #0b1b5a;
+    color: var(--main-color);
     margin-bottom: 20px;
     font-size: 20px;
 }
@@ -180,7 +180,7 @@ body {
 }
 
 .stat-card.total {
-    border-left-color: #0b1b5a;
+    border-left-color: var(--main-color);
 }
 
 .stat-card.pending {
@@ -202,7 +202,7 @@ body {
 .stat-number {
     font-size: 24px;
     font-weight: bold;
-    color: #0b1b5a;
+    color: var(--main-color);
 }
 
 .stat-label {
@@ -225,7 +225,7 @@ body {
 
 .filter-group label {
     font-weight: 600;
-    color: #0b1b5a;
+    color: var(--main-color);
     font-size: 14px;
 }
 
@@ -240,7 +240,7 @@ body {
 
 .filter-group select:focus,
 .filter-group input:focus {
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
     outline: none;
 }
 
@@ -260,7 +260,7 @@ body {
 #current-month-year {
     font-size: 18px;
     font-weight: 600;
-    color: #0b1b5a;
+    color: var(--main-color);
     min-width: 200px;
     text-align: center;
 }
@@ -294,7 +294,7 @@ body {
 }
 
 .calendar-day.today {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
 }
 
@@ -304,7 +304,7 @@ body {
 }
 
 .calendar-day-header {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
     text-align: center;
     padding: 10px;
@@ -363,7 +363,7 @@ body {
 }
 
 #search-input:focus {
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
     outline: none;
 }
 
@@ -408,7 +408,7 @@ body {
 
 .request-agent {
     font-weight: 600;
-    color: #0b1b5a;
+    color: var(--main-color);
     font-size: 16px;
 }
 
@@ -449,7 +449,7 @@ body {
 }
 
 .request-detail strong {
-    color: #0b1b5a;
+    color: var(--main-color);
     margin-bottom: 2px;
 }
 
@@ -477,7 +477,7 @@ body {
 }
 
 .modal-header {
-    background: #0b1b5a;
+    background: var(--main-color);
     color: white;
     padding: 20px 25px;
     border-radius: 12px 12px 0 0;
@@ -524,12 +524,12 @@ body {
     background: #f8f9fa;
     padding: 15px;
     border-radius: 8px;
-    border-left: 4px solid #0b1b5a;
+    border-left: 4px solid var(--main-color);
 }
 
 .detail-label {
     font-weight: 600;
-    color: #0b1b5a;
+    color: var(--main-color);
     margin-bottom: 5px;
     font-size: 14px;
 }
@@ -546,7 +546,7 @@ body {
 .form-group label {
     display: block;
     font-weight: 600;
-    color: #0b1b5a;
+    color: var(--main-color);
     margin-bottom: 8px;
 }
 
@@ -561,7 +561,7 @@ body {
 }
 
 .form-group textarea:focus {
-    border-color: #0b1b5a;
+    border-color: var(--main-color);
     outline: none;
 }
 
@@ -659,7 +659,7 @@ body {
     width: 20px;
     height: 20px;
     border: 2px solid #f3f3f3;
-    border-top: 2px solid #0b1b5a;
+    border-top: 2px solid var(--main-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     display: inline-block;

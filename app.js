@@ -10,6 +10,7 @@ const session = require("express-session");
 const passport = require("./config/passport");
 const { SESSION_SECRET } = require("./config/env");
 const { startOvertimeScheduler } = require("./utils/rappelPointeuse");
+const { OperationsManager } = require("./LSPD/trello/scripts/OperationsManager.js");
 
 const { Pool } = pkg;
 const app = express();
@@ -19,7 +20,9 @@ const port = process.env.PORT || 3001;
 
 // Configuration Trello Board avec PostgreSQL
 let useDatabase = !!process.env.DATABASE_URL;
-let boardData = { lists: [] };
+let boardData = { lists: [], tags: [] };
+const DEFAULT_BOARD_ID = 'default-board';
+const operationsManager = new OperationsManager();
 
 let pool;
 if (useDatabase) {
@@ -40,7 +43,7 @@ if (useDatabase) {
     console.warn('⚠️  DATABASE_URL non défini pour Trello, fonctionnement en mode mémoire locale');
 }
 
-// Fonctions pour le Trello Board
+// Test de connexion avec retry
 async function testTrelloConnection() {
     if (!useDatabase) return false;
 
@@ -457,8 +460,8 @@ app.use(rapportRookie);
 // Routes Trello
 app.get('/trello/health', async (req, res) => {
     if (!useDatabase) {
-        return res.json({
-            status: 'OK',
+        return res.json({ 
+            status: 'OK', 
             database: 'Mode mémoire locale (pas de DATABASE_URL)',
             timestamp: new Date().toISOString()
         });
@@ -469,17 +472,17 @@ app.get('/trello/health', async (req, res) => {
         const result = await client.query('SELECT NOW() as time');
         const serverTime = result.rows[0].time;
         client.release();
-
-        res.json({
-            status: 'OK',
+        
+        res.json({ 
+            status: 'OK', 
             database: 'PostgreSQL Connected',
             server_time: serverTime,
             timestamp: new Date().toISOString()
         });
     } catch (err) {
-        res.status(500).json({
-            status: 'ERROR',
-            database: 'PostgreSQL Disconnected',
+        res.status(500).json({ 
+            status: 'ERROR', 
+            database: 'PostgreSQL Disconnected', 
             error: err.message,
             timestamp: new Date().toISOString()
         });
@@ -489,7 +492,7 @@ app.get('/trello/health', async (req, res) => {
 app.get('/trello/debug', (req, res) => {
     res.json({
         has_database_url: !!process.env.DATABASE_URL,
-        database_url_preview: process.env.DATABASE_URL ?
+        database_url_preview: process.env.DATABASE_URL ? 
             process.env.DATABASE_URL.substring(0, 20) + '...' : 'non défini',
         use_database: useDatabase,
         node_env: process.env.NODE_ENV,
@@ -497,7 +500,7 @@ app.get('/trello/debug', (req, res) => {
     });
 });
 
-// Socket.IO pour Trello
+// Connexion Socket.IO pour Trello
 io.on("connection", async (socket) => {
     console.log("🔌 Nouvelle connexion");
 
@@ -505,7 +508,7 @@ io.on("connection", async (socket) => {
     boardData = currentBoard;
     socket.emit("boardSync", { boardData: currentBoard, version });
 
-    socket.on("operation", async (operation, ack = () => { }) => {
+    socket.on("operation", async (operation, ack = () => {}) => {
         const result = operationsManager.applyOperation(operation);
 
         if (!result.success) {
@@ -555,18 +558,30 @@ app.get("/trello", (req, res) => {
 
 // Start server
 async function startServer() {
-    // Charger la configuration LSPD
-    const { loadConfig } = require("./config/config");
-    await loadConfig();
+  // Charger la configuration LSPD
+  const { loadConfig } = require("./config/config");
+  await loadConfig();
 
-    // Initialiser la base de données Trello
-    await initTrelloDatabase();
+  // Initialiser la base de données Trello
+  await initTrelloDatabase();
 
-    // Charger les données initiales Trello
-    try {
-        boardData = await loadBoardData();
-    } catch (err) {
-        console.error('Erreur lors du chargement initial Trello:', err);
+  // Charger les données initiales Trello
+  try {
+    boardData = await loadBoardData();
+  } catch (err) {
+    console.error('Erreur lors du chargement initial Trello:', err);
+  }
+
+    operationsManager.loadBoardState(boardData);
+    boardData = operationsManager.getBoardState().boardData;
+
+  httpServer.listen(port, () => {
+    console.clear();
+    console.log(`🚀 Serveur LSPD + Trello démarré sur http://localhost:${port}/connect.html`);
+    if (useDatabase) {
+      console.log('📊 Mode PostgreSQL Trello activé');
+    } else {
+      console.log('💾 Mode mémoire locale Trello');
     }
 
     operationsManager.loadBoardState(boardData);

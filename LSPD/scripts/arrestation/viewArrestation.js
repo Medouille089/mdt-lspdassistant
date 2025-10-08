@@ -1,5 +1,38 @@
+let editBy = null;
+let userInfo = null; // Stocker les infos utilisateur complètes
+
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loaderOverlay').style.display = 'flex';
+
+    // Charger les infos utilisateur
+    fetch("/api/user")
+        .then((res) => res.json())
+        .then((user) => {
+            editBy = user.username || 'Utilisateur inconnu';
+            userInfo = user; // Stocker toutes les infos utilisateur
+
+            // Masquer le bouton et désactiver les inputs si utilisateur DOJ
+            if (user.isDOJ && !user.isLSPD && !user.isSuperAdmin) {
+                const updateButton = document.querySelector(".send-button");
+                if (updateButton) {
+                    updateButton.style.display = 'none';
+                    console.log('🔒 Bouton mise à jour masqué pour utilisateur DOJ');
+                }
+
+                // Désactiver tous les inputs et textareas
+                const inputs = document.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.readOnly = true;
+                    input.disabled = true;
+                    input.style.backgroundColor = '#f5f5f5';
+                    input.style.cursor = 'not-allowed';
+                });
+                console.log('🔒 Champs désactivés pour utilisateur DOJ');
+            }
+        })
+        .catch((err) => {
+            console.error("Erreur chargement utilisateur :", err);
+        });
 });
 
 async function previewAttachments(event) {

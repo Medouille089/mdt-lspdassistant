@@ -1,12 +1,11 @@
-/* Corps - on reprend le background dégradé et couleurs de la 2e DA */
 body {
     margin: 0;
-    padding: 40px; /* padding 2e DA */
+    padding: 40px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     position: relative;
     z-index: 0;
     background: none;
-    color: #0b1b5a; /* couleur texte 2e DA */
+    color: var(--main-color-dark);
 }
 
 body::before {
@@ -14,46 +13,44 @@ body::before {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: -1;
-    background: linear-gradient(#F1F3FF, #CBD4FF);
+    background: var(--background-gradient);
     background-repeat: no-repeat;
     background-size: cover;
 }
 
-/* Container .embed-form - on remplace les couleurs de fond, bordure, ombre */
+/* Container */
 .embed-form {
-    max-width: 900px; /* largeur 2e DA */
+    max-width: 900px;
     margin: auto;
-    background: #ffffff; /* fond clair 2e DA */
-    border-left: none; /* on vire la bordure gauche colorée */
-    border-radius: 15px; /* border radius 2e DA */
-    padding: 40px 50px 100px; /* padding 2e DA */
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); /* ombre 2e DA */
+    background: var(--white);
+    border-left: none;
+    border-radius: 15px;
+    padding: 40px 50px 100px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     position: relative;
-    border: 4px solid #0b1b5a; /* bordure globale 2e DA */
-    color: #0b1b5a; /* couleur texte container */
+    border: 4px solid var(--main-color);
+    color: var(--main-color-dark);
 }
 
 /* Header */
 .embed-header {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* comme la 2e DA .header */
-    border-bottom: 3px solid #0b1b5a; /* bordure bottom */
+    justify-content: space-between;
+    border-bottom: 3px solid var(--main-color);
     padding-bottom: 15px;
     margin-bottom: 30px;
 }
 
-/* Image dans header */
 .embed-header img {
-    height: 70px; /* taille image 2e DA */
+    height: 70px;
     margin-right: 15px;
 }
 
-/* Titre */
 .embed-title {
     font-size: 26px;
     font-weight: bold;
-    color: #0b1b5a;
+    color: var(--main-color);
     flex: 1;
     text-align: center;
     letter-spacing: 1px;
@@ -61,7 +58,7 @@ body::before {
 
 /* Labels */
 label {
-    color: #0b1b5a; /* texte label 2e DA */
+    color: var(--main-color);
     font-weight: 600;
     margin-bottom: 5px;
 }
@@ -72,15 +69,14 @@ input {
     padding: 10px;
     box-sizing: border-box;
     border-radius: 8px;
-    border: 1px solid #c5cbd5;
-    background-color: #f9fafc;
-    color: #0b1b5a;
+    border: 1px solid var(--border-input);
+    background-color: var(--input-bg);
+    color: var(--input-text);
     font-size: 15px;
 }
 
-/* Inputs focus */
 input:focus {
-    outline: 2px solid #0b1b5a;
+    outline: 2px solid var(--main-color);
 }
 
 /* Buttons */
@@ -88,8 +84,8 @@ button {
     width: 100%;
     padding: 12px;
     margin-top: 10px;
-    background-color: #0b1b5a;
-    color: white;
+    background-color: var(--button-bg);
+    color: var(--button-text);
     border: none;
     border-radius: 6px;
     font-size: 16px;
@@ -98,35 +94,33 @@ button {
 }
 
 button:hover {
-    background-color: #1a2c7a;
-    color: white;
+    background-color: var(--button-bg-hover);
+    color: var(--button-text);
 }
 
 /* Boutons spécifiques */
 #deleteBtn {
-    background-color: #d32f2f;
-    border-radius: 6px;
+    background-color: #dd2c2c;
 }
 
 #deleteBtn:hover {
-    background-color: #7e1c1c;
-    color: white;
+    background-color: #8b1b1b;
+    color: var(--white);
 }
 
 #pointerBtn {
-    background-color: #2ecc71;
-    border-radius: 6px;
+    background-color: #65b451;
 }
 
 #pointerBtn:hover {
-    background-color: #27ae60;
-    color: white;
+    background-color: #437537;
+    color: var(--white);
 }
 
 /* Footer */
 .embed-footer {
-    color: #444;
-    border-top: 1px solid #ccc;
+    color: var(--text-muted-2);
+    border-top: 1px solid var(--border-light);
     padding-top: 10px;
     font-size: 12px;
     margin-bottom: 25px;
@@ -135,13 +129,11 @@ button:hover {
     align-items: center;
 }
 
-/* Footer image */
 .embed-footer img {
     height: 20px;
     margin-right: 5px;
 }
 
-/* Responsive remains same */
 @media (max-width: 600px) {
     .form-row {
         flex-direction: column;
@@ -155,49 +147,38 @@ button:hover {
 
 .form-group {
     flex: 1;
-    min-width: 0; /* utile pour éviter les débordements */
+    min-width: 0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
+/* Confirm overlay */
 .custom-confirm-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.4);
-    display: none; /* visible en JS */
+    background-color: rgba(0,0,0,0.4);
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 9999;
 }
 
 .custom-confirm-box {
-    background-color: white;
+    background-color: var(--white);
     padding: 30px 40px;
     border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     text-align: center;
     max-width: 400px;
     width: 90%;
-    border: 3px solid #0b1b5a;
+    border: 3px solid var(--main-color);
 }
 
 .custom-confirm-box p {
     font-size: 18px;
     margin-bottom: 20px;
-    color: #0b1b5a;
+    color: var(--main-color-dark);
 }
 
 .custom-confirm-buttons {
@@ -217,19 +198,19 @@ button:hover {
 }
 
 .btn-blue {
-    background-color: #0b1b5a;
-    color: white;
+    background-color: var(--button-bg);
+    color: var(--button-text);
 }
 
 .btn-blue:hover {
-    background-color: #1a2c7a;
+    background-color: var(--button-bg-hover);
 }
 
 .btn-red {
-    background-color: #d32f2f;
-    color: white;
+    background-color: var(--pastel-red);
+    color: var(--white);
 }
 
 .btn-red:hover {
-    background-color: #7e1c1c;
+    background-color: #c24c5e;
 }

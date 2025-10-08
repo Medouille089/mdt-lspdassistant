@@ -2,9 +2,9 @@
 body {
     margin: 0;
     padding: 20px;
-    background: #2f3e57;
+    background: var(--table-bg);
     font-family: 'Segoe UI', sans-serif;
-    color: #fff;
+    color: var(--white);
 }
 
 h1 {
@@ -16,7 +16,7 @@ h1 {
 .container {
     max-width: 900px;
     margin: 0 auto;
-    background: #1e2a44;
+    background: var(--main-color-dark);
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -32,7 +32,7 @@ h1 {
     align-items: center;
 }
 
-.filters>* {
+.filters > * {
     flex: 1 1 200px;
     min-width: 150px;
 }
@@ -42,22 +42,30 @@ input[type="date"] {
     width: 100%;
     padding: 8px 10px;
     border-radius: 5px;
-    border: none;
+    border: 1px solid var(--border-input);
+    background: var(--input-bg);
+    color: var(--input-text);
     font-size: 16px;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus {
+    background: var(--input-bg-focus);
+    outline: none;
 }
 
 /* Tableau */
 table {
     width: 100%;
     border-collapse: collapse;
-    background: #344863;
+    background: var(--table-bg);
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
 thead {
-    background: #1d284a;
+    background: var(--table-header-bg);
 }
 
 thead th {
@@ -66,7 +74,7 @@ thead th {
     font-weight: 600;
     font-size: 16px;
     cursor: default;
-    color: #fff;
+    color: var(--white);
 }
 
 tbody tr {
@@ -75,12 +83,12 @@ tbody tr {
 }
 
 tbody tr:hover {
-    background: #2a3b67;
+    background: var(--table-hover-bg);
 }
 
 tbody td {
     padding: 12px 15px;
-    border-top: 1px solid #2f3e57;
+    border-top: 1px solid var(--border-table);
 }
 
 /* Pagination */
@@ -91,9 +99,9 @@ tbody td {
 }
 
 .pagination button {
-    background: #1d284a;
+    background: var(--table-header-bg);
     border: none;
-    color: #fff;
+    color: var(--white);
     margin: 0 5px;
     padding: 8px 14px;
     border-radius: 6px;
@@ -103,7 +111,7 @@ tbody td {
 }
 
 .pagination button:hover:not(:disabled) {
-    background: #344863;
+    background: var(--table-hover-bg);
 }
 
 .pagination button:disabled {

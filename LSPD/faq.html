@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Documentation - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/checkmark.css" />
+    <link rel="stylesheet" href="styles/popup.css" />
+    <link rel="stylesheet" href="styles/confirm.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <link rel="stylesheet" href="styles/warningCancer.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            z-index: 0;
+            background: none;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background: var(--background-gradient);
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .faq-container {
+            width: 100%;
+            margin: 40px auto;
+            background: var(--main-header-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px #0002;
+            padding: 32px;
+            border: 2px solid var(--main-color);
+        }
+
+        .faq-category {
+            margin-bottom: 32px;
+        }
+
+        .faq-category-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--main-color-dark);
+            margin-bottom: 12px;
+        }
+
+        /* Cards share a single visible border; remove internal dividing borders
+           and only round the outer corners of the first/last (or only) card */
+        .faq-card {
+            background: var(--input-bg);
+            border: 1px solid var(--main-color);
+            border-radius: 0;
+            /* default no rounding between stacked cards */
+            margin-bottom: 0;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+
+        /* Remove the top border on every card except the first so cards sit flush */
+        .faq-card+.faq-card {
+            border-top: none;
+        }
+
+        /* Round the top corners for the first card in a stack */
+        .faq-card:first-child {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        /* Round the bottom corners for the last card in a stack */
+        .faq-card:last-child {
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        /* If there's only one card, give it full rounding */
+        .faq-card:only-child {
+            border-radius: 8px;
+        }
+
+        .faq-card.open {
+            box-shadow: 0 2px 12px #0002;
+        }
+
+        .faq-card-header {
+            cursor: pointer;
+            padding: 16px 20px;
+            font-weight: bold;
+            color: var(--main-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--main-bg);
+        }
+
+        .faq-card-header:hover {
+            background: var(--main-color-light);
+        }
+
+        .faq-card-body {
+            padding: 18px 22px 18px 22px;
+            background: var(--input-bg);
+            color: var(--input-text);
+            display: none;
+        }
+
+        .faq-card.open .faq-card-body {
+            display: block;
+        }
+
+        .faq-card-body img {
+            max-width: 100%;
+            margin-top: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--main-color-light);
+        }
+
+        .faq-add-btn,
+        .faq-add-category-btn {
+            background: var(--main-color);
+            color: var(--button-text);
+            border: none;
+            border-radius: 6px;
+            padding: 8px 18px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 18px;
+            margin-right: 8px;
+        }
+
+        .faq-add-btn:hover,
+        .faq-add-category-btn:hover {
+            background: var(--main-color-normal);
+        }
+
+        .faq-form,
+        .faq-category-form {
+            background: var(--input-bg);
+            border: 1px solid var(--main-color-light);
+            border-radius: 8px;
+            padding: 18px 22px;
+            margin-bottom: 18px;
+        }
+
+        .faq-form input,
+        .faq-form textarea,
+        .faq-form select,
+        .faq-form .faq-image-link,
+        .faq-category-form input {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--main-color);
+            font-size: 15px;
+            background: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        .faq-form input:focus,
+        .faq-form textarea:focus,
+        .faq-form select:focus,
+        .faq-category-form input:focus {
+            border-color: var(--main-color-dark);
+            outline: none;
+        }
+
+        .faq-form label,
+        .faq-category-form label {
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .faq-form .faq-image-link {
+            font-size: 14px;
+        }
+
+        .faq-form .faq-image-preview {
+            max-width: 180px;
+            margin-top: 6px;
+            border-radius: 4px;
+            border: 1px solid var(--main-color-light);
+        }
+
+        .faq-empty {
+            color: #888;
+            font-style: italic;
+            margin: 12px 0 24px 0;
+        }
+    </style>
+</head>
+<div id="customConfirmSend" class="custom-confirm-overlay" style="display:none;">
+    <div class="custom-confirm-box">
+        <p></p>
+        <div class="custom-confirm-buttons">
+            <button class="btn btn-blue">Annuler</button>
+            <button class="btn btn-red">Confirmer</button>
+        </div>
+    </div>
+</div>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Documentation</h1>
+        <div class="faq-container" id="faq-container">
+            <!-- FAQ dynamique ici -->
+        </div>
+    </div>
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/faq.js"></script>
+</body>
+
+</html>
