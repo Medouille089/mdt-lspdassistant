@@ -417,6 +417,41 @@ body:not(.edit-mode) .form-group textarea:focus {
     line-height: 1;
 }
 
+/* Bouton édition équipement (même style que suppression mais couleur success) */
+.edit-equipment-btn {
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0;
+    line-height: 1;
+}
+.equipment-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* espace entre Modifier et Supprimer */
+}
+
+.edit-equipment-btn .material-symbols-rounded {
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-equipment-btn:hover {
+    background: #02c19a;
+    transform: scale(1.1);
+}
+
 .remove-equipment-btn .material-symbols-rounded {
     font-size: 18px;
     line-height: 1;
@@ -881,6 +916,7 @@ body:not(.edit-mode) .equipment-item input:focus {
 }
 
 body:not(.edit-mode) .remove-equipment-btn,
+body:not(.edit-mode) .edit-equipment-btn,
 body:not(.edit-mode) .add-equipment-btn,
 body:not(.edit-mode) .add-equipment-form {
     display: none !important;
