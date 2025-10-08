@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentView = 'month';
     let availableGrades = [];
     let availableMembers = [];
+    let gradesAndMembersLoaded = false;
 
     loadUserData();
     initializePage();
@@ -32,17 +33,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadGradesAndMembers() {
         try {
+            console.log('🔄 Chargement des grades et membres...');
+            gradesAndMembersLoaded = false; // Reset au début
+
             const [gradesResponse, membersResponse] = await Promise.all([
                 fetch('/api/calendar/grades'),
                 fetch('/api/calendar/members')
             ]);
 
+            console.log('Réponses reçues:', gradesResponse.status, membersResponse.status);
 
             if (!gradesResponse.ok) {
                 const errorText = await gradesResponse.text();
+                console.error('Erreur grades:', errorText);
                 availableGrades = [];
             } else {
                 availableGrades = await gradesResponse.json();
+                console.log('✅ Grades chargés:', availableGrades.length);
             }
 
             if (!membersResponse.ok) {
@@ -51,14 +58,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 availableMembers = [];
             } else {
                 availableMembers = await membersResponse.json();
+                console.log('✅ Membres chargés:', availableMembers.length);
             }
 
+            // Marquer comme chargé seulement si on a des données
+            if (availableGrades.length > 0 || availableMembers.length > 0) {
+                gradesAndMembersLoaded = true;
+                console.log('✅ Données grades/membres chargées avec succès');
+            }
+
+            // Remplir les sélecteurs dans le modal
             populateGradesSelector();
             populateMembersSelector();
         } catch (error) {
-            console.error('Erreur lors du chargement des grades et membres:', error);
+            console.error('❌ Erreur lors du chargement des grades et membres:', error);
             availableGrades = [];
             availableMembers = [];
+            gradesAndMembersLoaded = false;
         }
     }
 
@@ -134,6 +150,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function isEventVisibleForUser(event) {
+        // Les superviseurs et command staff voient TOUT
+        if (currentUser.isSupervisor || currentUser.isCommandStaff) {
+            return true;
+        }
+
         // Si aucun filtre n'est défini, l'événement est visible pour tous
         const hasGradesFilter = event.grades_concernes && Array.isArray(event.grades_concernes) && event.grades_concernes.length > 0;
         const hasPersonnesFilter = event.personnes_concernees && Array.isArray(event.personnes_concernees) && event.personnes_concernees.length > 0;
@@ -258,12 +279,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const firstDay = new Date(year, month, 1);
         const startDate = new Date(firstDay);
-        startDate.setDate(startDate.getDate() - firstDay.getDay());
+        // Ajuster pour commencer le lundi (1) au lieu du dimanche (0)
+        const dayOfWeek = firstDay.getDay();
+        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        startDate.setDate(startDate.getDate() + diff);
 
         const calendarGrid = document.getElementById('calendarGrid');
         calendarGrid.innerHTML = '';
 
-        const dayHeaders = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+        const dayHeaders = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
         dayHeaders.forEach(day => {
             const header = document.createElement('div');
             header.style.fontWeight = 'bold';
@@ -324,7 +348,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return checkDate >= startDate && checkDate <= endDate;
         });
 
-        const allItems = [...dayAbsences, ...dayEvents];
+        // Mettre les événements en premier, puis les absences
+        const allItems = [...dayEvents, ...dayAbsences];
 
         if (allItems.length > 0) {
             dayCell.classList.add('has-items');
@@ -613,6 +638,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let html = `<h3 style="color: var(--main-color); margin-bottom: 20px;">${dateStr}</h3>`;
 
+        // Avertissement si les données ne sont pas chargées
+        if (!gradesAndMembersLoaded) {
+            html += `
+                <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
+                    <p style="margin: 0; color: #856404; font-size: 14px;">
+                        ⚠️ Les noms des grades et personnes sont en cours de chargement. Les IDs seront affichés temporairement.
+                    </p>
+                </div>
+            `;
+        }
+
         if (events.length === 0 && absences.length === 0) {
             html += '<p>Aucun événement ou absence pour cette date.</p>';
         }
@@ -646,18 +682,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (event.grades_concernes && event.grades_concernes.length > 0) {
                     const gradesNoms = event.grades_concernes.map(gradeId => {
                         const grade = availableGrades.find(g => g.id === gradeId);
-                        return grade ? grade.name : gradeId;
-                    });
-                    html += `<p><strong>Grades concernés:</strong> ${gradesNoms.join(', ')}</p>`;
+                        return grade ? grade.name : `Grade inconnu (${gradeId.substring(0, 8)}...)`;
+                    }).filter(Boolean);
+
+                    if (gradesNoms.length > 0) {
+                        html += `<p><strong>Grades concernés:</strong> ${gradesNoms.join(', ')}</p>`;
+                    }
                 }
 
                 // Afficher les personnes concernées
                 if (event.personnes_concernees && event.personnes_concernees.length > 0) {
                     const personnesNoms = event.personnes_concernees.map(personneId => {
                         const personne = availableMembers.find(m => m.id === personneId);
-                        return personne ? personne.displayName : personneId;
-                    });
-                    html += `<p><strong>Personnes concernées:</strong> ${personnesNoms.join(', ')}</p>`;
+                        return personne ? personne.displayName : `Utilisateur inconnu (${personneId.substring(0, 8)}...)`;
+                    }).filter(Boolean);
+
+                    if (personnesNoms.length > 0) {
+                        html += `<p><strong>Personnes concernées:</strong> ${personnesNoms.join(', ')}</p>`;
+                    }
                 }
 
                 // Si aucun filtre, indiquer que c'est pour tout le monde
