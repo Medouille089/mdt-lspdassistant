@@ -230,6 +230,13 @@ router.post('/api/calendar/events', checkAuth, async (req, res) => {
             console.error('Erreur lors de l\'envoi du log Discord:', logError);
         }
 
+        // Envoyer des notifications MP aux personnes concernées
+        try {
+            await sendEventNotifications(newEvent);
+        } catch (notifError) {
+            console.error('Erreur lors de l\'envoi des notifications:', notifError);
+        }
+
         res.status(201).json({
             success: true,
             message: 'Événement créé avec succès',
@@ -361,12 +368,12 @@ router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
 async function sendEventLog(event, action) {
     try {
         const conf = await getConfig();
-        if (!conf.logs_channel_calendrier) {
+        if (!conf.logs_channel) {
             console.log('Canal de logs calendrier non configuré');
             return;
         }
 
-        const logsChannel = await bot.channels.fetch(conf.logs_channel_calendrier);
+        const logsChannel = await bot.channels.fetch(conf.logs_channel);
         if (!logsChannel?.isTextBased()) {
             console.log('Canal de logs calendrier invalide');
             return;
@@ -393,37 +400,188 @@ async function sendEventLog(event, action) {
                 iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
             })
             .addFields(
-                { name: 'Titre', value: event.titre, inline: false },
-                { name: 'Type', value: event.type_evenement, inline: true },
-                { name: 'Auteur', value: event.auteur, inline: true }
+                { name: '📋 Titre', value: event.titre, inline: false },
+                { name: '📂 Type', value: event.type_evenement, inline: true },
+                { name: '👤 Auteur', value: event.auteur, inline: true }
             );
 
         if (event.date_debut && event.date_fin) {
             const dateDebut = new Date(event.date_debut).toLocaleString('fr-FR');
             const dateFin = new Date(event.date_fin).toLocaleString('fr-FR');
             embed.addFields({
-                name: 'Période',
+                name: '📅 Période',
                 value: `Du ${dateDebut}\nAu ${dateFin}`,
                 inline: false
             });
         }
 
         if (event.lieu) {
-            embed.addFields({ name: 'Lieu', value: event.lieu, inline: true });
+            embed.addFields({ name: '📍 Lieu', value: event.lieu, inline: true });
         }
 
         if (event.description) {
             embed.addFields({
-                name: 'Description',
+                name: '📝 Description',
                 value: event.description.substring(0, 1024),
                 inline: false
             });
+        }
+
+        // Afficher les grades concernés
+        if (event.grades_concernes && event.grades_concernes.length > 0) {
+            const guild = bot.guilds.cache.get(GUILD_ID);
+            if (guild) {
+                const gradesNames = event.grades_concernes.map(gradeId => {
+                    const role = guild.roles.cache.get(gradeId);
+                    return role ? role.name : `ID: ${gradeId}`;
+                }).join(', ');
+                embed.addFields({ name: '🎖️ Grades concernés', value: gradesNames, inline: false });
+            }
+        }
+
+        // Afficher les personnes concernées
+        if (event.personnes_concernees && event.personnes_concernees.length > 0) {
+            const guild = bot.guilds.cache.get(GUILD_ID);
+            if (guild) {
+                const personnesNames = await Promise.all(
+                    event.personnes_concernees.map(async (userId) => {
+                        try {
+                            const member = await guild.members.fetch(userId);
+                            return member.displayName;
+                        } catch {
+                            return `ID: ${userId}`;
+                        }
+                    })
+                );
+                embed.addFields({ name: '👥 Personnes concernées', value: personnesNames.join(', '), inline: false });
+            }
+        }
+
+        // Si aucun filtre, indiquer que c'est pour tout le monde
+        if ((!event.grades_concernes || event.grades_concernes.length === 0) &&
+            (!event.personnes_concernees || event.personnes_concernees.length === 0)) {
+            embed.addFields({ name: '🌐 Visibilité', value: 'Tous les membres LSPD', inline: false });
         }
 
         await logsChannel.send({ embeds: [embed] });
 
     } catch (error) {
         console.error('Erreur lors de l\'envoi du log Discord:', error);
+    }
+}
+
+async function sendEventNotifications(event) {
+    try {
+        if (!bot.isReady()) {
+            console.log('Bot Discord non prêt pour les notifications');
+            return;
+        }
+
+        const guild = bot.guilds.cache.get(GUILD_ID);
+        if (!guild) {
+            console.log('Guild Discord introuvable pour les notifications');
+            return;
+        }
+
+        const usersToNotify = new Set();
+
+        // Récupérer les utilisateurs ayant les grades concernés
+        if (event.grades_concernes && event.grades_concernes.length > 0) {
+            await guild.members.fetch();
+            guild.members.cache.forEach(member => {
+                if (member.user.bot) return;
+                const hasGrade = event.grades_concernes.some(gradeId => member.roles.cache.has(gradeId));
+                if (hasGrade) {
+                    usersToNotify.add(member.user.id);
+                }
+            });
+        }
+
+        // Ajouter les personnes spécifiquement concernées
+        if (event.personnes_concernees && event.personnes_concernees.length > 0) {
+            event.personnes_concernees.forEach(userId => usersToNotify.add(userId));
+        }
+
+        console.log(`Envoi de notifications à ${usersToNotify.size} utilisateur(s)`);
+
+        // Créer l'embed de notification
+        const notifEmbed = new EmbedBuilder()
+            .setColor(event.couleur || '#3498db')
+            .setTitle('📅 Nouvel événement - LSPD')
+            .setDescription(`Vous êtes concerné(e) par un nouvel événement : **${event.titre}**`)
+            .setTimestamp()
+            .addFields(
+                { name: '📂 Type', value: event.type_evenement, inline: true },
+                { name: '👤 Créé par', value: event.auteur, inline: true }
+            );
+
+        if (event.date_debut && event.date_fin) {
+            const dateDebut = new Date(event.date_debut);
+            const dateFin = new Date(event.date_fin);
+
+            const dateDebutStr = dateDebut.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            const heureDebutStr = dateDebut.toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const heureFinStr = dateFin.toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            notifEmbed.addFields({
+                name: '📅 Date',
+                value: dateDebutStr,
+                inline: false
+            });
+            notifEmbed.addFields({
+                name: '⏰ Horaire',
+                value: `De ${heureDebutStr} à ${heureFinStr}`,
+                inline: false
+            });
+        }
+
+        if (event.lieu) {
+            notifEmbed.addFields({ name: '📍 Lieu', value: event.lieu, inline: false });
+        }
+
+        if (event.description) {
+            notifEmbed.addFields({
+                name: '📝 Description',
+                value: event.description.substring(0, 1024),
+                inline: false
+            });
+        }
+
+        notifEmbed.setFooter({
+            text: 'LSPD Assistant - Calendrier Partagé',
+            iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
+        });
+
+        // Envoyer les notifications
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const userId of usersToNotify) {
+            try {
+                const user = await bot.users.fetch(userId);
+                await user.send({ embeds: [notifEmbed] });
+                successCount++;
+            } catch (error) {
+                console.error(`Impossible d'envoyer la notification à ${userId}:`, error.message);
+                failCount++;
+            }
+        }
+
+        console.log(`Notifications envoyées: ${successCount} succès, ${failCount} échecs`);
+
+    } catch (error) {
+        console.error('Erreur lors de l\'envoi des notifications:', error);
     }
 }
 
