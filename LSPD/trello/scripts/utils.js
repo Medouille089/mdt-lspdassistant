@@ -143,3 +143,21 @@ export function restoreScrollState(scrollState) {
         if (listEl) listEl.scrollTop = top;
     });
 }
+
+// Formatage du temps relatif
+export function formatRelativeTime(timestamp) {
+    if (!timestamp) return '';
+    
+    const now = new Date();
+    const date = new Date(timestamp);
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    
+    if (diffMinutes < 1) return 'à l\'instant';
+    if (diffMinutes < 60) return `il y a ${diffMinutes} min`;
+    if (diffHours <= 2) return `il y a ${diffHours} h`;
+    
+    // Plus de 2h : ne rien afficher
+    return '';
+}

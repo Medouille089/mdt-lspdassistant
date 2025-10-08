@@ -261,6 +261,7 @@ export function setupCardCreator(cardCreator, listId, button) {
             text: text || '',
             tags: [],
             description: '',
+            updated_at: new Date().toISOString(),
             etat: '',
             infoSupp: '',
             infoSuppPlus: '',
@@ -684,6 +685,7 @@ function duplicateCard(cardId, listId) {
     const duplicatedCard = JSON.parse(JSON.stringify(originalCard));
     duplicatedCard.id = generateId();
     duplicatedCard.text = duplicatedCard.text;
+    duplicatedCard.updated_at = new Date().toISOString();
 
     const insertIndex = cardIndex + 1;
     list.cards.splice(insertIndex, 0, duplicatedCard);
