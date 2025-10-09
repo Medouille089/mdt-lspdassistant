@@ -7,6 +7,9 @@ const session = require("express-session");
 const passport = require("./config/passport");
 const { SESSION_SECRET } = require("./config/env");
 const { startOvertimeScheduler } = require("./utils/rappelPointeuse");
+// ⚠️ IMPORTANT : on doit instancier le bot Discord pour que les rappels puissent s'envoyer
+// (ce require lance startBot() dans config/bot.js)
+const bot = require("./config/bot");
 
 // Utilitaires et scripts internes
 require("./utils/liveUsersCleaner");
@@ -145,6 +148,17 @@ async function startServer() {
 }
 
 startServer();
+
+// Lancer le scheduler de dépassement d'horaires uniquement quand le bot est prêt
+// (sinon getBot() lèvera une erreur "Bot non initialisé")
+if (bot && bot.once) {
+    bot.once('ready', () => {
+        console.log('⏱️ Démarrage du scheduler de dépassement pointeuse');
+        startOvertimeScheduler();
+    });
+} else {
+    console.warn('⚠️ Impossible d’attacher le scheduler (bot non disponible)');
+}
 
 // ================== Gestion gracieuse de l'arrêt ==================
 let shuttingDown = false;
