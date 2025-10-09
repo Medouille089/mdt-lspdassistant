@@ -87,18 +87,17 @@ body::before {
 }
 
 .watermark {
-    position: fixed;
-    bottom: 15px;
-    right: 15px;
-    background: var(--background-gradient);
-    color: white;
-    padding: 6px 12px;
-    border-radius: 8px;
-    /* un peu moins arrondi */
-    font-size: 0.85rem;
-    font-weight: 600;
-    user-select: none;
-    z-index: 9999;
-    pointer-events: none;
-    font-family: "Poppins", sans-serif;
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  background: var(--watermark-gradient);
+  color: var(--white);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  user-select: none;
+  z-index: 9999;
+  pointer-events: none;
+  font-family: "Poppins", sans-serif;
 }
