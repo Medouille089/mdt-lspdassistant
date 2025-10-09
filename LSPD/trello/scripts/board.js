@@ -1,4 +1,4 @@
-import { boardData, scrollState, activeCardCreations, availableTags, setCurrentUser, canManageLists } from './state.js';
+import { boardData, scrollState, activeCardCreations, availableTags, setCurrentUser, canManageLists, loadRookiePatrolsFromDB } from './state.js';
 import { captureScrollState, restoreScrollState, getCardTags, generateCustomFieldsHtml, generateId, formatRelativeTime } from './utils.js';
 import { submitOperation } from './socket.js';
 import { attachCardEvents } from './card.js';
@@ -235,6 +235,9 @@ function startTimestampRefresh() {
 export async function initialize() {
     // Charger les informations utilisateur AVANT tout le reste
     await fetchCurrentUser();
+    
+    // Charger les patrouilles avec rookies depuis la BDD
+    await loadRookiePatrolsFromDB();
     
     renderBoard();
     initializeModalEvents();

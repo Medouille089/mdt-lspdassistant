@@ -19,7 +19,7 @@ export let activeCardCreations = new Set();
 export let scrollState = { boardX: 0, lists: {} };
 export let currentUser = null;
 
-// Tracking des patrouilles avec rookies
+// Tracking des patrouilles avec rookies (chargées depuis la BDD)
 export let rookiePatrols = [];
 
 export function setBoardData(data) {
@@ -63,6 +63,44 @@ export function canManageLists() {
     return currentUser && (currentUser.isCommandStaff || currentUser.isSuperAdmin);
 }
 
+/**
+ * Charge les patrouilles depuis la BDD
+ */
+export async function loadRookiePatrolsFromDB() {
+    try {
+        const response = await fetch('/api/rookie-patrols', {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const patrols = await response.json();
+        
+        // Convertir le format BDD au format JS
+        rookiePatrols = patrols.map(p => ({
+            cardId: p.card_id,
+            patrolName: p.patrol_name,
+            listName: p.list_name,
+            listId: p.list_id,
+            badges: p.badges,
+            rookies: p.rookies,
+            allMembers: p.all_members,
+            rookieCount: p.rookie_count,
+            totalCount: p.total_count,
+            timestamp: p.timestamp,
+            updatedAt: p.updated_at
+        }));
+        
+        return rookiePatrols;
+    } catch (error) {
+        console.error('Erreur lors du chargement des patrouilles:', error);
+        rookiePatrols = [];
+        return [];
+    }
+}
+
 export function addRookiePatrol(patrol) {
     // Éviter les doublons - ne pas ajouter si la même carte a déjà été enregistrée
     const existingIndex = rookiePatrols.findIndex(p => p.cardId === patrol.cardId);
@@ -85,6 +123,10 @@ export function addRookiePatrol(patrol) {
 
 export function getRookiePatrols() {
     return [...rookiePatrols];
+}
+
+export function setRookiePatrols(patrols) {
+    rookiePatrols = Array.isArray(patrols) ? patrols : [];
 }
 
 export function clearRookiePatrols() {
