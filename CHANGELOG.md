@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/Medouille089/lspdassistant/compare/v1.4.1...v1.5.0) (2025-10-09)
+
+
+### Features
+
+* add iframe for docs ([cdb4a02](https://github.com/Medouille089/lspdassistant/commit/cdb4a02eca79ff56dabea137201085e31b85f7ae))
+* Add meta-tags to connect.html and add page to c/c on any page. ([ca885c5](https://github.com/Medouille089/lspdassistant/commit/ca885c5ca1fefcc499e76f8dbb79f935b86669ab))
+* Add opti redis ([c834a69](https://github.com/Medouille089/lspdassistant/commit/c834a69a064b1ea08a09a1486ee92c71f96bc22f))
+* Optimisation Cache Redis + supress all console.log unecessary. ([f5164ba](https://github.com/Medouille089/lspdassistant/commit/f5164baa90ebf951ec40fc6ba38f9a138ea411fe))
+
+
+### Bug Fixes
+
+* css in annexesViewer and more ([f78a040](https://github.com/Medouille089/lspdassistant/commit/f78a040218b3132aa4efbb9acf49e8d3e2e6fa76))
+* jsp frr github tu clc ([32d337f](https://github.com/Medouille089/lspdassistant/commit/32d337ff38816351b3674d82cecfe9a02ce0f853))
+* old trello button ([53738be](https://github.com/Medouille089/lspdassistant/commit/53738be89d7eb2dc4529eb49b057969330c25c53))
+
 ### [1.4.1](https://github.com/Medouille089/lspdassistant/compare/v1.4.0...v1.4.1) (2025-10-09)
 
 
