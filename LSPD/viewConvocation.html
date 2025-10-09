@@ -16,6 +16,9 @@
     <div class="main-container">
         <div id="sidebar-container"></div>
         <h1>Convocation</h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
         <div class="convocation-container">
             <div class="header">
                 <img src="data/images/lspd.png" alt="Logo LSPD">
@@ -93,6 +96,29 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="scripts/convocation/viewConvocation.js"></script>
     <script src="scripts/annonce-popup.js"></script>
+    <script>
+        (function () {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            function init() {
+                const btn = document.getElementById('backlinkBtn');
+                if (!btn) return;
+
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = 'getConvocation.html';
+                    }
+                });
+            }
+        })();
+    </script>
 </body>
 
 </html>
