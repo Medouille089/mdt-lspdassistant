@@ -3,6 +3,7 @@ const router = express.Router();
 const { getBot, getConfig } = require('../config/config');
 const { EmbedBuilder } = require('discord.js');
 const pool = require('../config/db');
+const { invalidateEventsCache } = require('../config/cacheMiddleware');
 
 // Helper → formatage date en JJ/MM/AAAA
 function formatDate(dateStr) {
@@ -50,6 +51,44 @@ router.post('/api/convocations', async (req, res) => {
                 agent_convoquant_nom, agent_convoquant_grade, date, lieu, raison
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         `, [agentId, agentName, req.user?.id || "inconnu", officier, grade, date, lieu, raison]);
+
+
+        try {
+            const dateDebutComplete = `${date} 00:00`;
+            const dateFinComplete = `${date} 23:59`;
+            const convocateurId = req.user?.id || "inconnu";
+
+            await pool.query(`
+                INSERT INTO evenements_calendrier (
+                    titre,
+                    description,
+                    date_debut,
+                    date_fin,
+                    type_evenement,
+                    couleur,
+                    auteur,
+                    lieu,
+                    personnes_concernees
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            `, [
+                `Convocation - ${agentName}`,
+                `**Raison :** ${raison}\n\n**Agent convoquant :** ${officier} (${grade})\n**Agent convoqué :** ${agentName}`,
+                dateDebutComplete,
+                dateFinComplete,
+                'convocation',
+                '#e74c3c', 
+                officier,
+                lieu,
+                [convocateurId, agentId] 
+            ]);
+
+
+            
+            invalidateEventsCache();
+        } catch (calendarError) {
+            console.error('❌ Erreur lors de la création de l\'événement calendrier:', calendarError);
+            
+        }
 
         // --- Log Discord ---
         const config = getConfig();
