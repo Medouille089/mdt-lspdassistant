@@ -51,12 +51,16 @@ async function registerCommands() {
   const all = bot.commands.map(c => c.data.toJSON());
   const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
-  // Politique: /rappel uniquement global (pour DM), autres aussi en guild pour rapidité
-  const guildCommands = all.filter(c => c.name !== 'rappel');
-  const globalCommands = all; // inclut /rappel
+  // Liste des commandes qui doivent fonctionner en DM
+  const globalNames = ['rappel'];
+  const globalCommands = all.filter(c => globalNames.includes(c.name));
+  const guildCommands = all.filter(c => !globalNames.includes(c.name));
+
+  const isLocal = (process.env.IS_LOCAL || '').toLowerCase() === 'true';
 
   try {
-    console.log('📤 MAJ commandes: guild (sans /rappel) + global (toutes)');
+    
+    // Toujours enregistrer les guild commands (MAJ instantanée)
     await rest.put(
       Routes.applicationGuildCommands(
         process.env.CLIENT_ID,
@@ -64,11 +68,15 @@ async function registerCommands() {
       ),
       { body: guildCommands }
     );
-    await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: globalCommands }
-    );
-    console.log('✅ Commandes mises à jour');
+
+    if (!isLocal) {
+      // En prod seulement: publier les global (plus lentes à propager, pas de doublon car limitées)
+      await rest.put(
+        Routes.applicationCommands(process.env.CLIENT_ID),
+        { body: globalCommands }
+      );
+    } else {
+    }
   } catch (err) {
     console.error('❌ Erreur en enregistrant les commandes :', err);
   }
@@ -235,7 +243,6 @@ async function startBot() {
   await bot.login(process.env.TOKEN);
 
   bot.once("ready", async () => {
-    console.log(`🤖 Bot connecté en tant que ${bot.user.tag}`);
 
     let index = 0;
     async function cyclePresence() {
@@ -262,12 +269,10 @@ async function startBot() {
         const nowParis = moment().tz("Europe/Paris").format("HH:mm");
 
         if (fiche_de_presence_hour && nowParis === fiche_de_presence_hour) {
-          console.log("📌 Envoi de la fiche de présence principale");
           await ficheDePresence.sendFicheDePresence(bot, false);
         }
 
         if (fiche_de_presence_rappel && nowParis === fiche_de_presence_rappel) {
-          console.log("📌 Envoi du rappel de la fiche de présence");
           await ficheDePresence.sendFicheDePresence(bot, true);
         }
       } catch (e) {
@@ -279,7 +284,6 @@ async function startBot() {
       await db.query(
         "DELETE FROM lspd_presenceig WHERE timestamp < NOW() - INTERVAL '14 days'"
       );
-      console.log("Anciennes présences supprimées !");
     };
     cron.schedule("0 3 * * *", purgeOldPresence);
 

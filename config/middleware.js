@@ -6,7 +6,6 @@ async function checkAuth(req, res, next) {
   if (!req.isAuthenticated()) {
     // Stocker l'URL originale dans la session pour redirection après login
     req.session.returnTo = req.originalUrl;
-    console.log(`🔒 Non authentifié, stockage returnTo: ${req.originalUrl}`);
     return res.redirect("/login");
   }
 
@@ -48,7 +47,6 @@ module.exports = { checkAuth };
 async function checkAuthOrDOJ(req, res, next) {
   if (!req.isAuthenticated()) {
     req.session.returnTo = req.originalUrl;
-    console.log(`🔒 Non authentifié, stockage returnTo: ${req.originalUrl}`);
     return res.redirect("/login");
   }
 

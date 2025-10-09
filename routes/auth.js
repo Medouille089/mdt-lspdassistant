@@ -23,7 +23,6 @@ router.get('/callback', (req, res, next) => {
   // Récupérer l'ID de redirection depuis le state OAuth
   const redirectId = req.query.state;
   if (redirectId) {
-    console.log(`🔄 Récupération redirectId depuis state OAuth: ${redirectId}`);
     // Stocker temporairement pour utilisation après l'auth
     req._redirectId = redirectId;
   }
@@ -106,21 +105,12 @@ router.get('/callback', (req, res, next) => {
       let redirectTo = '/protected';
       const redirectId = req._redirectId; // Utiliser l'ID depuis le callback, pas la session
 
-      console.log(`🔍 Debug redirection:`);
-      console.log(`  - redirectId from callback: ${redirectId}`);
-      console.log(`  - global.pendingRedirects exists: ${!!global.pendingRedirects}`);
-      console.log(`  - Map size: ${global.pendingRedirects ? global.pendingRedirects.size : 'N/A'}`);
-      console.log(`  - Has redirectId key: ${global.pendingRedirects ? global.pendingRedirects.has(redirectId) : 'N/A'}`);
-
       if (redirectId && global.pendingRedirects && global.pendingRedirects.has(redirectId)) {
         redirectTo = global.pendingRedirects.get(redirectId);
         global.pendingRedirects.delete(redirectId); // Nettoyer après utilisation
-        console.log(`🔄 Récupération URL via redirectId ${redirectId}: ${redirectTo}`);
       } else {
-        console.log(`❌ Impossible de récupérer l'URL pour redirectId: ${redirectId}`);
       }
 
-      console.log(`🔄 Redirection après auth: redirectTo=${redirectTo}`);
 
       return res.redirect(redirectTo);
 
@@ -199,14 +189,12 @@ router.get('/protected', (req, res) => {
 // Handler pour les pages accessibles au DOJ
 router.get(whiteListedPagesDOJ.map(page => `/${page}`), (req, res) => {
   const requestedPage = req.path.slice(1); // Enlever le '/' du début
-  console.log(`📄 Page DOJ demandée: ${requestedPage} par ${req.user?.username} (Type: ${req.user?.userType})`);
   res.sendFile(path.join(__dirname, '../LSPD', requestedPage));
 });
 
 // Handler pages Command Staff uniquement
 router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
   try {
-    console.log(`📄 Accès à ${req.path}, isAuthenticated: ${req.isAuthenticated()}, user: ${req.user?.username || 'aucun'}`);
     if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
     const config = await getConfig();

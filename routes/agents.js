@@ -2,6 +2,47 @@ const express = require("express");
 const router = express.Router();
 const { checkAuth } = require("../config/middleware");
 const pool = require("../config/db");
+const { EmbedBuilder } = require('discord.js');
+
+// Helper pour envoyer un embed de log profil agent
+async function sendAgentLog({ bot, logsChannelId, action, actorMember, targetMember, actorId, targetId, lines = [] }) {
+  try {
+    if (!logsChannelId) return;
+    const channel = await bot.channels.fetch(logsChannelId).catch(() => null);
+    if (!channel || !channel.isTextBased()) return;
+    const actorName = actorMember?.displayName || actorId;
+    const targetName = targetMember?.displayName || targetId;
+  const actionLabelMap = { CREATE: 'CRÉATION', UPDATE: 'MODIFICATION', EDIT_ON: 'MODE ÉDITION ON' };
+    const baseLabel = actionLabelMap[action] || action;
+    const self = actorId === targetId;
+    let title;
+    if (action === 'CREATE') {
+      title = `${actorName} a créé le profil de ${targetName}`;
+    } else if (action === 'UPDATE') {
+      title = self
+        ? `${actorName} a modifié son profil`
+        : `${actorName} a modifié le profil de ${targetName}`;
+    } else if (action === 'EDIT_ON') {
+      title = `${actorName} a pris le mode édition du profil de ${targetName}`;
+    } else {
+      title = `${actorName} action sur ${targetName}`;
+    }
+
+  if (!lines.length) lines.push('Aucun détail');
+  const details = lines.map(l => l.startsWith('>') ? l : `> ${l}`).join('\n').slice(0, 3900);
+    const botAvatar = bot.user?.displayAvatarURL({ size: 128 });
+    const embed = new EmbedBuilder()
+      .setColor(0x0b1b5a)
+      .setTitle(title)
+  .addFields({ name: 'Détails', value: details })
+  .addFields({ name: 'ID\'s', value: `> <@${actorId}> (\`${actorId}\`)` })
+      .setFooter({ text: 'LSPD Assistant', iconURL: botAvatar || undefined })
+      .setTimestamp();
+    await channel.send({ embeds: [embed] });
+  } catch (e) {
+    console.warn('Log agent échoué:', e.message);
+  }
+}
 
 router.get('/api/user', checkAuth, async (req, res) => {
   const user = req.user;
@@ -31,19 +72,6 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     const user = req.user;
-
-    console.log('Demande profil:', { 
-      requestedUser: userId, 
-      currentUser: user.id, 
-      isSupervisor: user.isSupervisor, 
-      isCommandStaff: user.isCommandStaff 
-    });
-
-    // Simplifier les permissions - permettre à tous les utilisateurs connectés de voir les profils
-    console.log('Utilisateur:', { id: user.id, isSupervisor: user.isSupervisor, isCommandStaff: user.isCommandStaff, roles: user.roles });
-    
-    // Autoriser l'accès pour tous les utilisateurs connectés (temporaire pour déboguer)
-    console.log('Autorisation accordée pour le profil');
 
     const result = await pool.query(
       'SELECT * FROM lspd_agent_profiles WHERE discord_id = $1',
@@ -97,10 +125,50 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
         'INSERT INTO lspd_agent_profiles (discord_id, photo_url) VALUES ($1, $2) RETURNING *',
         [userId, defaultPhoto]
       );
-      return res.json(newProfile.rows[0]);
+      const created = newProfile.rows[0];
+      // Normaliser champs tableaux
+      created.armes = [];
+      created.vehicules = [];
+      res.json(created);
+      // Log création
+      try {
+        const { getConfig, getBot } = require('../config/config');
+        const conf = getConfig();
+        const logsChannelId = conf.logs_channel;
+        if (logsChannelId) {
+          const bot = getBot();
+          const guild = bot.guilds.cache.get(process.env.GUILD_ID) || await bot.guilds.fetch(process.env.GUILD_ID);
+          const actorMember = await guild.members.fetch(req.user.id).catch(() => null);
+          const targetMember = await guild.members.fetch(userId).catch(() => null);
+          await sendAgentLog({
+            bot,
+            logsChannelId,
+            action: 'CREATE',
+            actorMember,
+            targetMember,
+            actorId: req.user.id,
+            targetId: userId,
+            lines: [
+              'Action: CRÉATION',
+              'Type: Profil Agent',
+              `Agent cible: ${targetMember?.displayName || userId}`,
+              `Acteur: ${actorMember?.displayName || req.user.id}`,
+              `Photo initiale: ${defaultPhoto || '—'}`
+            ]
+          });
+        }
+      } catch(e) { console.warn('Log création profil échoué:', e.message); }
+      return; // Already responded
     }
 
-    res.json(result.rows[0]);
+    // Parser armes / vehicules si stockés en JSON texte
+    const profile = result.rows[0];
+    try { if (typeof profile.armes === 'string') profile.armes = JSON.parse(profile.armes || '[]'); } catch { profile.armes = []; }
+    try { if (typeof profile.vehicules === 'string') profile.vehicules = JSON.parse(profile.vehicules || '[]'); } catch { profile.vehicules = []; }
+    if (!Array.isArray(profile.armes)) profile.armes = [];
+    if (!Array.isArray(profile.vehicules)) profile.vehicules = [];
+
+    res.json(profile);
   } catch (err) {
     console.error('Erreur récupération profil agent:', err);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -110,23 +178,42 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
 // PUT /api/agent-profile/:userId - Mettre à jour le profil d'un agent
 router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
   try {
-    const { userId } = req.params;
-    const user = req.user;
-    const { photo_url, armes, vehicules, matricule, nom, prenom, specialites } = req.body;
+    const { userId } = req.params; // cible
+    const user = req.user; // acteur
+    let { photo_url, armes, vehicules, matricule, nom, prenom, specialites } = req.body;
 
-    // Autoriser l'édition pour tous (temporaire pour déboguer)
-    console.log('Édition du profil autorisée pour:', user.id);
+    const parseArray = (val) => {
+      if (!val) return [];
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') {
+        try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+      }
+      return [];
+    };
+    armes = parseArray(armes).filter(a => a && a.nom);
+    vehicules = parseArray(vehicules).filter(v => v && v.nom);
 
-    // Mode édition désactivé temporairement - autoriser toutes les modifications
+    const oldRes = await pool.query('SELECT * FROM lspd_agent_profiles WHERE discord_id = $1', [userId]);
+    const oldProfileRaw = oldRes.rows[0] || null;
+    let oldProfile = null;
+    if (oldProfileRaw) {
+      oldProfile = { ...oldProfileRaw };
+      try { if (typeof oldProfile.armes === 'string') oldProfile.armes = JSON.parse(oldProfile.armes || '[]'); } catch { oldProfile.armes = []; }
+      try { if (typeof oldProfile.vehicules === 'string') oldProfile.vehicules = JSON.parse(oldProfile.vehicules || '[]'); } catch { oldProfile.vehicules = []; }
+      if (!Array.isArray(oldProfile.armes)) oldProfile.armes = [];
+      if (!Array.isArray(oldProfile.vehicules)) oldProfile.vehicules = [];
 
-    // Mettre à jour le profil
+      oldProfile.armes = oldProfile.armes.filter(a => a && a.nom);
+      oldProfile.vehicules = oldProfile.vehicules.filter(v => v && v.nom);
+    }
+
     const result = await pool.query(
       `UPDATE lspd_agent_profiles 
        SET photo_url = $1, armes = $2, vehicules = $3, matricule = $4, 
            nom = $5, prenom = $6, date_modification = NOW()
        WHERE discord_id = $7 
        RETURNING *`,
-      [photo_url, JSON.stringify(armes), JSON.stringify(vehicules), matricule, nom, prenom, userId]
+      [photo_url, JSON.stringify(armes || []), JSON.stringify(vehicules || []), matricule, nom, prenom, userId]
     );
 
     if (result.rows.length === 0) {
@@ -135,12 +222,103 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
         `INSERT INTO lspd_agent_profiles 
          (discord_id, photo_url, armes, vehicules, matricule, nom, prenom)
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [userId, photo_url, JSON.stringify(armes), JSON.stringify(vehicules), matricule, nom, prenom]
+        [userId, photo_url, JSON.stringify(armes || []), JSON.stringify(vehicules || []), matricule, nom, prenom]
       );
-      return res.json(newProfile.rows[0]);
+      const created = newProfile.rows[0];
+      try { created.armes = JSON.parse(created.armes || '[]'); } catch { created.armes = []; }
+      try { created.vehicules = JSON.parse(created.vehicules || '[]'); } catch { created.vehicules = []; }
+      return res.json(created);
     }
 
-    res.json(result.rows[0]);
+    const updated = result.rows[0];
+    try { updated.armes = JSON.parse(updated.armes || '[]'); } catch { updated.armes = []; }
+    try { updated.vehicules = JSON.parse(updated.vehicules || '[]'); } catch { updated.vehicules = []; }
+    res.json(updated);
+
+    // ===== LOG DISCORD =====
+    try {
+      const { getConfig, getBot } = require('../config/config');
+      const conf = getConfig();
+      const logsChannelId = conf.logs_channel;
+      if (logsChannelId) {
+        const bot = getBot();
+        const guild = bot.guilds.cache.get(process.env.GUILD_ID) || await bot.guilds.fetch(process.env.GUILD_ID);
+        // Fetch display names
+        const actorMember = await guild.members.fetch(user.id).catch(() => null);
+        const targetMember = await guild.members.fetch(userId).catch(() => null);
+  const actorName = actorMember?.displayName || user.username || user.id;
+  const targetName = targetMember?.displayName || ((updated.prenom && updated.nom) ? `${updated.prenom} ${updated.nom}`.trim() : (updated.nom || updated.prenom || userId));
+        const selfEdit = user.id === userId;
+
+  // Les champs updated.armes / updated.vehicules ont été parsés juste avant (arrays)
+  // Utiliser directement les valeurs en fallback sur celles reçues dans la requête (armes/vehicules variables locales)
+  let newArmes = Array.isArray(updated.armes) ? updated.armes : (Array.isArray(armes) ? armes : []);
+  let newVehicules = Array.isArray(updated.vehicules) ? updated.vehicules : (Array.isArray(vehicules) ? vehicules : []);
+  // Filtrer entrées vides
+  newArmes = newArmes.filter(a => a && a.nom);
+  newVehicules = newVehicules.filter(v => v && v.nom);
+
+        // Diff helper
+        const stringifyEquip = (list, type) => list.map(e => type === 'arme' ? `${e.nom}${e.numero_serie ? ' (#'+e.numero_serie+')' : ''}` : `${e.nom}${e.immatriculation ? ' [ '+e.immatriculation+' ]' : ''}`);
+        const diffList = (oldList = [], newList = [], type) => {
+          const oldS = new Set(stringifyEquip(oldList, type));
+          const newS = new Set(stringifyEquip(newList, type));
+          const added = [...newS].filter(x => !oldS.has(x));
+          const removed = [...oldS].filter(x => !newS.has(x));
+          return { added, removed };
+        };
+
+        const armesDiff = diffList(oldProfile?.armes || [], newArmes, 'arme');
+        const vehiculesDiff = diffList(oldProfile?.vehicules || [], newVehicules, 'vehicule');
+
+        const lines = [];
+        lines.push('Action: MODIFICATION');
+        lines.push('Type: Profil Agent');
+        lines.push(`Agent cible: ${targetName}`);
+        if (!selfEdit) lines.push(`Acteur: ${actorName}`);
+        const simpleChangeLine = (label, oldVal, newVal) => {
+          const o = (oldVal || '').trim();
+          const n = (newVal || '').trim();
+          if (o !== n) lines.push(`${label}: \`${o || '—'}\` -> \`${n || '—'}\``);
+        };
+        simpleChangeLine('Matricule', oldProfile?.matricule, matricule);
+        simpleChangeLine('Nom', oldProfile?.nom, nom);
+        simpleChangeLine('Prénom', oldProfile?.prenom, prenom);
+        if ((oldProfile?.photo_url || '') !== (photo_url || '')) {
+          lines.push(`Photo: ${(oldProfile?.photo_url || '—')} -> ${(photo_url || '—')}`);
+        }
+        // Listes complètes old/new
+        const formatList = (arr, prefix) => (arr && arr.length ? arr.map(a => prefix + a).join(', ') : '—');
+        const oldArmesList = (oldProfile?.armes || []).map(a => a && a.nom ? `${a.nom}${a.numero_serie ? ' (#'+a.numero_serie+')' : ''}` : null).filter(Boolean);
+        const newArmesList = newArmes.map(a => a && a.nom ? `${a.nom}${a.numero_serie ? ' (#'+a.numero_serie+')' : ''}` : null).filter(Boolean);
+        const oldVehList = (oldProfile?.vehicules || []).map(v => v && v.nom ? `${v.nom}${v.immatriculation ? ' [ '+v.immatriculation+' ]' : ''}` : null).filter(Boolean);
+        const newVehList = newVehicules.map(v => v && v.nom ? `${v.nom}${v.immatriculation ? ' [ '+v.immatriculation+' ]' : ''}` : null).filter(Boolean);
+        // Diff synthèse
+        if (armesDiff.added.length) lines.push(`Armes ajoutées: ${armesDiff.added.join(', ')}`);
+        if (armesDiff.removed.length) lines.push(`Armes retirées: ${armesDiff.removed.join(', ')}`);
+        if (vehiculesDiff.added.length) lines.push(`Véhicules ajoutés: ${vehiculesDiff.added.join(', ')}`);
+        if (vehiculesDiff.removed.length) lines.push(`Véhicules retirés: ${vehiculesDiff.removed.join(', ')}`);
+        // Listes complètes
+        lines.push(`Anciennes armes: ${oldArmesList.length ? oldArmesList.join(', ') : '—'}`);
+        lines.push(`Nouvelles armes: ${newArmesList.length ? newArmesList.join(', ') : '—'}`);
+        lines.push(`Anciens véhicules: ${oldVehList.length ? oldVehList.join(', ') : '—'}`);
+        lines.push(`Nouveaux véhicules: ${newVehList.length ? newVehList.join(', ') : '—'}`);
+        if (lines.length <= 4) lines.push('Aucun changement détecté');
+        await sendAgentLog({
+          bot,
+          logsChannelId,
+          action: 'UPDATE',
+          actorMember,
+          targetMember,
+          actorId: user.id,
+          targetId: userId,
+          lines
+        });
+      }
+
+    } catch (logErr) {
+      console.warn('Log modification profil échoué:', logErr.message);
+    }
   } catch (err) {
     console.error('Erreur mise à jour profil agent:', err);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -153,8 +331,6 @@ router.post('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) 
     const { userId } = req.params;
     const user = req.user;
 
-    // Autoriser l'activation du mode édition pour tous (temporaire pour déboguer)
-    console.log('Activation mode édition autorisée pour:', user.id);
 
     // Vérifier si quelqu'un d'autre est en mode édition
     const editCheck = await pool.query(
@@ -184,6 +360,32 @@ router.post('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) 
     );
 
     res.json({ success: true, editMode: true });
+    // Log acquisition edit-mode
+    try {
+      const { getConfig, getBot } = require('../config/config');
+      const conf = getConfig();
+      if (conf.logs_channel) {
+        const bot = getBot();
+        const guild = bot.guilds.cache.get(process.env.GUILD_ID) || await bot.guilds.fetch(process.env.GUILD_ID);
+        const actorMember = await guild.members.fetch(user.id).catch(() => null);
+        const targetMember = await guild.members.fetch(userId).catch(() => null);
+        await sendAgentLog({
+          bot,
+          logsChannelId: conf.logs_channel,
+          action: 'EDIT_ON',
+          actorMember,
+          targetMember,
+          actorId: user.id,
+          targetId: userId,
+          lines: [
+            'Action: MODE ÉDITION ON',
+            'Type: Profil Agent',
+            `Agent cible: ${targetMember?.displayName || userId}`,
+            `Acteur: ${actorMember?.displayName || user.id}`
+          ]
+        });
+      }
+    } catch(e) { console.warn('Log edit-mode on échoué:', e.message); }
   } catch (err) {
     console.error('Erreur activation mode édition:', err);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -217,17 +419,10 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
     const { userId } = req.params;
     const user = req.user;
 
-    // Simplifier les permissions pour les formations
-    console.log('Formations - Utilisateur:', { id: user.id, isSupervisor: user.isSupervisor, isCommandStaff: user.isCommandStaff });
-    
-    // Autoriser l'accès aux formations pour tous (temporaire pour déboguer)
-    console.log('Autorisation accordée pour les formations');
-
     // Récupérer la configuration des formations depuis la table lspd_formations
     const formationsConfig = await pool.query('SELECT * FROM lspd_formations LIMIT 1');
 
     if (formationsConfig.rows.length === 0) {
-      console.log('Aucune configuration de formation trouvée');
       return res.json([]);
     }
 
@@ -254,13 +449,11 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
       if (discordResponse.ok) {
         const memberData = await discordResponse.json();
         targetUserRoles = memberData.roles || [];
-        console.log('Rôles Discord récupérés pour', userId, ':', targetUserRoles);
       } else {
         // Fallback : si c'est notre propre profil, utiliser nos rôles de session
         if (user.id === userId) {
           targetUserRoles = user.roles || [];
         }
-        console.log('Fallback rôles pour', userId, ':', targetUserRoles);
       }
     } catch (error) {
       console.warn('Erreur récupération rôles Discord:', error);
@@ -270,19 +463,11 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
       }
     }
     
-    console.log('Debug formations:', {
-      userId,
-      currentUserId: user.id,
-      targetUserRoles,
-      formationsAvailables: formationsAvailables.map(f => ({ nom: f.nom, roleId: f.discord_role_id }))
-    });
-    
     // Filtrer les formations que l'utilisateur possède
     const userFormations = formationsAvailables.filter(formation => 
       targetUserRoles.includes(formation.discord_role_id)
     );
 
-    console.log('Formations trouvées pour l\'utilisateur:', userFormations);
     res.json(userFormations);
   } catch (err) {
     console.error('Erreur récupération formations:', err);
@@ -296,7 +481,6 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
 router.get('/api/agent-grade/:userId', checkAuth, async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log('Récupération grade pour:', userId);
 
     // Charger config grades
     const gradesConfig = await pool.query('SELECT * FROM lspd_grades LIMIT 1');

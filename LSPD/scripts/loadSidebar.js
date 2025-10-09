@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Choisir la sidebar appropriée
             const sidebarFile = userInfo.isDOJ && !userInfo.isLSPD ? 'sidebar-doj.html' : 'sidebar.html';
 
-            console.log(`🔧 Chargement sidebar: ${sidebarFile} pour ${userInfo.username} (${userInfo.isDOJ ? 'DOJ' : 'LSPD'})`);
 
             const sidebarResponse = await fetch(sidebarFile);
             const html = await sidebarResponse.text();

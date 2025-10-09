@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const updateButton = document.querySelector(".send-button");
                 if (updateButton) {
                     updateButton.style.display = 'none';
-                    console.log('🔒 Bouton mise à jour masqué pour utilisateur DOJ');
                 }
 
                 // Désactiver tous les inputs et textareas
@@ -25,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     input.style.backgroundColor = '#f5f5f5';
                     input.style.cursor = 'not-allowed';
                 });
-                console.log('🔒 Champs désactivés pour utilisateur DOJ');
             }
         })
         .catch((err) => {
@@ -239,7 +237,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
         formDataPut.append("messageId", messageId || null);
         formDataPut.append("pieces", pdfBlob, `incident_${id}.pdf`);
         formDataPut.append("editBy", editBy || 'Utilisateur inconnu');
-        console.log("Données à envoyer :", id, dateInput.value, heureInput.value, officierInput.value, gradeInput.value, recitInput.value, impliqueInput.value, typeInput.value, lieuInput.value);
+        
         const res = await fetch('/api/updateIncident', {
             method: 'PUT',
             body: formDataPut
@@ -247,7 +245,6 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
 
         if (!res.ok) throw new Error('Erreur lors de la mise à jour');
         const data = await res.json();
-        console.log('Mise à jour réussie :', data);
         showAnimation('success').then(() => {
             window.location.href = `viewIncident.html?id=${id}`;
         });

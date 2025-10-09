@@ -163,7 +163,6 @@ async function loadSituations() {
   try {
     const response = await fetch('/api/getSituations');
     situationItems = await response.json();
-    console.log("Situations chargées :", situationItems);
     document.querySelectorAll('.select-situations').forEach(box => initSelectBox(box, situationItems));
   } catch (err) {
     console.error("Erreur chargement des situations :", err);

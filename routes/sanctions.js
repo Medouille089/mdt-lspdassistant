@@ -144,7 +144,7 @@ router.post('/api/sanctions', async (req, res) => {
                 })
                 .setTimestamp();
 
-            await targetMember.send({ embeds: [embed] }).catch(() => console.log('MP impossible'));
+            await targetMember.send({ embeds: [embed] }).catch(() => console.error('MP impossible'));
         }
 
         // Logs Discord (inchangé)
@@ -171,7 +171,6 @@ router.post('/api/sanctions', async (req, res) => {
                 .setTimestamp();
 
             await logsChannel.send({ embeds: [embedLog] });
-            console.log("✅ Log sanction envoyé");
         }
 
         res.json({ message: 'Sanction appliquée !', sanction });
@@ -239,7 +238,7 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
                     })
                     .setTimestamp();
 
-                await targetMember.send({ embeds: [embedMP] }).catch(() => console.log('MP impossible'));
+                await targetMember.send({ embeds: [embedMP] }).catch(() => console.error('MP impossible'));
             }
         }
 
@@ -275,7 +274,6 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
                 .setTimestamp();
 
             await logsChannel.send({ embeds: [embedLog] });
-            console.log("✅ Log révocation envoyé");
         }
 
         res.json({ success: true });
@@ -447,7 +445,7 @@ async function revokeExpiredSanctions() {
                     })
                     .setTimestamp();
 
-                await targetMember.send({ embeds: [embedMP] }).catch(() => console.log('MP impossible'));
+                await targetMember.send({ embeds: [embedMP] }).catch(() => console.error('MP impossible'));
             }
 
             // --- Log Discord ---
@@ -474,7 +472,6 @@ async function revokeExpiredSanctions() {
                     .setTimestamp();
 
                 await logsChannel.send({ embeds: [embedLog] });
-                console.log(`✅ Log automatique sanction ${sanction.id} envoyé`);
             }
 
             // Archive la sanction
@@ -530,7 +527,6 @@ function scheduleTestSanctionCheck(hour = 12, minute = 35) {
     if (nextTime < now) nextTime.setDate(nextTime.getDate() + 1);
 
     const msUntilNextTime = nextTime - now;
-    console.log(`⏱ Planifié test de sanctions dans ${msUntilNextTime / 1000}s`);
 
     setTimeout(() => {
         revokeExpiredSanctions();

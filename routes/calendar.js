@@ -6,8 +6,10 @@ const { getConfig } = require('../config/config');
 const bot = require('../config/bot');
 const { EmbedBuilder } = require('discord.js');
 const { GUILD_ID } = require('../config/env');
+const { cacheGrades, cacheMembers, cacheEvents, invalidateEventsCache } = require('../config/cacheMiddleware');
+const { cache, CACHE_DURATIONS } = require('../config/cache');
 
-router.get('/api/calendar/grades', checkAuth, async (req, res) => {
+router.get('/api/calendar/grades', checkAuth, cacheGrades(), async (req, res) => {
     try {
         const { rows } = await db.query('SELECT * FROM lspd_grades LIMIT 1');
         const row = rows[0];
@@ -35,7 +37,7 @@ router.get('/api/calendar/grades', checkAuth, async (req, res) => {
     }
 });
 
-router.get('/api/calendar/members', checkAuth, async (req, res) => {
+router.get('/api/calendar/members', checkAuth, cacheMembers(), async (req, res) => {
     try {
         if (!bot.isReady()) {
             return res.status(503).json({ error: 'Bot Discord en cours de démarrage, réessayez dans quelques secondes' });
@@ -80,7 +82,6 @@ router.get('/api/calendar/members', checkAuth, async (req, res) => {
 
         members.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
-        console.log(`${members.length} membres LSPD trouvés`);
         res.json(members);
     } catch (error) {
         console.error('Erreur lors de la récupération des membres:', error);
@@ -89,7 +90,7 @@ router.get('/api/calendar/members', checkAuth, async (req, res) => {
 });
 
 // Récupérer tous les événements
-router.get('/api/calendar/events', checkAuth, async (req, res) => {
+router.get('/api/calendar/events', checkAuth, cacheEvents(), async (req, res) => {
     try {
         const query = `
             SELECT 
@@ -237,6 +238,9 @@ router.post('/api/calendar/events', checkAuth, async (req, res) => {
             console.error('Erreur lors de l\'envoi des notifications:', notifError);
         }
 
+        // Invalider le cache des événements
+        invalidateEventsCache();
+
         res.status(201).json({
             success: true,
             message: 'Événement créé avec succès',
@@ -312,6 +316,8 @@ router.put('/api/calendar/events/:id', checkAuth, async (req, res) => {
             console.error('Erreur lors de l\'envoi du log Discord:', logError);
         }
 
+        invalidateEventsCache();
+
         res.json({
             success: true,
             message: 'Événement mis à jour avec succès',
@@ -351,6 +357,8 @@ router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
             console.error('Erreur lors de l\'envoi du log Discord:', logError);
         }
 
+        invalidateEventsCache();
+
         res.json({
             success: true,
             message: 'Événement supprimé avec succès'
@@ -369,13 +377,11 @@ async function sendEventLog(event, action) {
     try {
         const conf = await getConfig();
         if (!conf.logs_channel) {
-            console.log('Canal de logs calendrier non configuré');
             return;
         }
 
         const logsChannel = await bot.channels.fetch(conf.logs_channel);
         if (!logsChannel?.isTextBased()) {
-            console.log('Canal de logs calendrier invalide');
             return;
         }
 
@@ -473,13 +479,11 @@ async function sendEventLog(event, action) {
 async function sendEventNotifications(event) {
     try {
         if (!bot.isReady()) {
-            console.log('Bot Discord non prêt pour les notifications');
             return;
         }
 
         const guild = bot.guilds.cache.get(GUILD_ID);
         if (!guild) {
-            console.log('Guild Discord introuvable pour les notifications');
             return;
         }
 
@@ -502,7 +506,6 @@ async function sendEventNotifications(event) {
             event.personnes_concernees.forEach(userId => usersToNotify.add(userId));
         }
 
-        console.log(`Envoi de notifications à ${usersToNotify.size} utilisateur(s)`);
 
         // Créer l'embed de notification
         const notifEmbed = new EmbedBuilder()
@@ -578,7 +581,6 @@ async function sendEventNotifications(event) {
             }
         }
 
-        console.log(`Notifications envoyées: ${successCount} succès, ${failCount} échecs`);
 
     } catch (error) {
         console.error('Erreur lors de l\'envoi des notifications:', error);

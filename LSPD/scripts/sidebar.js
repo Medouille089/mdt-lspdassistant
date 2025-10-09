@@ -45,14 +45,39 @@ if (window.innerWidth <= 1024) {
 
 async function fetchUser() {
   try {
-    const res = await fetch('/api/user');
-    if (!res.ok) throw new Error('Non connecté');
-    const user = await res.json();
+    let user;
 
-    // Avatar
-    const avatarUrl = user.avatar
-      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
-      : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discriminator) % 5}.png`;
+
+    if (window.clientCache && typeof window.clientCache.getOrFetch === 'function') {
+      user = await window.clientCache.getOrFetch('user', async () => {
+        const res = await fetch('/api/user');
+        if (!res.ok) throw new Error('Non connecté');
+        return await res.json();
+      }, window.CLIENT_CACHE_TTL ? window.CLIENT_CACHE_TTL.USER : 300);
+    } else {
+      const res = await fetch('/api/user');
+      if (!res.ok) throw new Error('Non connecté');
+      user = await res.json();
+    }
+
+    // Avatar: priorité à la photo personnalisée du profil agent (photo_url), sinon avatar Discord
+    let avatarUrl;
+    try {
+      const profRes = await fetch(`/api/agent-profile/${user.id}`);
+      if (profRes.ok) {
+        const profile = await profRes.json();
+        if (profile && profile.photo_url && String(profile.photo_url).trim() !== '') {
+          avatarUrl = profile.photo_url.trim();
+        }
+      }
+    } catch (e) {
+      console.warn('Impossible de récupérer le profil agent pour la sidebar:', e);
+    }
+    if (!avatarUrl) {
+      avatarUrl = user.avatar
+        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
+        : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discriminator) % 5}.png`;
+    }
 
     // Taille police dynamique
     let fontSize = '16px';
@@ -66,7 +91,7 @@ async function fetchUser() {
     // On insère seulement le contenu, le hover se fera sur l'ancre .nav-link (zone complète)
     container.innerHTML = `
       <span class="profile-inline" style="display:flex;align-items:center;gap:10px;">
-        <img class=\"profile-avatar\" src=\"${avatarUrl}\" alt=\"Avatar\" style=\"width:40px;height:40px;border-radius:50%;border:1px solid #FFFFFF;transition:border-color .18s;flex-shrink:0;\">
+  <img class=\"profile-avatar\" src=\"${avatarUrl}\" alt=\"Avatar\" data-user-id=\"${user.id}\" style=\"width:40px;height:40px;border-radius:50%;border:1px solid #FFFFFF;transition:border-color .18s;flex-shrink:0;object-fit:cover;\">
         <span class=\"profile-texts\" style=\"display:flex;flex-direction:column;line-height:1.15;\">
           <span class=\"profile-username\" style=\"font-weight:700;font-size:${fontSize};color:#FFFFFF;transition:color .18s;\">${user.username}</span>
           <span class=\"profile-grade\" style=\"font-weight:500;font-size:0.8rem;color:#CCCCCC;transition:color .18s;\">${user.grade}</span>
@@ -78,7 +103,8 @@ async function fetchUser() {
       navLinkAnchor.style.cursor = 'pointer';
       navLinkAnchor.addEventListener('click', (e) => {
         e.preventDefault();
-        window.location.href = `infosagent.html?userId=${user.id}`;
+        // Utiliser un chemin absolu pour fonctionner depuis n'importe quel sous-dossier (ex: /LSPD/trello/)
+        window.location.href = `/infosagent.html?userId=${user.id}`;
       });
 
       const BLUE = '#0b1b5a';
@@ -137,4 +163,3 @@ async function fetchUser() {
 }
 
 fetchUser();
-fetch('/api/user').then(res => res.json()).then(console.log);

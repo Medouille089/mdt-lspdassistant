@@ -392,6 +392,7 @@ body {
     justify-content: center;
     gap: 30px;
     padding-top: 20px;
+    padding-bottom: 10px;
     border-top: 2px solid #e0e0e0;
 }
 
@@ -930,6 +931,7 @@ p {
     transition: all 0.3s ease;
 }
 
+
 .detail-item:hover {
     transform: translateX(3px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -961,11 +963,13 @@ p {
     margin: 8px 0;
     color: #666;
     line-height: 1.6;
+    text-align: left;
+    font-size: 14px;
 }
 
 .detail-item p strong {
     display: inline;
-    font-size: 14px;
+    font-size: 16px;
     color: var(--main-color);
 }
 

@@ -14,9 +14,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchUser() {
   try {
-    const res = await fetch('/api/user');
-    if (!res.ok) throw new Error('Non connecté');
-    const user = await res.json();
+    let user;
+
+    if (window.clientCache && typeof window.clientCache.getOrFetch === 'function') {
+      user = await window.clientCache.getOrFetch('user', async () => {
+        const res = await fetch('/api/user');
+        if (!res.ok) throw new Error('Non connecté');
+        return await res.json();
+      }, window.CLIENT_CACHE_TTL ? window.CLIENT_CACHE_TTL.USER : 300);
+    } else {
+      const res = await fetch('/api/user');
+      if (!res.ok) throw new Error('Non connecté');
+      user = await res.json();
+    }
 
     const usernameEl = document.getElementById('messageUsername');
     const gradeEl = document.getElementById('messageGrade');

@@ -13,7 +13,6 @@ const upload = multer({ storage: multer.memoryStorage() });
 //     const forumChannelId = conf.arrestation_thread_id;
 //     const logsChannelId = conf.logs_channel;
 //     try {
-//         console.log(req.body)
 //         const {
 //             date, name, fileInput1, fileInput2, profession,
 //             DDN, address, tel, droits,
@@ -103,7 +102,6 @@ const upload = multer({ storage: multer.memoryStorage() });
 //                 .setTimestamp();
 
 //             await logsChannel.send({ embeds: [embedLog] });
-//             console.log('Log création rapport envoyé');
 //         }
 
 //         res.json({

@@ -35,13 +35,11 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
         return res.status(401).json({ error: "Utilisateur non connecté" });
     }
 
-    console.log('Données reçues:', { nom, prenom, tel, motif, dateDebut });
 
     try {
         const { rows: rows1 } = await pool.query("SELECT id_brac FROM bracelets");
         const { rows: rows2 } = await pool.query("SELECT id_brac FROM historiqueBracelets");
 
-        console.log('IDs existants bracelets:', rows1.length, 'historique:', rows2.length);
 
         const allIds = [...rows1, ...rows2]
             .map(r => parseInt(r.id_brac.replace("BRAC", "")))
@@ -49,7 +47,6 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
         const nextNum = (Math.max(0, ...allIds) + 1).toString().padStart(4, '0');
         const id_brac = `BRAC${nextNum}`;
 
-        console.log('ID généré:', id_brac);
 
         await pool.query(
             `INSERT INTO bracelets (nom, prenom, tel, date_debut, id_brac, motif)
@@ -57,7 +54,6 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
             [nom, prenom, tel, dateDebut, id_brac, motif]
         );
 
-        console.log('Insertion en base OK');
 
         const port = process.env.PORT || 3001;
         const response = await fetch(`http://localhost:${port}/api/create-post`, {
@@ -69,7 +65,6 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
             body: JSON.stringify({ id_brac, nom, prenom, tel, motif, dateDebut })
         });
 
-        console.log('Réponse POST create-post:', response.status);
 
         const data = await response.json();
         let threadId;
@@ -79,7 +74,6 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
                 'UPDATE bracelets SET id_thread = $1 WHERE id_brac = $2',
                 [threadId, id_brac]
             );
-            console.log('Mise à jour thread ID OK');
         }
         const mentionThread = threadId ? `<#${threadId}>` : 'Thread inconnu';
 
@@ -104,7 +98,6 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
                     .setTimestamp();
 
                 await logsChannel.send({ embeds: [embedLog] });
-                console.log('Log bot envoyé dans LOGS_CHANNEL');
             }
         }
 
@@ -117,7 +110,6 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
 
 // Route POST – Création d’un post (thread Discord)
 router.post('/api/create-post', async (req, res) => {
-    console.log("POST /api/create-post reçu avec body:", req.body);
     const { id_brac, nom, prenom, tel, motif, dateDebut } = req.body;
 
     try {
@@ -154,7 +146,6 @@ router.post('/api/create-post', async (req, res) => {
         const conf = await config.getConfig();
         const thread = await createForumPost(bot, conf.thread_id, threadTitle, embedPayload);
 
-        console.log(`🧵 Thread créé avec l'ID : ${thread.id}`);
 
         res.json({ message: `✅ Post créé : ${thread.name}`, threadId: thread.id });
     } catch (error) {
@@ -224,7 +215,6 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
                 if (shouldRename) {
                     const newThreadName = `${id_brac} - ${nom} ${prenom} - ${dateDebutFormatted}`;
                     await thread.setName(newThreadName);
-                    console.log(`🔄 Thread renommé : ${newThreadName}`);
                 }
 
                 const embed = new EmbedBuilder()
@@ -272,7 +262,6 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
                             .setTimestamp();
 
                         await logsChannel.send({ embeds: [embedLog] });
-                        console.log('Log modification envoyé');
                     }
                 }
             }
