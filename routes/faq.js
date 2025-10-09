@@ -35,14 +35,10 @@ async function logFaqAction({ actorId, type, targetType, targetName, targetId, e
       const detailed = extra.trim().split(/\n/).map(l => l.startsWith('>') ? l : `> ${l}`).join('\n').slice(0, 3900);
       embed.addFields({ name: 'Détails', value: detailed });
     }
-    // IDs toujours en bas, seulement l'id user, préfixé par >
-    embed.addFields({ name: 'ID', value: `> \`${actorId}\`` });
-    if (guild) {
-      const icon = guild.iconURL({ size: 128 });
-      embed.setFooter({ text: 'LSPD Assistant', iconURL: icon || undefined });
-    } else {
-      embed.setFooter({ text: 'LSPD Assistant' });
-    }
+    // IDs toujours en bas, mention + id
+    embed.addFields({ name: 'ID\'s', value: `> <@${actorId}> (\`${actorId}\`)` });
+    const botAvatar = bot.user?.displayAvatarURL({ size: 128 });
+    embed.setFooter({ text: 'LSPD Assistant', iconURL: botAvatar || undefined });
     await channel.send({ embeds: [embed] });
   } catch (e) {
     console.warn('Log FAQ échoué:', e.message);
