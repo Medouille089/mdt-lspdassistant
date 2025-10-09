@@ -49,10 +49,24 @@ async function fetchUser() {
     if (!res.ok) throw new Error('Non connecté');
     const user = await res.json();
 
-    // Avatar
-    const avatarUrl = user.avatar
-      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
-      : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discriminator) % 5}.png`;
+    // Avatar: priorité à la photo personnalisée du profil agent (photo_url), sinon avatar Discord
+    let avatarUrl;
+    try {
+      const profRes = await fetch(`/api/agent-profile/${user.id}`);
+      if (profRes.ok) {
+        const profile = await profRes.json();
+        if (profile && profile.photo_url && String(profile.photo_url).trim() !== '') {
+          avatarUrl = profile.photo_url.trim();
+        }
+      }
+    } catch (e) {
+      console.warn('Impossible de récupérer le profil agent pour la sidebar:', e);
+    }
+    if (!avatarUrl) {
+      avatarUrl = user.avatar
+        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
+        : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discriminator) % 5}.png`;
+    }
 
     // Taille police dynamique
     let fontSize = '16px';
@@ -66,7 +80,7 @@ async function fetchUser() {
     // On insère seulement le contenu, le hover se fera sur l'ancre .nav-link (zone complète)
     container.innerHTML = `
       <span class="profile-inline" style="display:flex;align-items:center;gap:10px;">
-        <img class=\"profile-avatar\" src=\"${avatarUrl}\" alt=\"Avatar\" style=\"width:40px;height:40px;border-radius:50%;border:1px solid #FFFFFF;transition:border-color .18s;flex-shrink:0;\">
+  <img class=\"profile-avatar\" src=\"${avatarUrl}\" alt=\"Avatar\" data-user-id=\"${user.id}\" style=\"width:40px;height:40px;border-radius:50%;border:1px solid #FFFFFF;transition:border-color .18s;flex-shrink:0;object-fit:cover;\">
         <span class=\"profile-texts\" style=\"display:flex;flex-direction:column;line-height:1.15;\">
           <span class=\"profile-username\" style=\"font-weight:700;font-size:${fontSize};color:#FFFFFF;transition:color .18s;\">${user.username}</span>
           <span class=\"profile-grade\" style=\"font-weight:500;font-size:0.8rem;color:#CCCCCC;transition:color .18s;\">${user.grade}</span>

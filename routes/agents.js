@@ -2,6 +2,47 @@ const express = require("express");
 const router = express.Router();
 const { checkAuth } = require("../config/middleware");
 const pool = require("../config/db");
+const { EmbedBuilder } = require('discord.js');
+
+// Helper pour envoyer un embed de log profil agent
+async function sendAgentLog({ bot, logsChannelId, action, actorMember, targetMember, actorId, targetId, lines = [] }) {
+  try {
+    if (!logsChannelId) return;
+    const channel = await bot.channels.fetch(logsChannelId).catch(() => null);
+    if (!channel || !channel.isTextBased()) return;
+    const actorName = actorMember?.displayName || actorId;
+    const targetName = targetMember?.displayName || targetId;
+  const actionLabelMap = { CREATE: 'CRÉATION', UPDATE: 'MODIFICATION', EDIT_ON: 'MODE ÉDITION ON' };
+    const baseLabel = actionLabelMap[action] || action;
+    const self = actorId === targetId;
+    let title;
+    if (action === 'CREATE') {
+      title = `${actorName} a créé le profil de ${targetName}`;
+    } else if (action === 'UPDATE') {
+      title = self
+        ? `${actorName} a modifié son profil`
+        : `${actorName} a modifié le profil de ${targetName}`;
+    } else if (action === 'EDIT_ON') {
+      title = `${actorName} a pris le mode édition du profil de ${targetName}`;
+    } else {
+      title = `${actorName} action sur ${targetName}`;
+    }
+
+  if (!lines.length) lines.push('Aucun détail');
+  const details = lines.map(l => l.startsWith('>') ? l : `> ${l}`).join('\n').slice(0, 3900);
+    const botAvatar = bot.user?.displayAvatarURL({ size: 128 });
+    const embed = new EmbedBuilder()
+      .setColor(0x0b1b5a)
+      .setTitle(title)
+  .addFields({ name: 'Détails', value: details })
+  .addFields({ name: 'ID\'s', value: `> <@${actorId}> (\`${actorId}\`)` })
+      .setFooter({ text: 'LSPD Assistant', iconURL: botAvatar || undefined })
+      .setTimestamp();
+    await channel.send({ embeds: [embed] });
+  } catch (e) {
+    console.warn('Log agent échoué:', e.message);
+  }
+}
 
 router.get('/api/user', checkAuth, async (req, res) => {
   const user = req.user;
@@ -101,7 +142,36 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
       // Normaliser champs tableaux
       created.armes = [];
       created.vehicules = [];
-      return res.json(created);
+      res.json(created);
+      // Log création
+      try {
+        const { getConfig, getBot } = require('../config/config');
+        const conf = getConfig();
+        const logsChannelId = conf.logs_channel;
+        if (logsChannelId) {
+          const bot = getBot();
+          const guild = bot.guilds.cache.get(process.env.GUILD_ID) || await bot.guilds.fetch(process.env.GUILD_ID);
+          const actorMember = await guild.members.fetch(req.user.id).catch(() => null);
+          const targetMember = await guild.members.fetch(userId).catch(() => null);
+          await sendAgentLog({
+            bot,
+            logsChannelId,
+            action: 'CREATE',
+            actorMember,
+            targetMember,
+            actorId: req.user.id,
+            targetId: userId,
+            lines: [
+              'Action: CRÉATION',
+              'Type: Profil Agent',
+              `Agent cible: ${targetMember?.displayName || userId}`,
+              `Acteur: ${actorMember?.displayName || req.user.id}`,
+              `Photo initiale: ${defaultPhoto || '—'}`
+            ]
+          });
+        }
+      } catch(e) { console.warn('Log création profil échoué:', e.message); }
+      return; // Already responded
     }
 
     // Parser armes / vehicules si stockés en JSON texte
@@ -125,7 +195,6 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     const user = req.user; // acteur
     let { photo_url, armes, vehicules, matricule, nom, prenom, specialites } = req.body;
 
-    // Normaliser armes / vehicules (peuvent arriver en string JSON ou déjà en array)
     const parseArray = (val) => {
       if (!val) return [];
       if (Array.isArray(val)) return val;
@@ -137,13 +206,8 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     armes = parseArray(armes).filter(a => a && a.nom);
     vehicules = parseArray(vehicules).filter(v => v && v.nom);
 
-    // Autoriser l'édition pour tous (temporaire pour déboguer)
     console.log('Édition du profil autorisée pour:', user.id);
 
-    // Mode édition désactivé temporairement - autoriser toutes les modifications
-
-    // Mettre à jour le profil
-    // Récupérer l'ancien profil pour diff AVANT update
     const oldRes = await pool.query('SELECT * FROM lspd_agent_profiles WHERE discord_id = $1', [userId]);
     const oldProfileRaw = oldRes.rows[0] || null;
     let oldProfile = null;
@@ -153,6 +217,9 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
       try { if (typeof oldProfile.vehicules === 'string') oldProfile.vehicules = JSON.parse(oldProfile.vehicules || '[]'); } catch { oldProfile.vehicules = []; }
       if (!Array.isArray(oldProfile.armes)) oldProfile.armes = [];
       if (!Array.isArray(oldProfile.vehicules)) oldProfile.vehicules = [];
+
+      oldProfile.armes = oldProfile.armes.filter(a => a && a.nom);
+      oldProfile.vehicules = oldProfile.vehicules.filter(v => v && v.nom);
     }
 
     const result = await pool.query(
@@ -219,55 +286,51 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
         const armesDiff = diffList(oldProfile?.armes || [], newArmes, 'arme');
         const vehiculesDiff = diffList(oldProfile?.vehicules || [], newVehicules, 'vehicule');
 
-        const fieldChanges = [];
-
-        const trackSimple = (label, oldVal, newVal) => {
+        const lines = [];
+        lines.push('Action: MODIFICATION');
+        lines.push('Type: Profil Agent');
+        lines.push(`Agent cible: ${targetName}`);
+        if (!selfEdit) lines.push(`Acteur: ${actorName}`);
+        const simpleChangeLine = (label, oldVal, newVal) => {
           const o = (oldVal || '').trim();
-            const n = (newVal || '').trim();
-            if (o !== n) {
-              fieldChanges.push({ name: label, value: `Ancien: ${o || '—'}\nNouveau: ${n || '—'}`, inline: false });
-            }
+          const n = (newVal || '').trim();
+          if (o !== n) lines.push(`${label}: \`${o || '—'}\` -> \`${n || '—'}\``);
         };
-        trackSimple('Matricule', oldProfile?.matricule, matricule);
-        trackSimple('Nom', oldProfile?.nom, nom);
-        trackSimple('Prénom', oldProfile?.prenom, prenom);
+        simpleChangeLine('Matricule', oldProfile?.matricule, matricule);
+        simpleChangeLine('Nom', oldProfile?.nom, nom);
+        simpleChangeLine('Prénom', oldProfile?.prenom, prenom);
         if ((oldProfile?.photo_url || '') !== (photo_url || '')) {
-          fieldChanges.push({ name: 'Photo', value: `Ancien: ${oldProfile?.photo_url || '—'}\nNouveau: ${photo_url || '—'}`, inline: false });
+          lines.push(`Photo: ${(oldProfile?.photo_url || '—')} -> ${(photo_url || '—')}`);
         }
-        if (armesDiff.added.length || armesDiff.removed.length) {
-          let value = '';
-          if (armesDiff.added.length) value += `➕ ${armesDiff.added.join('\n➕ ')}\n`;
-          if (armesDiff.removed.length) value += `➖ ${armesDiff.removed.join('\n➖ ')}`;
-          fieldChanges.push({ name: 'Armes modifiées', value: value.slice(0, 1000) || '—', inline: false });
-        }
-        if (vehiculesDiff.added.length || vehiculesDiff.removed.length) {
-          let value = '';
-          if (vehiculesDiff.added.length) value += `➕ ${vehiculesDiff.added.join('\n➕ ')}\n`;
-          if (vehiculesDiff.removed.length) value += `➖ ${vehiculesDiff.removed.join('\n➖ ')}`;
-          fieldChanges.push({ name: 'Véhicules modifiés', value: value.slice(0, 1000) || '—', inline: false });
-        }
-
-        const { EmbedBuilder } = require('discord.js');
-        const channel = await bot.channels.fetch(logsChannelId).catch(() => null);
-        if (channel?.isTextBased()) {
-          const title = selfEdit
-            ? `${actorName} a modifié son profil`
-            : `${actorName} a modifié le profil de ${targetName}`;
-          const embed = new EmbedBuilder()
-            .setColor(0x0b1b5a)
-            .setTitle(title)
-            .setTimestamp();
-          if (fieldChanges.length) {
-            fieldChanges.slice(0, 10).forEach(fc => embed.addFields(fc));
-          } else {
-            embed.setDescription('Aucun changement détecté (données identiques).');
-          }
-          // IDs field
-          embed.addFields({ name: 'ID\'s', value: `> <@${user.id}> (\`${user.id}\`)\n> <@${userId}> (\`${userId}\`)`, inline: false });
-          await channel.send({ embeds: [embed] });
-        }
+        // Listes complètes old/new
+        const formatList = (arr, prefix) => (arr && arr.length ? arr.map(a => prefix + a).join(', ') : '—');
+        const oldArmesList = (oldProfile?.armes || []).map(a => a && a.nom ? `${a.nom}${a.numero_serie ? ' (#'+a.numero_serie+')' : ''}` : null).filter(Boolean);
+        const newArmesList = newArmes.map(a => a && a.nom ? `${a.nom}${a.numero_serie ? ' (#'+a.numero_serie+')' : ''}` : null).filter(Boolean);
+        const oldVehList = (oldProfile?.vehicules || []).map(v => v && v.nom ? `${v.nom}${v.immatriculation ? ' [ '+v.immatriculation+' ]' : ''}` : null).filter(Boolean);
+        const newVehList = newVehicules.map(v => v && v.nom ? `${v.nom}${v.immatriculation ? ' [ '+v.immatriculation+' ]' : ''}` : null).filter(Boolean);
+        // Diff synthèse
+        if (armesDiff.added.length) lines.push(`Armes ajoutées: ${armesDiff.added.join(', ')}`);
+        if (armesDiff.removed.length) lines.push(`Armes retirées: ${armesDiff.removed.join(', ')}`);
+        if (vehiculesDiff.added.length) lines.push(`Véhicules ajoutés: ${vehiculesDiff.added.join(', ')}`);
+        if (vehiculesDiff.removed.length) lines.push(`Véhicules retirés: ${vehiculesDiff.removed.join(', ')}`);
+        // Listes complètes
+        lines.push(`Anciennes armes: ${oldArmesList.length ? oldArmesList.join(', ') : '—'}`);
+        lines.push(`Nouvelles armes: ${newArmesList.length ? newArmesList.join(', ') : '—'}`);
+        lines.push(`Anciens véhicules: ${oldVehList.length ? oldVehList.join(', ') : '—'}`);
+        lines.push(`Nouveaux véhicules: ${newVehList.length ? newVehList.join(', ') : '—'}`);
+        if (lines.length <= 4) lines.push('Aucun changement détecté');
+        await sendAgentLog({
+          bot,
+          logsChannelId,
+          action: 'UPDATE',
+          actorMember,
+          targetMember,
+          actorId: user.id,
+          targetId: userId,
+          lines
+        });
       }
-      
+
     } catch (logErr) {
       console.warn('Log modification profil échoué:', logErr.message);
     }
@@ -314,6 +377,32 @@ router.post('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) 
     );
 
     res.json({ success: true, editMode: true });
+    // Log acquisition edit-mode
+    try {
+      const { getConfig, getBot } = require('../config/config');
+      const conf = getConfig();
+      if (conf.logs_channel) {
+        const bot = getBot();
+        const guild = bot.guilds.cache.get(process.env.GUILD_ID) || await bot.guilds.fetch(process.env.GUILD_ID);
+        const actorMember = await guild.members.fetch(user.id).catch(() => null);
+        const targetMember = await guild.members.fetch(userId).catch(() => null);
+        await sendAgentLog({
+          bot,
+          logsChannelId: conf.logs_channel,
+          action: 'EDIT_ON',
+          actorMember,
+          targetMember,
+          actorId: user.id,
+          targetId: userId,
+          lines: [
+            'Action: MODE ÉDITION ON',
+            'Type: Profil Agent',
+            `Agent cible: ${targetMember?.displayName || userId}`,
+            `Acteur: ${actorMember?.displayName || user.id}`
+          ]
+        });
+      }
+    } catch(e) { console.warn('Log edit-mode on échoué:', e.message); }
   } catch (err) {
     console.error('Erreur activation mode édition:', err);
     res.status(500).json({ error: 'Erreur serveur' });

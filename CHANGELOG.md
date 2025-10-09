@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.1](https://github.com/Medouille089/lspdassistant/compare/v1.4.0...v1.4.1) (2025-10-09)
+
+
+### Bug Fixes
+
+* add logs to documentation + user profile ([1459665](https://github.com/Medouille089/lspdassistant/commit/1459665ed3baa051794d884e07923bbf8bfa4e14))
+* get pp in sidebar from agent profil ([4b4091c](https://github.com/Medouille089/lspdassistant/commit/4b4091c3660dd66dc2ddcedb88a4629dcc0a0277))
+* heure de modification des cartes ([b0e0552](https://github.com/Medouille089/lspdassistant/commit/b0e055223cf5c41ac32c98f6bfd2c80d5f027ca9))
+* meilleure propreté des fichiers de configuration du Trello ([4fd06cb](https://github.com/Medouille089/lspdassistant/commit/4fd06cb95d277bba8c3759fd928d114b5ce369a4))
+* move some button from annexes to old ([30a91b2](https://github.com/Medouille089/lspdassistant/commit/30a91b27042a686211f6243faca2a820ac43d3e3))
+* oublie pointeuse ([d5518d6](https://github.com/Medouille089/lspdassistant/commit/d5518d6fd2746159468324befcadd0bd30646ed9))
+
 ## [1.4.0](https://github.com/Medouille089/lspdassistant/compare/v1.3.0...v1.4.0) (2025-10-08)
 
 
