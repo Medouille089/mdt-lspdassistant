@@ -5,7 +5,6 @@ function cleanOldUsers() {
     DELETE FROM lspd_live_users
     WHERE last_seen < NOW() - INTERVAL '5 minutes'
   `).then(() => {
-    console.log('[LiveUsersCleaner] Nettoyage des utilisateurs inactifs.');
   }).catch(err => {
     console.error('[LiveUsersCleaner] Erreur nettoyage:', err);
   });

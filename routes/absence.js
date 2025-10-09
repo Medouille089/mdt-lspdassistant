@@ -5,9 +5,18 @@ const { createForumPost } = require('../utils/createForumPost');
 const { getBot, getConfig } = require('../config/config');
 const { checkAuth } = require('../config/middleware');
 const { EmbedBuilder } = require("discord.js");
+const { cache } = require('../config/cache');
 
 router.get('/api/absence', checkAuth, async (req, res) => {
     try {
+        const cacheKey = 'absence:all';
+        const cachedData = cache.get(cacheKey);
+
+        if (cachedData) {
+            return res.json(cachedData);
+        }
+
+
         const query = `
             SELECT 
                 id,
@@ -28,6 +37,9 @@ router.get('/api/absence', checkAuth, async (req, res) => {
         `;
 
         const result = await db.query(query);
+
+        cache.set(cacheKey, result.rows, 180);
+
         res.json(result.rows);
     } catch (error) {
         console.error('Erreur lors de la récupération des absences:', error);
@@ -41,6 +53,15 @@ router.get('/api/absence', checkAuth, async (req, res) => {
 // Route pour récupérer les absences de l'utilisateur connecté
 router.get('/api/absence/mes-absences', checkAuth, async (req, res) => {
     try {
+        const userId = req.user?.guild_member.nick;
+
+        const cacheKey = `absence:user:${userId}`;
+        const cachedData = cache.get(cacheKey);
+
+        if (cachedData) {
+            return res.json(cachedData);
+        }
+
         const query = `
             SELECT 
                 id,
@@ -61,8 +82,9 @@ router.get('/api/absence/mes-absences', checkAuth, async (req, res) => {
             ORDER BY date_creation DESC
         `;
 
-        const result = await db.query(query, [req.user?.guild_member.nick]);
-        console.log(`Récupération des absences pour l'utilisateur: ${req.user?.guild_member.nick}`);
+        const result = await db.query(query, [userId]);
+        cache.set(cacheKey, result.rows, 180);
+
         res.json(result.rows);
     } catch (error) {
         console.error('Erreur lors de la récupération des absences utilisateur:', error);
@@ -201,6 +223,8 @@ router.post('/api/absence', async (req, res) => {
             console.error('Erreur lors de la notification Discord:', discordError);
         }
 
+        cache.deletePattern('absence:*');
+
         res.status(201).json({
             message: 'Absence créée avec succès',
             absence: nouvelleAbsence
@@ -293,6 +317,8 @@ router.put('/api/absence/:id/statut', async (req, res) => {
             console.error('Erreur lors de la notification Discord:', discordError);
         }
 
+        cache.deletePattern('absence:*');
+
         res.json({
             message: 'Statut de l\'absence mis à jour avec succès',
             absence: absenceModifiee
@@ -320,6 +346,8 @@ router.delete('/api/absence/:id', async (req, res) => {
                 message: 'Aucune absence trouvée avec cet ID'
             });
         }
+
+        cache.deletePattern('absence:*');
 
         res.json({
             message: 'Absence supprimée avec succès',

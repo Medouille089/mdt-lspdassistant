@@ -14,7 +14,6 @@ async function loadConfig() {
     currentConfig.lspd_grades = Object.entries(gradesRes.rows[0]);
     currentConfig.lspd_formations = Object.entries(formationsRes.rows[0]);
 
-    console.log("✅ Configuration LSPD chargée depuis la base de données");
   } catch (error) {
     console.error("❌ Erreur lors du chargement de la configuration:", error.message);
     // Configuration par défaut en cas d'erreur
@@ -27,7 +26,6 @@ async function loadConfig() {
       lspd_grades: [],
       lspd_formations: []
     };
-    console.log("⚠️ Utilisation de la configuration par défaut depuis les variables d'environnement");
   }
 }
 

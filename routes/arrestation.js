@@ -113,7 +113,6 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
                 .setTimestamp();
 
             await logsChannel.send({ embeds: [embedLog] });
-            console.log('Log création rapport envoyé');
         }
 
         res.json({
@@ -178,7 +177,6 @@ router.get('/api/getArrestation', async (req, res) => {
                             }
                         });
                         const links = msg.content.match(urlRegex);
-                        console.log('Liens trouvés dans le message :', links);
                     });
                 }
             } catch (err) {

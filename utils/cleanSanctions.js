@@ -10,9 +10,8 @@ function formatDate(date) {
 
 async function cleanSanctions() {
     try {
-        console.log('⏳ Démarrage cleanSanctions...');
         const bot = getBot();
-        if (!bot?.isReady()) return console.log('❌ Bot non prêt, skip cleanSanctions');
+        if (!bot?.isReady()) return;
 
         const guild = await bot.guilds.fetch(process.env.GUILD_ID);
         const config = getConfig();
@@ -29,13 +28,10 @@ async function cleanSanctions() {
         const result = await pool.query(`SELECT * FROM lspd_sanctions`);
         const sanctions = result.rows;
 
-        if (!sanctions.length) return console.log('⚠️ Aucune sanction à vérifier');
-
-        console.log(`🔍 ${sanctions.length} sanctions trouvées`);
+        if (!sanctions.length) return ;
 
         // IDs Discord uniques
         const uniqueIds = [...new Set(sanctions.map(s => s.player_discord_id))];
-        console.log(`👥 Vérification pour ${uniqueIds.length} membres`);
 
         // Fetch seulement ces membres
         const membersMap = new Map();
@@ -57,7 +53,6 @@ async function cleanSanctions() {
             const memberName = member?.displayName || sanction.player_id;
 
             const hasRole = member?.roles.cache.has(requiredRoleId) || false;
-            console.log(`➡️ Vérif sanction ${sanction.id} pour ${memberName} (hasRole=${hasRole})`);
 
             if (hasRole) {
                 if (sanction.role_removed_at) {
@@ -65,7 +60,6 @@ async function cleanSanctions() {
                         `UPDATE lspd_sanctions SET role_removed_at = NULL WHERE id = $1`,
                         [sanction.id]
                     );
-                    console.log(`[RESET] ${memberName} a récupéré le rôle, counter remis à NULL pour sanction ${sanction.id}`);
                 }
             } else {
                 if (!sanction.role_removed_at) {
@@ -73,25 +67,23 @@ async function cleanSanctions() {
                         `UPDATE lspd_sanctions SET role_removed_at = NOW() WHERE id = $1`,
                         [sanction.id]
                     );
-                    console.log(`[START] ${memberName} n'a plus le rôle, counter démarré pour sanction ${sanction.id}`);
                 } else {
                     const removedAt = new Date(sanction.role_removed_at);
                     const diffMs = now - removedAt;
-                    console.log(`⏱ ${memberName} sans rôle depuis ${Math.floor(diffMs / 1000)}s`);
 
                     if (diffMs >= oneMonthMs) {
                         await pool.query(`DELETE FROM lspd_sanctions WHERE id = $1`, [sanction.id]);
                         deletedSanctions.push(sanction);
-                        console.log(`[DELETE] ${memberName} sanction ${sanction.id} supprimée`);
 
                         // Retire tous les rôles de sanction
                         if (member) {
                             const roleRes = await pool.query(`SELECT id_discord FROM lspd_sanctions_roles`);
                             for (const r of roleRes.rows) {
                                 const role = member.roles.cache.get(r.id_discord);
-                                if (role) await member.roles.remove(role).catch(err => console.log(`Erreur retrait rôle ${r.id_discord} pour ${memberName}:`, err));
+                                if (role) await member.roles.remove(role).catch(err => {
+                                    console.error(`❌ Erreur retrait rôle ${r.id_discord} à ${memberName}:`, err);
+                                });
                             }
-                            console.log(`[ROLES REMOVED] Tous les rôles de sanction retirés pour ${memberName}`);
                         }
                     }
                 }
@@ -115,10 +107,8 @@ async function cleanSanctions() {
                 .setTimestamp();
 
             await logsChannel.send({ embeds: [embedLog] });
-            console.log(`✅ Log envoyé pour ${deletedSanctions.length} sanctions supprimées`);
         }
 
-        console.log('✅ cleanSanctions terminé');
     } catch (err) {
         console.error('❌ Erreur cleanSanctions:', err);
     }
@@ -140,7 +130,6 @@ function scheduleDailySanctionCheck() {
         setInterval(cleanSanctions, 24 * 60 * 60 * 1000); // tous les jours
     }, msUntilMidnight);
 
-    console.log(`⏱ cleanSanctions planifié tous les jours à minuit, démarrage dans ${msUntilMidnight / 1000}s`);
 }
 
 scheduleDailySanctionCheck();

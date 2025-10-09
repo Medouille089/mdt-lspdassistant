@@ -330,7 +330,6 @@ async function persistBoardToDatabase(data) {
         await client.query('UPDATE trello_boards SET updated_at = NOW() WHERE id = $1', [DEFAULT_BOARD_ID]);
         await client.query('COMMIT');
 
-        console.log('✅ Board sauvegardé en DB');
     } catch (err) {
         await client.query('ROLLBACK');
         throw err;

@@ -13,7 +13,6 @@ const IS_LOCAL = (process.env.IS_LOCAL || "").trim().toLowerCase() === "true";
 
 async function sendFicheDePresence(bot, isReminder = false) {
   if (IS_LOCAL) {
-    console.log("✅ Mode local activé : envoi de fiche de présence bloqué");
     return;
   }
 
@@ -87,7 +86,6 @@ async function sendFicheDePresence(bot, isReminder = false) {
       await message.react(EMOJIS.absent);
     }
 
-    console.log(`✅ Fiche de présence ${isReminder ? "rappel" : "principale"} envoyée dans <#${fiche_de_presence_id}>`);
   } catch (error) {
     console.error("❌ Erreur dans sendFicheDePresence:", error);
   }

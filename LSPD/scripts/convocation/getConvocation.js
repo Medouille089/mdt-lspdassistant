@@ -49,7 +49,6 @@ function applyFilters() {
     const dateStart = dateStartInput.value;
     const dateEnd = dateEndInput.value;
     filteredConvocations = convocations.filter(item => {
-        console.log(item);
         const textMatch =
             (item.officer?.toLowerCase().includes(search)) ||
             (item.type?.toLowerCase().includes(search));

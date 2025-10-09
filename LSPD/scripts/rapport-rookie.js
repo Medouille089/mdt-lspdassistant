@@ -2,23 +2,23 @@ let allRoles = [];
 let agentsCache = [];
 
 function showAnimation(type = 'success', message = '') {
-    return new Promise((resolve) => {
-        const container = document.getElementById('feedbackAnimation');
-        container.innerHTML = '';
+  return new Promise((resolve) => {
+    const container = document.getElementById('feedbackAnimation');
+    container.innerHTML = '';
 
-        const content = document.createElement('div');
-        content.className = 'feedback-inner';
+    const content = document.createElement('div');
+    content.className = 'feedback-inner';
 
-        if (type === 'success') {
-            content.innerHTML = `
+    if (type === 'success') {
+      content.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2" width="100" height="100">
                     <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
                     <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
                 </svg>
                 <p class="success">${message || 'Opération réussie !'}</p>
             `;
-        } else {
-            content.innerHTML = `
+    } else {
+      content.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2" width="100" height="100">
                     <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
                     <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
@@ -26,17 +26,17 @@ function showAnimation(type = 'success', message = '') {
                 </svg>
                 <p class="error">${message || "Erreur lors de l'opération"}</p>
             `;
-        }
+    }
 
-        container.appendChild(content);
-        container.style.display = 'flex';
+    container.appendChild(content);
+    container.style.display = 'flex';
 
-        setTimeout(() => {
-            container.style.display = 'none';
-            container.innerHTML = '';
-            resolve();
-        }, 1800);
-    });
+    setTimeout(() => {
+      container.style.display = 'none';
+      container.innerHTML = '';
+      resolve();
+    }, 1800);
+  });
 }
 
 // Charger les agents
@@ -66,9 +66,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   loader.style.display = "flex"; // afficher loader
 
   try {
-    // Charger utilisateur
-    const userRes = await fetch("/api/user");
-    const user = await userRes.json();
+    let user;
+
+    if (window.clientCache && typeof window.clientCache.getOrFetch === 'function') {
+      user = await window.clientCache.getOrFetch('user', async () => {
+        const res = await fetch('/api/user');
+        if (!res.ok) throw new Error('Non connecté');
+        return await res.json();
+      }, window.CLIENT_CACHE_TTL ? window.CLIENT_CACHE_TTL.USER : 300);
+    } else {
+      const userRes = await fetch("/api/user");
+      user = await userRes.json();
+    }
+
     document.getElementById("officier").value = user.username;
     document.getElementById("grade").value = user.grade;
   } catch (err) {

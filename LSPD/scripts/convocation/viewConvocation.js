@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const updateButton = document.querySelector(".send-button");
                 if (updateButton) {
                     updateButton.style.display = 'none';
-                    console.log('🔒 Bouton mise à jour masqué pour utilisateur DOJ');
                 }
 
                 // Désactiver tous les inputs et textareas
@@ -27,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     input.style.backgroundColor = '#f5f5f5';
                     input.style.cursor = 'not-allowed';
                 });
-                console.log('🔒 Champs désactivés pour utilisateur DOJ');
             }
         })
         .catch((err) => {
@@ -84,7 +82,6 @@ async function loadConvocationDetail() {
         const convocations = await res.json();
         const convocation = convocations.find(i => i.id == id);
         if (!convocation) throw new Error('Convocation non trouvée');
-        console.log("Convocation trouvée :", convocation);
         nom.value = convocation.nom || '';
         prenom.value = convocation.prenom || '';
         officierInput.value = convocation.officier || '';

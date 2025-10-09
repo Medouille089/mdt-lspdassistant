@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const updateButton = document.querySelector(".send-button");
                 if (updateButton) {
                     updateButton.style.display = 'none';
-                    console.log('🔒 Bouton mise à jour masqué pour utilisateur DOJ');
                 }
 
                 // Désactiver tous les inputs et textareas
@@ -27,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     input.style.backgroundColor = '#f5f5f5';
                     input.style.cursor = 'not-allowed';
                 });
-                console.log('🔒 Champs désactivés pour utilisateur DOJ');
             }
         })
         .catch((err) => {
@@ -116,7 +114,6 @@ function enableFullscreenOnImages() {
     const closeBtn = document.getElementById('fullscreenClose');
 
     document.querySelectorAll('.preview-image').forEach(img => {
-        console.log(img);
         img.style.cursor = 'zoom-in';
         img.addEventListener('click', () => {
             fullscreenImg.src = img.src;
@@ -151,9 +148,7 @@ async function loadIncidentDetail() {
         const arrestation = arrestations.find(i => i.arrestationId == id);
         if (!arrestation) throw new Error('Rap. Arrestation non trouvé');
 
-        console.log(arrestation);
         arrestation.date = arrestation.date.split('T')[0] + "T" + arrestation.date.split('T')[1].substring(0, 5);
-        console.log(arrestation.date);
         arrestation.ddn = arrestation.ddn.split('T')[0];
 
         dateInput.value = arrestation.date || '';
@@ -192,7 +187,6 @@ async function loadIncidentDetail() {
 
         const container = document.getElementById('incident-container');
         container.innerHTML = '';
-        console.log(arrestation.images);
         const preview = document.getElementById('attachmentsPreview');
         preview.innerHTML = '';
 

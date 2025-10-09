@@ -66,7 +66,6 @@ app.use((req, res, next) => {
         // Stocker l'URL originale avec l'ID
         if (!global.pendingRedirects) global.pendingRedirects = new Map();
         global.pendingRedirects.set(redirectId, req.originalUrl);
-        console.log(`🛡️ Auth guard: stockage returnTo = ${req.originalUrl} avec ID=${redirectId}`);
         return res.redirect(`/login?redirect=${redirectId}`);
     }
 
@@ -143,7 +142,6 @@ async function startServer() {
     httpServer.listen(port, () => {
         console.clear();
         console.log(`🚀 Serveur LSPD démarré sur http://localhost:${port}/connect.html`);
-        console.log(`🔗 Trello URL : http://localhost:${port}/trello/`);
     });
 }
 
@@ -167,12 +165,10 @@ async function gracefulShutdown(signal) {
         return; // Empêche double exécution
     }
     shuttingDown = true;
-    console.log(`🛑 Signal ${signal} reçu - arrêt du serveur...`);
     try {
         if (useDatabase && pool) {
             try {
                 await pool.end();
-                console.log('✅ Pool PostgreSQL fermé.');
             } catch (e) {
                 if (e && /end on pool more than once/i.test(e.message)) {
                     console.warn('⚠️ pool.end déjà appelé, ignore.');
@@ -184,19 +180,18 @@ async function gracefulShutdown(signal) {
         // Fermer le serveur HTTP si nécessaire
         if (httpServer && httpServer.close) {
             await new Promise(resolve => httpServer.close(resolve));
-            console.log('✅ Serveur HTTP fermé.');
         }
     } finally {
         process.exit(0);
     }
 }
 
-['SIGINT','SIGTERM'].forEach(sig => {
+['SIGINT', 'SIGTERM'].forEach(sig => {
     process.once(sig, () => gracefulShutdown(sig));
 });
 
 // En cas d'arrêt via Ctrl+C répété, forcer après délai
 process.once('SIGINT', () => {
-    if (!shuttingDown) return; 
+    if (!shuttingDown) return;
     setTimeout(() => { if (shuttingDown) { console.warn('Forçage arrêt.'); process.exit(1); } }, 5000);
 });

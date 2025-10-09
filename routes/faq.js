@@ -73,7 +73,6 @@ router.post('/api/faq/edit-lock', checkAuth, async (req, res) => {
       // ignore and fallback to username
     }
     editLock = { ownerId: req.user.id, ownerName, since: new Date().toISOString() };
-    console.log('Edit lock acquired by', editLock.ownerId);
     res.json(editLock);
   } catch (e) {
     res.status(500).json({ error: 'Erreur acquisition lock' });
@@ -86,7 +85,6 @@ router.delete('/api/faq/edit-lock', checkAuth, async (req, res) => {
     if (!editLock) return res.json({ success: true });
     // only owner or superadmin can release
     if (editLock.ownerId !== req.user.id && !req.user?.isSuperAdmin) return res.status(403).json({ error: 'Accès refusé' });
-    console.log('Edit lock released by', req.user.id);
     editLock = null;
     res.json({ success: true });
   } catch (e) {
@@ -99,7 +97,6 @@ router.post('/api/faq/edit-lock/release', checkAuth, async (req, res) => {
   try {
     if (!editLock) return res.json({ success: true });
     if (editLock.ownerId !== req.user.id && !req.user?.isSuperAdmin) return res.status(403).json({ error: 'Accès refusé' });
-    console.log('Edit lock released via keepalive by', req.user.id);
     editLock = null;
     res.json({ success: true });
   } catch (e) {
@@ -229,7 +226,6 @@ router.post('/api/faq/category', checkAuth, async (req, res) => {
 
 // PATCH update categories order (expects { order: [id1,id2,...] })
 router.patch('/api/faq/order/categories', checkAuth, async (req, res) => {
-  console.log('PATCH /api/faq/order/categories called by', req.user?.id);
   if (!req.user?.isCommandStaff && !req.user?.isSupervisor && !req.user?.isSuperAdmin) return res.status(403).json({ error: 'Accès refusé' });
   const { order } = req.body;
   if (!Array.isArray(order)) return res.status(400).json({ error: 'Order manquant' });
@@ -256,7 +252,6 @@ router.patch('/api/faq/order/categories', checkAuth, async (req, res) => {
 
 // PATCH update entries order (expects array of { id, categoryId, ordre })
 router.patch('/api/faq/order/entries', checkAuth, async (req, res) => {
-  console.log('PATCH /api/faq/order/entries called by', req.user?.id);
   if (!req.user?.isCommandStaff && !req.user?.isSupervisor && !req.user?.isSuperAdmin) return res.status(403).json({ error: 'Accès refusé' });
   const items = req.body;
   if (!Array.isArray(items)) return res.status(400).json({ error: 'Payload invalide' });
