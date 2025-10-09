@@ -11,8 +11,34 @@ function parseActiveDurationSeconds(activeDuration) {
         return activeDuration >= 0 ? activeDuration : null;
     }
 
+    if (typeof activeDuration === 'object') {
+        if (activeDuration === null) return null;
+
+        const days = Number.parseInt(activeDuration.days ?? activeDuration.day ?? 0, 10) || 0;
+        const hours = Number.parseInt(activeDuration.hours ?? activeDuration.hour ?? 0, 10) || 0;
+        const minutes = Number.parseInt(activeDuration.minutes ?? activeDuration.minute ?? 0, 10) || 0;
+        const seconds = Number.parseInt(activeDuration.seconds ?? activeDuration.second ?? 0, 10) || 0;
+        const millis = Number.parseInt(activeDuration.milliseconds ?? activeDuration.millis ?? 0, 10) || 0;
+
+        const totalSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds + Math.floor(millis / 1000);
+        return totalSeconds >= 0 ? totalSeconds : null;
+    }
+
     const durationString = activeDuration.toString().trim();
     if (!durationString) return null;
+
+    const isoMatch = durationString.match(/^P(T.*)$/i);
+    if (isoMatch) {
+        try {
+            const asMillis = parseISODurationToMillis(durationString);
+            if (Number.isFinite(asMillis)) {
+                const seconds = Math.floor(asMillis / 1000);
+                return seconds >= 0 ? seconds : null;
+            }
+        } catch (error) {
+            console.warn('Impossible de parser la durée ISO:', durationString, error);
+        }
+    }
 
     let totalSeconds = 0;
 
@@ -28,11 +54,45 @@ function parseActiveDurationSeconds(activeDuration) {
         totalSeconds += parseInt(timeMatch[3], 10);
     }
 
-    return totalSeconds || null;
+    if (!timeMatch && !dayMatch) {
+        const numeric = Number(durationString);
+        if (Number.isFinite(numeric)) {
+            totalSeconds += numeric;
+        }
+    }
+
+    return Number.isFinite(totalSeconds) ? Math.max(0, totalSeconds) : null;
 }
 
-function formatActiveDuration(activeDuration) {
-    const totalSeconds = parseActiveDurationSeconds(activeDuration);
+function parseISODurationToMillis(isoDuration) {
+    // Supporte des formats simples comme PT15M, PT25M30S, PT1H, etc.
+    const regex = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/i;
+    const match = isoDuration.match(regex);
+    if (!match) return NaN;
+
+    const days = Number(match[1] || 0);
+    const hours = Number(match[2] || 0);
+    const minutes = Number(match[3] || 0);
+    const seconds = Number(match[4] || 0);
+
+    return (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000;
+}
+
+function getActiveDurationSeconds(patrol) {
+    let durationSeconds = parseActiveDurationSeconds(patrol?.activeDuration ?? patrol?.active_duration);
+
+    if (durationSeconds == null && patrol?.timestamp && (patrol?.deletedAt || patrol?.deleted_at)) {
+        const start = new Date(patrol.timestamp);
+        const end = new Date(patrol.deletedAt ?? patrol.deleted_at ?? Date.now());
+        if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+            durationSeconds = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
+        }
+    }
+
+    return durationSeconds;
+}
+
+function formatDurationFromSeconds(totalSeconds) {
     if (totalSeconds == null) return '';
 
     const totalMinutes = Math.floor(totalSeconds / 60);
@@ -59,7 +119,7 @@ function shouldDisplayPatrol(patrol) {
         return true;
     }
 
-    const durationSeconds = parseActiveDurationSeconds(patrol.activeDuration);
+    const durationSeconds = getActiveDurationSeconds(patrol);
     if (durationSeconds == null) {
         return false;
     }
@@ -80,7 +140,8 @@ function renderPatrolCard(patrol) {
     const cardStillExists = checkIfCardExists(patrol.cardId);
     const deletedClass = cardStillExists ? '' : 'patrol-deleted';
     const deletedBadge = cardStillExists ? '' : '<span class="patrol-badge deleted-badge">🗑️ Supprimée</span>';
-    const durationLabel = !cardStillExists ? formatActiveDuration(patrol.activeDuration) : '';
+    const durationSeconds = getActiveDurationSeconds(patrol);
+    const durationLabel = !cardStillExists ? formatDurationFromSeconds(durationSeconds) : '';
     const durationBadge = durationLabel ? `<span class="patrol-badge duration-badge">${durationLabel}</span>` : '';
     
     // Créer la description avec les infos des rookies
@@ -301,15 +362,7 @@ export async function handleRookiePatrolDeletion(cardId, options = {}) {
     const patrol = getRookiePatrols().find(p => p.cardId === cardId);
     if (!patrol) return;
 
-    let durationSeconds = parseActiveDurationSeconds(patrol.activeDuration ?? patrol.active_duration);
-
-    if (durationSeconds == null && patrol.timestamp && patrol.deletedAt) {
-        const start = new Date(patrol.timestamp);
-        const end = new Date(patrol.deletedAt);
-        if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
-            durationSeconds = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
-        }
-    }
+    let durationSeconds = getActiveDurationSeconds(patrol);
 
     if (durationSeconds != null && durationSeconds < MIN_ACTIVE_DURATION_SECONDS) {
         try {
