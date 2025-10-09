@@ -1,31 +1,44 @@
-import { boardData, availableTags, addRookiePatrol, getRookiePatrols, setRookiePatrols, updateRookiePatrolDeletion } from './state.js';
+import { boardData, availableTags, addRookiePatrol, getRookiePatrols, setRookiePatrols, updateRookiePatrolDeletion, removeRookiePatrol } from './state.js';
 import { getCardTags } from './utils.js';
 import { saveRookiePatrol, cleanDeletedPatrols as cleanDeletedPatrolsAPI, markPatrolAsDeleted } from '../routes/rookiePatrolsAPI.js';
 
-/**
- * Crée le HTML d'une carte comme dans le board (inspiré de renderCard)
- */
-function formatActiveDuration(activeDuration) {
-    if (!activeDuration) return '';
+const MIN_ACTIVE_DURATION_SECONDS = 10 * 60; // 10 minutes
+
+function parseActiveDurationSeconds(activeDuration) {
+    if (activeDuration == null) return null;
+
+    if (typeof activeDuration === 'number') {
+        return activeDuration >= 0 ? activeDuration : null;
+    }
 
     const durationString = activeDuration.toString().trim();
-    if (!durationString) return '';
+    if (!durationString) return null;
 
-    let totalHours = 0;
-    let minutes = 0;
-    let seconds = 0;
+    let totalSeconds = 0;
 
     const dayMatch = durationString.match(/(\d+)\s+days?/i);
     if (dayMatch) {
-        totalHours += parseInt(dayMatch[1], 10) * 24;
+        totalSeconds += parseInt(dayMatch[1], 10) * 86400;
     }
 
     const timeMatch = durationString.match(/(\d{1,2}):(\d{2}):(\d{2})(?:\.\d+)?$/);
     if (timeMatch) {
-        totalHours += parseInt(timeMatch[1], 10);
-        minutes = parseInt(timeMatch[2], 10);
-        seconds = parseInt(timeMatch[3], 10);
+        totalSeconds += parseInt(timeMatch[1], 10) * 3600;
+        totalSeconds += parseInt(timeMatch[2], 10) * 60;
+        totalSeconds += parseInt(timeMatch[3], 10);
     }
+
+    return totalSeconds || null;
+}
+
+function formatActiveDuration(activeDuration) {
+    const totalSeconds = parseActiveDurationSeconds(activeDuration);
+    if (totalSeconds == null) return '';
+
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const totalHours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
 
     const segments = [];
     if (totalHours > 0) {
@@ -35,15 +48,28 @@ function formatActiveDuration(activeDuration) {
         segments.push(`${minutes}m`);
     }
     if (segments.length === 0) {
-        if (seconds > 0) {
-            segments.push(`${seconds}s`);
-        } else {
-            segments.push('<1m');
-        }
+        segments.push(seconds > 0 ? `${seconds}s` : '<1m');
     }
 
     return `Durée : ${segments.join(' ')}`;
 }
+
+function shouldDisplayPatrol(patrol) {
+    if (!patrol.deletedAt) {
+        return true;
+    }
+
+    const durationSeconds = parseActiveDurationSeconds(patrol.activeDuration);
+    if (durationSeconds == null) {
+        return false;
+    }
+
+    return durationSeconds >= MIN_ACTIVE_DURATION_SECONDS;
+}
+
+/**
+ * Crée le HTML d'une carte comme dans le board (inspiré de renderCard)
+ */
 
 function renderPatrolCard(patrol) {
     const timestamp = patrol.timestamp 
@@ -271,6 +297,28 @@ export async function handleRookiePatrolDeletion(cardId, options = {}) {
     } catch (error) {
         console.error('Erreur lors de la mise à jour de la patrouille rookie supprimée:', error);
     }
+
+    const patrol = getRookiePatrols().find(p => p.cardId === cardId);
+    if (!patrol) return;
+
+    let durationSeconds = parseActiveDurationSeconds(patrol.activeDuration ?? patrol.active_duration);
+
+    if (durationSeconds == null && patrol.timestamp && patrol.deletedAt) {
+        const start = new Date(patrol.timestamp);
+        const end = new Date(patrol.deletedAt);
+        if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+            durationSeconds = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
+        }
+    }
+
+    if (durationSeconds != null && durationSeconds < MIN_ACTIVE_DURATION_SECONDS) {
+        try {
+            await cleanDeletedPatrolsAPI([cardId]);
+        } catch (error) {
+            console.error('Erreur lors de la suppression de la patrouille rookie courte:', error);
+        }
+        removeRookiePatrol(cardId);
+    }
 }
 
 /**
@@ -285,11 +333,12 @@ export function showRookiePatrolsModal() {
     }
     
     const patrols = getRookiePatrols();
+    const displayedPatrols = patrols.filter(shouldDisplayPatrol);
     const button = document.getElementById('rookiePatrolsBtn');
     
     // Compter les patrouilles actives et supprimées
-    const activePatrols = patrols.filter(p => checkIfCardExists(p.cardId));
-    const deletedPatrols = patrols.filter(p => !checkIfCardExists(p.cardId));
+    const activePatrols = displayedPatrols.filter(p => checkIfCardExists(p.cardId));
+    const deletedPatrols = displayedPatrols.filter(p => !checkIfCardExists(p.cardId));
     
     // Créer le menu
     const menu = document.createElement('div');
@@ -299,18 +348,18 @@ export function showRookiePatrolsModal() {
             <div class="rookie-patrols-menu-title">🎓 Patrouilles avec Rookies</div>
         </div>
         <div class="rookie-patrols-stats">
-            <span class="stat-badge">${patrols.length} total</span>
+            <span class="stat-badge">${displayedPatrols.length} total</span>
             <span class="stat-badge active-badge">${activePatrols.length} actives</span>
             ${deletedPatrols.length > 0 ? `<span class="stat-badge deleted-badge-stat">${deletedPatrols.length} supprimées</span>` : ''}
-            <span class="stat-badge">${patrols.reduce((sum, p) => sum + p.rookieCount, 0)} rookies</span>
+            <span class="stat-badge">${displayedPatrols.reduce((sum, p) => sum + p.rookieCount, 0)} rookies</span>
         </div>
         <div class="rookie-patrols-list">
-            ${patrols.length === 0 ? '<div class="no-patrols">Aucune patrouille détectée</div>' : 
-                patrols.slice().reverse().slice(0, 10).map(patrol => renderPatrolCard(patrol)).join('')
+            ${displayedPatrols.length === 0 ? '<div class="no-patrols">Aucune patrouille détectée</div>' : 
+                displayedPatrols.slice().reverse().slice(0, 10).map(patrol => renderPatrolCard(patrol)).join('')
             }
         </div>
-        ${patrols.length > 10 ? `<div class="rookie-patrols-footer info-footer">Affichage des 10 dernières patrouilles sur ${patrols.length}</div>` : ''}
-        ${patrols.length > 0 ? `
+        ${displayedPatrols.length > 10 ? `<div class="rookie-patrols-footer info-footer">Affichage des 10 dernières patrouilles sur ${displayedPatrols.length}</div>` : ''}
+        ${displayedPatrols.length > 0 ? `
             <div class="rookie-patrols-actions">
                 ${deletedPatrols.length > 0 ? `<button class="action-btn clean-deleted-btn" id="cleanDeletedPatrolsBtn">🗑️ Nettoyer les supprimées</button>` : ''}
             </div>

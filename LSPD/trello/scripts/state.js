@@ -143,7 +143,16 @@ export function updateRookiePatrolDeletion(cardId, updates = {}) {
 
     const current = rookiePatrols[index];
     const deletedAt = updates.deleted_at ?? updates.deletedAt ?? current.deletedAt ?? new Date().toISOString();
-    const activeDuration = updates.active_duration ?? updates.activeDuration ?? current.activeDuration ?? null;
+    let activeDuration = updates.active_duration ?? updates.activeDuration ?? current.activeDuration ?? null;
+
+    if (!activeDuration && current.timestamp) {
+        const endDate = new Date(deletedAt ?? Date.now());
+        const startDate = new Date(current.timestamp);
+        if (!Number.isNaN(endDate.getTime()) && !Number.isNaN(startDate.getTime())) {
+            const diffSeconds = Math.max(0, Math.floor((endDate.getTime() - startDate.getTime()) / 1000));
+            activeDuration = diffSeconds;
+        }
+    }
 
     rookiePatrols[index] = {
         ...current,
@@ -151,4 +160,9 @@ export function updateRookiePatrolDeletion(cardId, updates = {}) {
         activeDuration,
         updatedAt: new Date().toISOString()
     };
+}
+
+export function removeRookiePatrol(cardId) {
+    if (!cardId) return;
+    rookiePatrols = rookiePatrols.filter(p => p.cardId !== cardId);
 }
