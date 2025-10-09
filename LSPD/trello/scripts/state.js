@@ -17,6 +17,7 @@ export let draggedFromList = null;
 export let isLocalUpdate = false;
 export let activeCardCreations = new Set();
 export let scrollState = { boardX: 0, lists: {} };
+export let currentUser = null;
 
 export function setBoardData(data) {
     boardData = normalizeBoardData(data);
@@ -49,4 +50,12 @@ export function setDraggedFromList(listId) {
 
 export function setIsLocalUpdate(value) {
     isLocalUpdate = value;
+}
+
+export function setCurrentUser(user) {
+    currentUser = user;
+}
+
+export function canManageLists() {
+    return currentUser && (currentUser.isCommandStaff || currentUser.isSuperAdmin);
 }

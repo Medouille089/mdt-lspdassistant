@@ -698,6 +698,52 @@ h1 {
     opacity: 1;
 }
 
+/* Drag and drop pour les listes */
+.list.dragging-list {
+    opacity: 0.4;
+    transform: rotate(2deg);
+}
+
+.list-drop-indicator {
+    width: 4px;
+    background: linear-gradient(to bottom, var(--accent-blue), var(--accent-blue-light));
+    margin: 0 4px;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 0 8px rgba(0, 121, 191, 0.5);
+    min-height: 200px;
+}
+
+.list-drop-indicator.active {
+    opacity: 1;
+}
+
+.list-header[draggable="true"] {
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.list-header[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.list-header[draggable="true"]:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    transition: background-color 0.2s ease;
+}
+
+.list-header .editable-list-title {
+    cursor: text;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.list-header .list-menu-btn {
+    cursor: pointer;
+}
+
 /* === MODAL === */
 .modal-overlay {
     position: fixed;

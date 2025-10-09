@@ -1,9 +1,22 @@
-import { boardData, scrollState, activeCardCreations, availableTags } from './state.js';
+import { boardData, scrollState, activeCardCreations, availableTags, setCurrentUser, canManageLists } from './state.js';
 import { captureScrollState, restoreScrollState, getCardTags, generateCustomFieldsHtml, generateId, formatRelativeTime } from './utils.js';
 import { submitOperation } from './socket.js';
 import { attachCardEvents } from './card.js';
 import { attachDragDropEvents } from './dragdrop.js';
 import { initializeModalEvents, openCardModal } from './modal.js';
+
+async function fetchCurrentUser() {
+    try {
+        const res = await fetch('/api/user');
+        if (!res.ok) throw new Error('Non connecté');
+        const user = await res.json();
+        console.log('Utilisateur connecté:', user);
+        setCurrentUser(user);
+    } catch (error) {
+        console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+        setCurrentUser(null);
+    }
+}
 
 export function renderBoard(preserveScroll = true) {
     if (preserveScroll) captureScrollState(scrollState);
@@ -34,8 +47,11 @@ export function renderBoard(preserveScroll = true) {
 
         const cardsHtml = list.cards.map(card => renderCard(card, list.id)).join('');
 
+        // Ajouter draggable seulement si l'utilisateur a les permissions
+        const isDraggable = canManageLists() ? 'draggable="true"' : '';
+        
         listEl.innerHTML = `
-            <div class="list-header">
+            <div class="list-header" ${isDraggable}>
                 <div class="list-title editable-list-title">${list.title}</div>
                 <button class="list-menu-btn" data-list-id="${list.id}">⋯</button>
             </div>
@@ -166,7 +182,67 @@ function attachEvents() {
     });
 }
 
-export function initialize() {
+// Rafraîchir uniquement les timestamps sans re-render complet
+function refreshAllTimestamps() {
+    document.querySelectorAll('.card-timestamp').forEach(timestampEl => {
+        const cardEl = timestampEl.closest('.card');
+        if (!cardEl) return;
+
+        const cardId = cardEl.dataset.cardId;
+        const listEl = cardEl.closest('.list');
+        if (!listEl) return;
+
+        const listId = listEl.dataset.listId;
+        const list = boardData.lists.find(l => l.id === listId);
+        if (!list) return;
+
+        const card = list.cards.find(c => c.id === cardId);
+        if (!card || !card.updated_at) return;
+
+        const newText = formatRelativeTime(card.updated_at);
+        
+        // Si le texte change ou devient vide
+        if (newText !== timestampEl.textContent) {
+            if (newText === '') {
+                // Fade out et suppression
+                timestampEl.style.opacity = '0';
+                setTimeout(() => {
+                    if (timestampEl.parentNode) {
+                        timestampEl.parentNode.removeChild(timestampEl);
+                    }
+                }, 200);
+            } else {
+                // Mise à jour du texte
+                timestampEl.textContent = newText;
+            }
+        }
+    });
+}
+
+let timestampRefreshInterval = null;
+
+function startTimestampRefresh() {
+    // Arrêter l'intervalle existant si présent
+    if (timestampRefreshInterval) {
+        clearInterval(timestampRefreshInterval);
+    }
+    
+    // Rafraîchir toutes les 30 secondes
+    timestampRefreshInterval = setInterval(refreshAllTimestamps, 30000);
+}
+
+// Exporter pour pouvoir arrêter si nécessaire
+function stopTimestampRefresh() {
+    if (timestampRefreshInterval) {
+        clearInterval(timestampRefreshInterval);
+        timestampRefreshInterval = null;
+    }
+}
+
+export async function initialize() {
+    // Charger les informations utilisateur AVANT tout le reste
+    await fetchCurrentUser();
+    
     renderBoard();
     initializeModalEvents();
 
@@ -175,6 +251,9 @@ export function initialize() {
         addListBtn.replaceWith(addListBtn.cloneNode(true));
         document.querySelector('.add-list-btn').addEventListener('click', addList);
     }
+
+    // Rafraîchir les timestamps toutes les 30 secondes
+    startTimestampRefresh();
 
     // Initialiser les événements fullscreen
     const fullscreen = document.getElementById('imageFullscreen');
