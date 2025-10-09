@@ -79,6 +79,32 @@ router.post('/api/rookie-patrols', checkAuth, async (req, res) => {
 });
 
 /**
+ * PUT /api/rookie-patrols/:cardId/mark-deleted - Marquer une patrouille comme supprimée
+ */
+router.put('/api/rookie-patrols/:cardId/mark-deleted', checkAuth, async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    
+    const result = await pool.query(`
+      UPDATE trello_historiquerookie 
+      SET deleted_at = NOW(),
+          active_duration = NOW() - timestamp
+      WHERE card_id = $1 AND deleted_at IS NULL
+      RETURNING *
+    `, [cardId]);
+    
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.status(404).json({ error: 'Patrouille non trouvée ou déjà marquée comme supprimée' });
+    }
+  } catch (err) {
+    console.error('Erreur lors du marquage de suppression:', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+/**
  * DELETE /api/rookie-patrols/deleted - Supprimer les patrouilles dont les cartes n'existent plus
  */
 router.delete('/api/rookie-patrols/deleted', checkAuth, async (req, res) => {
