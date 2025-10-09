@@ -4,6 +4,7 @@ import { getEtatLabel, generateId } from './utils.js';
 import { renderBoard } from './board.js';
 import { renderCardTags, hideTagSelector, showTagSelector } from './tags.js';
 import { submitOperation } from './socket.js';
+import { handleRookiePatrolDeletion } from './rookieTracker.js';
 
 export function openCardModal(cardId, listId) {
     const list = boardData.lists.find(l => l.id == listId);
@@ -244,6 +245,7 @@ export function initializeModalEvents() {
             if (currentCard && confirm('Êtes-vous sûr de vouloir supprimer cette carte ?')) {
                 const targetList = boardData.lists.find(l => l.id === currentListId);
                 if (targetList) {
+                    handleRookiePatrolDeletion(currentCard.id, { force: Boolean(currentCard.text?.includes('+')) });
                     targetList.cards = targetList.cards.filter(c => c.id !== currentCard.id);
                 }
                 closeCardModal();

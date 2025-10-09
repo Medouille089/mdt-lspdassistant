@@ -90,7 +90,9 @@ export async function loadRookiePatrolsFromDB() {
             rookieCount: p.rookie_count,
             totalCount: p.total_count,
             timestamp: p.timestamp,
-            updatedAt: p.updated_at
+            updatedAt: p.updated_at,
+            deletedAt: p.deleted_at,
+            activeDuration: p.active_duration
         }));
         
         return rookiePatrols;
@@ -131,4 +133,22 @@ export function setRookiePatrols(patrols) {
 
 export function clearRookiePatrols() {
     rookiePatrols = [];
+}
+
+export function updateRookiePatrolDeletion(cardId, updates = {}) {
+    if (!cardId) return;
+
+    const index = rookiePatrols.findIndex(p => p.cardId === cardId);
+    if (index === -1) return;
+
+    const current = rookiePatrols[index];
+    const deletedAt = updates.deleted_at ?? updates.deletedAt ?? current.deletedAt ?? new Date().toISOString();
+    const activeDuration = updates.active_duration ?? updates.activeDuration ?? current.activeDuration ?? null;
+
+    rookiePatrols[index] = {
+        ...current,
+        deletedAt,
+        activeDuration,
+        updatedAt: new Date().toISOString()
+    };
 }

@@ -1,10 +1,50 @@
-import { boardData, availableTags, addRookiePatrol, getRookiePatrols, setRookiePatrols } from './state.js';
+import { boardData, availableTags, addRookiePatrol, getRookiePatrols, setRookiePatrols, updateRookiePatrolDeletion } from './state.js';
 import { getCardTags } from './utils.js';
-import { saveRookiePatrol, cleanDeletedPatrols as cleanDeletedPatrolsAPI } from '../routes/rookiePatrolsAPI.js';
+import { saveRookiePatrol, cleanDeletedPatrols as cleanDeletedPatrolsAPI, markPatrolAsDeleted } from '../routes/rookiePatrolsAPI.js';
 
 /**
  * Crée le HTML d'une carte comme dans le board (inspiré de renderCard)
  */
+function formatActiveDuration(activeDuration) {
+    if (!activeDuration) return '';
+
+    const durationString = activeDuration.toString().trim();
+    if (!durationString) return '';
+
+    let totalHours = 0;
+    let minutes = 0;
+    let seconds = 0;
+
+    const dayMatch = durationString.match(/(\d+)\s+days?/i);
+    if (dayMatch) {
+        totalHours += parseInt(dayMatch[1], 10) * 24;
+    }
+
+    const timeMatch = durationString.match(/(\d{1,2}):(\d{2}):(\d{2})(?:\.\d+)?$/);
+    if (timeMatch) {
+        totalHours += parseInt(timeMatch[1], 10);
+        minutes = parseInt(timeMatch[2], 10);
+        seconds = parseInt(timeMatch[3], 10);
+    }
+
+    const segments = [];
+    if (totalHours > 0) {
+        segments.push(`${totalHours}h`);
+    }
+    if (minutes > 0) {
+        segments.push(`${minutes}m`);
+    }
+    if (segments.length === 0) {
+        if (seconds > 0) {
+            segments.push(`${seconds}s`);
+        } else {
+            segments.push('<1m');
+        }
+    }
+
+    return `Durée : ${segments.join(' ')}`;
+}
+
 function renderPatrolCard(patrol) {
     const timestamp = patrol.timestamp 
         ? new Date(patrol.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
@@ -14,6 +54,8 @@ function renderPatrolCard(patrol) {
     const cardStillExists = checkIfCardExists(patrol.cardId);
     const deletedClass = cardStillExists ? '' : 'patrol-deleted';
     const deletedBadge = cardStillExists ? '' : '<span class="patrol-badge deleted-badge">🗑️ Supprimée</span>';
+    const durationLabel = !cardStillExists ? formatActiveDuration(patrol.activeDuration) : '';
+    const durationBadge = durationLabel ? `<span class="patrol-badge duration-badge">${durationLabel}</span>` : '';
     
     // Créer la description avec les infos des rookies
     let description = `🎓 Rookie${patrol.rookieCount > 1 ? 's' : ''} en patrouille:\n`;
@@ -43,6 +85,7 @@ function renderPatrolCard(patrol) {
                 </div>
                 <div class="card-badges">
                     ${deletedBadge}
+                    ${durationBadge}
                     <span class="patrol-badge rookie-count">${patrol.rookieCount} rookie${patrol.rookieCount > 1 ? 's' : ''}</span>
                     <span class="patrol-badge total-count">${patrol.totalCount} agents</span>
                 </div>
@@ -209,6 +252,25 @@ export function scanAllPatrolsForRookies() {
             }
         });
     });
+}
+
+export async function handleRookiePatrolDeletion(cardId, options = {}) {
+    if (!cardId) return;
+
+    const force = Boolean(options.force);
+    const patrolExists = getRookiePatrols().some(p => p.cardId === cardId);
+    if (!force && !patrolExists) return;
+
+    try {
+        const updated = await markPatrolAsDeleted(cardId);
+        if (updated) {
+            updateRookiePatrolDeletion(cardId, updated);
+        } else if (patrolExists) {
+            updateRookiePatrolDeletion(cardId, { deletedAt: new Date().toISOString() });
+        }
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de la patrouille rookie supprimée:', error);
+    }
 }
 
 /**

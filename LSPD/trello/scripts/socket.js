@@ -2,7 +2,7 @@ import { setBoardData, setIsLocalUpdate, boardData, isLocalUpdate, activeCardCre
 import { renderBoard, updateSingleCardDOM } from './board.js';
 import { syncTagsFromBoardData } from './tags.js';
 import { captureScrollState, generateId } from './utils.js';
-import { markPatrolAsDeleted } from '../routes/rookiePatrolsAPI.js';
+import { handleRookiePatrolDeletion } from './rookieTracker.js';
 
 export const socket = io();
 
@@ -118,19 +118,20 @@ function applyBoardDiff(diff) {
         }
         case 'DELETE_CARD': {
             const list = boardData.lists.find((l) => l.id === data?.listId);
-            if (!list) return false;
-            const index = list.cards.findIndex((c) => c.id === data?.cardId);
-            if (index === -1) return false;
-            
-            // Vérifier si c'est une patrouille avec rookie avant suppression
-            const card = list.cards[index];
-            if (card?.text && card.text.includes('+')) {
-                // Appel asynchrone pour marquer la patrouille comme supprimée et calculer la durée
-                markPatrolAsDeleted(data.cardId).catch(err => {
-                    console.error('Erreur lors de la mise à jour de l\'historique rookie:', err);
-                });
+            if (!list) {
+                handleRookiePatrolDeletion(data?.cardId);
+                return false;
             }
-            
+
+            const index = list.cards.findIndex((c) => c.id === data?.cardId);
+            if (index === -1) {
+                handleRookiePatrolDeletion(data?.cardId);
+                return false;
+            }
+
+            const card = list.cards[index];
+            handleRookiePatrolDeletion(data.cardId, { force: Boolean(card?.text && card.text.includes('+')) });
+
             list.cards.splice(index, 1);
             return true;
         }

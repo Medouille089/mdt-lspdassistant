@@ -57,6 +57,10 @@ export async function markPatrolAsDeleted(cardId) {
             credentials: 'include'
         });
         
+        if (response.status === 404) {
+            return null;
+        }
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

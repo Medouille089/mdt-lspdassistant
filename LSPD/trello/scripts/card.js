@@ -4,7 +4,7 @@ import { generateId, COMPACT_CARD_COLORS } from './utils.js';
 import { renderBoard, updateSingleCardDOM } from './board.js';
 import { openCardModal } from './modal.js';
 import { renderCardTags } from './tags.js';
-import { checkPatrolForRookies } from './rookieTracker.js';
+import { checkPatrolForRookies, handleRookiePatrolDeletion } from './rookieTracker.js';
 
 function editCompactCardTitle(cardId, listId, cardElement) {
     const list = boardData.lists.find(l => l.id === listId);
@@ -673,6 +673,7 @@ function deleteCard(cardId, listId) {
     if (!card) return;
 
     if (confirm(`Êtes-vous sûr de vouloir supprimer la carte "${card.text}" ?`)) {
+        handleRookiePatrolDeletion(cardId, { force: Boolean(card.text?.includes('+')) });
         list.cards = list.cards.filter(c => c.id !== cardId);
         submitOperation('DELETE_CARD', { listId, cardId });
         renderBoard();
