@@ -1,0 +1,193 @@
+/* === ROOKIE PATROLS MENU === */
+.board-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 var(--spacing-md) var(--spacing-md) var(--spacing-md);
+    position: relative;
+}
+
+.rookie-patrols-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-medium);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.rookie-patrols-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.rookie-patrols-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: var(--tertiary-bg);
+    border: 1px solid #4a5159;
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-heavy);
+    padding: 0;
+    min-width: 400px;
+    max-width: 500px;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+}
+
+.rookie-patrols-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.rookie-patrols-menu-header {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid #4a5159;
+}
+
+.rookie-patrols-menu-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-white);
+}
+
+.rookie-patrols-stats {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid #4a5159;
+}
+
+.stat-badge {
+    background: rgba(102, 126, 234, 0.2);
+    color: #667eea;
+    padding: 4px var(--spacing-sm);
+    border-radius: var(--radius-small);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.rookie-patrols-list {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+}
+
+.rookie-patrols-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rookie-patrols-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.rookie-patrols-list::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.4);
+    border-radius: 3px;
+}
+
+.rookie-patrols-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.6);
+}
+
+.no-patrols {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: var(--spacing-xxl);
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* Cartes de patrouille - Style identique aux vraies cartes */
+.rookie-patrols-list .card {
+    cursor: default;
+    margin-bottom: var(--spacing-md);
+}
+
+.rookie-patrols-list .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-heavy);
+}
+
+.rookie-patrols-list .card-description {
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-small);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.rookie-patrols-list .card-description::-webkit-scrollbar {
+    width: 4px;
+}
+
+.rookie-patrols-list .card-description::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.rookie-patrols-list .card-description::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 2px;
+}
+
+.card-badges {
+    margin-top: var(--spacing-sm);
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.patrol-badge {
+    padding: 4px var(--spacing-sm);
+    border-radius: var(--radius-small);
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.patrol-badge.rookie-count {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+    color: #667eea;
+    border: 1px solid rgba(102, 126, 234, 0.4);
+}
+
+.patrol-badge.total-count {
+    background: rgba(182, 184, 187, 0.2);
+    color: var(--text-secondary);
+    border: 1px solid rgba(182, 184, 187, 0.3);
+}
+
+.rookie-patrols-footer {
+    padding: var(--spacing-sm) var(--spacing-md);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    border-top: 1px solid #4a5159;
+    font-style: italic;
+}
+
+/* Animation d'apparition */
+@keyframes fadeMenuIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -19,6 +19,9 @@ export let activeCardCreations = new Set();
 export let scrollState = { boardX: 0, lists: {} };
 export let currentUser = null;
 
+// Tracking des patrouilles avec rookies
+export let rookiePatrols = [];
+
 export function setBoardData(data) {
     boardData = normalizeBoardData(data);
 }
@@ -58,4 +61,32 @@ export function setCurrentUser(user) {
 
 export function canManageLists() {
     return currentUser && (currentUser.isCommandStaff || currentUser.isSuperAdmin);
+}
+
+export function addRookiePatrol(patrol) {
+    // Éviter les doublons - ne pas ajouter si la même carte a déjà été enregistrée
+    const existingIndex = rookiePatrols.findIndex(p => p.cardId === patrol.cardId);
+    
+    if (existingIndex === -1) {
+        // Nouvelle patrouille
+        rookiePatrols.push({
+            ...patrol,
+            timestamp: new Date().toISOString()
+        });
+    } else {
+        // Mise à jour de la patrouille existante (si les données ont changé)
+        rookiePatrols[existingIndex] = {
+            ...patrol,
+            timestamp: rookiePatrols[existingIndex].timestamp, // Garder l'heure originale
+            updatedAt: new Date().toISOString()
+        };
+    }
+}
+
+export function getRookiePatrols() {
+    return [...rookiePatrols];
+}
+
+export function clearRookiePatrols() {
+    rookiePatrols = [];
 }

@@ -4,6 +4,7 @@ import { submitOperation } from './socket.js';
 import { attachCardEvents } from './card.js';
 import { attachDragDropEvents } from './dragdrop.js';
 import { initializeModalEvents, openCardModal } from './modal.js';
+import { scanAllPatrolsForRookies } from './rookieTracker.js';
 
 async function fetchCurrentUser() {
     try {
@@ -246,6 +247,9 @@ export async function initialize() {
 
     // Rafraîchir les timestamps toutes les 30 secondes
     startTimestampRefresh();
+    
+    // Scanner les patrouilles avec rookies
+    scanAllPatrolsForRookies();
 
     // Initialiser les événements fullscreen
     const fullscreen = document.getElementById('imageFullscreen');
