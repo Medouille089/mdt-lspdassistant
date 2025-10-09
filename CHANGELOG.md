@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.1](https://github.com/Medouille089/lspdassistant/compare/v1.5.0...v1.5.1) (2025-10-09)
+
+
+### Bug Fixes
+
+* backlink button + watermark css in connect ([2544d5f](https://github.com/Medouille089/lspdassistant/commit/2544d5fac4d7358457ed2059ea14e7d111868e2f))
+
 ## [1.5.0](https://github.com/Medouille089/lspdassistant/compare/v1.4.1...v1.5.0) (2025-10-09)
 
 
