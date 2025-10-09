@@ -231,14 +231,6 @@ function startTimestampRefresh() {
     timestampRefreshInterval = setInterval(refreshAllTimestamps, 30000);
 }
 
-// Exporter pour pouvoir arrêter si nécessaire
-function stopTimestampRefresh() {
-    if (timestampRefreshInterval) {
-        clearInterval(timestampRefreshInterval);
-        timestampRefreshInterval = null;
-    }
-}
-
 export async function initialize() {
     // Charger les informations utilisateur AVANT tout le reste
     await fetchCurrentUser();
@@ -402,6 +394,26 @@ function editListTitle(listElement, listId) {
     input.addEventListener('blur', saveTitle);
 }
 
+function deleteList(listId) {
+    const list = boardData.lists.find(l => l.id == listId);
+    if (!list) return;
+
+    const cardCount = list.cards.length;
+    const confirmMessage = cardCount > 0 
+        ? `Êtes-vous sûr de vouloir supprimer la liste "${list.title}" et ses ${cardCount} carte(s) ?`
+        : `Êtes-vous sûr de vouloir supprimer la liste "${list.title}" ?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    // Supprimer la liste du boardData
+    const listIndex = boardData.lists.findIndex(l => l.id == listId);
+    if (listIndex !== -1) {
+        boardData.lists.splice(listIndex, 1);
+        submitOperation('DELETE_LIST', { listId });
+        renderBoard();
+    }
+}
+
 export function openFullscreenImage(src, alt = '') {
     const fullscreen = document.getElementById('imageFullscreen');
     const fullscreenImg = document.getElementById('fullscreenImg');
@@ -464,18 +476,28 @@ function openListSortMenu(button, listId) {
     // Fermer tout menu existant
     closeListSortMenu();
 
+    // Vérifier si l'utilisateur peut supprimer la liste
+    const canDelete = canManageLists();
+    const deleteOption = canDelete ? `
+        <div class="list-menu-separator"></div>
+        <button class="list-sort-option list-delete-option" data-action="delete">
+            🗑️ Supprimer la liste
+        </button>
+    ` : '';
+
     const menu = document.createElement('div');
     menu.className = 'list-sort-menu';
     menu.innerHTML = `
         <div class="list-sort-menu-header">
-            <div class="list-sort-menu-title">Trier les cartes</div>
+            <div class="list-sort-menu-title">Options de la liste</div>
         </div>
         <button class="list-sort-option" data-sort="alpha-asc">
-            Titre (A-Z)
+            📝 Titre (A-Z)
         </button>
         <button class="list-sort-option" data-sort="alpha-desc">
-            Titre (Z-A)
+            📝 Titre (Z-A)
         </button>
+        ${deleteOption}
     `;
 
     // Positionner le menu
@@ -483,8 +505,8 @@ function openListSortMenu(button, listId) {
     listHeader.style.position = 'relative';
     listHeader.appendChild(menu);
 
-    // Ajouter les gestionnaires d'événements
-    menu.querySelectorAll('.list-sort-option').forEach(option => {
+    // Ajouter les gestionnaires d'événements pour le tri
+    menu.querySelectorAll('.list-sort-option[data-sort]').forEach(option => {
         option.addEventListener('click', (e) => {
             e.stopPropagation();
             const sortType = option.dataset.sort;
@@ -492,6 +514,16 @@ function openListSortMenu(button, listId) {
             closeListSortMenu();
         });
     });
+
+    // Ajouter le gestionnaire pour la suppression
+    const deleteBtn = menu.querySelector('.list-delete-option');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeListSortMenu();
+            deleteList(listId);
+        });
+    }
 
     // Fermer le menu en cliquant ailleurs
     setTimeout(() => {

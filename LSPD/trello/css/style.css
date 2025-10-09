@@ -1492,6 +1492,38 @@ h1 {
     transform: scale(0.95);
 }
 
+.list-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.list-delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    min-width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.list-delete-btn:hover {
+    opacity: 1;
+    background-color: rgba(255, 71, 87, 0.15);
+    transform: scale(1.15);
+}
+
+.list-delete-btn:active {
+    transform: scale(0.95);
+}
+
 .list-sort-menu {
     position: absolute;
     top: 32px;
@@ -1543,6 +1575,21 @@ h1 {
 .list-sort-option .sort-icon {
     width: 16px;
     text-align: center;
+}
+
+.list-menu-separator {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin: var(--spacing-xs) 0;
+}
+
+.list-delete-option {
+    color: var(--accent-red) !important;
+}
+
+.list-delete-option:hover {
+    background-color: rgba(255, 71, 87, 0.15) !important;
+    color: var(--accent-red) !important;
 }
 
 /* === DIALOG POUR CARTES COMPACTES === */
