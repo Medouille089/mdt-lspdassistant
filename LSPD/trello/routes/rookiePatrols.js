@@ -80,7 +80,7 @@ router.post('/api/rookie-patrols', checkAuth, async (req, res) => {
 
 /**
  * PUT /api/rookie-patrols/:cardId/mark-deleted - Marquer une patrouille comme supprimée
- */
+ */ 
 router.put('/api/rookie-patrols/:cardId/mark-deleted', checkAuth, async (req, res) => {
   try {
     const { cardId } = req.params;
