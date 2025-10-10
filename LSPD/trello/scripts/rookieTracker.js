@@ -409,7 +409,7 @@ export function showRookiePatrolsModal() {
         </div>
         <div class="rookie-patrols-list">
             ${displayedPatrols.length === 0 ? '<div class="no-patrols">Aucune patrouille détectée</div>' : 
-                displayedPatrols.slice().reverse().slice(0, 10).map(patrol => renderPatrolCard(patrol)).join('')
+                displayedPatrols.slice(0, 10).map(patrol => renderPatrolCard(patrol)).join('')
             }
         </div>
         ${displayedPatrols.length > 10 ? `<div class="rookie-patrols-footer info-footer">Affichage des 10 dernières patrouilles sur ${displayedPatrols.length}</div>` : ''}
