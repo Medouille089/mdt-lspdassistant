@@ -671,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (event.description) {
-                    html += `<p style="margin-top: 10px; font-style: italic;">${event.description}</p>`;
+                    html += `<p style="margin-top: 10px; font-style: italic;"><strong>Description :</strong> ${event.description}</p>`;
                 }
 
                 // Afficher les grades concernés

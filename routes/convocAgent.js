@@ -72,22 +72,22 @@ router.post('/api/convocations', async (req, res) => {
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             `, [
                 `Convocation - ${agentName}`,
-                `**Raison :** ${raison}\n\n**Agent convoquant :** ${officier} (${grade})\n**Agent convoqué :** ${agentName}`,
+                `${raison}`,
                 dateDebutComplete,
                 dateFinComplete,
                 'convocation',
-                '#e74c3c', 
+                '#e74c3c',
                 officier,
                 lieu,
-                [convocateurId, agentId] 
+                [convocateurId, agentId]
             ]);
 
 
-            
+
             invalidateEventsCache();
         } catch (calendarError) {
             console.error('❌ Erreur lors de la création de l\'événement calendrier:', calendarError);
-            
+
         }
 
         // --- Log Discord ---
