@@ -259,19 +259,57 @@ router.get("/pointeuse/semaine", async (req, res) => {
   }
 });
 
+// --------------------
+// GET MONTHLY CHART DATA
+// --------------------
+router.get("/pointeuse/monthly", async (req, res) => {
+  try {
+    const { id } = req.user;
+    const nowParis = DateTime.now().setZone("Europe/Paris");
+    const startOfMonth = nowParis.startOf("month");
+    const endOfMonth = nowParis.endOf("month");
+    const daysInMonth = endOfMonth.day;
 
+    // Get all sessions for current month
+    const result = await pool.query(
+      `
+      SELECT 
+        DATE(start_time AT TIME ZONE 'Europe/Paris') as day,
+        SUM(EXTRACT(EPOCH FROM (COALESCE(end_time, NOW()) - start_time)) / 3600) as hours
+      FROM lspd_pointage
+      WHERE id_discord = $1
+        AND start_time >= $2
+        AND start_time <= $3
+      GROUP BY day
+      ORDER BY day
+      `,
+      [id, startOfMonth.toISO(), endOfMonth.toISO()]
+    );
 
+    // Create labels and data arrays for all days of the month
+    const labels = [];
+    const hours = [];
+    const dataMap = {};
 
+    result.rows.forEach(row => {
+      const dayNum = DateTime.fromJSDate(row.day).day;
+      const hoursVal = Math.max(0, parseFloat(row.hours));
+      dataMap[dayNum] = hoursVal;
+    });
 
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dateObj = startOfMonth.plus({ days: i - 1 });
+      const dayLabel = dateObj.setLocale('fr').toFormat('ccc dd/MM');
+      labels.push(dayLabel);
+      hours.push(dataMap[i] || 0);
+    }
 
-
-
-
-
-
-
-
-
+    res.json({ labels, hours });
+  } catch (err) {
+    console.error("Erreur /pointeuse/monthly :", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
 
 router.get("/admin/users-salaries", async (req, res) => {
   try {

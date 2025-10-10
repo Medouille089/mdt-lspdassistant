@@ -35,6 +35,10 @@ h1 {
   color: var(--text-light);
 }
 
+.pointeuse h1 {
+  margin-top: 32px;
+}
+
 h2 {
   text-align: center;
   margin: 60px 0 25px;
@@ -46,6 +50,80 @@ h2 {
   font-size: 1.4rem;
 }
 
+.pointeuse h2 {
+  margin: 30px 0 16px;
+}
+
+.pointeuse .dashboard-container {
+  gap: 18px;
+}
+
+.pointeuse .stats-cards {
+  gap: 14px;
+}
+
+/* Affiner les cartes utilisées sur la page pointeuse */
+.pointeuse #weeklySalaryCard.card,
+.pointeuse #weekRangeCard.card,
+.pointeuse #last-weeks-cards .card,
+.pointeuse .dashboard-container .card.full-width {
+  background: linear-gradient(135deg, var(--main-color), var(--main-color-normal));
+  color: var(--white);
+}
+
+/* Override chart container to white background */
+.pointeuse .card.full-width:has(#monthlyChart) {
+  background: var(--white);
+  padding: 25px;
+}
+
+/* Forcer la typo des cards en blanc sur cette page */
+.pointeuse .dashboard-container .card.stat .title,
+.pointeuse .dashboard-container .card.stat .number,
+.pointeuse .dashboard-container .card.stat .info {
+  color: var(--white);
+}
+
+.pointeuse #weeklySalaryCard .number {
+  font-size: 2.8em;
+}
+
+.pointeuse #weeklySalaryCard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.pointeuse #weeklySalaryCard .title {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+
+.pointeuse #weekRangeCard .number.small {
+  font-size: 1.2em;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.pointeuse #weekRangeCard .title .range-date {
+  color: var(--white);
+  font-weight: 700;
+}
+
+.pointeuse #weekRangeCard #status {
+  margin-top: 6px;
+  color: var(--white);
+}
+
+.pointeuse #weekRangeCard #btn-start-stop {
+  width: 260px;
+  padding: 14px 0;
+  font-size: 1.05rem;
+}
+
 /* Bouton démarrer/arrêter */
 #btn-start-stop {
   display: block;
@@ -53,16 +131,20 @@ h2 {
   padding: 14px 40px;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--button-text);
-  background-color: var(--button-bg);
+  color: var(--white);
+  background-color: #28a745;
   border: none;
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
+#btn-start-stop.running {
+  background: linear-gradient(135deg, #ff4757, #e71d36);
+}
+
 #btn-start-stop:hover {
-  background-color: var(--button-bg-hover);
+  opacity: 0.9;
 }
 
 /* Status texte */
@@ -72,6 +154,10 @@ h2 {
   margin-bottom: 20px;
   font-weight: 600;
   color: var(--main-color-dark);
+}
+
+.pointeuse #status {
+  color: var(--white);
 }
 
 /* Tableaux */
@@ -97,19 +183,32 @@ thead th {
   cursor: default;
   user-select: none;
   border-bottom: 2px solid var(--border-table);
+  color: var(--white);
 }
 
 tbody tr {
-  transition: background-color 0.25s ease;
+  cursor: default;
+  transition: none !important;
+}
+
+.pointeuse tbody tr:hover {
+  background: var(--table-bg) !important;
 }
 
 tbody tr:nth-child(even) {
-  background-color: var(--table-hover-bg);
+  background-color: var(--table-bg) !important;
 }
 
 tbody td {
   padding: 12px 20px;
   vertical-align: middle;
+  color: var(--white);
+}
+
+.live-timer-cell {
+  font-weight: 700;
+  color: #4ade80 !important;
+  font-size: 1.05em;
 }
 
 /* Paragraphs sous tableaux */
