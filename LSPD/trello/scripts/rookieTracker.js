@@ -1,4 +1,4 @@
-import { boardData, availableTags, addRookiePatrol, getRookiePatrols, setRookiePatrols, updateRookiePatrolDeletion, removeRookiePatrol } from './state.js';
+import { boardData, availableTags, addRookiePatrol, getRookiePatrols, setRookiePatrols, updateRookiePatrolDeletion, removeRookiePatrol, canCleanRookiePatrols } from './state.js';
 import { getCardTags } from './utils.js';
 import { saveRookiePatrol, cleanDeletedPatrols as cleanDeletedPatrolsAPI, markPatrolAsDeleted } from '../routes/rookiePatrolsAPI.js';
 
@@ -392,6 +392,7 @@ export function showRookiePatrolsModal() {
     // Compter les patrouilles actives et supprimées
     const activePatrols = displayedPatrols.filter(p => checkIfCardExists(p.cardId));
     const deletedPatrols = displayedPatrols.filter(p => !checkIfCardExists(p.cardId));
+    const canCleanDeleted = canCleanRookiePatrols();
     
     // Créer le menu
     const menu = document.createElement('div');
@@ -414,7 +415,7 @@ export function showRookiePatrolsModal() {
         ${displayedPatrols.length > 10 ? `<div class="rookie-patrols-footer info-footer">Affichage des 10 dernières patrouilles sur ${displayedPatrols.length}</div>` : ''}
         ${displayedPatrols.length > 0 ? `
             <div class="rookie-patrols-actions">
-                ${deletedPatrols.length > 0 ? `<button class="action-btn clean-deleted-btn" id="cleanDeletedPatrolsBtn">🗑️ Nettoyer les supprimées</button>` : ''}
+                ${deletedPatrols.length > 0 && canCleanDeleted ? `<button class="action-btn clean-deleted-btn" id="cleanDeletedPatrolsBtn">🗑️ Nettoyer les supprimées</button>` : ''}
             </div>
         ` : ''}
     `;

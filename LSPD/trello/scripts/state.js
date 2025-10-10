@@ -63,6 +63,11 @@ export function canManageLists() {
     return currentUser && (currentUser.isCommandStaff || currentUser.isSuperAdmin);
 }
 
+export function canCleanRookiePatrols() {
+    if (!currentUser) return false;
+    return Boolean(currentUser.isSuperAdmin || currentUser.isCommandStaff || currentUser.isSupervisor);
+}
+
 /**
  * Charge les patrouilles depuis la BDD
  */
