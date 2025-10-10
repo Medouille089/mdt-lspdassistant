@@ -21,6 +21,9 @@
     <div id="sidebar-container"></div>
 
     <h1>Pannel configuration</h1>
+    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+      ← Retour
+    </button>
     <div class="warning-modern">
       <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
         class="warning-icon-modern">
@@ -82,7 +85,29 @@
     <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
     <script src="scripts/admin.js"></script>
     <script src="scripts/loadSidebar.js"></script>
+    <script>
+      (function () {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
 
+        function init() {
+          const btn = document.getElementById('backlinkBtn');
+          if (!btn) return;
+
+          btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (window.history.length > 1) {
+              window.history.back();
+            } else {
+              window.location.href = 'adminMenu.html';
+            }
+          });
+        }
+      })();
+    </script>
 </body>
 
 </html>

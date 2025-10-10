@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/genMenu.css">
     <title>Menu officer - LSPD Assistant</title>
+    <style>
+        /* Force le bouton retour à gauche pour cette page */
+        .backlink-row { display: flex; justify-content: flex-start; }
+        .backlink-row .backlink-btn { margin-left: 0 !important; margin-right: auto !important; }
+    </style>
 </head>
 
 <body>
@@ -19,7 +24,9 @@
 
     <div class="main-container">
         <h1 id="agent-name">Menu officer</h1>
-
+        <div class="backlink-row">
+            <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">← Retour</button>
+        </div>
         <div class="grid-wrapper">
             <div class="button-grid">
                 <a href="infosagent.html" class="send-button" id="info-btn">Informations</a>
@@ -79,6 +86,29 @@
 
             window.location.href = `infosagent.html?userId=${userId}`;
         });
+    </script>
+    <script>
+        (function () {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            function init() {
+                const btn = document.getElementById('backlinkBtn');
+                if (!btn) return;
+
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = 'officers.html';
+                    }
+                });
+            }
+        })();
     </script>
 </body>
 

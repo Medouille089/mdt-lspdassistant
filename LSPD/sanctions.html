@@ -23,6 +23,9 @@
   <div class="main-container">
     <div id="sidebar-container"></div>
     <h1>Nouvelle sanction</h1>
+    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+      ← Retour
+    </button>
     <div class="sanction-container">
       <form id="sanctionForm">
         <label for="agent">Agent sanctionné :</label>
@@ -76,6 +79,29 @@
   <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
   <script src="scripts/loadSidebar.js"></script>
   <script src="scripts/sanctions/sanctions.js"></script>
+  <script>
+    (function () {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      function init() {
+        const btn = document.getElementById('backlinkBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.location.href = 'sanctionMenu.html';
+          }
+        });
+      }
+    })();
+  </script>
 </body>
 
 </html>

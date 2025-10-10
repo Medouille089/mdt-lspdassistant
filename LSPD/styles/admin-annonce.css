@@ -1,0 +1,76 @@
+.annonce-admin-panel {
+    max-width: 900px;
+    margin: 40px auto;
+    background: var(--main-header-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px #0002;
+    padding: 32px;
+    border: 2px solid var(--main-color);
+}
+
+.annonce-admin-panel label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+
+.annonce-admin-panel input,
+.annonce-admin-panel textarea {
+    width: 100%;
+    margin-bottom: 18px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--main-color);
+    font-size: 15px;
+    background: var(--input-bg);
+    color: var(--input-text);
+}
+
+.annonce-admin-panel textarea {
+    min-height: 110px;
+    height: 300px;
+    width: 98vw;
+    max-width: 100%;
+    min-width: 400px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    resize: none;
+}
+
+.annonce-admin-panel input:focus,
+.annonce-admin-panel textarea:focus {
+    border-color: var(--main-color-dark);
+    outline: none;
+    background: var(--input-bg-focus);
+}
+
+.annonce-admin-panel button {
+    background: var(--main-color);
+    color: var(--button-text);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.annonce-admin-panel button:hover {
+    background: var(--main-color-normal);
+}
+
+.annonce-success {
+    color: #388e3c;
+    font-weight: bold;
+    margin-top: 12px;
+}
+
+.annonce-error {
+    color: #d32f2f;
+    font-weight: bold;
+    margin-top: 12px;
+}
