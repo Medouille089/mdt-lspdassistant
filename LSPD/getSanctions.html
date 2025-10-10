@@ -23,6 +23,10 @@
     <div class="main-container">
         <div id="sidebar-container"></div>
         <h1>Liste des sanctions</h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
+
         <div class="container">
             <div class="filters">
                 <input type="text" id="searchInput" placeholder="Rechercher utilisateur ou agent" />
@@ -57,6 +61,29 @@
     </div>
     <script src="scripts/sanctions/getSanctions.js"></script>
     <script src="scripts/loadSidebar.js"></script>
+    <script>
+        (function () {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            function init() {
+                const btn = document.getElementById('backlinkBtn');
+                if (!btn) return;
+
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = 'sanctionMenu.html';
+                    }
+                });
+            }
+        })();
+    </script>
 </body>
 
 </html>

@@ -1117,7 +1117,7 @@ body:not(.edit-mode) textarea:focus {
 /* Garder le header visuellement distinct mais mieux intégré */
 .agent-profile-container .agent-header {
     margin: -40px -50px 30px; /* étire le header pour couvrir le bord arrondi */
-    border-radius: 11px 11px 0 0;
+    border-radius: 7px 7px 0 0;
     padding: 35px 40px;
     box-shadow: inset 0 -1px 0 rgba(255,255,255,0.08);
 }

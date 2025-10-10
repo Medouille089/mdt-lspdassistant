@@ -17,8 +17,11 @@
     <script src="scripts/annonce-popup.js"></script>
     <div class="main-container">
 
-    <div id="sidebar-container"></div>
-    <h1>Pannel présences IG</h1>
+        <div id="sidebar-container"></div>
+        <h1>Pannel présences IG</h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
 
         <section class="content-section">
             <div id="presence-list">
@@ -30,6 +33,29 @@
     </div>
     <script src="scripts/presence/admin-presence.js"></script>
     <script src="scripts/loadSidebar.js"></script>
+    <script>
+        (function () {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            function init() {
+                const btn = document.getElementById('backlinkBtn');
+                if (!btn) return;
+
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = 'adminMenu.html';
+                    }
+                });
+            }
+        })();
+    </script> 
 </body>
 
 </html>
