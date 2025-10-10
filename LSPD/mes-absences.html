@@ -82,25 +82,6 @@
                 <button class="btn-filter" id="listView">📋 Vue Liste</button>
             </div>
 
-            <div class="calendar-legend">
-                <div class="legend-item">
-                    <span class="legend-color approved"></span>
-                    <span>Absence approuvée</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color pending"></span>
-                    <span>Absence en attente</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color rejected"></span>
-                    <span>Absence refusée</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color event"></span>
-                    <span>Événement</span>
-                </div>
-            </div>
-
             <!-- Vue Calendrier Mensuel -->
             <div id="calendar-container" class="view-container">
                 <div class="calendar-header">
@@ -111,7 +92,24 @@
                 <div class="calendar-grid" id="calendarGrid">
                     <!-- Le calendrier sera généré par JavaScript -->
                 </div>
-
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <span class="legend-color approved"></span>
+                        <span>Absence approuvée</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color pending"></span>
+                        <span>Absence en attente</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color rejected"></span>
+                        <span>Absence refusée</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color event"></span>
+                        <span>Événement</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Vue Semaine -->
@@ -177,6 +175,7 @@
                         <option value="reunion">Réunion</option>
                         <option value="formation">Formation</option>
                         <option value="operation">Opération</option>
+                        <option value="convocation">Convocation</option>
                         <option value="autre">Autre</option>
                     </select>
                 </div>
