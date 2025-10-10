@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/Medouille089/lspdassistant/compare/v1.5.2...v1.6.0) (2025-10-10)
+
+
+### Features
+
+* add convoc agent to calendar ([fe0f352](https://github.com/Medouille089/lspdassistant/commit/fe0f352a3c59f0054a8ac6fb997856d5b5e9d0a0))
+* add rookies patrols history ([f2bb3f0](https://github.com/Medouille089/lspdassistant/commit/f2bb3f00597556c9c0f6de538789759859614b5b))
+* refonte de la page de la pointeuse + add graph ([78a834c](https://github.com/Medouille089/lspdassistant/commit/78a834c5cd30944764e08e1da9536eff060ecc74))
+
+
+### Bug Fixes
+
+* Add reason to modal convocAgent ([1d5d352](https://github.com/Medouille089/lspdassistant/commit/1d5d35252e785a1d82c58398660c35ec068abf41))
+* add rookie patrol duration display ([d73dfc9](https://github.com/Medouille089/lspdassistant/commit/d73dfc9d2f449deabe2ca5f15d6dfc0e8e6fe72a))
+* ajout en base de l'historique des rookies en patrouille ([e4be863](https://github.com/Medouille089/lspdassistant/commit/e4be86330496cbad75224920ad690fb75cb8469c))
+* bug display of cards removed rookie history when duration more than 10 mins ([0a94942](https://github.com/Medouille089/lspdassistant/commit/0a949421ed6899e26ed26904b1bb79fa0d6d9c70))
+* delete card rookie patrol history when duration less than 10 mins ([344ff54](https://github.com/Medouille089/lspdassistant/commit/344ff5452d04cb58a34fbff17b0cace070c41649))
+* j'ai fais une boulette ([8609332](https://github.com/Medouille089/lspdassistant/commit/8609332a3d46dcbb75a9af18ce7dabff97d70802))
+
 ### [1.5.2](https://github.com/Medouille089/lspdassistant/compare/v1.5.1...v1.5.2) (2025-10-10)
 
 
