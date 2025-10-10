@@ -186,17 +186,13 @@ thead th {
   color: var(--white);
 }
 
-tbody tr {
+
+.pointeuse .card.full-width table tbody tr,
+.pointeuse .card.full-width table tbody tr:nth-child(even),
+.pointeuse .card.full-width table tbody tr:hover {
+  background: var(--table-bg) !important;
   cursor: default;
   transition: none !important;
-}
-
-.pointeuse tbody tr:hover {
-  background: var(--table-bg) !important;
-}
-
-tbody tr:nth-child(even) {
-  background-color: var(--table-bg) !important;
 }
 
 tbody td {
@@ -277,4 +273,12 @@ button {
 
 button:hover {
   background-color: var(--button-bg-hover);
+}
+
+/* Fond blanc pour la card sessions uniquement sur la pointeuse */
+.pointeuse .card.full-width table {
+  background: var(--white) !important;
+}
+.pointeuse .card.full-width {
+  background: var(--white) !important;
 }
