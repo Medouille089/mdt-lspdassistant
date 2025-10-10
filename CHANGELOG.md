@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.6.2](https://github.com/Medouille089/lspdassistant/compare/v1.6.1...v1.6.2) (2025-10-10)
+
+
+### Bug Fixes
+
+* change title, rapport to dossier arrestation ([d634196](https://github.com/Medouille089/lspdassistant/commit/d634196a264d58a6d629b9d6398b9a64c69200fd))
+
 ### [1.6.1](https://github.com/Medouille089/lspdassistant/compare/v1.6.0...v1.6.1) (2025-10-10)
 
 
