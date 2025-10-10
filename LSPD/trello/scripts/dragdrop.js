@@ -1,13 +1,15 @@
-import { boardData, draggedCard, draggedFromList, setDraggedCard, setDraggedFromList } from './state.js';
+import { boardData, draggedCard, draggedFromList, setDraggedCard, setDraggedFromList, canManageLists } from './state.js';
 import { submitOperation } from './socket.js';
 import { renderBoard } from './board.js';
 
 let isDraggingCard = false;
+let isDraggingList = false;
+let draggedList = null;
 let dragPointer = { x: 0, y: 0 };
 let dragAutoScroll = { rafId: null };
 
 document.addEventListener('dragover', e => {
-    if (isDraggingCard) {
+    if (isDraggingCard || isDraggingList) {
         dragPointer.x = e.clientX;
         dragPointer.y = e.clientY;
     }
@@ -110,6 +112,150 @@ export function attachDragDropEvents() {
             }
         });
     });
+
+    // Événements pour drag and drop des listes
+    document.querySelectorAll('.list').forEach(list => {
+        const listHeader = list.querySelector('.list-header');
+        
+        if (!listHeader) return;
+        
+        // Vérifier les permissions avant d'activer le drag
+        if (!canManageLists()) {
+            listHeader.removeAttribute('draggable');
+            listHeader.style.cursor = 'default';
+            return;
+        }
+        
+        listHeader.addEventListener('dragstart', function (e) {
+            // Si on clique sur le bouton menu ou le titre editable, ne pas démarrer le drag
+            if (e.target.closest('.list-menu-btn') || e.target.closest('.editable-list-title')) {
+                e.preventDefault();
+                return;
+            }
+            
+            draggedList = list;
+            list.classList.add('dragging-list');
+            e.dataTransfer.effectAllowed = 'move';
+            isDraggingList = true;
+            
+            // Créer une image de drag personnalisée
+            const dragImage = list.cloneNode(true);
+            dragImage.style.opacity = '0.5';
+            dragImage.style.position = 'absolute';
+            dragImage.style.top = '-9999px';
+            document.body.appendChild(dragImage);
+            e.dataTransfer.setDragImage(dragImage, 0, 0);
+            setTimeout(() => document.body.removeChild(dragImage), 0);
+        });
+
+        listHeader.addEventListener('dragend', function (e) {
+            if (draggedList) {
+                draggedList.classList.remove('dragging-list');
+                draggedList = null;
+            }
+            isDraggingList = false;
+            
+            // Nettoyer les indicateurs
+            document.querySelectorAll('.list-drop-indicator').forEach(ind => ind.remove());
+        });
+    });
+
+    // Événements pour la zone de board (pour placer les listes)
+    const board = document.querySelector('.board');
+    if (board) {
+        board.addEventListener('dragover', function (e) {
+            if (!isDraggingList || !draggedList) return;
+            
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            const afterElement = getListAfterElement(board, e.clientX);
+            const indicator = getOrCreateListDropIndicator();
+            
+            if (afterElement == null) {
+                // Ajouter à la fin (avant le bouton add-list)
+                const addListBtn = board.querySelector('.add-list-btn');
+                if (addListBtn) {
+                    board.insertBefore(indicator, addListBtn);
+                } else {
+                    board.appendChild(indicator);
+                }
+            } else {
+                board.insertBefore(indicator, afterElement);
+            }
+            
+            indicator.classList.add('active');
+        });
+
+        board.addEventListener('drop', function (e) {
+            if (!isDraggingList || !draggedList) return;
+            
+            e.preventDefault();
+            
+            const listId = draggedList.dataset.listId;
+            const afterElement = getListAfterElement(board, e.clientX);
+            
+            moveListToPosition(listId, afterElement);
+            
+            // Nettoyer l'indicateur
+            document.querySelectorAll('.list-drop-indicator').forEach(ind => ind.remove());
+        });
+    }
+}
+
+function getListAfterElement(board, x) {
+    const draggableElements = [...board.querySelectorAll('.list:not(.dragging-list)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = x - box.left - box.width / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function getOrCreateListDropIndicator() {
+    let indicator = document.querySelector('.list-drop-indicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.className = 'list-drop-indicator';
+    }
+    return indicator;
+}
+
+function moveListToPosition(listId, afterElement) {
+    const listIndex = boardData.lists.findIndex(l => l.id == listId);
+    if (listIndex === -1) return;
+    
+    const list = boardData.lists[listIndex];
+    
+    // Calculer l'index d'insertion AVANT de retirer la liste
+    let insertIndex = boardData.lists.length;
+    if (afterElement) {
+        const afterListId = afterElement.dataset.listId;
+        const afterListIndex = boardData.lists.findIndex(l => l.id == afterListId);
+        if (afterListIndex !== -1) {
+            insertIndex = afterListIndex;
+            // Si on déplace vers la droite, ajuster l'index car on va retirer la liste avant
+            if (listIndex < afterListIndex) {
+                insertIndex--;
+            }
+        }
+    }
+    
+    // Retirer la liste de sa position actuelle
+    boardData.lists.splice(listIndex, 1);
+    
+    // Insérer à la nouvelle position
+    boardData.lists.splice(insertIndex, 0, list);
+    
+    const orderedListIds = boardData.lists.map(l => l.id);
+    submitOperation('REORDER_LISTS', { orderedListIds });
+    renderBoard();
 }
 
 function getDragAfterElement(container, y) {

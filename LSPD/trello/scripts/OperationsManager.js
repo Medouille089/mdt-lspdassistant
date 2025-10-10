@@ -64,6 +64,9 @@ class OperationsManager {
             case 'REORDER_TAGS':
                 result = this.applyReorderTags(operation.data);
                 break;
+            case 'REORDER_LISTS':
+                result = this.applyReorderLists(operation.data);
+                break;
             default:
                 result = { success: false, error: `Type d'opération inconnu: ${operation.type}` };
                 break;
@@ -109,6 +112,8 @@ class OperationsManager {
                 return this.validateDeleteTag(operation.data);
             case 'REORDER_TAGS':
                 return this.validateReorderTags(operation.data);
+            case 'REORDER_LISTS':
+                return this.validateReorderLists(operation.data);
             default:
                 return { valid: false, error: 'Type invalide' };
         }
@@ -197,6 +202,13 @@ class OperationsManager {
     validateReorderTags(data) {
         if (!Array.isArray(data?.orderedTagIds)) {
             return { valid: false, error: 'Ordre d\'étiquettes invalide' };
+        }
+        return { valid: true };
+    }
+
+    validateReorderLists(data) {
+        if (!Array.isArray(data?.orderedListIds)) {
+            return { valid: false, error: 'Ordre de listes invalide' };
         }
         return { valid: true };
     }
@@ -436,6 +448,23 @@ class OperationsManager {
         return {
             success: true,
             diff: { type: 'REORDER_TAGS', data: { orderedTagIds: orderedIds } }
+        };
+    }
+
+    applyReorderLists(data) {
+        const orderedIds = data.orderedListIds;
+        const orderedSet = new Set(orderedIds);
+
+        const orderedLists = orderedIds
+            .map(id => this.boardState.lists.find(list => list.id === id))
+            .filter(Boolean);
+        const remainingLists = this.boardState.lists.filter(list => !orderedSet.has(list.id));
+
+        this.boardState.lists = [...orderedLists, ...remainingLists];
+
+        return {
+            success: true,
+            diff: { type: 'REORDER_LISTS', data: { orderedListIds: orderedIds } }
         };
     }
 

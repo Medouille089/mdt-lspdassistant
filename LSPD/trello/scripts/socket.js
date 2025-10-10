@@ -2,6 +2,7 @@ import { setBoardData, setIsLocalUpdate, boardData, isLocalUpdate, activeCardCre
 import { renderBoard, updateSingleCardDOM } from './board.js';
 import { syncTagsFromBoardData } from './tags.js';
 import { captureScrollState, generateId } from './utils.js';
+import { handleRookiePatrolDeletion } from './rookieTracker.js';
 
 export const socket = io();
 
@@ -117,9 +118,20 @@ function applyBoardDiff(diff) {
         }
         case 'DELETE_CARD': {
             const list = boardData.lists.find((l) => l.id === data?.listId);
-            if (!list) return false;
+            if (!list) {
+                handleRookiePatrolDeletion(data?.cardId);
+                return false;
+            }
+
             const index = list.cards.findIndex((c) => c.id === data?.cardId);
-            if (index === -1) return false;
+            if (index === -1) {
+                handleRookiePatrolDeletion(data?.cardId);
+                return false;
+            }
+
+            const card = list.cards[index];
+            handleRookiePatrolDeletion(data.cardId, { force: Boolean(card?.text && card.text.includes('+')) });
+
             list.cards.splice(index, 1);
             return true;
         }

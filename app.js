@@ -97,6 +97,7 @@ const convocAgent = require('./routes/convocAgent');
 const annonce = require('./routes/annonce');
 const faq = require('./routes/faq');
 const calendarRoutes = require('./routes/calendar');
+const rookiePatrolsRoutes = require('./LSPD/trello/routes/rookiePatrols');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -122,6 +123,7 @@ app.use(convocAgent);
 app.use(annonce);
 app.use(faq);
 app.use(calendarRoutes);
+app.use(rookiePatrolsRoutes);
 app.use(rapportRookie);
 
 // 🗂️ Frontend statique

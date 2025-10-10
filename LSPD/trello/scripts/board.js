@@ -1,9 +1,23 @@
-import { boardData, scrollState, activeCardCreations, availableTags } from './state.js';
+import { boardData, scrollState, activeCardCreations, availableTags, setCurrentUser, canManageLists, loadRookiePatrolsFromDB } from './state.js';
 import { captureScrollState, restoreScrollState, getCardTags, generateCustomFieldsHtml, generateId, formatRelativeTime } from './utils.js';
 import { submitOperation } from './socket.js';
 import { attachCardEvents } from './card.js';
 import { attachDragDropEvents } from './dragdrop.js';
 import { initializeModalEvents, openCardModal } from './modal.js';
+import { scanAllPatrolsForRookies } from './rookieTracker.js';
+
+async function fetchCurrentUser() {
+    try {
+        const res = await fetch('/api/user');
+        if (!res.ok) throw new Error('Non connecté');
+        const user = await res.json();
+        console.log('Utilisateur connecté:', user);
+        setCurrentUser(user);
+    } catch (error) {
+        console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+        setCurrentUser(null);
+    }
+}
 
 export function renderBoard(preserveScroll = true) {
     if (preserveScroll) captureScrollState(scrollState);
@@ -34,8 +48,11 @@ export function renderBoard(preserveScroll = true) {
 
         const cardsHtml = list.cards.map(card => renderCard(card, list.id)).join('');
 
+        // Ajouter draggable seulement si l'utilisateur a les permissions
+        const isDraggable = canManageLists() ? 'draggable="true"' : '';
+        
         listEl.innerHTML = `
-            <div class="list-header">
+            <div class="list-header" ${isDraggable}>
                 <div class="list-title editable-list-title">${list.title}</div>
                 <button class="list-menu-btn" data-list-id="${list.id}">⋯</button>
             </div>
@@ -166,7 +183,62 @@ function attachEvents() {
     });
 }
 
-export function initialize() {
+// Rafraîchir uniquement les timestamps sans re-render complet
+function refreshAllTimestamps() {
+    document.querySelectorAll('.card-timestamp').forEach(timestampEl => {
+        const cardEl = timestampEl.closest('.card');
+        if (!cardEl) return;
+
+        const cardId = cardEl.dataset.cardId;
+        const listEl = cardEl.closest('.list');
+        if (!listEl) return;
+
+        const listId = listEl.dataset.listId;
+        const list = boardData.lists.find(l => l.id === listId);
+        if (!list) return;
+
+        const card = list.cards.find(c => c.id === cardId);
+        if (!card || !card.updated_at) return;
+
+        const newText = formatRelativeTime(card.updated_at);
+        
+        // Si le texte change ou devient vide
+        if (newText !== timestampEl.textContent) {
+            if (newText === '') {
+                // Fade out et suppression
+                timestampEl.style.opacity = '0';
+                setTimeout(() => {
+                    if (timestampEl.parentNode) {
+                        timestampEl.parentNode.removeChild(timestampEl);
+                    }
+                }, 200);
+            } else {
+                // Mise à jour du texte
+                timestampEl.textContent = newText;
+            }
+        }
+    });
+}
+
+let timestampRefreshInterval = null;
+
+function startTimestampRefresh() {
+    // Arrêter l'intervalle existant si présent
+    if (timestampRefreshInterval) {
+        clearInterval(timestampRefreshInterval);
+    }
+    
+    // Rafraîchir toutes les 30 secondes
+    timestampRefreshInterval = setInterval(refreshAllTimestamps, 30000);
+}
+
+export async function initialize() {
+    // Charger les informations utilisateur AVANT tout le reste
+    await fetchCurrentUser();
+    
+    // Charger les patrouilles avec rookies depuis la BDD
+    await loadRookiePatrolsFromDB();
+    
     renderBoard();
     initializeModalEvents();
 
@@ -175,6 +247,12 @@ export function initialize() {
         addListBtn.replaceWith(addListBtn.cloneNode(true));
         document.querySelector('.add-list-btn').addEventListener('click', addList);
     }
+
+    // Rafraîchir les timestamps toutes les 30 secondes
+    startTimestampRefresh();
+    
+    // Scanner les patrouilles avec rookies
+    scanAllPatrolsForRookies();
 
     // Initialiser les événements fullscreen
     const fullscreen = document.getElementById('imageFullscreen');
@@ -323,6 +401,26 @@ function editListTitle(listElement, listId) {
     input.addEventListener('blur', saveTitle);
 }
 
+function deleteList(listId) {
+    const list = boardData.lists.find(l => l.id == listId);
+    if (!list) return;
+
+    const cardCount = list.cards.length;
+    const confirmMessage = cardCount > 0 
+        ? `Êtes-vous sûr de vouloir supprimer la liste "${list.title}" et ses ${cardCount} carte(s) ?`
+        : `Êtes-vous sûr de vouloir supprimer la liste "${list.title}" ?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    // Supprimer la liste du boardData
+    const listIndex = boardData.lists.findIndex(l => l.id == listId);
+    if (listIndex !== -1) {
+        boardData.lists.splice(listIndex, 1);
+        submitOperation('DELETE_LIST', { listId });
+        renderBoard();
+    }
+}
+
 export function openFullscreenImage(src, alt = '') {
     const fullscreen = document.getElementById('imageFullscreen');
     const fullscreenImg = document.getElementById('fullscreenImg');
@@ -385,18 +483,28 @@ function openListSortMenu(button, listId) {
     // Fermer tout menu existant
     closeListSortMenu();
 
+    // Vérifier si l'utilisateur peut supprimer la liste
+    const canDelete = canManageLists();
+    const deleteOption = canDelete ? `
+        <div class="list-menu-separator"></div>
+        <button class="list-sort-option list-delete-option" data-action="delete">
+            🗑️ Supprimer la liste
+        </button>
+    ` : '';
+
     const menu = document.createElement('div');
     menu.className = 'list-sort-menu';
     menu.innerHTML = `
         <div class="list-sort-menu-header">
-            <div class="list-sort-menu-title">Trier les cartes</div>
+            <div class="list-sort-menu-title">Options de la liste</div>
         </div>
         <button class="list-sort-option" data-sort="alpha-asc">
-            Titre (A-Z)
+            📝 Titre (A-Z)
         </button>
         <button class="list-sort-option" data-sort="alpha-desc">
-            Titre (Z-A)
+            📝 Titre (Z-A)
         </button>
+        ${deleteOption}
     `;
 
     // Positionner le menu
@@ -404,8 +512,8 @@ function openListSortMenu(button, listId) {
     listHeader.style.position = 'relative';
     listHeader.appendChild(menu);
 
-    // Ajouter les gestionnaires d'événements
-    menu.querySelectorAll('.list-sort-option').forEach(option => {
+    // Ajouter les gestionnaires d'événements pour le tri
+    menu.querySelectorAll('.list-sort-option[data-sort]').forEach(option => {
         option.addEventListener('click', (e) => {
             e.stopPropagation();
             const sortType = option.dataset.sort;
@@ -413,6 +521,16 @@ function openListSortMenu(button, listId) {
             closeListSortMenu();
         });
     });
+
+    // Ajouter le gestionnaire pour la suppression
+    const deleteBtn = menu.querySelector('.list-delete-option');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeListSortMenu();
+            deleteList(listId);
+        });
+    }
 
     // Fermer le menu en cliquant ailleurs
     setTimeout(() => {

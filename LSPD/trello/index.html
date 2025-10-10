@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../styles/sidebar.css">
     <link rel="stylesheet" href="../styles/colors.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/rookie-patrols.css">
     <link rel="icon" href="../data/images/favicon.png" type="image/png">
 </head>
 
@@ -17,6 +18,9 @@
     <div class="main-container">
         <div id="sidebar-container"></div>
         <h1>LSPD</h1>
+        <div class="board-header">
+            <button class="rookie-patrols-btn" id="rookiePatrolsBtn">🎓 Patrouilles avec Rookies</button>
+        </div>
         <div class="board-container">
             <div class="board"></div>
             <div class="add-list-container">
@@ -27,6 +31,7 @@
         <script src="/socket.io/socket.io.js"></script>
         <script type="module">
             import { initialize } from './scripts/board.js';
+            import { showRookiePatrolsModal } from './scripts/rookieTracker.js';
 
             // Rendre les fonctions globales pour les onclick dans le HTML
             import { toggleCardCompact } from './scripts/card.js';
@@ -44,7 +49,15 @@
             window.openFullscreenImage = openFullscreenImage;
             window.closeFullscreenImage = closeFullscreenImage;
 
-            document.addEventListener('DOMContentLoaded', initialize);
+            document.addEventListener('DOMContentLoaded', () => {
+                initialize();
+                
+                // Bouton patrouilles avec rookies
+                const rookieBtn = document.getElementById('rookiePatrolsBtn');
+                if (rookieBtn) {
+                    rookieBtn.addEventListener('click', showRookiePatrolsModal);
+                }
+            });
         </script>
         <script>
             // loadSidebar.js adapté pour Trello
