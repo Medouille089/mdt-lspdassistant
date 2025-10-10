@@ -8,6 +8,7 @@
     <title>Pointeuse - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/dashboard.css" />
     <link rel="stylesheet" href="styles/colors.css" />
     <link rel="stylesheet" href="styles/loader.css" />
     <link rel="stylesheet" href="styles/pointeuse.css" />
@@ -18,38 +19,63 @@
 
 <body>
     <script src="scripts/annonce-popup.js"></script>
-    <div class="main-container">
+    <div class="main-container pointeuse">
         <div id="sidebar-container"></div>
         <h1>Pointeuse LSPD</h1>
-        <div id="status">Chargement du statut...</div>
-        <button id="btn-start-stop">...</button>
 
-        <h2>Semaine en cours</h2>
-        <p class="p"><strong>Semaine en cours :</strong> <span id="current-week-range"></span></p>
-        <p class="p">Total gagné : <span id="current-week-total">Chargement...</span> $</p>
+        <div class="dashboard-container">
+            <!-- Bandeau supérieur avec 2 cartes -->
+            <div class="stats-cards">
+                <!-- Salaire de la semaine -->
+                <div class="card stat" id="weeklySalaryCard">
+                    <div class="title">Salaire de la semaine</div>
+                    <div class="number" id="current-week-total">Chargement...</div>
+                </div>
+                <!-- Semaine + Statut + Bouton -->
+                <div class="card stat" id="weekRangeCard">
+                    <div class="title">Semaine du <span class="range-date" id="current-week-range">Chargement...</span></div>
+                    <div class="info" id="status">Chargement du statut...</div>
+                    <button id="btn-start-stop" style="margin-top: 10px;">...</button>
+                </div>
+            </div>
 
-        <h2>Historique des pointages (semaine en cours)</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Début</th>
-                    <th>Fin</th>
-                    <th>Rôle</th>
-                    <th>Durée (h)</th>
-                    <th>Gains ($)</th>
-                </tr>
-            </thead>
-            <tbody id="weekly-history-body">
-                <tr>
-                    <td colspan="5">Chargement...</td>
-                </tr>
-            </tbody>
-        </table>
+            <!-- Sessions (Semaine en cours) -->
+            <h2>Sessions</h2>
+            <div class="card full-width">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Début</th>
+                            <th>Fin</th>
+                            <th>Rôle</th>
+                            <th>Durée (h)</th>
+                            <th>Gains ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weekly-history-body">
+                        <tr>
+                            <td colspan="5">Chargement...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <h2>Historique des pointages (3 dernières semaines)</h2>
-        <ul id="last-weeks-list">
-            <li>Chargement...</li>
-        </ul>
+            <!-- Graphique mensuel -->
+            <h2>Activité du mois</h2>
+            <div class="card full-width">
+                <canvas id="monthlyChart" height="120"></canvas>
+            </div>
+
+            <!-- Historique (3 dernières semaines) -->
+            <h2>Historique</h2>
+            <div class="stats-cards" id="last-weeks-cards">
+                <div class="card stat">
+                    <div class="title">Semaine du</div>
+                    <div class="number">Chargement...</div>
+                    <div class="info">—</div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="loader-overlay" id="loaderOverlay">
         <div class="loader-spinner"></div>
@@ -67,6 +93,7 @@
     <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
     <script src="scripts/loadSidebar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="scripts/pointeuse.js"></script>
 </body>
 
