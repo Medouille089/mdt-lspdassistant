@@ -62,7 +62,7 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
                 "Content-Type": "application/json",
                 "x-internal": "true"
             },
-            body: JSON.stringify({ id_brac, nom, prenom, tel, motif, dateDebut })
+            body: JSON.stringify({ id_brac, nom, prenom, tel, motif, dateDebut, userId: user.id })
         });
 
 
@@ -110,8 +110,7 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
 
 // Route POST – Création d’un post (thread Discord)
 router.post('/api/create-post', async (req, res) => {
-    const { id_brac, nom, prenom, tel, motif, dateDebut } = req.body;
-
+    const { id_brac, nom, prenom, tel, motif, dateDebut, userId } = req.body;
     try {
         const formattedDateDebut = formatDate(dateDebut);
         const threadTitle = `${id_brac} - ${nom} ${prenom} - ${formattedDateDebut}`;
@@ -126,11 +125,12 @@ router.post('/api/create-post', async (req, res) => {
                     { name: "Prénom", value: prenom, inline: true },
                     { name: "Motif", value: motif, inline: true },
                     { name: "Téléphone", value: tel, inline: false },
+                    { name: "Créé par", value: userId ? `<@${userId}>` : 'Système', inline: false },
                     {
                         name: "Date d'activation",
                         value: `**${formattedDateDebut}**`,
                         inline: false
-                    }
+                    },
                 ],
                 footer: {
                     text: "LSPD Assistant",
