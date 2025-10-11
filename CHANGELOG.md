@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/Medouille089/lspdassistant/compare/v1.6.4...v1.7.0) (2025-10-11)
+
+
+### Features
+
+* Add possibility to connect via account ([264365a](https://github.com/Medouille089/lspdassistant/commit/264365a5f24faf8cd9466c8e8dbdccbe2d8aaf98))
+* Add toggle view all absence or mine. ([873cb5a](https://github.com/Medouille089/lspdassistant/commit/873cb5a760e8c008aadff42a56911392f3e51332))
+
+
+### Bug Fixes
+
+* add dependencies to package.json ([975a1fe](https://github.com/Medouille089/lspdassistant/commit/975a1feb4c5b7f52cea942be8c2e337efd9a487d))
+* add visibility button + css ([bcab681](https://github.com/Medouille089/lspdassistant/commit/bcab6811cc97f8e9eb246e3d0f13b9572f2a3a02))
+* jsp c quoi github il fait dla d un peu ([5895e3b](https://github.com/Medouille089/lspdassistant/commit/5895e3b260887372cca914bfdb278265d951edc6))
+* lspd-assistant.fr/ redirect to connect.html ([2810201](https://github.com/Medouille089/lspdassistant/commit/2810201e588c570e13c7b291494908891c64aea9))
+* Redirect deconnect to connect ([6d8f42a](https://github.com/Medouille089/lspdassistant/commit/6d8f42adb3512dcc005183b48631e05c707fe267))
+* Redirect to the login page if accessing the site via a direct link. ([5b211be](https://github.com/Medouille089/lspdassistant/commit/5b211bed349f3c26b3704a2dd7c9c69710c5eacb))
+* same ([7a605f4](https://github.com/Medouille089/lspdassistant/commit/7a605f498d34f11a9d094a766fa0adde192c61f4))
+
 ### [1.6.4](https://github.com/Medouille089/lspdassistant/compare/v1.6.3...v1.6.4) (2025-10-11)
 
 
