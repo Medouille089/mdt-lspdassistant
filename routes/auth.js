@@ -9,26 +9,11 @@ const path = require("path");
 const { checkAuth } = require("../config/middleware"); // ✅ ton middleware
 const { checkAuthOrDOJ } = require("../config/middleware"); // ✅ nouveau middleware pour DOJ
 
-// Initialiser le Map global s'il n'existe pas
-if (!global.pendingRedirects) {
-  global.pendingRedirects = new Map();
-}
-
 // Authentification avec Discord
 router.get("/login", passport.authenticate("discord"));
 
-router.get('/callback', (req, res, next) => {
-  if (!req.query.code) return res.status(403).send('Accès interdit.');
-
-  // Récupérer l'ID de redirection depuis le state OAuth
-  const redirectId = req.query.state;
-  if (redirectId) {
-    // Stocker temporairement pour utilisation après l'auth
-    req._redirectId = redirectId;
-  }
-
-  next();
-}, passport.authenticate('discord', { failureRedirect: '/' }),
+router.get('/callback', 
+  passport.authenticate('discord', { failureRedirect: '/connect.html' }),
   async (req, res) => {
     try {
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
@@ -113,14 +98,11 @@ router.get('/callback', (req, res, next) => {
         return res.redirect('/register.html');
       }
 
-      // Récupérer l'URL de redirection via l'ID stocké
+      // Récupérer l'URL de redirection depuis la session
       let redirectTo = '/protected';
-      const redirectId = req._redirectId; // Utiliser l'ID depuis le callback, pas la session
-
-      if (redirectId && global.pendingRedirects && global.pendingRedirects.has(redirectId)) {
-        redirectTo = global.pendingRedirects.get(redirectId);
-        global.pendingRedirects.delete(redirectId); // Nettoyer après utilisation
-      } else {
+      if (req.session.returnTo) {
+        redirectTo = req.session.returnTo;
+        delete req.session.returnTo; // Nettoyer après utilisation
       }
 
 

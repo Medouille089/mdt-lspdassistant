@@ -82,12 +82,9 @@ app.use((req, res, next) => {
 
     // Tout le reste → nécessite une connexion
     if (!req.isAuthenticated?.()) {
-        // Générer un ID unique pour cette redirection
-        const redirectId = require('crypto').randomUUID();
-        // Stocker l'URL originale avec l'ID
-        if (!global.pendingRedirects) global.pendingRedirects = new Map();
-        global.pendingRedirects.set(redirectId, req.originalUrl);
-        return res.redirect(`/login?redirect=${redirectId}`);
+        // Stocker l'URL originale dans la session pour redirection après login
+        req.session.returnTo = req.originalUrl;
+        return res.redirect('/connect.html');
     }
 
     next();

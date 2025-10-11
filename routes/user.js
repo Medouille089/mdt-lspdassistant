@@ -340,7 +340,11 @@ router.post('/login-local', async (req, res) => {
           }).catch(console.error);
         }
 
-        res.json({ success: true, redirect: '/protected' });
+        // Récupérer l'URL de redirection depuis la session
+        const redirectTo = req.session.returnTo || '/protected';
+        delete req.session.returnTo;
+
+        res.json({ success: true, redirect: redirectTo });
       });
 
     } catch (error) {
