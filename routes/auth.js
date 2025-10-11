@@ -101,6 +101,18 @@ router.get('/callback', (req, res, next) => {
         `);
       }
 
+      // Vérifier si l'utilisateur a déjà un compte local
+      const pool = require('../config/db');
+      const accountCheck = await pool.query(
+        'SELECT id FROM user_accounts WHERE discord_id = $1',
+        [req.user.id]
+      );
+
+      // Si pas de compte local, rediriger vers la page d'inscription
+      if (accountCheck.rows.length === 0) {
+        return res.redirect('/register.html');
+      }
+
       // Récupérer l'URL de redirection via l'ID stocké
       let redirectTo = '/protected';
       const redirectId = req._redirectId; // Utiliser l'ID depuis le callback, pas la session
