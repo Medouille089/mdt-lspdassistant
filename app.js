@@ -45,9 +45,15 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(passport.initialize());
 app.use(passport.session());
 
+// ⚠️ Route racine AVANT le auth guard
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "LSPD", "connect.html"));
+});
+
 // Auth guard
 app.use((req, res, next) => {
     const publicPaths = [
+        '/',
         '/login',
         '/callback',
         '/logout',
@@ -144,9 +150,7 @@ app.use(rapportRookie);
 // 🗂️ Frontend statique
 app.use(express.static(path.join(__dirname, "LSPD")));
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "LSPD", "connect.html"));
-});
+// La route "/" est définie AVANT le auth guard (ligne ~48)
 
 async function startServer() {
     // Charger la configuration LSPD
