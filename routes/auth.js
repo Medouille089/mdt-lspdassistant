@@ -138,8 +138,16 @@ router.get('/callback', (req, res, next) => {
 
 // Déconnexion
 router.get("/logout", (req, res) => {
-  req.logout(() => {
-    res.redirect("/login");
+  req.logout((err) => {
+    if (err) {
+      console.error("Erreur lors de la déconnexion:", err);
+    }
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Erreur destruction session:", err);
+      }
+      res.redirect("/connect.html");
+    });
   });
 });
 
