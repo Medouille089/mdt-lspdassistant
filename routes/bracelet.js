@@ -49,9 +49,9 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
 
 
         await pool.query(
-            `INSERT INTO bracelets (nom, prenom, tel, date_debut, id_brac, motif)
-            VALUES ($1, $2, $3, $4, $5, $6)`,
-            [nom, prenom, tel, dateDebut, id_brac, motif]
+            `INSERT INTO bracelets (nom, prenom, tel, date_debut, id_brac, motif, created_by)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [nom, prenom, tel, dateDebut, id_brac, motif, user.guild_member?.nick || user.displayName || user.username]
         );
 
 
@@ -157,7 +157,7 @@ router.post('/api/create-post', async (req, res) => {
 // Route GET – Récupère tous les bracelets actifs
 router.get('/api/formulaires', async (req, res) => {
     try {
-        const result = await pool.query('SELECT id, id_brac, nom, prenom, tel, date_debut, motif FROM bracelets ORDER BY id DESC');
+        const result = await pool.query('SELECT id, id_brac, nom, prenom, tel, date_debut, motif, created_by FROM bracelets ORDER BY id DESC');
         res.json(result.rows.map(row => ({
             id: row.id,
             id_brac: row.id_brac,
@@ -166,6 +166,7 @@ router.get('/api/formulaires', async (req, res) => {
             tel: row.tel,
             motif: row.motif,
             dateDebut: row.date_debut.toLocaleDateString('fr-CA'),
+            created_by: row.created_by
         })));
     } catch (err) {
         console.error('Erreur GET /api/formulaires:', err);
@@ -182,7 +183,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
     try {
         // Récupérer les données actuelles
         const { rows } = await pool.query(
-            'SELECT id_thread, id_brac, nom AS old_nom, prenom AS old_prenom, date_debut AS old_date_debut FROM bracelets WHERE id = $1',
+            'SELECT id_thread, id_brac, nom AS old_nom, prenom AS old_prenom, date_debut AS old_date_debut, created_by FROM bracelets WHERE id = $1',
             [id]
         );
 
@@ -190,7 +191,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
             return res.status(404).json({ error: 'Bracelet non trouvé' });
         }
 
-        const { id_thread: threadId, id_brac, old_nom, old_prenom, old_date_debut } = rows[0];
+    const { id_thread: threadId, id_brac, old_nom, old_prenom, old_date_debut, created_by } = rows[0];
         const mentionThread = threadId ? `<#${threadId}>` : 'Thread inconnu';
 
         // Mettre à jour le bracelet
@@ -230,7 +231,8 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
                             name: "Date d'activation",
                             value: `**${dateDebutFormatted || '—'}**`,
                             inline: false
-                        }
+                        },
+                        { name: "Créé par", value: created_by || '—', inline: false }
                     )
                     .setFooter({
                         text: "LSPD Assistant",
