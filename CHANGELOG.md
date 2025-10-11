@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.6.3](https://github.com/Medouille089/lspdassistant/compare/v1.6.2...v1.6.3) (2025-10-11)
+
+
+### Bug Fixes
+
+* Add "créé par" in embed created ([1994c25](https://github.com/Medouille089/lspdassistant/commit/1994c25e75b04d52ec9a0c565b260ea01429e47d))
+* Change name of thread convocation (nom - date à heure - matricule) ([2483c14](https://github.com/Medouille089/lspdassistant/commit/2483c14b4b18a155a9e86777aeafc618a77e9340))
+* names in titles ([077f775](https://github.com/Medouille089/lspdassistant/commit/077f775784efa1b8aa209024328aafc3e356a4f2))
+
 ### [1.6.2](https://github.com/Medouille089/lspdassistant/compare/v1.6.1...v1.6.2) (2025-10-10)
 
 
