@@ -89,7 +89,6 @@ router.get('/api/calendar/members', checkAuth, cacheMembers(), async (req, res) 
     }
 });
 
-// Récupérer tous les événements
 router.get('/api/calendar/events', checkAuth, cacheEvents(), async (req, res) => {
     try {
         const query = `
@@ -231,14 +230,12 @@ router.post('/api/calendar/events', checkAuth, async (req, res) => {
             console.error('Erreur lors de l\'envoi du log Discord:', logError);
         }
 
-        // Envoyer des notifications MP aux personnes concernées
         try {
             await sendEventNotifications(newEvent);
         } catch (notifError) {
             console.error('Erreur lors de l\'envoi des notifications:', notifError);
         }
 
-        // Invalider le cache des événements
         invalidateEventsCache();
 
         res.status(201).json({
@@ -336,6 +333,14 @@ router.put('/api/calendar/events/:id', checkAuth, async (req, res) => {
 router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
+        const user = req.user;
+
+        if (!user.isSupervisor && !user.isCommandStaff && !user.isAdmin) {
+            return res.status(403).json({
+                error: 'Accès refusé',
+                message: 'Vous n\'avez pas les permissions nécessaires pour supprimer un événement'
+            });
+        }
 
         const selectQuery = 'SELECT * FROM evenements_calendrier WHERE id = $1';
         const selectResult = await db.query(selectQuery, [id]);
@@ -352,7 +357,7 @@ router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
         await db.query(deleteQuery, [id]);
 
         try {
-            await sendEventLog(deletedEvent, 'suppression');
+            await sendEventLog(deletedEvent, 'suppression', user);
         } catch (logError) {
             console.error('Erreur lors de l\'envoi du log Discord:', logError);
         }
@@ -373,7 +378,7 @@ router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
     }
 });
 
-async function sendEventLog(event, action) {
+async function sendEventLog(event, action, user = null) {
     try {
         const conf = await getConfig();
         if (!conf.logs_channel) {
@@ -411,6 +416,11 @@ async function sendEventLog(event, action) {
                 { name: '👤 Auteur', value: event.auteur, inline: true }
             );
 
+        if (action === 'suppression' && user) {
+            const deletedBy = user.guild_member?.nick || user.username || 'Inconnu';
+            embed.addFields({ name: '🗑️ Supprimé par', value: deletedBy, inline: true });
+        }
+
         if (event.date_debut && event.date_fin) {
             const dateDebut = new Date(event.date_debut).toLocaleString('fr-FR');
             const dateFin = new Date(event.date_fin).toLocaleString('fr-FR');
@@ -433,7 +443,6 @@ async function sendEventLog(event, action) {
             });
         }
 
-        // Afficher les grades concernés
         if (event.grades_concernes && event.grades_concernes.length > 0) {
             const guild = bot.guilds.cache.get(GUILD_ID);
             if (guild) {
@@ -445,7 +454,6 @@ async function sendEventLog(event, action) {
             }
         }
 
-        // Afficher les personnes concernées
         if (event.personnes_concernees && event.personnes_concernees.length > 0) {
             const guild = bot.guilds.cache.get(GUILD_ID);
             if (guild) {
@@ -463,7 +471,6 @@ async function sendEventLog(event, action) {
             }
         }
 
-        // Si aucun filtre, indiquer que c'est pour tout le monde
         if ((!event.grades_concernes || event.grades_concernes.length === 0) &&
             (!event.personnes_concernees || event.personnes_concernees.length === 0)) {
             embed.addFields({ name: '🌐 Visibilité', value: 'Tous les membres LSPD', inline: false });
@@ -489,7 +496,6 @@ async function sendEventNotifications(event) {
 
         const usersToNotify = new Set();
 
-        // Récupérer les utilisateurs ayant les grades concernés
         if (event.grades_concernes && event.grades_concernes.length > 0) {
             await guild.members.fetch();
             guild.members.cache.forEach(member => {
@@ -501,13 +507,11 @@ async function sendEventNotifications(event) {
             });
         }
 
-        // Ajouter les personnes spécifiquement concernées
         if (event.personnes_concernees && event.personnes_concernees.length > 0) {
             event.personnes_concernees.forEach(userId => usersToNotify.add(userId));
         }
 
 
-        // Créer l'embed de notification
         const notifEmbed = new EmbedBuilder()
             .setColor(event.couleur || '#3498db')
             .setTitle('📅 Nouvel événement - LSPD')
@@ -566,7 +570,6 @@ async function sendEventNotifications(event) {
             iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
         });
 
-        // Envoyer les notifications
         let successCount = 0;
         let failCount = 0;
 

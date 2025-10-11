@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+
+    <title>Création de compte - LSPD Assistant</title>
+
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/connect.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        .register-form {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .register-form h2 {
+            color: var(--primary-color, #0b1b5a);
+            text-align: center;
+            margin-bottom: 10px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .register-form p {
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 0.9em;
+        }
+
+        .discord-info {
+            background: rgba(88, 101, 242, 0.1);
+            border: 1px solid rgba(88, 101, 242, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .discord-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        .discord-info span {
+            color: #fff;
+            font-weight: 500;
+            vertical-align: middle;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color, #0b1b5a);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.2);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .password-requirements {
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+
+        .password-strength {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .strength-weak {
+            background: #ff4444;
+            width: 33%;
+        }
+
+        .strength-medium {
+            background: #ffaa00;
+            width: 66%;
+        }
+
+        .strength-strong {
+            background: #00ff00;
+            width: 100%;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-color, #0b1b5a) 0%, #1a3a8a 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(11, 27, 90, 0.4);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #ff4444;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        .success-message {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #00ff00;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        .optional-tag {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.85em;
+            font-weight: 400;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <img src="data/images/lspdcancer.png" alt="LSPD Logo" class="logo" />
+        <div class="slogan">To protect and serve.</div>
+    </div>
+
+    <div class="main-content">
+        <div class="register-form">
+            <h2>Création de votre compte</h2>
+            <p>Bienvenue ! Créez votre compte local pour accéder au LSPD Assistant</p>
+
+            <div class="discord-info" id="discordInfo">
+                <img id="userAvatar" src="" alt="Avatar">
+                <span id="discordUsername">Chargement...</span>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur *</label>
+                    <input type="text" id="username" name="username" required
+                        placeholder="Choisissez votre nom d'utilisateur" minlength="3" maxlength="30"
+                        autocomplete="username">
+                    <div class="password-requirements">3-30 caractères, lettres, chiffres, tirets et underscores</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email <span class="optional-tag">(optionnel, pour récupération de mot de
+                            passe)</span></label>
+                    <input type="email" id="email" name="email" placeholder="votre.email@exemple.com"
+                        autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe *</label>
+                    <input type="password" id="password" name="password" required
+                        placeholder="Choisissez un mot de passe sécurisé" minlength="8" autocomplete="new-password">
+                    <div class="password-requirements">Minimum 8 caractères, incluez majuscules, minuscules et chiffres
+                    </div>
+                    <div class="password-strength">
+                        <div class="password-strength-bar" id="strengthBar"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmer le mot de passe *</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        placeholder="Confirmez votre mot de passe" autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="submit-button" id="submitBtn">
+                    Créer mon compte
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="watermark">LSPD Assistant</div>
+
+    <script>
+        // Récupérer les infos Discord de l'utilisateur
+        fetch('/api/user/discord-info')
+            .then(res => res.json())
+            .then(data => {
+                if (data.discord_id) {
+                    document.getElementById('userAvatar').src = data.avatar || 'data/images/officier.png';
+                    document.getElementById('discordUsername').textContent = data.username || 'Utilisateur Discord';
+                } else {
+                    window.location.href = '/login';
+                }
+            })
+            .catch(err => {
+                console.error('Erreur:', err);
+                showError('Impossible de récupérer vos informations Discord');
+            });
+
+        // Validation du mot de passe en temps réel
+        const passwordInput = document.getElementById('password');
+        const strengthBar = document.getElementById('strengthBar');
+
+        passwordInput.addEventListener('input', function () {
+            const password = this.value;
+            const strength = calculatePasswordStrength(password);
+
+            strengthBar.className = 'password-strength-bar';
+            if (strength >= 80) {
+                strengthBar.classList.add('strength-strong');
+            } else if (strength >= 50) {
+                strengthBar.classList.add('strength-medium');
+            } else if (strength > 0) {
+                strengthBar.classList.add('strength-weak');
+            }
+        });
+
+        function calculatePasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength += 25;
+            if (password.length >= 12) strength += 25;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+            if (/\d/.test(password)) strength += 15;
+            if (/[^a-zA-Z0-9]/.test(password)) strength += 10;
+            return strength;
+        }
+
+        // Soumission du formulaire
+        document.getElementById('registerForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validation
+            if (password !== confirmPassword) {
+                showError('Les mots de passe ne correspondent pas');
+                return;
+            }
+
+            if (password.length < 8) {
+                showError('Le mot de passe doit contenir au moins 8 caractères');
+                return;
+            }
+
+            if (!/^[a-zA-Z0-9_-]{3,30}$/.test(username)) {
+                showError('Le nom d\'utilisateur doit contenir entre 3 et 30 caractères (lettres, chiffres, tirets et underscores uniquement)');
+                return;
+            }
+
+            // Désactiver le bouton pendant la soumission
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Création en cours...';
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('Compte créé avec succès ! Redirection...');
+                    setTimeout(() => {
+                        window.location.href = data.redirect || '/protected';
+                    }, 1500);
+                } else {
+                    showError(data.error || 'Erreur lors de la création du compte');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Créer mon compte';
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showError('Erreur de connexion au serveur');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Créer mon compte';
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            successDiv.style.display = 'none';
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            errorDiv.style.display = 'none';
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>

@@ -47,7 +47,22 @@ app.use(passport.session());
 
 // Auth guard
 app.use((req, res, next) => {
-    const publicPaths = ['/login', '/callback', '/logout', '/bracelet', '/connect.html', '/trello'];
+    const publicPaths = [
+        '/login',
+        '/callback',
+        '/logout',
+        '/bracelet',
+        '/connect.html',
+        '/trello',
+        '/register.html',
+        '/forgot-password.html',
+        '/reset-password.html',
+        '/register',
+        '/login-local',
+        '/forgot-password',
+        '/reset-password',
+        '/api/user/discord-info'
+    ];
 
     // Autoriser uniquement les assets front (pas les .html)
     const isStaticAsset = req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg)$/i);
