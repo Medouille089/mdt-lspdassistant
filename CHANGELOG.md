@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.6.4](https://github.com/Medouille089/lspdassistant/compare/v1.6.3...v1.6.4) (2025-10-11)
+
+
+### Bug Fixes
+
+* add crée par bracelet page ([9533797](https://github.com/Medouille089/lspdassistant/commit/9533797056b33ee59de6804c804adc30bf073f6c))
+* add crée par in bracelet embed ([bdd69cf](https://github.com/Medouille089/lspdassistant/commit/bdd69cfb0ba30b7d9de2a5926f382964015bd791))
+
 ### [1.6.3](https://github.com/Medouille089/lspdassistant/compare/v1.6.2...v1.6.3) (2025-10-11)
 
 
