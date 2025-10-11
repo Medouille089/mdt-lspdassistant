@@ -12,7 +12,7 @@ const { checkAuthOrDOJ } = require("../config/middleware"); // ✅ nouveau middl
 // Authentification avec Discord
 router.get("/login", passport.authenticate("discord"));
 
-router.get('/callback', 
+router.get('/callback',
   passport.authenticate('discord', { failureRedirect: '/connect.html' }),
   async (req, res) => {
     try {
