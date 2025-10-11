@@ -50,8 +50,14 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
         .setTimestamp();
 
       // Crée le thread dans le forum avec l'embed (sans image)
+      // Formater la date pour n'afficher que JJ/MM
+      const dateFormatted = new Date(date).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit'
+      });
+
       const convocationThread = await forumChannel.threads.create({
-        name: `Convocation - ${nomComplet}`,
+        name: `${nomComplet} - ${dateFormatted} à ${heure} - ${(user.guild_member.nick).substring(0, 2)}`,
         message: {
           embeds: [embed]
         }
