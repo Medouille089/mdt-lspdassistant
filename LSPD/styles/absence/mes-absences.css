@@ -20,7 +20,6 @@ body {
     min-height: 100vh;
 }
 
-/* Header */
 .header {
     background: #fff;
     border-radius: 15px;
@@ -58,9 +57,42 @@ body {
 .header-right {
     display: flex;
     gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
-/* Boutons */
+.filter-toggle-container {
+    display: flex;
+    gap: 5px;
+    background: #f8f9fa;
+    padding: 5px;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+}
+
+.btn-filter-toggle {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 13px;
+    background: transparent;
+    color: #666;
+}
+
+.btn-filter-toggle.active {
+    background: var(--main-color);
+    color: white;
+    box-shadow: 0 2px 5px rgba(11, 27, 90, 0.3);
+}
+
+.btn-filter-toggle:hover:not(.active) {
+    background: #e0e0e0;
+    color: var(--main-color);
+}
+
 .btn-primary,
 .btn-secondary,
 .btn-filter,
@@ -129,7 +161,6 @@ body {
     transform: scale(1.1);
 }
 
-/* Stats Section */
 .stats-section {
     background: #fff;
     border-radius: 15px;
@@ -226,7 +257,6 @@ body {
     font-size: 0.9rem;
 }
 
-/* Content Section */
 .content-section {
     background: #fff;
     border-radius: 15px;
@@ -242,7 +272,6 @@ body {
     gap: 10px;
 }
 
-/* Vue Calendrier */
 .calendar-header {
     display: flex;
     justify-content: space-between;
@@ -324,7 +353,6 @@ body {
     font-size: 14px;
 }
 
-/* Cartes d'items dans le calendrier */
 .calendar-item-card {
     width: 100%;
     padding: 3px 5px;
@@ -421,7 +449,6 @@ body {
     background: #dc3545;
 }
 
-/* Vue Liste */
 .filters-section {
     margin-bottom: 30px;
     padding: 20px;
@@ -543,7 +570,6 @@ body {
     font-weight: 500;
 }
 
-/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -555,6 +581,8 @@ body {
     background-color: rgba(0, 0, 0, 0.5);
     align-items: center;
     justify-content: center;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
 }
 
 .modal-content {
@@ -568,6 +596,7 @@ body {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     border: 3px solid var(--main-color);
     position: relative;
+    animation: slideInDown 0.3s ease;
 }
 
 .modal-content h2 {
@@ -580,7 +609,71 @@ body {
     z-index: 10;
 }
 
-/* Responsive */
+.confirm-modal-content {
+    max-width: 500px;
+    text-align: center;
+    padding: 40px;
+    border: 3px solid var(--main-color);
+    background: white;
+}
+
+.confirm-icon {
+    margin: 0 auto 20px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 1.5s ease infinite;
+}
+
+.confirm-icon svg {
+    stroke: #ff9800;
+    stroke-width: 2.5;
+    margin: 0;
+}
+
+.confirm-modal-content h2 {
+    color: #ff9800;
+    font-size: 24px;
+    margin-bottom: 15px;
+    position: static;
+    padding: 0;
+}
+
+.confirm-modal-content p {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.confirm-actions button {
+    min-width: 120px;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(255, 152, 0, 0);
+    }
+}
+
 @media (max-width: 768px) {
     .main-container {
         margin-left: 0;
@@ -591,6 +684,20 @@ body {
         flex-direction: column;
         gap: 20px;
         text-align: center;
+    }
+
+    .header-right {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .filter-toggle-container {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn-filter-toggle {
+        flex: 1;
     }
 
     .stats-grid {
@@ -624,6 +731,29 @@ body {
         padding: 20px;
     }
 
+    .confirm-modal-content {
+        padding: 30px 20px;
+    }
+
+    .confirm-icon {
+        width: 70px;
+        height: 70px;
+    }
+
+    .confirm-icon svg {
+        width: 50px;
+        height: 50px;
+        margin: 0;
+    }
+
+    .confirm-actions {
+        flex-direction: column;
+    }
+
+    .confirm-actions button {
+        width: 100%;
+    }
+
     .form-row {
         grid-template-columns: 1fr;
     }
@@ -633,7 +763,6 @@ p {
     margin: 5px 0 5px;
 }
 
-/* Animations */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -643,6 +772,30 @@ p {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutUp {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateY(-20px);
+        opacity: 0;
     }
 }
 
@@ -658,7 +811,33 @@ p {
     animation: fadeIn 0.3s ease;
 }
 
-/* Vue Semaine */
+.message {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+    font-weight: 600;
+    font-size: 15px;
+    animation: slideInDown 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    position: relative;
+}
+
+.success-message {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    border: 2px solid #4caf50;
+    color: #2e7d32;
+}
+
+.error-message {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    border: 2px solid #f44336;
+    color: #c62828;
+}
+
 .week-grid {
     background: white;
     border-radius: 15px;
@@ -756,7 +935,6 @@ p {
     color: #666;
 }
 
-/* Indicateurs dans le calendrier */
 .item-indicator {
     width: 100%;
     height: 4px;
@@ -788,7 +966,6 @@ p {
     font-weight: 600;
 }
 
-/* Styles pour la stat-card event */
 .stat-card.event {
     border-left-color: #3498db;
 }
@@ -797,7 +974,6 @@ p {
     background: linear-gradient(135deg, #3498db, #2980b9);
 }
 
-/* Modal formulaire événement */
 .form-group {
     margin-bottom: 20px;
 }
@@ -910,7 +1086,23 @@ p {
     transform: translateY(-2px);
 }
 
-/* Details modal */
+.btn-danger {
+    background: #dc3545;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
 .details-section {
     margin-bottom: 20px;
 }
@@ -979,7 +1171,6 @@ p {
     font-style: italic;
 }
 
-/* Responsive pour vue semaine */
 @media (max-width: 1200px) {
     .week-content {
         grid-template-columns: repeat(4, 1fr);
@@ -1004,7 +1195,6 @@ p {
     }
 }
 
-/* Legend pour les événements */
 .calendar-legend .legend-item:last-child {
     display: flex;
     align-items: center;
