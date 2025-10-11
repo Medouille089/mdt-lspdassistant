@@ -566,7 +566,7 @@ async function sendEventNotifications(event) {
         }
 
         notifEmbed.setFooter({
-            text: 'LSPD Assistant - Calendrier Partagé',
+            text: 'LSPD Assistant',
             iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
         });
 

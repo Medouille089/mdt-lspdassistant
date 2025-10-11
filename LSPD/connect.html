@@ -2,6 +2,7 @@
 <html lang="fr">
 
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -40,6 +41,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
 
     <style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+            vertical-align: middle;
+            color: #fff;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        button[id^="toggle"]:hover .material-symbols-outlined {
+            opacity: 1;
+        }
         .login-container {
             max-width: 450px;
             margin: 0 auto;
@@ -243,8 +256,14 @@
 
                         <div class="form-group">
                             <label for="password">Mot de passe</label>
-                            <input type="password" id="password" name="password" required
-                                placeholder="Votre mot de passe" autocomplete="current-password">
+                            <div style="position:relative;">
+                                <input type="password" id="password" name="password" required
+                                    placeholder="Votre mot de passe" autocomplete="current-password"
+                                    style="padding-right:40px;">
+                                <button type="button" id="togglePassword" aria-label="Afficher le mot de passe" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:white">
+                                    <span id="eyePassword" class="material-symbols-outlined">visibility</span>
+                                </button>
+                            </div>
                         </div>
 
                         <button type="submit" class="login-button" id="loginBtn">
@@ -263,6 +282,19 @@
     <div class="watermark">LSPD Assistant</div>
 
     <script>
+        // Password viewer for login
+        const passwordInputField = document.getElementById('password');
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        const eyePassword = document.getElementById('eyePassword');
+        togglePasswordBtn.addEventListener('click', function () {
+            if (passwordInputField.type === 'password') {
+                passwordInputField.type = 'text';
+                eyePassword.textContent = 'visibility_off';
+            } else {
+                passwordInputField.type = 'password';
+                eyePassword.textContent = 'visibility';
+            }
+        });
         function switchTab(tab) {
             // Mettre à jour les boutons
             document.querySelectorAll('.tab-button').forEach(btn => {
