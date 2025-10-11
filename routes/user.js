@@ -134,9 +134,16 @@ router.get('/api/user/discord-info', (req, res) => {
     return res.status(401).json({ error: 'Non authentifié' });
   }
 
+  let displayName = req.user.username;
+  if (req.user.guild_member && req.user.guild_member.nick) {
+    displayName = req.user.guild_member.nick;
+  } else if (req.user.displayName) {
+    displayName = req.user.displayName;
+  }
   res.json({
     discord_id: req.user.id,
     username: req.user.username,
+    displayName,
     discriminator: req.user.discriminator,
     avatar: req.user.avatar
       ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`

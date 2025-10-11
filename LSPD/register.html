@@ -2,6 +2,7 @@
 <html lang="fr">
 
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data/images/favicon.png" type="image/png">
@@ -13,14 +14,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
 
     <style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+            vertical-align: middle;
+            color: #fff;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        button[id^="toggle"]:hover .material-symbols-outlined {
+            opacity: 1;
+        }
         .register-form {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 15px;
             padding: 30px;
             max-width: 500px;
-            margin: 0 auto;
+            margin: 130px auto 0 auto;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
@@ -215,17 +228,18 @@
                     <div class="password-requirements">3-30 caractères, lettres, chiffres, tirets et underscores</div>
                 </div>
 
-                <div class="form-group">
-                    <label for="email">Email <span class="optional-tag">(optionnel, pour récupération de mot de
-                            passe)</span></label>
-                    <input type="email" id="email" name="email" placeholder="votre.email@exemple.com"
-                        autocomplete="email">
-                </div>
+                    <!-- Champ email retiré -->
 
                 <div class="form-group">
                     <label for="password">Mot de passe *</label>
-                    <input type="password" id="password" name="password" required
-                        placeholder="Choisissez un mot de passe sécurisé" minlength="8" autocomplete="new-password">
+                    <div style="position:relative;">
+                        <input type="password" id="password" name="password" required
+                            placeholder="Choisissez un mot de passe sécurisé" minlength="8" autocomplete="new-password"
+                            style="padding-right:40px;">
+                        <button type="button" id="togglePassword" aria-label="Afficher le mot de passe" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;">
+                            <span id="eyePassword" class="material-symbols-outlined">visibility</span>
+                        </button>
+                    </div>
                     <div class="password-requirements">Minimum 8 caractères, incluez majuscules, minuscules et chiffres
                     </div>
                     <div class="password-strength">
@@ -235,8 +249,14 @@
 
                 <div class="form-group">
                     <label for="confirmPassword">Confirmer le mot de passe *</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required
-                        placeholder="Confirmez votre mot de passe" autocomplete="new-password">
+                    <div style="position:relative;">
+                        <input type="password" id="confirmPassword" name="confirmPassword" required
+                            placeholder="Confirmez votre mot de passe" autocomplete="new-password"
+                            style="padding-right:40px;">
+                        <button type="button" id="toggleConfirmPassword" aria-label="Afficher la confirmation" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;">
+                            <span id="eyeConfirm" class="material-symbols-outlined">visibility</span>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="submit-button" id="submitBtn">
@@ -249,13 +269,39 @@
     <div class="watermark">LSPD Assistant</div>
 
     <script>
+        // Password viewer
+        const passwordInputField = document.getElementById('password');
+        const confirmInputField = document.getElementById('confirmPassword');
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        const toggleConfirmBtn = document.getElementById('toggleConfirmPassword');
+        const eyePassword = document.getElementById('eyePassword');
+        const eyeConfirm = document.getElementById('eyeConfirm');
+
+        togglePasswordBtn.addEventListener('click', function () {
+            if (passwordInputField.type === 'password') {
+                passwordInputField.type = 'text';
+                eyePassword.textContent = 'visibility_off';
+            } else {
+                passwordInputField.type = 'password';
+                eyePassword.textContent = 'visibility';
+            }
+        });
+        toggleConfirmBtn.addEventListener('click', function () {
+            if (confirmInputField.type === 'password') {
+                confirmInputField.type = 'text';
+                eyeConfirm.textContent = 'visibility_off';
+            } else {
+                confirmInputField.type = 'password';
+                eyeConfirm.textContent = 'visibility';
+            }
+        });
         // Récupérer les infos Discord de l'utilisateur
         fetch('/api/user/discord-info')
             .then(res => res.json())
             .then(data => {
                 if (data.discord_id) {
                     document.getElementById('userAvatar').src = data.avatar || 'data/images/officier.png';
-                    document.getElementById('discordUsername').textContent = data.username || 'Utilisateur Discord';
+                    document.getElementById('discordUsername').textContent = data.displayName || data.username || 'Utilisateur Discord';
                 } else {
                     window.location.href = '/login';
                 }
@@ -298,7 +344,6 @@
             e.preventDefault();
 
             const username = document.getElementById('username').value.trim();
-            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
@@ -329,7 +374,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ username, email, password })
+                        body: JSON.stringify({ username, password })
                 });
 
                 const data = await response.json();
