@@ -138,7 +138,7 @@ router.get('/api/user/discord-info', (req, res) => {
     discord_id: req.user.id,
     username: req.user.username,
     discriminator: req.user.discriminator,
-    avatar: req.user.avatar 
+    avatar: req.user.avatar
       ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
       : null
   });
@@ -213,7 +213,7 @@ router.post('/register', async (req, res) => {
               { name: 'Email', value: email || 'Non renseigné', inline: true }
             )
             .setTimestamp();
-          
+
           await logsChannel.send({ embeds: [embed] });
         }
       } catch (err) {
@@ -264,7 +264,7 @@ router.post('/login-local', async (req, res) => {
     // Récupérer les infos Discord via l'API Discord
     const fetch = require('node-fetch');
     const { TOKEN } = require('../config/env');
-    
+
     try {
       const response = await fetch(
         `https://discord.com/api/guilds/${GUILD_ID}/members/${account.discord_id}`,
@@ -281,7 +281,7 @@ router.post('/login-local', async (req, res) => {
       }
 
       const guildMember = await response.json();
-      
+
       // Créer un objet user similaire à celui de Discord OAuth
       const user = {
         id: account.discord_id,
@@ -334,7 +334,7 @@ router.post('/login-local', async (req, res) => {
                   { name: 'Discord ID', value: account.discord_id, inline: true }
                 )
                 .setTimestamp();
-              
+
               logsChannel.send({ embeds: [embed] }).catch(console.error);
             }
           }).catch(console.error);
@@ -370,9 +370,9 @@ router.post('/forgot-password', async (req, res) => {
 
     // Pour des raisons de sécurité, on ne dit pas si le compte existe ou non
     if (result.rows.length === 0) {
-      return res.json({ 
-        success: true, 
-        message: 'Si ce compte existe, un lien de réinitialisation a été envoyé en message privé Discord.' 
+      return res.json({
+        success: true,
+        message: 'Si ce compte existe, un lien de réinitialisation a été envoyé en message privé Discord.'
       });
     }
 
@@ -392,7 +392,7 @@ router.post('/forgot-password', async (req, res) => {
     try {
       const user = await bot.users.fetch(account.discord_id);
       const resetLink = `${req.protocol}://${req.get('host')}/reset-password.html?token=${resetToken}`;
-      
+
       const { EmbedBuilder } = require('discord.js');
       const embed = new EmbedBuilder()
         .setTitle('🔐 Réinitialisation de mot de passe')
@@ -411,9 +411,9 @@ router.post('/forgot-password', async (req, res) => {
       // On ne révèle pas l'erreur pour des raisons de sécurité
     }
 
-    res.json({ 
-      success: true, 
-      message: 'Si ce compte existe, un lien de réinitialisation a été envoyé en message privé Discord.' 
+    res.json({
+      success: true,
+      message: 'Si ce compte existe, un lien de réinitialisation a été envoyé en message privé Discord.'
     });
 
   } catch (error) {
@@ -471,7 +471,7 @@ router.post('/reset-password', async (req, res) => {
               { name: 'Username', value: account.username, inline: true }
             )
             .setTimestamp();
-          
+
           await logsChannel.send({ embeds: [embed] });
         }
       } catch (err) {

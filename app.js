@@ -48,11 +48,11 @@ app.use(passport.session());
 // Auth guard
 app.use((req, res, next) => {
     const publicPaths = [
-        '/login', 
-        '/callback', 
-        '/logout', 
-        '/bracelet', 
-        '/connect.html', 
+        '/login',
+        '/callback',
+        '/logout',
+        '/bracelet',
+        '/connect.html',
         '/trello',
         '/register.html',
         '/forgot-password.html',

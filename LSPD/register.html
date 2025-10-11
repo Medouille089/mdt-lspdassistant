@@ -5,13 +5,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data/images/favicon.png" type="image/png">
-    
+
     <title>Création de compte - LSPD Assistant</title>
-    
+
     <link rel="stylesheet" href="styles/colors.css" />
     <link rel="stylesheet" href="styles/connect.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
-    
+
     <style>
         .register-form {
             background: rgba(255, 255, 255, 0.05);
@@ -117,9 +117,20 @@
             border-radius: 2px;
         }
 
-        .strength-weak { background: #ff4444; width: 33%; }
-        .strength-medium { background: #ffaa00; width: 66%; }
-        .strength-strong { background: #00ff00; width: 100%; }
+        .strength-weak {
+            background: #ff4444;
+            width: 33%;
+        }
+
+        .strength-medium {
+            background: #ffaa00;
+            width: 66%;
+        }
+
+        .strength-strong {
+            background: #00ff00;
+            width: 100%;
+        }
 
         .submit-button {
             width: 100%;
@@ -186,7 +197,7 @@
         <div class="register-form">
             <h2>Création de votre compte</h2>
             <p>Bienvenue ! Créez votre compte local pour accéder au LSPD Assistant</p>
-            
+
             <div class="discord-info" id="discordInfo">
                 <img id="userAvatar" src="" alt="Avatar">
                 <span id="discordUsername">Chargement...</span>
@@ -198,24 +209,25 @@
             <form id="registerForm">
                 <div class="form-group">
                     <label for="username">Nom d'utilisateur *</label>
-                    <input type="text" id="username" name="username" required 
-                           placeholder="Choisissez votre nom d'utilisateur"
-                           minlength="3" maxlength="30" autocomplete="username">
+                    <input type="text" id="username" name="username" required
+                        placeholder="Choisissez votre nom d'utilisateur" minlength="3" maxlength="30"
+                        autocomplete="username">
                     <div class="password-requirements">3-30 caractères, lettres, chiffres, tirets et underscores</div>
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email <span class="optional-tag">(optionnel, pour récupération de mot de passe)</span></label>
-                    <input type="email" id="email" name="email" 
-                           placeholder="votre.email@exemple.com" autocomplete="email">
+                    <label for="email">Email <span class="optional-tag">(optionnel, pour récupération de mot de
+                            passe)</span></label>
+                    <input type="email" id="email" name="email" placeholder="votre.email@exemple.com"
+                        autocomplete="email">
                 </div>
 
                 <div class="form-group">
                     <label for="password">Mot de passe *</label>
-                    <input type="password" id="password" name="password" required 
-                           placeholder="Choisissez un mot de passe sécurisé"
-                           minlength="8" autocomplete="new-password">
-                    <div class="password-requirements">Minimum 8 caractères, incluez majuscules, minuscules et chiffres</div>
+                    <input type="password" id="password" name="password" required
+                        placeholder="Choisissez un mot de passe sécurisé" minlength="8" autocomplete="new-password">
+                    <div class="password-requirements">Minimum 8 caractères, incluez majuscules, minuscules et chiffres
+                    </div>
                     <div class="password-strength">
                         <div class="password-strength-bar" id="strengthBar"></div>
                     </div>
@@ -223,8 +235,8 @@
 
                 <div class="form-group">
                     <label for="confirmPassword">Confirmer le mot de passe *</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required 
-                           placeholder="Confirmez votre mot de passe" autocomplete="new-password">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        placeholder="Confirmez votre mot de passe" autocomplete="new-password">
                 </div>
 
                 <button type="submit" class="submit-button" id="submitBtn">
@@ -257,10 +269,10 @@
         const passwordInput = document.getElementById('password');
         const strengthBar = document.getElementById('strengthBar');
 
-        passwordInput.addEventListener('input', function() {
+        passwordInput.addEventListener('input', function () {
             const password = this.value;
             const strength = calculatePasswordStrength(password);
-            
+
             strengthBar.className = 'password-strength-bar';
             if (strength >= 80) {
                 strengthBar.classList.add('strength-strong');
@@ -282,35 +294,35 @@
         }
 
         // Soumission du formulaire
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        document.getElementById('registerForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const username = document.getElementById('username').value.trim();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            
+
             // Validation
             if (password !== confirmPassword) {
                 showError('Les mots de passe ne correspondent pas');
                 return;
             }
-            
+
             if (password.length < 8) {
                 showError('Le mot de passe doit contenir au moins 8 caractères');
                 return;
             }
-            
+
             if (!/^[a-zA-Z0-9_-]{3,30}$/.test(username)) {
                 showError('Le nom d\'utilisateur doit contenir entre 3 et 30 caractères (lettres, chiffres, tirets et underscores uniquement)');
                 return;
             }
-            
+
             // Désactiver le bouton pendant la soumission
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Création en cours...';
-            
+
             try {
                 const response = await fetch('/register', {
                     method: 'POST',
@@ -319,9 +331,9 @@
                     },
                     body: JSON.stringify({ username, email, password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     showSuccess('Compte créé avec succès ! Redirection...');
                     setTimeout(() => {
