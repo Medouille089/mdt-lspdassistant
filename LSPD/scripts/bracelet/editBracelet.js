@@ -53,6 +53,11 @@ async function loadBracelet() {
         dateDebutInput.value = bracelet.dateDebut;
 
         document.getElementById('id_brac_title').textContent = `- ${bracelet.id_brac}`;
+        if (bracelet.created_by) {
+            document.getElementById('createdBy').value = bracelet.created_by;
+        } else {
+            document.getElementById('createdBy').value = '—';
+        }
 
     } catch (err) {
         await showAnimation('error');

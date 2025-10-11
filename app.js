@@ -168,7 +168,6 @@ startServer();
 // (sinon getBot() lèvera une erreur "Bot non initialisé")
 if (bot && bot.once) {
     bot.once('ready', () => {
-        console.log('⏱️ Démarrage du scheduler de dépassement pointeuse');
         startOvertimeScheduler();
     });
 } else {
