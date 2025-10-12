@@ -17,7 +17,7 @@ async function logAction({ action, description, userId, guildId, pings = [], ext
     const displayName = member ? member.displayName : userId;
 
     const config = conf.getConfig();
-    const logsChannelId = config.logs_channel;
+    const logsChannelId = config.logs_config;
     const logsChannel = guild.channels.cache.get(logsChannelId);
     if (!logsChannel) return console.warn('Salon de logs introuvable pour logAction');
 

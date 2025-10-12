@@ -92,7 +92,7 @@ router.post('/api/convocations', async (req, res) => {
 
         // --- Log Discord ---
         const config = getConfig();
-        const logsChannelId = config.logs_channel;
+        const logsChannelId = config.logs_convocations_agent;
         if (logsChannelId) {
             const logsChannel = await guild.channels.fetch(logsChannelId).catch(() => null);
             if (logsChannel?.isTextBased()) {

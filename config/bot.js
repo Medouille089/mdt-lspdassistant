@@ -111,7 +111,7 @@ bot.on(Events.InteractionCreate, async (interaction) => {
       // Vérifier existence et ownership
       const { rows } = await db.query('SELECT id, user_id FROM lspd_reminders WHERE id=$1', [reminderId]);
       if (!rows.length) {
-        return interaction.reply({ content: '⚠️ Rappel déjà annulé ou inexistant.', flags: 64, ephemeral: true });
+        return interaction.reply({ content: '⚠️ Rappel déjà annulé ou inexistant.', flags: 64 });
       }
       if (rows[0].user_id !== interaction.user.id) {
         return interaction.reply({ content: '❌ Vous ne pouvez pas annuler ce rappel.', flags: 64 });

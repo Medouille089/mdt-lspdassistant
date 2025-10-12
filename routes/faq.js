@@ -13,7 +13,7 @@ let editLock = null;
 async function logFaqAction({ actorId, type, targetType, targetName, targetId, extra }) {
   try {
     const conf = getConfig();
-    const logsChannelId = conf.logs_channel;
+    const logsChannelId = conf.logs_documentation;
     if (!logsChannelId) return;
     const guild = await bot.guilds.fetch(GUILD_ID).catch(() => null);
     let actorName = actorId;
@@ -54,15 +54,12 @@ router.get('/api/faq/edit-lock', checkAuth, async (req, res) => {
   }
 });
 
-// POST acquire lock
 router.post('/api/faq/edit-lock', checkAuth, async (req, res) => {
-  // only command staff, supervisor or superadmin can acquire
   if (!req.user?.isCommandStaff && !req.user?.isSupervisor && !req.user?.isSuperAdmin) return res.status(403).json({ error: 'Accès refusé' });
   try {
     if (editLock && editLock.ownerId !== req.user.id) {
       return res.status(409).json({ error: 'Verrou déjà pris', current: editLock });
     }
-    // Try to fetch the guild member to use the display name (same logic as routes/user.js)
     let ownerName = req.user.username || String(req.user.id);
     try {
       const guild = await bot.guilds.fetch(GUILD_ID);

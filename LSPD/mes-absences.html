@@ -23,11 +23,19 @@
             <div class="header-left">
                 <img src="data/images/lspd.png" alt="LSPD Logo" class="logo">
                 <div class="header-title">
-                    <h1>Calendrier Partagé LSPD</h1>
+                    <h1>Calendrier</h1>
                     <p>Consulter les absences et événements de tous les officiers</p>
                 </div>
             </div>
             <div class="header-right">
+                <div class="filter-toggle-container">
+                    <button class="btn-filter-toggle active" id="btnShowAll" onclick="toggleAbsenceFilter('all')">
+                        👥 Toutes les absences
+                    </button>
+                    <button class="btn-filter-toggle" id="btnShowMine" onclick="toggleAbsenceFilter('mine')">
+                        👤 Mes absences
+                    </button>
+                </div>
                 <button class="btn-success" id="btnNewEvent" onclick="openEventModal()" style="display: none;">
                     Nouvel Événement
                 </button>
@@ -39,6 +47,16 @@
                 </button>
             </div>
         </header>
+
+        <!-- <div
+            style="background: #f8f9fa; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 2px dashed #ccc; text-align: center;">
+            <strong style="color: #666; display: block; margin-bottom: 10px;">🔧 Outils de Debug</strong>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn-success" onclick="testSuccessMessage()">Test Message Succès</button>
+                <button class="btn-danger" onclick="testErrorMessage()">Test Message Erreur</button>
+                <button class="btn-secondary" onclick="testConfirmModal()">Test Modal Confirmation</button>
+            </div>
+        </div> -->
 
         <section class="stats-section">
             <h2>Statistiques Globales</h2>
@@ -240,6 +258,25 @@
                     <button type="submit" class="btn-primary">Créer l'événement</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation -->
+    <div id="confirmModal" class="modal confirm-modal">
+        <div class="modal-content confirm-modal-content">
+            <div class="confirm-icon">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h2 id="confirmTitle">Confirmation</h2>
+            <p id="confirmMessage">Êtes-vous sûr de vouloir effectuer cette action ?</p>
+            <div class="confirm-actions">
+                <button class="btn-secondary" id="confirmCancel">Annuler</button>
+                <button class="btn-danger" id="confirmOk">Confirmer</button>
+            </div>
         </div>
     </div>
 

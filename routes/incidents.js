@@ -57,7 +57,7 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
   const conf = await config.getConfig();
   const situationForumChannelId = conf.situations_thread_id;
   const forumChannelId = conf.incident_thread_id;
-  const logsChannelId = conf.logs_channel;
+  const logsChannelId = conf.logs_incidents;
 
   try {
     const { date, heure, officier, grade, recit, implique, type, lieu, situations } = req.body;
@@ -248,7 +248,7 @@ router.put('/api/updateIncident', upload.array('pieces'), async (req, res) => {
   const conf = await config.getConfig();
   const bot = getBot();
   const situationsChannelId = conf.situations_thread_id;
-  const logsChannelId = conf.logs_channel;
+  const logsChannelId = conf.logs_incidents;
 
   try {
     const {

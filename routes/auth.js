@@ -9,32 +9,17 @@ const path = require("path");
 const { checkAuth } = require("../config/middleware"); // ✅ ton middleware
 const { checkAuthOrDOJ } = require("../config/middleware"); // ✅ nouveau middleware pour DOJ
 
-// Initialiser le Map global s'il n'existe pas
-if (!global.pendingRedirects) {
-  global.pendingRedirects = new Map();
-}
-
 // Authentification avec Discord
 router.get("/login", passport.authenticate("discord"));
 
-router.get('/callback', (req, res, next) => {
-  if (!req.query.code) return res.status(403).send('Accès interdit.');
-
-  // Récupérer l'ID de redirection depuis le state OAuth
-  const redirectId = req.query.state;
-  if (redirectId) {
-    // Stocker temporairement pour utilisation après l'auth
-    req._redirectId = redirectId;
-  }
-
-  next();
-}, passport.authenticate('discord', { failureRedirect: '/' }),
+router.get('/callback',
+  passport.authenticate('discord', { failureRedirect: '/connect.html' }),
   async (req, res) => {
     try {
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
       const config = await getConfig();
-      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id } = config;
+      const { required_role_id, logs_connexion, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id } = config;
 
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
@@ -55,8 +40,8 @@ router.get('/callback', (req, res, next) => {
       // Vérifie si l’utilisateur a le rôle requis
       const hasRequiredRole = isSuperAdmin ? true : roleIds.includes(required_role_id);
       const action = hasRequiredRole || req.user.isDOJ
-        ? "s'est connecté(e) avec succès"
-        : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}> ou sans être DOJ`;
+        ? "s'est connecté(e) avec succès via discord"
+        : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}> ou sans être <@&${doj_role_id}>`;
 
       // Variables de session
       req.user.roles = roleIds;
@@ -66,17 +51,17 @@ router.get('/callback', (req, res, next) => {
       req.user.isDOJ = doj_role_id ? roleIds.includes(doj_role_id.trim()) : false;
 
       // Logs
-      if (logs_channel) {
-        const logsChannel = await bot.channels.fetch(logs_channel);
+      if (logs_connexion) {
+        const logsChannel = await bot.channels.fetch(logs_connexion);
         if (logsChannel?.isTextBased()) {
           const isLocal = req.hostname === 'localhost' || req.ip === '127.0.0.1' || req.ip === '::1';
           const logTitle = isLocal
-            ? '⚠️ Connexion utilisateur - Machine locale'
-            : '⚠️ Connexion utilisateur';
+            ? '⚠️ Connexion discord - Machine locale'
+            : '⚠️ Connexion discord';
 
           const embed = new EmbedBuilder()
             .setTitle(logTitle)
-            .setColor(hasRequiredRole || req.user.isDOJ ? 0x0b1b5a : 0xdb4437)
+            .setColor(hasRequiredRole || req.user.isDOJ ? 0x0b1b5a : 0xff0000)
             .setDescription(`${member.displayName || 'Utilisateur inconnu'} ${action}`)
             .addFields({
               name: "ID's",
@@ -101,14 +86,23 @@ router.get('/callback', (req, res, next) => {
         `);
       }
 
-      // Récupérer l'URL de redirection via l'ID stocké
-      let redirectTo = '/protected';
-      const redirectId = req._redirectId; // Utiliser l'ID depuis le callback, pas la session
+      // Vérifier si l'utilisateur a déjà un compte local
+      const pool = require('../config/db');
+      const accountCheck = await pool.query(
+        'SELECT id FROM user_accounts WHERE discord_id = $1',
+        [req.user.id]
+      );
 
-      if (redirectId && global.pendingRedirects && global.pendingRedirects.has(redirectId)) {
-        redirectTo = global.pendingRedirects.get(redirectId);
-        global.pendingRedirects.delete(redirectId); // Nettoyer après utilisation
-      } else {
+      // Si pas de compte local, rediriger vers la page d'inscription
+      if (accountCheck.rows.length === 0) {
+        return res.redirect('/register.html');
+      }
+
+      // Récupérer l'URL de redirection depuis la session
+      let redirectTo = '/protected';
+      if (req.session.returnTo) {
+        redirectTo = req.session.returnTo;
+        delete req.session.returnTo; // Nettoyer après utilisation
       }
 
 
@@ -126,8 +120,16 @@ router.get('/callback', (req, res, next) => {
 
 // Déconnexion
 router.get("/logout", (req, res) => {
-  req.logout(() => {
-    res.redirect("/login");
+  req.logout((err) => {
+    if (err) {
+      console.error("Erreur lors de la déconnexion:", err);
+    }
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Erreur destruction session:", err);
+      }
+      res.redirect("/connect.html");
+    });
   });
 });
 
@@ -139,6 +141,7 @@ const protectedPages = [
   'adminGrades.html',
   'admin-presence.html',
   'admin-annonce.html',
+  'admin-logs.html',
   'tickets.html'
 ];
 

@@ -27,19 +27,35 @@ module.exports = async function handleTicket(interaction, bot) {
         const safeName =
             `${category.prefix || "ticket"}-${displayName.replace(/\s+/g, "-").toLowerCase().slice(0, 50)}`;
 
-        const channel = await guild.channels.create({
-            name: safeName,
-            type: 0, // text channel
-            parent: category.target_channel_id || null,
-            permissionOverwrites: [
-                { id: guild.roles.everyone.id, deny: ["ViewChannel"] },
-                { id: interaction.user.id, allow: ["ViewChannel", "SendMessages"] },
-                ...(category.roles || []).map((rid) => ({
-                    id: rid,
-                    allow: ["ViewChannel", "SendMessages"],
-                })),
-            ],
-        });
+        let channel;
+        try {
+            channel = await guild.channels.create({
+                name: safeName,
+                type: 0, // text channel
+                parent: category.target_channel_id || null,
+                permissionOverwrites: [
+                    { id: guild.roles.everyone.id, deny: ["ViewChannel"] },
+                    { id: interaction.user.id, allow: ["ViewChannel", "SendMessages"] },
+                    ...(category.roles || []).map((rid) => ({
+                        id: rid,
+                        allow: ["ViewChannel", "SendMessages"],
+                    })),
+                ],
+            });
+        } catch (err) {
+            // DiscordAPIError for invalid parent_id
+            if (err.code === 50035 && err.rawError?.errors?.parent_id) {
+                console.error("Erreur DiscordAPI: parent_id (catégorie) invalide lors de la création du ticket.", err);
+                if (interaction.deferred || interaction.replied) {
+                    await interaction.editReply({ content: "❌ Erreur : la catégorie cible n'existe pas ou n'est pas valide. Veuillez contacter un administrateur." });
+                } else {
+                    await interaction.reply({ content: "❌ Erreur : la catégorie cible n'existe pas ou n'est pas valide. Veuillez contacter un administrateur.", flags: 64 });
+                }
+                return;
+            } else {
+                throw err;
+            }
+        }
 
         const nowUTC = new Date().toISOString();
         await db.query(
@@ -69,8 +85,8 @@ module.exports = async function handleTicket(interaction, bot) {
 
         // Logs
         const conf = getConfig();
-        if (conf.logs_channel) {
-            const logsChannel = await bot.channels.fetch(conf.logs_channel).catch(() => null);
+        if (conf.logs_tickets) {
+            const logsChannel = await bot.channels.fetch(conf.logs_tickets).catch(() => null);
             if (logsChannel?.isTextBased()) {
                 const ticketEmbed = new EmbedBuilder()
                     .setTitle("Ticket créé")

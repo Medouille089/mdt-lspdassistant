@@ -5,7 +5,6 @@ const { getBot, getConfig } = require('../config/config');
 const { EmbedBuilder } = require('discord.js');
 const { checkAuth } = require('../config/middleware');
 
-const LOGS_CHANNEL_ID = '1409873897654063265';
 
 // Helper → formatage des dates en JJ/MM/AAAA
 function formatDate(date) {
@@ -109,7 +108,7 @@ router.post('/api/rapport-rookie', checkAuth, async (req, res) => {
             .setFooter({ text: "LSPD Assistant", iconURL: bot.user.displayAvatarURL() })
             .setTimestamp();
 
-        const logChannelId = config.logs_channel;
+        const logChannelId = config.logs_rapport_rookie;
         if (logChannelId) {
             const logChannel = await bot.channels.fetch(logChannelId);
             if (logChannel) await logChannel.send({ embeds: [logEmbed] });

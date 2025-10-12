@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let availableGrades = [];
     let availableMembers = [];
     let gradesAndMembersLoaded = false;
+    let absenceFilter = 'all';
 
     loadUserData();
     initializePage();
@@ -18,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch('/api/user');
             currentUser = await response.json();
 
-            // Afficher le bouton "Nouvel Événement" pour tout le monde
             document.getElementById('btnNewEvent').style.display = 'block';
 
             await Promise.all([
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadGradesAndMembers() {
         try {
-            gradesAndMembersLoaded = false; // Reset au début
+            gradesAndMembersLoaded = false;
 
             const [gradesResponse, membersResponse] = await Promise.all([
                 fetch('/api/calendar/grades'),
@@ -58,12 +58,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             }
 
-            // Marquer comme chargé seulement si on a des données
             if (availableGrades.length > 0 || availableMembers.length > 0) {
                 gradesAndMembersLoaded = true;
             }
 
-            // Remplir les sélecteurs dans le modal
             populateGradesSelector();
             populateMembersSelector();
         } catch (error) {
@@ -135,7 +133,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const allEventsData = await response.json();
 
-            // Filtrer les événements selon les grades et personnes concernés
             allEvents = allEventsData.filter(event => isEventVisibleForUser(event));
 
             updateStatistics();
@@ -146,25 +143,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function isEventVisibleForUser(event) {
-        // Les superviseurs et command staff voient TOUT
         if (currentUser.isSupervisor || currentUser.isCommandStaff) {
             return true;
         }
 
-        // Si aucun filtre n'est défini, l'événement est visible pour tous
         const hasGradesFilter = event.grades_concernes && Array.isArray(event.grades_concernes) && event.grades_concernes.length > 0;
         const hasPersonnesFilter = event.personnes_concernees && Array.isArray(event.personnes_concernees) && event.personnes_concernees.length > 0;
 
         if (!hasGradesFilter && !hasPersonnesFilter) {
-            return true; // Visible pour tous
+            return true;
         }
 
-        // Vérifier si l'utilisateur est dans la liste des personnes concernées
         if (hasPersonnesFilter && event.personnes_concernees.includes(currentUser.id)) {
             return true;
         }
 
-        // Vérifier si l'utilisateur a un des grades concernés
         if (hasGradesFilter && currentUser.roles) {
             const userHasGrade = event.grades_concernes.some(gradeId => currentUser.roles.includes(gradeId));
             if (userHasGrade) {
@@ -222,7 +215,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('typeFilterList').addEventListener('change', updateListView);
         document.getElementById('searchFilter').addEventListener('input', updateListView);
 
-        // Fermer les modals avec clic en dehors ou touche Échap
         window.addEventListener('click', (event) => {
             if (event.target === document.getElementById('absenceModal')) {
                 closeModal();
@@ -243,11 +235,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateStatistics() {
-        // Ne compter que les absences non refusées
-        const validAbsences = allAbsences.filter(a => a.statut !== 'refuse');
+        const filteredAbsences = getFilteredAbsences();
+
+        const validAbsences = filteredAbsences.filter(a => a.statut !== 'refuse');
         const total = validAbsences.length;
-        const approved = allAbsences.filter(a => a.statut === 'approuve').length;
-        const pending = allAbsences.filter(a => a.statut === 'en_attente').length;
+        const approved = filteredAbsences.filter(a => a.statut === 'approuve').length;
+        const pending = filteredAbsences.filter(a => a.statut === 'en_attente').length;
         const totalEvents = allEvents.length;
 
         document.getElementById('totalAbsences').textContent = total;
@@ -266,6 +259,27 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function getFilteredAbsences() {
+        if (absenceFilter === 'mine' && currentUser) {
+            const userName = currentUser.guild_member?.nick || currentUser.username;
+
+            return allAbsences.filter(absence =>
+                absence.officier === userName
+            );
+        }
+        return allAbsences;
+    }
+
+    window.toggleAbsenceFilter = function (filter) {
+        absenceFilter = filter;
+
+        document.getElementById('btnShowAll').classList.toggle('active', filter === 'all');
+        document.getElementById('btnShowMine').classList.toggle('active', filter === 'mine');
+
+        updateStatistics();
+        updateCurrentView();
+    };
+
     function updateCalendar() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -275,7 +289,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const firstDay = new Date(year, month, 1);
         const startDate = new Date(firstDay);
-        // Ajuster pour commencer le lundi (1) au lieu du dimanche (0)
         const dayOfWeek = firstDay.getDay();
         const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
         startDate.setDate(startDate.getDate() + diff);
@@ -321,8 +334,8 @@ document.addEventListener('DOMContentLoaded', function () {
             dayCell.classList.add('today');
         }
 
-        const dayAbsences = allAbsences.filter(absence => {
-            // Filtrer les absences refusées
+        const filteredAbsences = getFilteredAbsences();
+        const dayAbsences = filteredAbsences.filter(absence => {
             if (absence.statut === 'refuse') return false;
 
             const startDate = new Date(absence.date_debut);
@@ -344,24 +357,20 @@ document.addEventListener('DOMContentLoaded', function () {
             return checkDate >= startDate && checkDate <= endDate;
         });
 
-        // Mettre les événements en premier, puis les absences
         const allItems = [...dayEvents, ...dayAbsences];
 
         if (allItems.length > 0) {
             dayCell.classList.add('has-items');
 
-            // Afficher les 3 premiers items avec leur info
             allItems.slice(0, 3).forEach(item => {
                 const itemCard = document.createElement('div');
                 itemCard.className = 'calendar-item-card';
 
                 if (item.statut) {
-                    // C'est une absence
                     itemCard.classList.add(item.statut === 'approuve' ? 'approved' : 'pending');
                     itemCard.innerHTML = `<span class="item-text">${item.officier}</span>`;
                     itemCard.title = `${item.officier} - ${item.type_absence}`;
                 } else {
-                    // C'est un événement
                     itemCard.classList.add('event');
                     itemCard.style.borderLeftColor = item.couleur || '#3498db';
                     itemCard.innerHTML = `<span class="item-text">${item.titre}</span>`;
@@ -431,8 +440,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const dayColumn = document.createElement('div');
             dayColumn.className = 'week-day-column';
 
-            const dayAbsences = allAbsences.filter(absence => {
-                // Filtrer les absences refusées
+            const filteredAbsences = getFilteredAbsences();
+            const dayAbsences = filteredAbsences.filter(absence => {
                 if (absence.statut === 'refuse') return false;
 
                 const startDate = new Date(absence.date_debut);
@@ -490,21 +499,16 @@ document.addEventListener('DOMContentLoaded', function () {
         let items = [];
 
         if (typeFilter === '' || typeFilter === 'absence') {
-            let filteredAbsences = [...allAbsences];
-
-            // Filtrer les absences refusées
+            let filteredAbsences = [...getFilteredAbsences()];
             filteredAbsences = filteredAbsences.filter(a => a.statut !== 'refuse');
-
             if (statusFilter) {
                 filteredAbsences = filteredAbsences.filter(a => a.statut === statusFilter);
             }
-
             if (searchQuery) {
                 filteredAbsences = filteredAbsences.filter(a =>
                     a.officier.toLowerCase().includes(searchQuery)
                 );
             }
-
             items.push(...filteredAbsences.map(a => ({ ...a, type: 'absence' })));
         }
 
@@ -634,7 +638,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let html = `<h3 style="color: var(--main-color); margin-bottom: 20px;">${dateStr}</h3>`;
 
-        // Avertissement si les données ne sont pas chargées
         if (!gradesAndMembersLoaded) {
             html += `
                 <div style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
@@ -658,7 +661,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         <p><strong>Type:</strong> ${event.type_evenement}</p>
                 `;
 
-                // Afficher les dates et heures
                 const dateDebut = new Date(event.date_debut);
                 const dateFin = new Date(event.date_fin);
                 const heureDebut = dateDebut.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -674,7 +676,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     html += `<p style="margin-top: 10px; font-style: italic;"><strong>Description :</strong> ${event.description}</p>`;
                 }
 
-                // Afficher les grades concernés
                 if (event.grades_concernes && event.grades_concernes.length > 0) {
                     const gradesNoms = event.grades_concernes.map(gradeId => {
                         const grade = availableGrades.find(g => g.id === gradeId);
@@ -686,7 +687,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
 
-                // Afficher les personnes concernées
                 if (event.personnes_concernees && event.personnes_concernees.length > 0) {
                     const personnesNoms = event.personnes_concernees.map(personneId => {
                         const personne = availableMembers.find(m => m.id === personneId);
@@ -698,13 +698,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
 
-                // Si aucun filtre, indiquer que c'est pour tout le monde
+
                 if ((!event.grades_concernes || event.grades_concernes.length === 0) &&
                     (!event.personnes_concernees || event.personnes_concernees.length === 0)) {
                     html += `<p><strong>Visibilité:</strong> Tous les membres LSPD</p>`;
                 }
 
                 html += `<p style="margin-top: 10px;"><small class="event-author">Créé par ${event.auteur}</small></p>`;
+
+                if (currentUser && (currentUser.isSupervisor || currentUser.isCommandStaff || currentUser.isAdmin)) {
+                    html += `
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #e0e0e0; text-align: right;">
+                            <button onclick="deleteEvent(${event.id})" class="btn-danger">
+                                Supprimer cet événement
+                            </button>
+                        </div>
+                    `;
+                }
+
                 html += `</div>`;
             });
             html += '</div>';
@@ -748,11 +759,9 @@ document.addEventListener('DOMContentLoaded', function () {
     async function handleEventSubmit(e) {
         e.preventDefault();
 
-        // Récupérer les grades sélectionnés
         const gradesSelect = document.getElementById('eventGrades');
         const gradesConcernes = Array.from(gradesSelect.selectedOptions).map(opt => opt.value);
 
-        // Récupérer les personnes sélectionnées
         const personnesSelect = document.getElementById('eventPersonnes');
         const personnesConcernees = Array.from(personnesSelect.selectedOptions).map(opt => opt.value);
 
@@ -789,11 +798,11 @@ document.addEventListener('DOMContentLoaded', function () {
             closeEventModal();
             document.getElementById('eventForm').reset();
 
-            alert('Evenement cree avec succes !');
+            showSuccess('✅ Événement créé avec succès !');
             hideLoader();
         } catch (error) {
             console.error('Erreur lors de la creation de l\'evenement:', error);
-            alert('Erreur lors de la creation de l\'evenement');
+            showError('❌ Erreur lors de la création de l\'événement');
             hideLoader();
         }
     }
@@ -814,6 +823,40 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('eventModal').style.display = 'none';
     };
 
+    window.deleteEvent = async function (eventId) {
+        const confirmed = await showConfirm(
+            'Supprimer cet événement ?',
+            'Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible.'
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            showLoader();
+            const response = await fetch(`/api/calendar/events/${eventId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erreur lors de la suppression');
+            }
+
+            await loadAllEvents();
+
+            closeModal();
+
+            showSuccess('✅ Événement supprimé avec succès !');
+            hideLoader();
+        } catch (error) {
+            console.error('Erreur lors de la suppression de l\'événement:', error);
+            showError('❌ Erreur lors de la suppression : ' + error.message);
+            hideLoader();
+        }
+    };
+
     function showLoader() {
         document.getElementById('loaderOverlay').style.display = 'flex';
     }
@@ -821,4 +864,110 @@ document.addEventListener('DOMContentLoaded', function () {
     function hideLoader() {
         document.getElementById('loaderOverlay').style.display = 'none';
     }
+
+    function showSuccess(message) {
+        removeExistingMessages();
+        const successDiv = document.createElement('div');
+        successDiv.className = 'message success-message';
+        successDiv.innerHTML = `
+            <span style="flex: 1;">${message}</span>
+        `;
+        document.querySelector('.main-container').insertBefore(successDiv, document.querySelector('.header').nextSibling);
+
+        setTimeout(() => {
+            successDiv.style.animation = 'slideOutUp 0.3s ease';
+            setTimeout(() => successDiv.remove(), 300);
+        }, 5000);
+    }
+
+    function showError(message) {
+        removeExistingMessages();
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'message error-message';
+        errorDiv.innerHTML = `
+            <span style="flex: 1;">${message}</span>
+        `;
+        document.querySelector('.main-container').insertBefore(errorDiv, document.querySelector('.header').nextSibling);
+
+        setTimeout(() => {
+            errorDiv.style.animation = 'slideOutUp 0.3s ease';
+            setTimeout(() => errorDiv.remove(), 300);
+        }, 5000);
+    }
+
+    function removeExistingMessages() {
+        const existingMessages = document.querySelectorAll('.message');
+        existingMessages.forEach(msg => msg.remove());
+    }
+
+    function showConfirm(title, message) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('confirmModal');
+            const titleElement = document.getElementById('confirmTitle');
+            const messageElement = document.getElementById('confirmMessage');
+            const confirmBtn = document.getElementById('confirmOk');
+            const cancelBtn = document.getElementById('confirmCancel');
+
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+            modal.style.display = 'flex';
+
+            function cleanup() {
+                modal.style.display = 'none';
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
+                modal.removeEventListener('click', handleOutsideClick);
+                document.removeEventListener('keydown', handleEscape);
+            }
+
+            function handleConfirm() {
+                cleanup();
+                resolve(true);
+            }
+
+            function handleCancel() {
+                cleanup();
+                resolve(false);
+            }
+
+            function handleOutsideClick(event) {
+                if (event.target === modal) {
+                    cleanup();
+                    resolve(false);
+                }
+            }
+
+            function handleEscape(event) {
+                if (event.key === 'Escape') {
+                    cleanup();
+                    resolve(false);
+                }
+            }
+
+            confirmBtn.addEventListener('click', handleConfirm);
+            cancelBtn.addEventListener('click', handleCancel);
+            modal.addEventListener('click', handleOutsideClick);
+            document.addEventListener('keydown', handleEscape);
+        });
+    }
+
+    // window.testSuccessMessage = function () {
+    //     showSuccess('Ceci est un message de succès de test ! Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
+    // };
+
+    // window.testErrorMessage = function () {
+    //     showError('Ceci est un message d\'erreur de test ! Une erreur s\'est produite lors de l\'opération. Veuillez réessayer plus tard.');
+    // };
+
+    // window.testConfirmModal = async function () {
+    //     const result = await showConfirm(
+    //         'Test de confirmation',
+    //         'Ceci est un test de la modal de confirmation. Voulez-vous continuer ?'
+    //     );
+    //     if (result) {
+    //         showSuccess('Vous avez cliqué sur Confirmer !');
+    //     } else {
+    //         showError('Vous avez cliqué sur Annuler !');
+    //     }
+    // };
 });

@@ -45,9 +45,30 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(passport.initialize());
 app.use(passport.session());
 
+// ⚠️ Route racine AVANT le auth guard
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "LSPD", "connect.html"));
+});
+
 // Auth guard
 app.use((req, res, next) => {
-    const publicPaths = ['/login', '/callback', '/logout', '/bracelet', '/connect.html', '/trello'];
+    const publicPaths = [
+        '/',
+        '/login',
+        '/callback',
+        '/logout',
+        '/bracelet',
+        '/connect.html',
+        '/trello',
+        '/register.html',
+        '/forgot-password.html',
+        '/reset-password.html',
+        '/register',
+        '/login-local',
+        '/forgot-password',
+        '/reset-password',
+        '/api/user/discord-info'
+    ];
 
     // Autoriser uniquement les assets front (pas les .html)
     const isStaticAsset = req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg)$/i);
@@ -61,12 +82,9 @@ app.use((req, res, next) => {
 
     // Tout le reste → nécessite une connexion
     if (!req.isAuthenticated?.()) {
-        // Générer un ID unique pour cette redirection
-        const redirectId = require('crypto').randomUUID();
-        // Stocker l'URL originale avec l'ID
-        if (!global.pendingRedirects) global.pendingRedirects = new Map();
-        global.pendingRedirects.set(redirectId, req.originalUrl);
-        return res.redirect(`/login?redirect=${redirectId}`);
+        // Stocker l'URL originale dans la session pour redirection après login
+        req.session.returnTo = req.originalUrl;
+        return res.redirect('/connect.html');
     }
 
     next();
@@ -99,6 +117,8 @@ const faq = require('./routes/faq');
 const calendarRoutes = require('./routes/calendar');
 const rookiePatrolsRoutes = require('./LSPD/trello/routes/rookiePatrols');
 
+const setupLogsRoutes = require('./config/setupLogs');
+
 app.use(configRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
@@ -120,6 +140,7 @@ app.use(ticketPanelRoutes);
 app.use(adminOfficer);
 app.use(rapportRookie);
 app.use(convocAgent);
+app.use(setupLogsRoutes);
 app.use(annonce);
 app.use(faq);
 app.use(calendarRoutes);
@@ -129,9 +150,7 @@ app.use(rapportRookie);
 // 🗂️ Frontend statique
 app.use(express.static(path.join(__dirname, "LSPD")));
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "LSPD", "connect.html"));
-});
+// La route "/" est définie AVANT le auth guard (ligne ~48)
 
 async function startServer() {
     // Charger la configuration LSPD
@@ -153,7 +172,6 @@ startServer();
 // (sinon getBot() lèvera une erreur "Bot non initialisé")
 if (bot && bot.once) {
     bot.once('ready', () => {
-        console.log('⏱️ Démarrage du scheduler de dépassement pointeuse');
         startOvertimeScheduler();
     });
 } else {

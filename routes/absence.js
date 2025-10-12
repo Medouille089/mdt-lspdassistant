@@ -194,7 +194,7 @@ router.post('/api/absence', async (req, res) => {
         const nouvelleAbsence = result.rows[0];
         const bot = getBot();
         const conf = getConfig();
-        const logsChannelId = conf.logs_channel;
+        const logsChannelId = conf.logs_calendrier;
 
         try {
             const discordMessage = new EmbedBuilder()
@@ -273,7 +273,7 @@ router.put('/api/absence/:id/statut', async (req, res) => {
         const absenceModifiee = result.rows[0];
         const bot = getBot(); // Ton client Discord
         const conf = getConfig();
-        const logsChannelId = conf.logs_channel;
+        const logsChannelId = conf.logs_calendrier;
 
         try {
             const statutTexte = {

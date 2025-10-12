@@ -122,11 +122,11 @@ module.exports = {
 
         await interaction.deferReply({ flags: 64 });
 
-        const configRes = await db.query('SELECT required_role_id, id_superadmin, logs_channel FROM configlspd LIMIT 1');
+        const configRes = await db.query('SELECT required_role_id, id_superadmin, logs_tickets FROM configlspd LIMIT 1');
         if (!configRes.rows[0])
             return interaction.editReply({ content: "❌ Configuration non définie.", flags: 64 });
 
-        const { required_role_id, id_superadmin, logs_channel } = configRes.rows[0];
+        const { required_role_id, id_superadmin, logs_tickets } = configRes.rows[0];
 
         if (!interaction.member.roles.cache.has(required_role_id) &&
             !interaction.member.roles.cache.has(id_superadmin)) {
@@ -134,7 +134,7 @@ module.exports = {
         }
 
         const ticketChannel = interaction.channel;
-        const logsChannel = guild.channels.cache.get(logs_channel);
+        const logsChannel = guild.channels.cache.get(logs_tickets);
         if (!logsChannel)
             return interaction.editReply({ content: "❌ Le salon de logs n'existe pas.", flags: 64 });
 
