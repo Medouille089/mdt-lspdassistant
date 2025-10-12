@@ -245,6 +245,7 @@ router.get('/api/getSituations', async (req, res) => {
 });
 
 router.put('/api/updateIncident', upload.array('pieces'), async (req, res) => {
+const { formatDateFR } = require('../utils/formatDate');
   const conf = await config.getConfig();
   const bot = getBot();
   const situationsChannelId = conf.situations_thread_id;
@@ -285,14 +286,18 @@ router.put('/api/updateIncident', upload.array('pieces'), async (req, res) => {
       : "https://lspd-assistant.fr/viewIncident.html";
     const incidentLink = `${baseUrl}?id=${incidentId}`;
 
+    // Formatage date JJ/MM/AAAA et heure HH:MM
+    const formattedDate = formatDateFR(date);
+    const formattedHeure = (heure && heure.length >= 5) ? heure.slice(0,5) : heure;
+
     // Crée un nouvel embed pour l'update
     const embed = new EmbedBuilder()
       .setTitle("Mise à jour d'un rapport d'incident")
       .setThumbnail(botUser.displayAvatarURL({ extension: 'png' }))
       .addFields(
         { name: "ID d'incident", value: incidentId },
-        { name: "Date", value: date, inline: true },
-        { name: "Heure", value: heure, inline: true },
+        { name: "Date", value: formattedDate, inline: true },
+        { name: "Heure", value: formattedHeure, inline: true },
         { name: "Officier rédacteur", value: officier, inline: true },
         { name: "Grade", value: grade || "Non précisé", inline: true },
         { name: "Officiers impliqués", value: implique || "Aucun" },
@@ -300,7 +305,6 @@ router.put('/api/updateIncident', upload.array('pieces'), async (req, res) => {
         { name: "Lieu", value: lieu || "Non précisé", inline: true },
         { name: "Consulter le rapport", value: `[Voir le rapport d'incident ${incidentId}](${incidentLink})` }
       )
-
       .setFooter({ text: `Modifié par ${editBy}`, iconURL: botUser.displayAvatarURL() })
       .setColor(0x0b1b5a)
       .setTimestamp();
