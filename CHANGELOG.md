@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.9.0](https://github.com/Medouille089/lspdassistant/compare/v1.8.0...v1.9.0) (2025-10-12)
+
+
+### Features
+
+* add /clear command, only command staff ([d950e61](https://github.com/Medouille089/lspdassistant/commit/d950e61f1df61a56c2ce59e9be7ba147bbca5033))
+
 ## [1.8.0](https://github.com/Medouille089/lspdassistant/compare/v1.7.0...v1.8.0) (2025-10-12)
 
 
