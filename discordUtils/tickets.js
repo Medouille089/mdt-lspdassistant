@@ -11,7 +11,7 @@ module.exports = async function handleTicket(interaction, bot) {
         const catId = interaction.values[0];
         const modal = new ModalBuilder()
             .setCustomId(`ticket_userinfo_modal:${catId}`)
-            .setTitle('Informations du ticket');
+            .setTitle('Informations');
 
         const prenomInput = new TextInputBuilder()
             .setCustomId('ticket_prenom')
