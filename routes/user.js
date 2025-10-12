@@ -205,20 +205,30 @@ router.post('/register', async (req, res) => {
 
     // Log de création de compte
     const config = await getConfig();
-    if (config.logs_channel) {
+    if (config.logs_connexion) {
       try {
-        const logsChannel = await bot.channels.fetch(config.logs_channel);
+        const logsChannel = await bot.channels.fetch(config.logs_connexion);
         if (logsChannel?.isTextBased()) {
           const { EmbedBuilder } = require('discord.js');
+          // Récupère le member pour le displayName
+          let memberDisplayName = req.user.username;
+          try {
+            const guild = logsChannel.guild;
+            const memberObj = await guild.members.fetch(req.user.id);
+            if (memberObj && memberObj.displayName) memberDisplayName = memberObj.displayName;
+          } catch {}
           const embed = new EmbedBuilder()
-            .setTitle('✅ Nouveau compte créé')
+            .setTitle('⚠️ Nouveau compte créé')
             .setColor(0x00ff00)
-            .setDescription(`Compte local créé pour <@${req.user.id}>`)
+            .setDescription(`Compte créé pour ${memberDisplayName}`)
             .addFields(
-              { name: 'Discord', value: `${req.user.username}#${req.user.discriminator}`, inline: true },
-              { name: 'Username', value: username, inline: true },
-              { name: 'Email', value: email || 'Non renseigné', inline: true }
+              { name: 'Username de login', value: `> ${username}` },
+              { name: 'ID\'s', value: `> <@${req.user.id}> (\`${req.user.id}\`)` }
             )
+            .setFooter({
+              text: 'LSPD Assistant',
+              iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
+            })
             .setTimestamp();
 
           await logsChannel.send({ embeds: [embed] });
@@ -328,18 +338,28 @@ router.post('/login-local', async (req, res) => {
         }
 
         // Log de connexion
-        if (logs_channel) {
-          bot.channels.fetch(logs_channel).then(logsChannel => {
+        if (config.logs_connexion) {
+          bot.channels.fetch(config.logs_connexion).then(async logsChannel => {
             if (logsChannel?.isTextBased()) {
               const { EmbedBuilder } = require('discord.js');
+              let memberDisplayName = account.username;
+              try {
+                const guild = logsChannel.guild;
+                const memberObj = await guild.members.fetch(account.discord_id);
+                if (memberObj && memberObj.displayName) memberDisplayName = memberObj.displayName;
+              } catch {}
               const embed = new EmbedBuilder()
-                .setTitle('🔐 Connexion locale')
+                .setTitle('⚠️  Connexion login')
                 .setColor(0x0b1b5a)
-                .setDescription(`<@${account.discord_id}> s'est connecté(e) via compte local`)
+                .setDescription(`${memberDisplayName} s'est connecté(e) avec succès via login`)
                 .addFields(
-                  { name: 'Username', value: username, inline: true },
-                  { name: 'Discord ID', value: account.discord_id, inline: true }
+                  { name: 'Username de login', value: `> ${username}` },
+                  { name: 'ID\'s', value: `> <@${account.discord_id}> (\`${account.discord_id}\`)` }
                 )
+                .setFooter({
+                  text: 'LSPD Assistant',
+                  iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
+                })
                 .setTimestamp();
 
               logsChannel.send({ embeds: [embed] }).catch(console.error);
@@ -469,18 +489,29 @@ router.post('/reset-password', async (req, res) => {
 
     // Log de réinitialisation
     const config = await getConfig();
-    if (config.logs_channel) {
+    if (config.logs_connexion) {
       try {
-        const logsChannel = await bot.channels.fetch(config.logs_channel);
+        const logsChannel = await bot.channels.fetch(config.logs_connexion);
         if (logsChannel?.isTextBased()) {
           const { EmbedBuilder } = require('discord.js');
+          let memberDisplayName = account.username;
+          try {
+            const guild = logsChannel.guild;
+            const memberObj = await guild.members.fetch(account.discord_id);
+            if (memberObj && memberObj.displayName) memberDisplayName = memberObj.displayName;
+          } catch {}
           const embed = new EmbedBuilder()
-            .setTitle('🔑 Mot de passe réinitialisé')
-            .setColor(0xffaa00)
-            .setDescription(`<@${account.discord_id}> a réinitialisé son mot de passe`)
+            .setTitle('⚠️ Mot de passe réinitialisé')
+            .setColor(0xff0000)
+            .setDescription(`${memberDisplayName} a réinitialisé son mot de passe`)
             .addFields(
-              { name: 'Username', value: account.username, inline: true }
+              { name: 'Username de login', value: `> ${account.username}` },
+              { name: 'ID\'s', value: `> <@${account.discord_id}> (\`${account.discord_id}\`)` }
             )
+            .setFooter({
+              text: 'LSPD Assistant',
+              iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
+            })
             .setTimestamp();
 
           await logsChannel.send({ embeds: [embed] });

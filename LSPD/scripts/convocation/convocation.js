@@ -92,10 +92,43 @@ document.querySelector('.send-button').addEventListener('click', async () => {
   });
 
 
+  const feedback = document.getElementById('feedbackAnimation');
+  function showAnimation(type = 'success', msg) {
+    return new Promise((resolve) => {
+      feedback.innerHTML = '';
+      const content = document.createElement('div');
+      content.className = 'feedback-inner';
+      if (type === 'success') {
+        content.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+            <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
+            <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" points="100.2,40.2 51.5,88.8 29.8,67.5"/>
+          </svg>
+          <p class="success">Convocation envoyée avec succès sur Discord !</p>
+        `;
+      } else {
+        content.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+            <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
+            <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+            <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
+          </svg>
+          <p class="error">${msg || 'Échec de l\'envoi.'}</p>
+        `;
+      }
+      feedback.appendChild(content);
+      feedback.style.display = 'flex';
+      setTimeout(() => resolve(), 1800);
+    });
+  }
   if (response.ok) {
-    alert('Convocation envoyée avec succès sur Discord !');
+    await showAnimation('success');
+    feedback.classList.add('fade-out');
+    feedback.addEventListener('transitionend', () => {
+      location.reload();
+    }, { once: true });
   } else {
-    alert("Échec de l'envoi.");
+    await showAnimation('error');
   }
 });
 

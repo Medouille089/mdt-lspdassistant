@@ -11,7 +11,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
     const bot = getBot();
     const conf = await config.getConfig();
     const forumChannelId = conf.arrestation_thread_id;
-    const logsChannelId = conf.logs_channel;
+    const logsChannelId = conf.logs_arrestations;
     try {
         const {
             date, name, fileInput1, fileInput2, profession,
@@ -60,25 +60,14 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
             autoArchiveDuration: 1440,
         });
 
-        let user = null;
-
-        bot.users.fetch(req.user?.id, false).then(async fetchedUser => {
-            user = fetchedUser;
-            user.send({
-                embeds: [embed],
-            });
-            if (files?.length > 0) {
-                for (const file of files) {
-                    const attachment = new AttachmentBuilder(file.buffer, {
-                        name: file.originalname
-                    });
-                    user.send({
-                        files: [attachment]
-                    });
-                    await thread.send({ files: [attachment] });
-                }
+        if (files?.length > 0) {
+            for (const file of files) {
+                const attachment = new AttachmentBuilder(file.buffer, {
+                    name: file.originalname
+                });
+                await thread.send({ files: [attachment] });
             }
-        });
+        }
 
         await pool.query(`
       INSERT INTO lspd_arrestations

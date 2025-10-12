@@ -381,11 +381,11 @@ router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
 async function sendEventLog(event, action, user = null) {
     try {
         const conf = await getConfig();
-        if (!conf.logs_channel) {
+        if (!conf.logs_calendrier) {
             return;
         }
 
-        const logsChannel = await bot.channels.fetch(conf.logs_channel);
+        const logsChannel = await bot.channels.fetch(conf.logs_calendrier);
         if (!logsChannel?.isTextBased()) {
             return;
         }

@@ -86,13 +86,13 @@ router.put("/api/config", async (req, res) => {
     // ---- Préparer le log ----
     const conf = getConfig();
 
-    if (conf.logs_channel && req.user) {
+    if (conf.logs_config && req.user) {
       const bot = getBot();
 
       // Récupération sécurisée du salon logs
-      const logsChannel = await safeFetchChannel(bot, conf.logs_channel);
+      const logsChannel = await safeFetchChannel(bot, conf.logs_config);
       if (!logsChannel) {
-        console.warn(`Salon logs introuvable (ID: ${conf.logs_channel}), aucun log ne sera envoyé.`);
+        console.warn(`Salon logs introuvable (ID: ${conf.logs_config}), aucun log ne sera envoyé.`);
       }
 
       // Log rôle requis

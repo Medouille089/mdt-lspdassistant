@@ -8,10 +8,10 @@ const { getBot } = require("./config");
 // Fonction générique pour logger un changement de config de rôle / salaire / grade
 async function logConfigPointageChange(oldData, newData, userId, displayName) {
   const bot = getBot();
-  const res = await pool.query(`SELECT logs_channel FROM configlspd WHERE id = 1`);
-  if (!res.rows.length || !res.rows[0].logs_channel) return;
+  const res = await pool.query(`SELECT logs_config FROM configlspd WHERE id = 1`);
+  if (!res.rows.length || !res.rows[0].logs_config) return;
 
-  const logsChannel = await bot.channels.fetch(res.rows[0].logs_channel);
+  const logsChannel = await bot.channels.fetch(res.rows[0].logs_config);
   if (!logsChannel?.isTextBased()) return;
 
   const fields = Object.keys(newData).map(key => ({
@@ -133,9 +133,9 @@ router.delete("/admin/pointeuse/users/:id", async (req, res) => {
     await pool.query(`DELETE FROM lspd_pointage WHERE id_discord = $1`, [id]);
 
     if (oldData.length) {
-      const resChannel = await pool.query(`SELECT logs_channel FROM configlspd WHERE id = 1`);
-      if (resChannel.rows.length && resChannel.rows[0].logs_channel) {
-        const logsChannel = await bot.channels.fetch(resChannel.rows[0].logs_channel);
+      const resChannel = await pool.query(`SELECT logs_config FROM configlspd WHERE id = 1`);
+      if (resChannel.rows.length && resChannel.rows[0].logs_config) {
+        const logsChannel = await bot.channels.fetch(resChannel.rows[0].logs_config);
         if (logsChannel?.isTextBased()) {
           const timestampParis = DateTime.now().setZone("Europe/Paris").toISO();
 
@@ -277,10 +277,10 @@ router.post("/config/pointeuse/heure", async (req, res) => {
 // LOG - Changement d'heure de fin de pointage
 async function logHeurePointeuseChange(oldHeure, newHeure, userId) {
   const bot = getBot();
-  const res = await pool.query(`SELECT logs_channel FROM configlspd WHERE id = 1`);
-  if (!res.rows.length || !res.rows[0].logs_channel) return;
+  const res = await pool.query(`SELECT logs_pointeuse FROM configlspd WHERE id = 1`);
+  if (!res.rows.length || !res.rows[0].logs_pointeuse) return;
 
-  const logsChannel = await bot.channels.fetch(res.rows[0].logs_channel);
+  const logsChannel = await bot.channels.fetch(res.rows[0].logs_pointeuse);
   if (!logsChannel?.isTextBased()) return;
 
   const member = await logsChannel.guild.members.fetch(userId).catch(() => null);

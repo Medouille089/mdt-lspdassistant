@@ -5,7 +5,6 @@ const { getBot, getConfig } = require('../config/config');
 const { EmbedBuilder } = require('discord.js');
 const { checkAuth } = require('../config/middleware');
 
-const LOGS_CHANNEL_ID = '1409873897654063265';
 
 // Helper → formatage des dates en JJ/MM/AAAA
 function formatDate(date) {
@@ -147,9 +146,11 @@ router.post('/api/sanctions', async (req, res) => {
             await targetMember.send({ embeds: [embed] }).catch(() => console.error('MP impossible'));
         }
 
-        // Logs Discord (inchangé)
-        const logsChannel = await guild.channels.fetch(LOGS_CHANNEL_ID).catch(() => null);
-        if (logsChannel?.isTextBased()) {
+    // Logs Discord
+    const config = getConfig();
+    const logsChannelId = config.logs_sanctions;
+    const logsChannel = logsChannelId ? await guild.channels.fetch(logsChannelId).catch(() => null) : null;
+    if (logsChannel?.isTextBased()) {
             const embedLog = new EmbedBuilder()
                 .setColor(0x0b1b5a)
                 .setTitle(`Nouvelle sanction - ${player_name}`)
@@ -250,9 +251,11 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
             [revokerName, sanctionId]
         );
 
-        // Logs Discord
-        const logsChannel = await guild.channels.fetch(LOGS_CHANNEL_ID).catch(() => null);
-        if (logsChannel?.isTextBased()) {
+    // Logs Discord
+    const config = getConfig();
+    const logsChannelId = config.logs_sanctions;
+    const logsChannel = logsChannelId ? await guild.channels.fetch(logsChannelId).catch(() => null) : null;
+    if (logsChannel?.isTextBased()) {
             const embedLog = new EmbedBuilder()
                 .setColor(0xffa500)
                 .setTitle(`Sanction révoquée`)
@@ -449,7 +452,9 @@ async function revokeExpiredSanctions() {
             }
 
             // --- Log Discord ---
-            const logsChannel = await guild.channels.fetch(LOGS_CHANNEL_ID).catch(() => null);
+            const config = getConfig();
+            const logsChannelId = config.logs_sanctions;
+            const logsChannel = logsChannelId ? await guild.channels.fetch(logsChannelId).catch(() => null) : null;
             if (logsChannel?.isTextBased()) {
                 const embedLog = new EmbedBuilder()
                     .setColor(0xffa500)
