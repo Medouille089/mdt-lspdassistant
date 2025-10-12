@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.3](https://github.com/Medouille089/lspdassistant/compare/v1.9.2...v1.9.3) (2025-10-12)
+
+
+### Bug Fixes
+
+* add nom prenom modal in ticket ([13e87c7](https://github.com/Medouille089/lspdassistant/commit/13e87c7e37d73e5a300fcd85cc039bdd331749c2))
+* change modal name ([77ad2cd](https://github.com/Medouille089/lspdassistant/commit/77ad2cd1b178614abbaffde71c37d1903fd55b56))
+
 ### [1.9.2](https://github.com/Medouille089/lspdassistant/compare/v1.9.1...v1.9.2) (2025-10-12)
 
 
