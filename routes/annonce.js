@@ -48,11 +48,11 @@ router.post('/api/annonce', checkAuth, async (req, res) => {
       [texte, auteur, Number(dureeSec), now, expires]
     );
 
-    // Log Discord dans logs_channel
+    // Log Discord dans logs_config
     try {
       const bot = getBot();
       const conf = getConfig();
-      const logsChannelId = conf.logs_channel;
+      const logsChannelId = conf.logs_config;
           if (logsChannelId) {
             const logsChannel = await bot.channels.fetch(logsChannelId);
             if (logsChannel?.isTextBased()) {

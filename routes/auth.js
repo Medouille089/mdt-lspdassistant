@@ -19,7 +19,7 @@ router.get('/callback',
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
       const config = await getConfig();
-      const { required_role_id, logs_channel, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id } = config;
+      const { required_role_id, logs_connexion, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id } = config;
 
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
@@ -40,8 +40,8 @@ router.get('/callback',
       // Vérifie si l’utilisateur a le rôle requis
       const hasRequiredRole = isSuperAdmin ? true : roleIds.includes(required_role_id);
       const action = hasRequiredRole || req.user.isDOJ
-        ? "s'est connecté(e) avec succès"
-        : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}> ou sans être DOJ`;
+        ? "s'est connecté(e) avec succès via discord"
+        : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}> ou sans être <@&${doj_role_id}>`;
 
       // Variables de session
       req.user.roles = roleIds;
@@ -51,17 +51,17 @@ router.get('/callback',
       req.user.isDOJ = doj_role_id ? roleIds.includes(doj_role_id.trim()) : false;
 
       // Logs
-      if (logs_channel) {
-        const logsChannel = await bot.channels.fetch(logs_channel);
+      if (logs_connexion) {
+        const logsChannel = await bot.channels.fetch(logs_connexion);
         if (logsChannel?.isTextBased()) {
           const isLocal = req.hostname === 'localhost' || req.ip === '127.0.0.1' || req.ip === '::1';
           const logTitle = isLocal
-            ? '⚠️ Connexion utilisateur - Machine locale'
-            : '⚠️ Connexion utilisateur';
+            ? '⚠️ Connexion discord - Machine locale'
+            : '⚠️ Connexion discord';
 
           const embed = new EmbedBuilder()
             .setTitle(logTitle)
-            .setColor(hasRequiredRole || req.user.isDOJ ? 0x0b1b5a : 0xdb4437)
+            .setColor(hasRequiredRole || req.user.isDOJ ? 0x0b1b5a : 0xff0000)
             .setDescription(`${member.displayName || 'Utilisateur inconnu'} ${action}`)
             .addFields({
               name: "ID's",
@@ -141,6 +141,7 @@ const protectedPages = [
   'adminGrades.html',
   'admin-presence.html',
   'admin-annonce.html',
+  'admin-logs.html',
   'tickets.html'
 ];
 

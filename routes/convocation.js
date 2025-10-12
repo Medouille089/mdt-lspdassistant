@@ -19,7 +19,7 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
   try {
     const conf = await getConfig();
     const forumChannelId = conf.convocation_thread_id;
-    const logsChannelId = conf.logs_channel;
+    const logsChannelId = conf.logs_convocations;
 
     const forumChannel = await bot.channels.fetch(forumChannelId);
     const logsChannel = await bot.channels.fetch(logsChannelId);
@@ -71,20 +71,14 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
 
       await convocationThread.send({ files: [attachment] });
 
-      bot.users.fetch(req.user?.id, false).then(async fetchedUser => {
-        fetchedUser.send({
-          content: `Convocation - ${nomComplet}`,
-          embeds: [embed],
-        });
-        fetchedUser.send({
-          files: [attachment],
-        });
-      });
 
+      // Handle empty date/heure fields
+      const safeDate = date && date.trim() !== '' ? date : null;
+      const safeHeure = heure && heure.trim() !== '' ? heure : null;
       await pool.query(`
         INSERT INTO lspd_convocations (nom, prenom, date, heure, lieu, motif, officer, grade)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      `, [nom, prenom, date, heure, lieu, motif, officier, grade]);
+      `, [nom, prenom, safeDate, safeHeure, lieu, motif, officier, grade]);
 
       // LOG
       if (logsChannel?.isTextBased()) {

@@ -39,10 +39,10 @@ router.post("/pointeuse/start", async (req, res) => {
       INSERT INTO lspd_pointage (id_discord, discord_role_id, start_time)
       VALUES ($1, $2, $3)
     `, [id, topRole.discord_role_id, nowParis]);
-    if (conf.logs_channel) {
+    if (conf.logs_pointeuse) {
       try {
         const clientDiscord = getBot();
-        const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
+        const logsChannel = await clientDiscord.channels.fetch(conf.logs_pointeuse);
 
         if (logsChannel?.isTextBased()) {
           const nowFormatted = DateTime.now().setZone("Europe/Paris").toFormat("dd/MM/yyyy - HH:mm");
@@ -111,10 +111,10 @@ router.post("/pointeuse/stop", async (req, res) => {
     `, [nowParis, earned, row.id]);
 
     // Log Discord (si configuré)
-    if (conf.logs_channel) {
+    if (conf.logs_pointeuse) {
       try {
         const clientDiscord = getBot();
-        const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
+        const logsChannel = await clientDiscord.channels.fetch(conf.logs_pointeuse);
 
         if (logsChannel?.isTextBased()) {
           const nowFormatted = end.toFormat("dd/MM/yyyy - HH:mm");
@@ -409,10 +409,10 @@ router.post("/admin/pointeuse/stop/:discordId", async (req, res) => {
       WHERE id = $3
     `, [nowParis, earned, row.id]);
 
-    if (conf.logs_channel) {
+    if (conf.logs_pointeuse) {
       try {
         const clientDiscord = getBot();
-        const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
+        const logsChannel = await clientDiscord.channels.fetch(conf.logs_pointeuse);
 
         if (logsChannel?.isTextBased()) {
           const nowFormatted = end.toFormat("dd/MM/yyyy - HH:mm");

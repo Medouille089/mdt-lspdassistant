@@ -117,6 +117,8 @@ const faq = require('./routes/faq');
 const calendarRoutes = require('./routes/calendar');
 const rookiePatrolsRoutes = require('./LSPD/trello/routes/rookiePatrols');
 
+const setupLogsRoutes = require('./config/setupLogs');
+
 app.use(configRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
@@ -138,6 +140,7 @@ app.use(ticketPanelRoutes);
 app.use(adminOfficer);
 app.use(rapportRookie);
 app.use(convocAgent);
+app.use(setupLogsRoutes);
 app.use(annonce);
 app.use(faq);
 app.use(calendarRoutes);

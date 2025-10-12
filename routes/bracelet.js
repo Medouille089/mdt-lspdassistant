@@ -78,8 +78,8 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
         const mentionThread = threadId ? `<#${threadId}>` : 'Thread inconnu';
 
         const conf = await config.getConfig();
-        if (conf.logs_channel) {
-            const logsChannel = await bot.channels.fetch(conf.logs_channel);
+        if (conf.logs_bracelets) {
+            const logsChannel = await bot.channels.fetch(conf.logs_bracelets);
 
             if (logsChannel?.isTextBased()) {
                 const embedLog = new EmbedBuilder()
@@ -243,10 +243,10 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
 
                 await thread.send({ embeds: [embed] });
 
-                // Log modification dans LOGS_CHANNEL
+                // Log modification dans logs_bracelets
                 const conf = await config.getConfig();
-                if (conf.logs_channel) {
-                    const logsChannel = await bot.channels.fetch(conf.logs_channel);
+                if (conf.logs_bracelets) {
+                    const logsChannel = await bot.channels.fetch(conf.logs_bracelets);
                     if (logsChannel?.isTextBased()) {
                         const embedLog = new EmbedBuilder()
                             .setColor(0x0b1b5a)
@@ -339,9 +339,9 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
 
                     await thread.send({ embeds: [embed] });
 
-                    // Log archivage dans LOGS_CHANNEL
-                    if (conf.logs_channel) {
-                        const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
+                    // Log archivage dans logs_bracelets
+                    if (conf.logs_bracelets) {
+                        const logsChannel = await clientDiscord.channels.fetch(conf.logs_bracelets);
                         if (logsChannel?.isTextBased()) {
                             const mentionThread = data.id_thread ? `<#${data.id_thread}>` : 'Thread inconnu';
 
@@ -476,9 +476,9 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
 
         await thread.send({ embeds: [embed] });
 
-        // Log axrchivage dans LOGS_CHANNEL
-        if (conf.logs_channel) {
-            const logsChannel = await clientDiscord.channels.fetch(conf.logs_channel);
+        // Log axrchivage dans logs_bracelets
+        if (conf.logs_bracelets) {
+            const logsChannel = await clientDiscord.channels.fetch(conf.logs_bracelets);
             if (logsChannel?.isTextBased()) {
                 const mentionThread = data.id_thread ? `<#${data.id_thread}>` : 'Thread inconnu';
 
