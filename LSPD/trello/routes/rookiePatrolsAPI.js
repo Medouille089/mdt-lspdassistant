@@ -98,6 +98,35 @@ export async function cleanDeletedPatrols(deletedCardIds) {
 }
 
 /**
+ * Met à jour l'état du rapport pour une patrouille
+ */
+export async function setPatrolReportCompleted(cardId, completed) {
+    try {
+        const response = await fetch(`/api/rookie-patrols/${cardId}/report`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ completed })
+        });
+
+        if (response.status === 404) {
+            return null;
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du rapport:', error);
+        throw error;
+    }
+}
+
+/**
  * Supprime tout l'historique des patrouilles
  */
 export async function clearAllPatrols() {
