@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.1](https://github.com/Medouille089/lspdassistant/compare/v1.9.0...v1.9.1) (2025-10-12)
+
+
+### Bug Fixes
+
+* add profile logs in connexion logs ([e92f353](https://github.com/Medouille089/lspdassistant/commit/e92f353dd9b3fe2702513a7f0c91c6edd8791ef5))
+
 ## [1.9.0](https://github.com/Medouille089/lspdassistant/compare/v1.8.0...v1.9.0) (2025-10-12)
 
 
