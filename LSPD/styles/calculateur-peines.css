@@ -353,7 +353,7 @@ tbody tr.empty-row:hover {
     background: var(--input-bg);
     border-radius: 10px;
     padding: 30px;
-    max-height: 223px;
+    max-height: 230px;
     margin-bottom: 20px;
     border: 2px solid var(--main-color-dark);
 }
