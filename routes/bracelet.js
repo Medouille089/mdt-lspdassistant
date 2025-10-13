@@ -62,7 +62,7 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
                 "Content-Type": "application/json",
                 "x-internal": "true"
             },
-            body: JSON.stringify({ id_brac, nom, prenom, tel, motif, dateDebut, userId: user.id })
+            body: JSON.stringify({ id_brac, nom, prenom, tel, motif, dateDebut, userId: user.id, displayName: user.guild_member?.nick || user.displayName || user.username })
         });
 
 
@@ -85,7 +85,7 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
                 const embedLog = new EmbedBuilder()
                     .setColor(0x0b1b5a)
                     .setTitle(`Nouveau bracelet - ${id_brac}`)
-                    .setDescription(`<@${user.id}> a ajouté un nouveau bracelet - ${mentionThread} \`${id_brac}\``)
+                    .setDescription(`${user.guild_member?.nick || user.displayName || user.username || 'Utilisateur inconnu'} a ajouté un nouveau bracelet - ${mentionThread} \`${id_brac}\``)
                     .addFields({
                         name: "ID's",
                         value: `> <@${req.user.id}> (\`${req.user.id}\`) \n> ${mentionThread} (\`${threadId}\`)`,
@@ -110,7 +110,7 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
 
 // Route POST – Création d’un post (thread Discord)
 router.post('/api/create-post', async (req, res) => {
-    const { id_brac, nom, prenom, tel, motif, dateDebut, userId } = req.body;
+    const { id_brac, nom, prenom, tel, motif, dateDebut, userId, displayName } = req.body;
     try {
         const formattedDateDebut = formatDate(dateDebut);
         const threadTitle = `${id_brac} - ${nom} ${prenom} - ${formattedDateDebut}`;
@@ -130,7 +130,7 @@ router.post('/api/create-post', async (req, res) => {
                         value: `**${formattedDateDebut}**`,
                         inline: false
                     },
-                    { name: "Créé par", value: userId ? `<@${userId}>` : 'Système', inline: false },
+                    { name: "Créé par", value: displayName || 'Utilisateur inconnu', inline: false },
                 ],
                 footer: {
                     text: "LSPD Assistant",
@@ -232,7 +232,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
                             value: `**${dateDebutFormatted || '—'}**`,
                             inline: false
                         },
-                        { name: "Créé par", value: created_by || '—', inline: false }
+                        { name: "Modifié par", value: req.user.guild_member?.nick || req.user.displayName || req.user.username || 'Utilisateur inconnu', inline: false }
                     )
                     .setFooter({
                         text: "LSPD Assistant",
@@ -315,6 +315,17 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
                 if (thread?.isThread()) {
                     await thread.setAppliedTags([conf.archive_tag]);
 
+                    let archiverDisplayName = 'Inconnu';
+                    try {
+                        const guild = thread.guild || clientDiscord.guilds.cache.first();
+                        if (guild) {
+                            const member = await guild.members.fetch(req.user.id);
+                            archiverDisplayName = member.displayName;
+                        }
+                    } catch (e) {
+                        archiverDisplayName = req.user.displayName || req.user.username || req.user.id;
+                    }
+
                     const embed = new EmbedBuilder()
                         .setTitle("Bracelet archivé")
                         .setColor(0x0b1b5a)
@@ -327,6 +338,11 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
                             {
                                 name: "Date d'activation",
                                 value: `**${formatDateFR(data.date_debut) || '—'}**`,
+                                inline: false
+                            },
+                            {
+                                name: "Archivé par",
+                                value: archiverDisplayName,
                                 inline: false
                             }
                         )
@@ -465,7 +481,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
                 { name: "Prénom", value: data.prenom || '—', inline: true },
                 { name: "Date", value: dateStr, inline: true },
                 { name: "Heure", value: heureStr, inline: true },
-                { name: "Pointé par", value: `<@${user.id}>`, inline: false }
+                { name: "Pointé par", value: user.guild_member?.nick || user.displayName || user.username || 'Utilisateur inconnu', inline: false }
             )
             .setFooter({
                 text: user.guild_member.nick,
