@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.4](https://github.com/Medouille089/lspdassistant/compare/v1.9.3...v1.9.4) (2025-10-13)
+
+
+### Bug Fixes
+
+* add name in creation pointage modification et archivage bracelet ([b44fb7d](https://github.com/Medouille089/lspdassistant/commit/b44fb7df8d2a9471b6443c59ffe4ca798d1b8236))
+* replace supprimé par archivé ([b472b0d](https://github.com/Medouille089/lspdassistant/commit/b472b0d54f421693c78c835a23b5534500fee1ac))
+
 ### [1.9.3](https://github.com/Medouille089/lspdassistant/compare/v1.9.2...v1.9.3) (2025-10-12)
 
 
