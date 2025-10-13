@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.6](https://github.com/Medouille089/lspdassistant/compare/v1.9.5...v1.9.6) (2025-10-13)
+
+
+### Bug Fixes
+
+* fix close button on tickets ([b0e28ef](https://github.com/Medouille089/lspdassistant/commit/b0e28ef99d28d5287791295652a478ed90e2507e))
+
 ### [1.9.5](https://github.com/Medouille089/lspdassistant/compare/v1.9.4...v1.9.5) (2025-10-13)
 
 
