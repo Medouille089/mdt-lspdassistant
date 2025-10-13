@@ -2,6 +2,7 @@
 const path = require("path");
 const { initDatabase, loadBoardData, isDatabaseEnabled } = require("./trelloDatabase");
 const { initTrelloSocket, operationsManager } = require("./trelloSocket");
+const { startNightlyResetScheduler } = require("./trelloResetScheduler");
 
 let boardData = { lists: [], tags: [] };
 
@@ -16,6 +17,9 @@ async function initTrello(app, io) {
 
     // Init socket
     initTrelloSocket(io);
+
+    // Start nightly reset scheduler
+    startNightlyResetScheduler();
 
     // Routes
     app.get("/trello", (req, res) => {

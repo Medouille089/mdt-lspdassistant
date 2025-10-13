@@ -22,6 +22,30 @@ export let currentUser = null;
 // Tracking des patrouilles avec rookies (chargées depuis la BDD)
 export let rookiePatrols = [];
 
+function getPatrolSortValue(patrol = {}) {
+    const candidates = [
+        patrol.timestamp,
+        patrol.deletedAt,
+        patrol.deleted_at,
+        patrol.updatedAt,
+        patrol.updated_at,
+    ];
+
+    for (const candidate of candidates) {
+        if (!candidate) continue;
+        const time = new Date(candidate).getTime();
+        if (Number.isFinite(time)) {
+            return time;
+        }
+    }
+
+    return 0;
+}
+
+function sortRookiePatrolsInPlace(list) {
+    return list.sort((a, b) => getPatrolSortValue(b) - getPatrolSortValue(a));
+}
+
 export function setBoardData(data) {
     boardData = normalizeBoardData(data);
 }
@@ -63,6 +87,11 @@ export function canManageLists() {
     return currentUser && (currentUser.isCommandStaff || currentUser.isSuperAdmin);
 }
 
+export function canCleanRookiePatrols() {
+    if (!currentUser) return false;
+    return Boolean(currentUser.isSuperAdmin || currentUser.isCommandStaff || currentUser.isSupervisor);
+}
+
 /**
  * Charge les patrouilles depuis la BDD
  */
@@ -92,8 +121,11 @@ export async function loadRookiePatrolsFromDB() {
             timestamp: p.timestamp,
             updatedAt: p.updated_at,
             deletedAt: p.deleted_at,
-            activeDuration: p.active_duration
+            activeDuration: p.active_duration,
+            reportCompleted: p.report_completed,
+            reportCompletedAt: p.report_completed_at
         }));
+        sortRookiePatrolsInPlace(rookiePatrols);
         
         return rookiePatrols;
     } catch (error) {
@@ -111,16 +143,22 @@ export function addRookiePatrol(patrol) {
         // Nouvelle patrouille
         rookiePatrols.push({
             ...patrol,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            reportCompleted: Boolean(patrol.reportCompleted),
+            reportCompletedAt: patrol.reportCompletedAt ?? null
         });
     } else {
         // Mise à jour de la patrouille existante (si les données ont changé)
         rookiePatrols[existingIndex] = {
             ...patrol,
             timestamp: rookiePatrols[existingIndex].timestamp, // Garder l'heure originale
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            reportCompleted: patrol.reportCompleted ?? rookiePatrols[existingIndex].reportCompleted ?? false,
+            reportCompletedAt: patrol.reportCompletedAt ?? rookiePatrols[existingIndex].reportCompletedAt ?? null
         };
     }
+
+    sortRookiePatrolsInPlace(rookiePatrols);
 }
 
 export function getRookiePatrols() {
@@ -128,7 +166,8 @@ export function getRookiePatrols() {
 }
 
 export function setRookiePatrols(patrols) {
-    rookiePatrols = Array.isArray(patrols) ? patrols : [];
+    rookiePatrols = Array.isArray(patrols) ? [...patrols] : [];
+    sortRookiePatrolsInPlace(rookiePatrols);
 }
 
 export function clearRookiePatrols() {
@@ -158,6 +197,20 @@ export function updateRookiePatrolDeletion(cardId, updates = {}) {
         ...current,
         deletedAt,
         activeDuration,
+        updatedAt: new Date().toISOString()
+    };
+}
+
+export function updateRookiePatrolReportStatus(cardId, completed, completedAt = null) {
+    if (!cardId) return;
+
+    const index = rookiePatrols.findIndex(p => p.cardId === cardId);
+    if (index === -1) return;
+
+    rookiePatrols[index] = {
+        ...rookiePatrols[index],
+        reportCompleted: Boolean(completed),
+        reportCompletedAt: completed ? (completedAt ?? new Date().toISOString()) : null,
         updatedAt: new Date().toISOString()
     };
 }

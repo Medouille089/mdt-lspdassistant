@@ -1,6 +1,6 @@
-import { boardData, availableTags, addRookiePatrol, getRookiePatrols, setRookiePatrols, updateRookiePatrolDeletion, removeRookiePatrol } from './state.js';
+import { boardData, availableTags, addRookiePatrol, getRookiePatrols, setRookiePatrols, updateRookiePatrolDeletion, removeRookiePatrol, canCleanRookiePatrols, updateRookiePatrolReportStatus } from './state.js';
 import { getCardTags } from './utils.js';
-import { saveRookiePatrol, cleanDeletedPatrols as cleanDeletedPatrolsAPI, markPatrolAsDeleted } from '../routes/rookiePatrolsAPI.js';
+import { saveRookiePatrol, cleanDeletedPatrols as cleanDeletedPatrolsAPI, markPatrolAsDeleted, setPatrolReportCompleted } from '../routes/rookiePatrolsAPI.js';
 
 const MIN_ACTIVE_DURATION_SECONDS = 10 * 60; // 10 minutes
 
@@ -138,11 +138,21 @@ function renderPatrolCard(patrol) {
     
     // Vérifier si la carte existe encore dans le board
     const cardStillExists = checkIfCardExists(patrol.cardId);
+    const reportCompleted = Boolean(patrol.reportCompleted);
     const deletedClass = cardStillExists ? '' : 'patrol-deleted';
+    const reportClass = reportCompleted ? 'patrol-report-completed' : '';
     const deletedBadge = cardStillExists ? '' : '<span class="patrol-badge deleted-badge">🗑️ Supprimée</span>';
     const durationSeconds = getActiveDurationSeconds(patrol);
     const durationLabel = !cardStillExists ? formatDurationFromSeconds(durationSeconds) : '';
     const durationBadge = durationLabel ? `<span class="patrol-badge duration-badge">${durationLabel}</span>` : '';
+    const reportToggleLabel = reportCompleted ? '✅ Rapport' : '☐ Rapport';
+    const reportToggleTitle = reportCompleted ? 'Rapport effectué' : 'Marquer le rapport comme effectué';
+    const reportCompletedAt = patrol.reportCompletedAt ? new Date(patrol.reportCompletedAt).toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
+    const reportBadge = `
+        <button class="patrol-report-toggle ${reportCompleted ? 'completed' : ''}" data-action="toggle-report" data-patrol-id="${patrol.cardId}" aria-pressed="${reportCompleted}" title="${reportToggleTitle}${reportCompletedAt ? ` • ${reportCompletedAt}` : ''}">
+            ${reportToggleLabel}
+        </button>
+    `;
     
     // Créer la description avec les infos des rookies
     let description = `🎓 Rookie${patrol.rookieCount > 1 ? 's' : ''} en patrouille:\n`;
@@ -163,7 +173,7 @@ function renderPatrolCard(patrol) {
     });
     
     return `
-        <div class="card patrol-rookie-card ${deletedClass}" data-patrol-id="${patrol.cardId}">
+        <div class="card patrol-rookie-card ${deletedClass} ${reportClass}" data-patrol-id="${patrol.cardId}">
             ${timestamp ? `<span class="card-timestamp" title="Heure de détection">${timestamp}</span>` : ''}
             <div class="card-content">
                 <div class="card-title">🚓 ${patrol.patrolName}</div>
@@ -171,6 +181,7 @@ function renderPatrolCard(patrol) {
                     ${description.split('\n').map(line => `<div>${line || '&nbsp;'}</div>`).join('')}
                 </div>
                 <div class="card-badges">
+                    ${reportBadge}
                     ${deletedBadge}
                     ${durationBadge}
                     <span class="patrol-badge rookie-count">${patrol.rookieCount} rookie${patrol.rookieCount > 1 ? 's' : ''}</span>
@@ -392,6 +403,8 @@ export function showRookiePatrolsModal() {
     // Compter les patrouilles actives et supprimées
     const activePatrols = displayedPatrols.filter(p => checkIfCardExists(p.cardId));
     const deletedPatrols = displayedPatrols.filter(p => !checkIfCardExists(p.cardId));
+    const deletableDeletedPatrols = deletedPatrols.filter(p => Boolean(p.reportCompleted));
+    const canCleanDeleted = canCleanRookiePatrols();
     
     // Créer le menu
     const menu = document.createElement('div');
@@ -408,13 +421,15 @@ export function showRookiePatrolsModal() {
         </div>
         <div class="rookie-patrols-list">
             ${displayedPatrols.length === 0 ? '<div class="no-patrols">Aucune patrouille détectée</div>' : 
-                displayedPatrols.slice().reverse().slice(0, 10).map(patrol => renderPatrolCard(patrol)).join('')
+                displayedPatrols.slice(0, 10).map(patrol => renderPatrolCard(patrol)).join('')
             }
         </div>
         ${displayedPatrols.length > 10 ? `<div class="rookie-patrols-footer info-footer">Affichage des 10 dernières patrouilles sur ${displayedPatrols.length}</div>` : ''}
         ${displayedPatrols.length > 0 ? `
             <div class="rookie-patrols-actions">
-                ${deletedPatrols.length > 0 ? `<button class="action-btn clean-deleted-btn" id="cleanDeletedPatrolsBtn">🗑️ Nettoyer les supprimées</button>` : ''}
+                ${deletedPatrols.length > 0 && canCleanDeleted ? `<button class="action-btn clean-deleted-btn" id="cleanDeletedPatrolsBtn" ${deletableDeletedPatrols.length ? '' : 'disabled title="Aucun rapport validé à nettoyer"'}>
+                    🗑️ Nettoyer les supprimées${deletableDeletedPatrols.length ? ` (${deletableDeletedPatrols.length})` : ''}
+                </button>` : ''}
             </div>
         ` : ''}
     `;
@@ -432,13 +447,20 @@ export function showRookiePatrolsModal() {
     if (cleanDeletedBtn) {
         cleanDeletedBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            if (confirm(`Voulez-vous supprimer définitivement les ${deletedPatrols.length} patrouille(s) supprimée(s) de l'historique ?`)) {
+            const deletable = deletedPatrols.filter(p => Boolean(p.reportCompleted));
+            if (deletable.length === 0) {
+                alert('Aucune patrouille supprimée n\'a encore un rapport marqué comme effectué.');
+                return;
+            }
+
+            if (confirm(`Voulez-vous supprimer définitivement les ${deletable.length} patrouille(s) supprimée(s) dont le rapport est effectué ?`)) {
                 try {
-                    const deletedCardIds = deletedPatrols.map(p => p.cardId);
+                    const deletedCardIds = deletable.map(p => p.cardId);
                     await cleanDeletedPatrolsAPI(deletedCardIds);
                     
-                    // Mettre à jour le state local
-                    setRookiePatrols(activePatrols);
+                    // Mettre à jour le state local (retirer uniquement les patrouilles nettoyées)
+                    const remaining = getRookiePatrols().filter(p => !deletedCardIds.includes(p.cardId));
+                    setRookiePatrols(remaining);
                     
                     menu.remove();
                     // Rouvrir le menu pour voir les changements
@@ -449,6 +471,45 @@ export function showRookiePatrolsModal() {
             }
         });
     }
+
+    menu.querySelectorAll('.patrol-report-toggle').forEach((button) => {
+        button.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const cardId = button.dataset.patrolId;
+            if (!cardId) return;
+
+            const currentlyCompleted = button.classList.contains('completed');
+            const nextStatus = !currentlyCompleted;
+
+            button.disabled = true;
+
+            try {
+                const updated = await setPatrolReportCompleted(cardId, nextStatus);
+                updateRookiePatrolReportStatus(cardId, nextStatus, updated?.report_completed_at);
+
+                const label = nextStatus ? '✅ Rapport' : '☐ Rapport';
+                const titleBase = nextStatus ? 'Rapport effectué' : 'Marquer le rapport comme effectué';
+                const tooltip = nextStatus && updated?.report_completed_at
+                    ? `${titleBase} • ${new Date(updated.report_completed_at).toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}`
+                    : titleBase;
+
+                button.classList.toggle('completed', nextStatus);
+                button.setAttribute('aria-pressed', String(nextStatus));
+                button.innerHTML = label;
+                button.title = tooltip;
+
+                const cardEl = button.closest('.patrol-rookie-card');
+                if (cardEl) {
+                    cardEl.classList.toggle('patrol-report-completed', nextStatus);
+                }
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour du rapport:', error);
+                alert('Impossible de mettre à jour le statut du rapport.');
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
 
     // Fermer en cliquant ailleurs
     setTimeout(() => {
