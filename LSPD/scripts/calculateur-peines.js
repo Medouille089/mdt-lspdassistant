@@ -314,6 +314,7 @@ function calculerTotaux() {
     document.getElementById('totalAmendes').textContent = formatCurrency(totalAmendes);
     document.getElementById('totalPeines').textContent = minutesToTime(totalPeinesMinutes);
 
+    // Calculer les peines
     const min1 = Math.round(Math.max(0, totalPeinesMinutes * 0.5));
     const min2 = Math.round(Math.max(0, totalPeinesMinutes * 0.75));
     const min3 = Math.round(Math.max(0, totalPeinesMinutes * 0.85));
@@ -329,6 +330,21 @@ function calculerTotaux() {
 
     document.getElementById('max1Value').textContent = minutesToTime(max1);
     document.getElementById('max2Value').textContent = minutesToTime(max2);
+
+    // Calculer et afficher les amendes correspondantes
+    const min1Amende = Math.round(totalAmendes * 0.5);
+    const min2Amende = Math.round(totalAmendes * 0.75);
+    const min3Amende = Math.round(totalAmendes * 0.85);
+    const nominalAmende = totalAmendes;
+    const max1Amende = Math.round(totalAmendes * 1.25);
+    const max2Amende = Math.round(totalAmendes * 1.5);
+
+    document.getElementById('min1Amende').textContent = formatCurrency(min1Amende);
+    document.getElementById('min2Amende').textContent = formatCurrency(min2Amende);
+    document.getElementById('min3Amende').textContent = formatCurrency(min3Amende);
+    document.getElementById('nominalAmende').textContent = formatCurrency(nominalAmende);
+    document.getElementById('max1Amende').textContent = formatCurrency(max1Amende);
+    document.getElementById('max2Amende').textContent = formatCurrency(max2Amende);
 
     document.querySelectorAll('.peine-item').forEach(item => {
         item.classList.remove('selected');

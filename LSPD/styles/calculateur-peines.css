@@ -433,6 +433,14 @@ tbody tr.empty-row:hover {
     margin-bottom: 5px;
 }
 
+.peine-amende {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--main-color-dark);
+    margin-bottom: 5px;
+    opacity: 0.8;
+}
+
 .peine-desc {
     font-size: 0.75rem;
     color: var(--text-muted);
