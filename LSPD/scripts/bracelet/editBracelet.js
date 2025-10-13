@@ -94,7 +94,7 @@ confirmDeleteBtn.addEventListener('click', async () => {
         if (!res.ok) throw new Error('Erreur suppression');
 
         loaderOverlay.style.display = 'none';
-        await showAnimation('success', 'Bracelet supprimé avec succès!');
+        await showAnimation('success', 'Bracelet archivé avec succès!');
         window.location.href = 'histoBracelet.html';
     } catch (err) {
         loaderOverlay.style.display = 'none';

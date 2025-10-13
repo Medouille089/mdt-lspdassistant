@@ -134,7 +134,7 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
       try {
         const { getConfig, getBot } = require('../config/config');
         const conf = getConfig();
-        const logsChannelId = conf.logs_channel;
+        const logsChannelId = conf.logs_connexion;
         if (logsChannelId) {
           const bot = getBot();
           const guild = bot.guilds.cache.get(process.env.GUILD_ID) || await bot.guilds.fetch(process.env.GUILD_ID);
@@ -239,7 +239,7 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     try {
       const { getConfig, getBot } = require('../config/config');
       const conf = getConfig();
-      const logsChannelId = conf.logs_channel;
+      const logsChannelId = conf.logs_connexion;
       if (logsChannelId) {
         const bot = getBot();
         const guild = bot.guilds.cache.get(process.env.GUILD_ID) || await bot.guilds.fetch(process.env.GUILD_ID);
@@ -364,14 +364,14 @@ router.post('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) 
     try {
       const { getConfig, getBot } = require('../config/config');
       const conf = getConfig();
-      if (conf.logs_channel) {
+      if (conf.logs_connexion) {
         const bot = getBot();
         const guild = bot.guilds.cache.get(process.env.GUILD_ID) || await bot.guilds.fetch(process.env.GUILD_ID);
         const actorMember = await guild.members.fetch(user.id).catch(() => null);
         const targetMember = await guild.members.fetch(userId).catch(() => null);
         await sendAgentLog({
           bot,
-          logsChannelId: conf.logs_channel,
+          logsChannelId: conf.logs_connexion,
           action: 'EDIT_ON',
           actorMember,
           targetMember,
