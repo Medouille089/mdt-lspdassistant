@@ -5,6 +5,60 @@ const { getConfig } = require("../config/config");
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
 
 module.exports = async function handleTicket(interaction, bot) {
+    // --- Gestion du bouton Fermer ---
+    if (interaction.isButton && interaction.isButton() && interaction.customId === 'fermer_ticket_btn') {
+        const conf = getConfig();
+        const requiredRoleId = conf.required_role_id?.toString();
+        const superAdminRoleId = conf.id_superadmin?.toString();
+        const member = interaction.member;
+        if (!member.roles.cache.has(requiredRoleId) && (!superAdminRoleId || !member.roles.cache.has(superAdminRoleId))) {
+            return interaction.reply({ content: '❌ Seul un agent du LSPD peut fermer le ticket.', flags: 64, ephemeral: true });
+        }
+        const channel = interaction.channel;
+        const db = require('../config/db');
+        const moment = require('moment-timezone');
+        // Vérifie que le salon est bien un ticket
+        const ticketRes = await db.query('SELECT user_id FROM lspd_tickets WHERE channel_id=$1', [channel.id]);
+        const ticketData = ticketRes.rows[0];
+        if (!ticketData) {
+            return interaction.reply({ content: "❌ Ce salon n'est pas un ticket valide.", flags: 64 });
+        }
+        // Log et suppression
+        const guild = interaction.guild;
+        const ticketOwner = ticketData ? await guild.members.fetch(ticketData.user_id).catch(() => null) : null;
+        // Transcript
+        const messages = await channel.messages.fetch({ limit: 100 });
+        const transcript = messages.map(m => `[${moment(m.createdTimestamp).tz("Europe/Paris").format("DD/MM/YYYY HH:mm")}] ${m.author.tag}: ${m.content}`).reverse().join('\n');
+        // Log embed
+        const logEmbed = new EmbedBuilder()
+            .setColor(0x0b1b5a)
+            .setDescription(`Ticket fermé par <@${interaction.user.id}>`)
+            .addFields(
+                { name: 'Salon', value: `#${channel.name}`, inline: true },
+                { name: 'Fermé par', value: `<@${interaction.user.id}>`, inline: true },
+                { name: 'Date de fermeture', value: `\`${moment().tz("Europe/Paris").format("DD/MM/YYYY HH:mm")}\``, inline: true }
+            )
+            .setFooter({ text: 'LSPD Assistant', iconURL: interaction.client.user.displayAvatarURL({ extension: 'png', size: 256 }) })
+            .setTimestamp();
+        // Envoi dans logs
+        if (conf.logs_tickets) {
+            const logsChannel = await bot.channels.fetch(conf.logs_tickets).catch(() => null);
+            if (logsChannel?.isTextBased()) {
+                await logsChannel.send({ embeds: [logEmbed] });
+            }
+        }
+        // DM au propriétaire
+        if (ticketOwner) {
+            await ticketOwner.send({ embeds: [logEmbed] }).catch(() => {});
+        }
+        // Suppression BDD et salon
+        await db.query('DELETE FROM lspd_tickets WHERE channel_id=$1', [channel.id]);
+        await interaction.reply({ content: '⏳ Fermeture du ticket...', flags: 64 });
+        setTimeout(async () => {
+            if (channel.deletable) await channel.delete('Ticket fermé');
+        }, 2000);
+        return;
+    }
     // --- Sélecteur de catégorie ---
     if (interaction.isStringSelectMenu() && interaction.customId === "select_ticket_category") {
         // Ouvre une modal pour demander prénom/nom
@@ -104,6 +158,13 @@ module.exports = async function handleTicket(interaction, bot) {
                 ? parseInt(category.embed_color.replace("#", ""), 16)
                 : 0x00ff00;
 
+            const { ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+            const fermerBtn = new ButtonBuilder()
+                .setCustomId('fermer_ticket_btn')
+                .setLabel('Fermer')
+                .setStyle(ButtonStyle.Danger);
+            const row = new ActionRowBuilder().addComponents(fermerBtn);
+
             await channel.send({
                 content: `<@${interaction.user.id}> ${(category.roles || []).map(r => `<@&${r}>`).join(" ")}`,
                 embeds: [
@@ -118,6 +179,7 @@ module.exports = async function handleTicket(interaction, bot) {
                         },
                     },
                 ],
+                components: [row]
             });
 
             // Logs
