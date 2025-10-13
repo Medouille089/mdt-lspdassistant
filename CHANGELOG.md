@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.5](https://github.com/Medouille089/lspdassistant/compare/v1.9.4...v1.9.5) (2025-10-13)
+
+
+### Bug Fixes
+
+* add /ajouter /retirer user or role commands in ticket w/ logs ([db45fa8](https://github.com/Medouille089/lspdassistant/commit/db45fa84987a2409828f7171d348a7664202f2d4))
+
 ### [1.9.4](https://github.com/Medouille089/lspdassistant/compare/v1.9.3...v1.9.4) (2025-10-13)
 
 
