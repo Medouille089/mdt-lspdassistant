@@ -78,7 +78,7 @@ function handleModalImage(card) {
         existingImageDisplay.innerHTML = `
             <div class="modal-image-container">
                 <img src="${card.image.data}" alt="${card.text}" 
-                    style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px; cursor: zoom-in;"
+                    style="max-width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; cursor: zoom-in;"
                     onclick="openFullscreenImage('${card.image.data}', '${card.text}')">
                 <div class="image-info">
                     <small>Nom: ${card.image.name} | Taille: ${(card.image.size / 1024).toFixed(1)} KB</small>
