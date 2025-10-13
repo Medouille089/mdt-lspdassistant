@@ -115,6 +115,7 @@ const convocAgent = require('./routes/convocAgent');
 const annonce = require('./routes/annonce');
 const faq = require('./routes/faq');
 const calendarRoutes = require('./routes/calendar');
+const calculPeinesRoutes = require('./routes/calculPeines');
 const rookiePatrolsRoutes = require('./LSPD/trello/routes/rookiePatrols');
 
 const setupLogsRoutes = require('./config/setupLogs');
@@ -144,6 +145,7 @@ app.use(setupLogsRoutes);
 app.use(annonce);
 app.use(faq);
 app.use(calendarRoutes);
+app.use('/api', calculPeinesRoutes);
 app.use(rookiePatrolsRoutes);
 app.use(rapportRookie);
 
