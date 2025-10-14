@@ -117,7 +117,6 @@ const faq = require('./routes/faq');
 const calendarRoutes = require('./routes/calendar');
 const rookiePatrolsRoutes = require('./LSPD/trello/routes/rookiePatrols');
 const discordUploader = require('./routes/discordUploader');
-
 const setupLogsRoutes = require('./config/setupLogs');
 
 app.use(configRoutes);

@@ -6,34 +6,18 @@ const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = req
 
 module.exports = async function handleTicket(interaction, bot) {
     // --- Gestion du bouton Fermer ---
-    if (interaction.isButton && interaction.isButton() && interaction.customId === 'fermer_ticket_btn') {
-        // Delegate to the existing /fermer command to ensure identical behavior (transcript, logs, DB ops)
-        try {
-            const fermerCmd = require('../commands/fermer.js');
-
-            // Build a minimal interaction-like object compatible with the command's execute function
-            const fakeInteraction = {
-                user: interaction.user,
-                guildId: interaction.guildId || (interaction.guild && interaction.guild.id),
-                channel: interaction.channel,
-                member: interaction.member,
-                client: interaction.client,
-                replied: false,
-                deferReply: async (opts) => { try { await interaction.deferReply(opts); } catch {} },
-                editReply: async (opts) => { try { await interaction.editReply(opts); } catch {} },
-                reply: async (opts) => { try { await interaction.reply(opts); } catch {} },
-            };
-
-            // Call the command's execute
-            await fermerCmd.execute(fakeInteraction);
-        } catch (err) {
-            console.error('Erreur en déléguant la fermeture au commande /fermer :', err);
+        if (interaction.isButton && interaction.isButton() && interaction.customId === 'fermer_ticket_btn') {
+            // Déléguer la fermeture au handler /fermer en lui passant l'interaction réelle.
+            // Cela garantit le même comportement que l'exécution via la commande slash
             try {
-                await interaction.reply({ content: '❌ Erreur lors de la fermeture du ticket.', flags: 64 });
-            } catch {};
-        }
+                const fermerCmd = require('../commands/fermer.js');
+                await fermerCmd.execute(interaction);
+            } catch (err) {
+                console.error('Erreur en déléguant la fermeture à la commande /fermer :', err);
+                try { await interaction.reply({ content: '❌ Erreur lors de la fermeture du ticket.', flags: 64 }); } catch {};
+            }
 
-        return;
+            return;
     }
     // --- Sélecteur de catégorie ---
     if (interaction.isStringSelectMenu() && interaction.customId === "select_ticket_category") {
