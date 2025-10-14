@@ -16,7 +16,7 @@ module.exports = {
         const requiredRoleId = config.required_role_id?.toString();
         const superAdminRoleId = config.id_superadmin?.toString();
         if (!interaction.member.roles.cache.has(requiredRoleId) && (!superAdminRoleId || !interaction.member.roles.cache.has(superAdminRoleId))) {
-            return interaction.reply({ content: '❌ Seul un agent du LSPD peut utiliser cette commande.', flags: 64, ephemeral: true });
+            return interaction.reply({ content: '❌ Seul un agent du LSPD peut utiliser cette commande.', flags: 64, flags: 64 });
         }
 
         // Vérifie que la commande est exécutée dans un ticket (salon textuel avec permissions personnalisées)

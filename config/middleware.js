@@ -6,6 +6,11 @@ async function checkAuth(req, res, next) {
   if (!req.isAuthenticated()) {
     // Stocker l'URL originale dans la session pour redirection après login
     req.session.returnTo = req.originalUrl;
+    // Si c'est un appel API (fetch/XHR) on renvoie du JSON au lieu d'une redirection HTML
+    if (req.originalUrl && req.originalUrl.startsWith('/api/') || req.xhr || (req.get && req.get('accept') && req.get('accept').includes('application/json'))) {
+      return res.status(401).json({ error: 'Non authentifié' });
+    }
+
     return res.redirect("/login");
   }
 
@@ -13,18 +18,36 @@ async function checkAuth(req, res, next) {
     const config = await getConfig();
     const REQUIRED_ROLE_ID = String(config.required_role_id);
     const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+    const BLACKLIST_ROLE = config.blacklist_role_id ? String(config.blacklist_role_id).trim() : null;
 
     const guild = await bot.guilds.fetch(GUILD_ID);
     const member = await guild.members.fetch(req.user.id);
     const roleIds = member.roles.cache.map(role => role.id);
+
+    // Vérifier si l'utilisateur est dans la table lspd_blacklist
+    try {
+      const pool = require('./db');
+      const { rows } = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1', [req.user.id]);
+      if (rows.length) {
+        if (req.originalUrl && req.originalUrl.startsWith('/api/') || req.xhr || (req.get && req.get('accept') && req.get('accept').includes('application/json'))) {
+          return res.status(403).json({ error: 'blacklisted' });
+        }
+        return res.redirect('/blacklisted.html');
+      }
+    } catch (e) {
+      console.error('Erreur check blacklist DB:', e);
+    }
 
     // Super admin bypass
     if (SUPER_ADMIN_ROLE && roleIds.includes(SUPER_ADMIN_ROLE)) {
       return next();
     }
 
-    const hasRole = roleIds.includes(REQUIRED_ROLE_ID);
+  const hasRole = roleIds.includes(REQUIRED_ROLE_ID);
     if (!hasRole && !req.user.isDOJ) {
+      if (req.originalUrl && req.originalUrl.startsWith('/api/') || req.xhr || (req.get && req.get('accept') && req.get('accept').includes('application/json'))) {
+        return res.status(403).json({ error: 'Accès refusé' });
+      }
       return res.status(403).send(`
         <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Accès refusé</title></head><body>
         <h1>⛔ Accès refusé middleware.js</h1>
