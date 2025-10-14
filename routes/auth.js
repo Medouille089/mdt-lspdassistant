@@ -18,8 +18,8 @@ router.get('/callback',
     try {
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
-      const config = await getConfig();
-  const { required_role_id, logs_connexion, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id, blacklist_role_id } = config;
+    const config = await getConfig();
+    const { required_role_id, logs_connexion, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id } = config;
 
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
@@ -34,34 +34,44 @@ router.get('/callback',
 
       const roleIds = member.roles.cache.map(r => r.id);
 
-      // Si blacklisted -> renvoyer vers la page explicative
-      if (blacklist_role_id && roleIds.includes(String(blacklist_role_id).trim())) {
-        // Envoi d'un log dans le channel de connexion si configuré
-        if (logs_connexion) {
-          try {
-            const logsChannel = await bot.channels.fetch(logs_connexion).catch(() => null);
-            if (logsChannel?.isTextBased()) {
-              const { EmbedBuilder } = require('discord.js');
-              const embed = new EmbedBuilder()
-                .setTitle('⚠️ Tentative de connexion - Blacklist')
-                .setColor(0xff0000)
-                .setDescription(`${member.displayName || 'Utilisateur inconnu'} a tenté(e) de se connecter avec le rôle <@&${String(blacklist_role_id).trim()}>`)
-                .addFields({
-                  name: "ID's",
-                  value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> <@&${String(blacklist_role_id).trim()}> (\`${String(blacklist_role_id).trim()}\`)`,
-                  inline: false
-                })
-                .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
-                .setTimestamp();
+      // Vérifier si l'utilisateur est dans la table lspd_blacklist
+      try {
+        const pool = require('../config/db');
+        const bl = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1', [req.user.id]);
+        if (bl.rows.length) {
+          // log to logs_connexion (if configured)
+          if (logs_connexion) {
+            try {
+              const logsChannel = await bot.channels.fetch(logs_connexion).catch(() => null);
+              if (logsChannel?.isTextBased()) {
+                const { EmbedBuilder } = require('discord.js');
+                // include role mention if set in config
+                const roleId = config.blacklist_role_id ? String(config.blacklist_role_id).trim() : null;
+                const desc = roleId
+                  ? `${member.displayName || 'Utilisateur inconnu'} a tenté(e) de se connecter et est blacklisté (rôle <@&${roleId}>)`
+                  : `${member.displayName || 'Utilisateur inconnu'} a tenté(e) de se connecter et est blacklisté`;
 
-              await logsChannel.send({ embeds: [embed] });
-            }
-          } catch (e) {
-            console.error('Erreur envoi log blacklist (auth callback):', e);
+                const embed = new EmbedBuilder()
+                  .setTitle('⚠️ Tentative de connexion - Blacklist')
+                  .setColor(0xff0000)
+                  .setDescription(desc)
+                  .addFields({
+                    name: "ID's",
+                    value: `> <@${req.user.id}> (\`${req.user.id}\`)${roleId ? `\n> <@&${roleId}> (\`${roleId}\`)` : ''}`,
+                    inline: false
+                  })
+                  .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
+                  .setTimestamp();
+
+                await logsChannel.send({ embeds: [embed] });
+              }
+            } catch (e) { console.error('Erreur envoi log blacklist (auth callback):', e); }
           }
-        }
 
-        return res.redirect('/blacklisted.html');
+          return res.redirect('/blacklisted.html');
+        }
+      } catch (e) {
+        console.error('Erreur check blacklist DB (auth callback):', e);
       }
 
       // Super admin check

@@ -24,12 +24,18 @@ async function checkAuth(req, res, next) {
     const member = await guild.members.fetch(req.user.id);
     const roleIds = member.roles.cache.map(role => role.id);
 
-    // Si l'utilisateur est blacklisté -> page explicative ou JSON pour les appels API
-    if (BLACKLIST_ROLE && roleIds.includes(BLACKLIST_ROLE)) {
-      if (req.originalUrl && req.originalUrl.startsWith('/api/') || req.xhr || (req.get && req.get('accept') && req.get('accept').includes('application/json'))) {
-        return res.status(403).json({ error: 'blacklisted' });
+    // Vérifier si l'utilisateur est dans la table lspd_blacklist
+    try {
+      const pool = require('./db');
+      const { rows } = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1', [req.user.id]);
+      if (rows.length) {
+        if (req.originalUrl && req.originalUrl.startsWith('/api/') || req.xhr || (req.get && req.get('accept') && req.get('accept').includes('application/json'))) {
+          return res.status(403).json({ error: 'blacklisted' });
+        }
+        return res.redirect('/blacklisted.html');
       }
-      return res.redirect('/blacklisted.html');
+    } catch (e) {
+      console.error('Erreur check blacklist DB:', e);
     }
 
     // Super admin bypass

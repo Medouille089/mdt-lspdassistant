@@ -35,13 +35,11 @@ passport.use(
         const guildMember = await response.json();
         profile.guild_member = guildMember;
 
-  // Récupérer la config pour l'ID du rôle DOJ et blacklist
-  const config = await getConfig();
-  const dojRoleId = config.doj_role_id ? String(config.doj_role_id) : null;
-  const blacklistRoleId = config.blacklist_role_id ? String(config.blacklist_role_id).trim() : null;
+    // Récupérer la config pour l'ID du rôle DOJ
+    const config = await getConfig();
+    const dojRoleId = config.doj_role_id ? String(config.doj_role_id) : null;
 
-  profile.isDOJ = dojRoleId && guildMember.roles && guildMember.roles.includes(dojRoleId);
-  profile.isBlacklisted = blacklistRoleId && guildMember.roles && guildMember.roles.includes(blacklistRoleId);
+    profile.isDOJ = dojRoleId && guildMember.roles && guildMember.roles.includes(dojRoleId);
 
         return done(null, profile);
       } catch (err) {

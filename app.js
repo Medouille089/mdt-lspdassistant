@@ -72,13 +72,28 @@ app.use(async (req, res, next) => {
         if (isStaticAsset) return next();
         if (skipPaths.includes(req.path)) return next();
 
+        // First: check DB table lspd_blacklist so users are blocked even if they don't have the role
+        try {
+            const pool = require('./config/db');
+            const { rows } = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1', [req.user.id]);
+            if (rows && rows.length) {
+                if ((req.originalUrl && req.originalUrl.startsWith('/api/')) || req.xhr || (req.get && req.get('accept') && req.get('accept').includes('application/json'))) {
+                    return res.status(403).json({ error: 'blacklisted' });
+                }
+                if (req.path !== '/blacklisted.html') return res.redirect('/blacklisted.html');
+            }
+        } catch (e) {
+            console.error('Erreur vérif blacklist DB (global middleware):', e && e.message ? e.message : e);
+            // don't block on DB errors: continue to role-based check
+        }
+
         const config = require('./config/config').getConfig();
         const blacklistRoleId = config && config.blacklist_role_id ? String(config.blacklist_role_id).trim() : null;
         if (!blacklistRoleId) return next();
 
         // Récupérer le membre actuel
-        const bot = require('./config/bot');
-        const guild = await bot.guilds.fetch(GUILD_ID);
+        const botInstance = require('./config/bot');
+        const guild = await botInstance.guilds.fetch(GUILD_ID);
         const member = await guild.members.fetch(req.user.id).catch(() => null);
         if (!member) return next();
 
