@@ -113,6 +113,9 @@ function renderDescription(md) {
         let r = s;
         // code spans
         r = r.replace(/`([^`]+?)`/g, '<code>$1</code>');
+        // markdown links [text](url) - allow simple URLs (no nested brackets)
+        // run after code spans to avoid converting inside code
+        r = r.replace(/\[([^\]]+?)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="faq-link">$1</a>');
         // bold+italic ***text*** => <strong><em>text</em></strong>
         r = r.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
         // bold **text**
@@ -305,6 +308,15 @@ function ensureFAQStyles() {
     /* Each collected blockquote line is rendered in .faq-bq-line to preserve line breaks */
     .faq-card-body .faq-bq-line { display:block; margin:3px 0; text-align:left; }
     .faq-card-body blockquote code { font-size: 13px; }
+    /* Style for rendered links inside FAQ descriptions to look like Discord links */
+    .faq-card-body a.faq-link {
+        color: inherit; /* keep current text color */
+        text-decoration: underline; /* underlined like a link */
+        text-underline-offset: 2px;
+        cursor: pointer;
+        font-weight: 700;
+    }
+    .faq-card-body a.faq-link:hover { opacity: 0.9; }
     /* Character counter badge shown over the textarea bottom-right */
     .faq-char-counter {
         position: absolute;
