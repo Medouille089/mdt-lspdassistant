@@ -11,13 +11,14 @@ module.exports = {
   async execute(interaction) {
     try {
       const config = require('../config/config').getConfig();
-      const commandstaff = config.commandstaff_id ? String(config.commandstaff_id).trim() : null;
-      const supervisor = config.supervisor_role_id ? String(config.supervisor_role_id).trim() : null;
-      const memberRoles = interaction.member.roles.cache.map(r => r.id);
+  const commandstaff = config.commandstaff_id ? String(config.commandstaff_id).trim() : null;
+  const supervisor = config.supervisor_role_id ? String(config.supervisor_role_id).trim() : null;
+  const id_superadmin = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+  const memberRoles = interaction.member.roles.cache.map(r => r.id);
 
-      // Vérifier permissions (commandstaff ou supervisor)
-      const allowed = (commandstaff && memberRoles.includes(commandstaff)) || (supervisor && memberRoles.includes(supervisor));
-      if (!allowed) return interaction.reply({ content: 'Permission refusée.', flags: 64 });
+  // Vérifier permissions (commandstaff, supervisor ou superadmin)
+  const allowed = (commandstaff && memberRoles.includes(commandstaff)) || (supervisor && memberRoles.includes(supervisor)) || (id_superadmin && memberRoles.includes(id_superadmin));
+  if (!allowed) return interaction.reply({ content: 'Permission refusée.', flags: 64 });
 
       const target = interaction.options.getUser('user');
       const reason = interaction.options.getString('reason') || null;
@@ -46,8 +47,9 @@ module.exports = {
 
       // Log to logs_config if configured
       try {
-        const cfgRes = await pool.query('SELECT logs_config FROM configlspd LIMIT 1');
+        const cfgRes = await pool.query('SELECT logs_config, blacklist_role_id FROM configlspd LIMIT 1');
         const logsChannelId = cfgRes.rows[0] ? cfgRes.rows[0].logs_config : null;
+        const blacklist_role_id = cfgRes.rows[0] ? cfgRes.rows[0].blacklist_role_id : null;
         if (logsChannelId) {
           const bot = require('../config/bot');
           const logsChannel = await bot.channels.fetch(logsChannelId).catch(() => null);
@@ -56,7 +58,7 @@ module.exports = {
               .setTitle('⚠️ Nouveau blacklist')
               .setColor(0xFF0000)
               .setDescription(`<@${interaction.user.id}> à blacklisté <@${target.id}>`)
-              .addFields({ name: "ID's", value: `> <@${interaction.user.id}>\n> (\`${interaction.user.id}\`)\n> <@${target.id}> (\`${target.id}\`)\n> <@${blacklist_role_id}>\n> (\`${blacklist_role_id}\`)`, inline: false })
+              .addFields({ name: "ID's", value: `> <@${interaction.user.id}>\n> (\`${interaction.user.id}\`)\n> <@${target.id}> (\`${target.id}\`)${blacklist_role_id ? `\n> <@&${blacklist_role_id}>\n> (\`${blacklist_role_id}\`)` : ''}` , inline: false })
               .setTimestamp();
             await logsChannel.send({ embeds: [embed] });
           }
