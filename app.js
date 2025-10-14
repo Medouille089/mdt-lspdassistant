@@ -116,6 +116,7 @@ const annonce = require('./routes/annonce');
 const faq = require('./routes/faq');
 const calendarRoutes = require('./routes/calendar');
 const rookiePatrolsRoutes = require('./LSPD/trello/routes/rookiePatrols');
+const discordUploader = require('./routes/discordUploader');
 
 const setupLogsRoutes = require('./config/setupLogs');
 
@@ -146,6 +147,8 @@ app.use(faq);
 app.use(calendarRoutes);
 app.use(rookiePatrolsRoutes);
 app.use(rapportRookie);
+// Route utilitaire pour uploader des images via le bot Discord
+app.use(discordUploader);
 
 // 🗂️ Frontend statique
 app.use(express.static(path.join(__dirname, "LSPD")));

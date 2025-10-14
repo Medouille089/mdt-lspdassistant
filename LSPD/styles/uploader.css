@@ -1,0 +1,98 @@
+/* Modern uploader styles for LSPD Assistant */
+:root{
+  --u-bg: #f6f8ff;
+  --card-bg: #ffffff;
+  --muted: #6b7280;
+  --accent: #1a2c7a; /* main blue from colors.css */
+  --accent-2: #0b1b5a;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --glass: rgba(255,255,255,0.6);
+  --radius: 12px;
+  --shadow: 0 8px 30px rgba(15,23,42,0.08);
+}
+
+body {
+  background: var(--u-bg);
+}
+
+.uploader-panel{
+  max-width:1080px;
+  margin:28px auto;
+  padding:22px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), var(--card-bg));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(11,27,90,0.06);
+}
+
+.center-wrap{ max-width:1080px; margin: 0 auto; display:flex; flex-direction:column; align-items:center }
+
+.uploader-header{ display:flex; align-items:center; justify-content:space-between; gap:12px }
+.uploader-header h1{ margin:0; font-size:20px; color:var(--accent-2) }
+.uploader-sub{ color:var(--muted); font-size:13px; margin-top:6px }
+
+.uploader-row{ display:flex; gap:12px; align-items:center; margin-top:14px; flex-wrap:wrap }
+
+select#channelSelect{
+  min-width:320px; max-width:640px; padding:10px 12px; border-radius:10px;
+  border:1px solid rgba(11,27,90,0.08); background:var(--glass); color:var(--accent-2);
+}
+
+input[type=file]{
+  display:none;
+}
+
+.file-label{ display:inline-block; padding:8px 10px; border-radius:8px; font-size:13px; background:linear-gradient(180deg,var(--accent),var(--accent-2)); color:white; cursor:pointer; box-shadow:0 4px 12px rgba(11,27,90,0.10); }
+.file-label:hover{ opacity:0.95 }
+.file-info{ margin-left:10px; color:var(--muted); font-size:13px }
+
+.backlink-btn{ background:transparent; border:0; color:var(--accent-2); padding:6px 8px; font-weight:600 }
+.backlink-btn:hover{ text-decoration:underline }
+
+.backlink-btn.primary{
+  background:linear-gradient(180deg,var(--accent),var(--accent-2)); color:white; padding:10px 14px; border-radius:10px; box-shadow: 0 6px 18px rgba(11,27,90,0.12);
+}
+
+.preview{ display:flex; flex-wrap:wrap; gap:12px; margin-top:18px }
+.preview .thumb{ width:180px; height:120px; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#f3f6ff; border:1px solid rgba(11,27,90,0.04) }
+.preview .thumb img{ width:100%; height:100%; object-fit:cover }
+
+.urls{ margin-top:16px; font-size:14px }
+.urls .url-item{ padding:10px; background:#fbfdff; border:1px solid rgba(11,27,90,0.04); border-radius:8px; margin-bottom:8px }
+.urls .url-row{ display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:8px }
+.urls .url-link{ color:var(--accent-2); text-decoration:underline; font-size:13px; overflow-wrap: anywhere }
+.copy-btn{ background:transparent; border:1px solid rgba(11,27,90,0.06); padding:6px 8px; border-radius:8px; cursor:pointer }
+.copy-btn.copied{ background:linear-gradient(180deg,#16a34a,#10a044); color:white; border-color:transparent }
+
+/* refresh button row inside urls */
+.urls .refresh-row{ display:flex; justify-content:center; margin-top:16px }
+.urls .refresh-row .backlink-btn{ margin:30px 0 0 0; display: flex; justify-content: center; align-items: center;}
+
+.hint{ font-size:12px; color:var(--muted); margin-left:6px }
+
+@media (max-width:700px){
+  select#channelSelect{ min-width:100% }
+  .uploader-header{ flex-direction:column; align-items:flex-start }
+}
+
+/* Custom select styles */
+.custom-select{ position:relative; display:inline-block; min-width:320px }
+.cs-trigger{ display:inline-flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; background:#fbfdff; border:1px solid rgba(11,27,90,0.06); cursor:pointer; color:var(--accent-2); }
+.cs-trigger:after{ content:'▾'; margin-left:8px; opacity:0.6 }
+.cs-options{ position:absolute; top:calc(100% + 8px); left:0; right:0; max-height:260px; overflow:auto; background:var(--card-bg); border:1px solid rgba(11,27,90,0.06); border-radius:10px; box-shadow:0 12px 40px rgba(11,27,90,0.08); z-index:40; display:none }
+.cs-option{ padding:10px 12px; cursor:pointer; border-bottom:1px solid rgba(11,27,90,0.02); }
+.cs-option:hover{ background:linear-gradient(90deg, rgba(26,44,122,0.04), rgba(11,27,90,0.02)); }
+.cs-option.selected{ background:linear-gradient(90deg, rgba(26,44,122,0.08), rgba(11,27,90,0.03)); font-weight:600 }
+
+/* Center the primary upload button under the preview */
+.uploader-panel > .uploader-row.button-row{ justify-content:center }
+.backlink-btn.primary{ display:inline-flex; align-items:center; justify-content:center }
+
+/* Image zoom modal */
+.img-modal{ position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:200; }
+.img-modal .img-wrap{ position:relative; max-width:90%; max-height:90%; }
+.img-modal img{ max-width:100%; max-height:100%; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,0.6) }
+.img-modal .close-btn{ position:absolute; top:-12px; right:-12px; background:white; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.2) }
+.img-modal .close-btn:after{ content:'✕'; font-size:14px; color:#111 }
+
