@@ -121,7 +121,7 @@ module.exports = async function handleTicket(interaction, bot) {
             const { ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
             const fermerBtn = new ButtonBuilder()
                 .setCustomId('fermer_ticket_btn')
-                .setLabel('Fermer')
+                .setLabel('🔒  Fermer le ticket')
                 .setStyle(ButtonStyle.Danger);
             const row = new ActionRowBuilder().addComponents(fermerBtn);
 
