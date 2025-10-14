@@ -178,10 +178,18 @@ export async function addCard(button) {
             <button class="image-btn" onclick="document.getElementById('imageInput-${listId}').click()">
                 📷 Image
             </button>
+            <button class="url-btn" data-list-id="${listId}">
+                🔗 URL
+            </button>
             <div class="action-buttons">
                 <button class="save-btn">Ajouter</button>
                 <button class="cancel-btn">✕</button>
             </div>
+        </div>
+        <div class="url-input-container" style="display: none;">
+            <input type="text" class="url-input" placeholder="https://cdn.discordapp.com/attachments/...">
+            <button class="url-confirm-btn">✓</button>
+            <button class="url-cancel-btn">✕</button>
         </div>
         <div class="image-preview-container" style="display: none;">
             <div class="image-preview"></div>
@@ -208,6 +216,11 @@ export function setupCardCreator(cardCreator, listId, button) {
     const imagePreviewContainer = cardCreator.querySelector('.image-preview-container');
     const imagePreview = cardCreator.querySelector('.image-preview');
     const removeImageBtn = cardCreator.querySelector('.remove-image');
+    const urlBtn = cardCreator.querySelector('.url-btn');
+    const urlInputContainer = cardCreator.querySelector('.url-input-container');
+    const urlInput = cardCreator.querySelector('.url-input');
+    const urlConfirmBtn = cardCreator.querySelector('.url-confirm-btn');
+    const urlCancelBtn = cardCreator.querySelector('.url-cancel-btn');
 
     // Si une image était déjà présente, la restaurer
     if (imagePreview.innerHTML) {
@@ -234,7 +247,8 @@ export function setupCardCreator(cardCreator, listId, button) {
             selectedImage = {
                 data: base64Image,
                 name: file.name,
-                size: resizedFile.size
+                size: resizedFile.size,
+                isUrl: false
             };
 
             imagePreview.innerHTML = `<img src="${base64Image}" alt="Preview">`;
@@ -244,6 +258,37 @@ export function setupCardCreator(cardCreator, listId, button) {
             console.error('Erreur image:', error);
             alert('Erreur lors du traitement de l\'image');
         }
+    }
+
+    function handleImageUrl(url) {
+        const trimmedUrl = url.trim();
+        
+        // Validation basique de l'URL
+        if (!trimmedUrl || !trimmedUrl.startsWith('http')) {
+            alert('URL invalide. Utilisez une URL complète (https://...)');
+            return;
+        }
+
+        // Vérifier que c'est une URL d'image Discord (optionnel)
+        const isDiscordCdn = trimmedUrl.includes('cdn.discordapp.com') || 
+                             trimmedUrl.includes('media.discordapp.net');
+        
+        if (!isDiscordCdn) {
+            const confirm = window.confirm('Cette URL ne semble pas être une URL Discord. Voulez-vous continuer ?');
+            if (!confirm) return;
+        }
+
+        selectedImage = {
+            data: trimmedUrl,
+            name: 'image-externe',
+            size: 0,
+            isUrl: true
+        };
+
+        imagePreview.innerHTML = `<img src="${trimmedUrl}" alt="Preview" onerror="this.parentElement.innerHTML='<div style=\\'color: #ff4757; padding: 10px;\\'>❌ Impossible de charger l\\'image</div>'">`;
+        imagePreviewContainer.style.display = 'flex';
+        urlInputContainer.style.display = 'none';
+        urlInput.value = '';
     }
 
     function createCard() {
@@ -305,6 +350,35 @@ export function setupCardCreator(cardCreator, listId, button) {
     imageInput.addEventListener('change', async (e) => {
         if (e.target.files[0]) {
             await handleImageSelection(e.target.files[0]);
+        }
+    });
+
+    urlBtn.addEventListener('click', () => {
+        urlInputContainer.style.display = 'flex';
+        urlInput.focus();
+    });
+
+    urlConfirmBtn.addEventListener('click', () => {
+        if (urlInput.value.trim()) {
+            handleImageUrl(urlInput.value);
+        }
+    });
+
+    urlCancelBtn.addEventListener('click', () => {
+        urlInputContainer.style.display = 'none';
+        urlInput.value = '';
+    });
+
+    urlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (urlInput.value.trim()) {
+                handleImageUrl(urlInput.value);
+            }
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            urlInputContainer.style.display = 'none';
+            urlInput.value = '';
         }
     });
 
