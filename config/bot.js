@@ -366,6 +366,131 @@ async function startBot() {
 
     // Toutes les minutes
     cron.schedule('* * * * *', processReminders);
+
+    // --- Kicker instant si un membre possède le rôle blacklist ---
+    try {
+      const configRes = await db.query('SELECT blacklist_role_id FROM configlspd LIMIT 1');
+      const blacklistRoleId = configRes.rows[0] ? (configRes.rows[0].blacklist_role_id || null) : null;
+
+      if (blacklistRoleId) {
+        const sessionStore = require('../config/sessionStore');
+        // Si un membre rejoint et possède déjà le rôle blacklist -> invalider ses sessions
+        bot.on(Events.GuildMemberAdd, async (member) => {
+          try {
+            if (member.roles.cache.has(String(blacklistRoleId).trim())) {
+              sessionStore.destroySessionsForDiscordId(member.id);
+              // Log in logs_config to indicate the member joined with the blacklist role
+              try {
+                const configRes = await db.query('SELECT logs_config FROM configlspd LIMIT 1');
+                const logsConfigChannelId = configRes.rows[0] ? configRes.rows[0].logs_config : null;
+                if (logsConfigChannelId) {
+                  const { EmbedBuilder } = require('discord.js');
+                  const roleMention = `<@&${String(blacklistRoleId).trim()}>`;
+                  const logsChannel = await bot.channels.fetch(logsConfigChannelId).catch(() => null);
+                  if (logsChannel?.isTextBased()) {
+                    const embed = new EmbedBuilder()
+                      .setTitle('⚠️ Rôle blacklist présent à l\'arrivée')
+                      .setColor(0xFF0000)
+                      .setDescription(`<@${member.id}> est arrivé(e) avec le rôle ${roleMention}`)
+                      .addFields({ name: "ID's", value: `> <@${member.id}> (\`${member.id}\`)\n> ${roleMention} (\`${String(blacklistRoleId).trim()}\`)`, inline: false })
+                      .setTimestamp();
+                    await logsChannel.send({ embeds: [embed] }).catch(() => {});
+                  }
+                }
+              } catch (e) {
+                console.error('Erreur envoi log role blacklist (GuildMemberAdd):', e);
+              }
+            }
+          } catch (e) {
+            console.error('Erreur invalidation session (GuildMemberAdd):', e);
+          }
+        });
+
+        // Si un membre est mis à jour (rôles modifiés), vérifier si blacklist ajouté -> invalider sessions et logger
+        bot.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
+          try {
+            const had = oldMember.roles.cache.has(String(blacklistRoleId).trim());
+            const hasNow = newMember.roles.cache.has(String(blacklistRoleId).trim());
+            if (!had && hasNow) {
+              sessionStore.destroySessionsForDiscordId(newMember.id);
+
+              // Envoi d'un log dans logs_config si configuré
+              try {
+                const configRes = await db.query('SELECT logs_config FROM configlspd LIMIT 1');
+                const logsConfigChannelId = configRes.rows[0] ? configRes.rows[0].logs_config : null;
+                if (logsConfigChannelId) {
+                  const { EmbedBuilder, AuditLogEvent } = require('discord.js');
+                  const guild = newMember.guild;
+                  let executorMention = 'Unknown';
+                  try {
+                    const audit = await guild.fetchAuditLogs({ type: AuditLogEvent.MemberRoleUpdate, limit: 5 });
+                    const entries = audit.entries.filter(e => e.target && e.target.id === newMember.id);
+                    const entry = entries.first();
+                    if (entry && entry.executor) executorMention = `<@${entry.executor.id}>`;
+                  } catch (e) {
+                    // ignore audit errors
+                  }
+
+                  const roleMention = `<@&${String(blacklistRoleId).trim()}>`;
+                  const logsChannel = await bot.channels.fetch(logsConfigChannelId).catch(() => null);
+                  if (logsChannel?.isTextBased()) {
+                    const embed = new EmbedBuilder()
+                      .setTitle('Rôle blacklist ajouté')
+                      .setColor(0xFF0000)
+                      .setDescription(`${executorMention} à blacklisté <@${newMember.id}>`)
+                      .addFields(
+                        { name: "ID's", value: `> ${executorMention}\n> <@${newMember.id}> (\`${newMember.id}\`)\n> ${roleMention} (\`${String(blacklistRoleId).trim()}\`)`, inline: false }
+                      )
+                      .setTimestamp();
+                    await logsChannel.send({ embeds: [embed] }).catch(() => {});
+                  }
+                }
+              } catch (e) {
+                console.error('Erreur envoi log role blacklist (GuildMemberUpdate):', e);
+              }
+            }
+
+            // Si le rôle a été retiré -> log vert un-blacklist
+            const removed = had && !hasNow;
+            if (removed) {
+              try {
+                const configRes2 = await db.query('SELECT logs_config FROM configlspd LIMIT 1');
+                const logsConfigChannelId2 = configRes2.rows[0] ? configRes2.rows[0].logs_config : null;
+                if (logsConfigChannelId2) {
+                  const { EmbedBuilder, AuditLogEvent } = require('discord.js');
+                  const guild = newMember.guild;
+                  let executorMention2 = 'Unknown';
+                  try {
+                    const audit2 = await guild.fetchAuditLogs({ type: AuditLogEvent.MemberRoleUpdate, limit: 5 });
+                    const entries2 = audit2.entries.filter(e => e.target && e.target.id === newMember.id);
+                    const entry2 = entries2.first();
+                    if (entry2 && entry2.executor) executorMention2 = `<@${entry2.executor.id}>`;
+                  } catch (e) {}
+
+                  const roleMention2 = `<@&${String(blacklistRoleId).trim()}>`;
+                  const logsChannel2 = await bot.channels.fetch(logsConfigChannelId2).catch(() => null);
+                  if (logsChannel2?.isTextBased()) {
+                    const embed2 = new EmbedBuilder()
+                      .setTitle('Rôle blacklist retiré')
+                      .setColor(0x00FF00)
+                      .setDescription(`${executorMention2} a un-blacklisté <@${newMember.id}>`)
+                      .addFields({ name: "ID's", value: `> ${executorMention2}\n> <@${newMember.id}> (\`${newMember.id}\`)\n> ${roleMention2} (\`${String(blacklistRoleId).trim()}\`)`, inline: false })
+                      .setTimestamp();
+                    await logsChannel2.send({ embeds: [embed2] }).catch(() => {});
+                  }
+                }
+              } catch (e) {
+                console.error('Erreur envoi log role un-blacklist (GuildMemberUpdate):', e);
+              }
+            }
+          } catch (e) {
+            console.error('Erreur invalidation session (GuildMemberUpdate):', e);
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Erreur en initialisant le watcher blacklist:', e);
+    }
   });
 
   setBot(bot);

@@ -4,7 +4,9 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const bodyParser = require("body-parser");
 const session = require("express-session");
+const sessionStoreHelper = require('./config/sessionStore');
 const passport = require("./config/passport");
+const { GUILD_ID } = require('./config/env');
 const { SESSION_SECRET } = require("./config/env");
 const { startOvertimeScheduler } = require("./utils/rappelPointeuse");
 // ⚠️ IMPORTANT : on doit instancier le bot Discord pour que les rappels puissent s'envoyer
@@ -37,6 +39,20 @@ app.use(
     })
 );
 
+// Expose the session store to the helper so other modules can destroy sessions
+try {
+    const store = app.get('trust proxy') ? null : undefined; // placeholder
+    // The express-session store instance is available as the return value of session() middleware only
+    // We can access it via the middleware's default MemoryStore by retrieving the session middleware
+    // from the stack. This is fragile but works for MemoryStore. Safer alternative: explicitly create store and pass it.
+    const sessMiddleware = app._router && app._router.stack && app._router.stack.find(m => m.name === 'session');
+    if (sessMiddleware && sessMiddleware.handle && sessMiddleware.handle.store) {
+        sessionStoreHelper.setStore(sessMiddleware.handle.store);
+    }
+} catch (e) {
+    console.warn('Impossible de récupérer le store de sessions automatiquement:', e && e.message ? e.message : e);
+}
+
 // Body parser
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
@@ -44,6 +60,44 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 // Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Middleware global: si utilisateur authentifié ET possède le rôle blacklist -> rediriger systématiquement
+app.use(async (req, res, next) => {
+    try {
+        if (!req.isAuthenticated || !req.isAuthenticated()) return next();
+
+        // Eviter de boucler sur la page blacklisted ou sur les assets publics
+        const skipPaths = ['/', '/connect.html', '/blacklisted.html', '/login', '/logout', '/callback'];
+        const isStaticAsset = req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico)$/i);
+        if (isStaticAsset) return next();
+        if (skipPaths.includes(req.path)) return next();
+
+        const config = require('./config/config').getConfig();
+        const blacklistRoleId = config && config.blacklist_role_id ? String(config.blacklist_role_id).trim() : null;
+        if (!blacklistRoleId) return next();
+
+        // Récupérer le membre actuel
+        const bot = require('./config/bot');
+        const guild = await bot.guilds.fetch(GUILD_ID);
+        const member = await guild.members.fetch(req.user.id).catch(() => null);
+        if (!member) return next();
+
+        const roleIds = member.roles.cache.map(r => r.id);
+        if (roleIds.includes(blacklistRoleId)) {
+            // Si appel API, renvoyer JSON
+            if ((req.originalUrl && req.originalUrl.startsWith('/api/')) || req.xhr || (req.get && req.get('accept') && req.get('accept').includes('application/json'))) {
+                return res.status(403).json({ error: 'blacklisted' });
+            }
+            // Sinon rediriger vers la page explicative
+            if (req.path !== '/blacklisted.html') return res.redirect('/blacklisted.html');
+        }
+
+        return next();
+    } catch (err) {
+        console.error('Erreur middleware blacklist global:', err);
+        return next();
+    }
+});
 
 // ⚠️ Route racine AVANT le auth guard
 app.get("/", (req, res) => {

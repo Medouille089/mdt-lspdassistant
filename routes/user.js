@@ -320,6 +320,25 @@ router.post('/login-local', async (req, res) => {
       const isDOJ = doj_role_id ? roleIds.includes(doj_role_id.trim()) : false;
 
       if (!hasRequiredRole && !isDOJ) {
+        // Si l'utilisateur a le rôle blacklist, envoyer un log spécifique
+        const blacklistRoleId = config.blacklist_role_id ? String(config.blacklist_role_id).trim() : null;
+        if (blacklistRoleId && roleIds.includes(blacklistRoleId) && config.logs_connexion) {
+          try {
+            const logsChannel = await bot.channels.fetch(config.logs_connexion).catch(() => null);
+            if (logsChannel?.isTextBased()) {
+              const { EmbedBuilder } = require('discord.js');
+              const embed = new EmbedBuilder()
+                .setTitle('⚠️ Tentative de connexion - Blacklist')
+                .setColor(0xff0000)
+                .setDescription(`${account.username} a tenté(e) de se connecter avec le rôle <@&${blacklistRoleId}>`)
+                .addFields({ name: "ID's", value: `> <@${account.discord_id}> (\`${account.discord_id}\`)\n> <@&${blacklistRoleId}> (\`${blacklistRoleId}\`)`, inline: false })
+                .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
+                .setTimestamp();
+              await logsChannel.send({ embeds: [embed] });
+            }
+          } catch (e) { console.error('Erreur envoi log blacklist (login-local):', e); }
+        }
+
         return res.status(403).json({ error: 'Vous n\'avez pas les permissions nécessaires pour accéder au site' });
       }
 
@@ -336,6 +355,12 @@ router.post('/login-local', async (req, res) => {
           console.error('Erreur login:', err);
           return res.status(500).json({ error: 'Erreur lors de la connexion' });
         }
+
+        // Enregistrer la session pour ce discord_id
+        try {
+          const sessionStore = require('../config/sessionStore');
+          if (req.sessionID) sessionStore.registerSession(user.id, req.sessionID);
+        } catch (e) { console.warn('Impossible d enregistrer session :', e); }
 
         // Log de connexion
         if (config.logs_connexion) {

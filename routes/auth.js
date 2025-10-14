@@ -19,7 +19,7 @@ router.get('/callback',
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
       const config = await getConfig();
-      const { required_role_id, logs_connexion, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id } = config;
+  const { required_role_id, logs_connexion, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id, blacklist_role_id } = config;
 
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
@@ -34,6 +34,36 @@ router.get('/callback',
 
       const roleIds = member.roles.cache.map(r => r.id);
 
+      // Si blacklisted -> renvoyer vers la page explicative
+      if (blacklist_role_id && roleIds.includes(String(blacklist_role_id).trim())) {
+        // Envoi d'un log dans le channel de connexion si configuré
+        if (logs_connexion) {
+          try {
+            const logsChannel = await bot.channels.fetch(logs_connexion).catch(() => null);
+            if (logsChannel?.isTextBased()) {
+              const { EmbedBuilder } = require('discord.js');
+              const embed = new EmbedBuilder()
+                .setTitle('⚠️ Tentative de connexion - Blacklist')
+                .setColor(0xff0000)
+                .setDescription(`${member.displayName || 'Utilisateur inconnu'} a tenté(e) de se connecter avec le rôle <@&${String(blacklist_role_id).trim()}>`)
+                .addFields({
+                  name: "ID's",
+                  value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> <@&${String(blacklist_role_id).trim()}> (\`${String(blacklist_role_id).trim()}\`)`,
+                  inline: false
+                })
+                .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
+                .setTimestamp();
+
+              await logsChannel.send({ embeds: [embed] });
+            }
+          } catch (e) {
+            console.error('Erreur envoi log blacklist (auth callback):', e);
+          }
+        }
+
+        return res.redirect('/blacklisted.html');
+      }
+
       // Super admin check
       const isSuperAdmin = id_superadmin ? roleIds.includes(id_superadmin.trim()) : false;
 
@@ -44,7 +74,7 @@ router.get('/callback',
         : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}> ou sans être <@&${doj_role_id}>`;
 
       // Variables de session
-      req.user.roles = roleIds;
+  req.user.roles = roleIds;
       req.user.isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
       req.user.isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
       req.user.isSuperAdmin = isSuperAdmin;
@@ -75,7 +105,8 @@ router.get('/callback',
         }
       }
 
-      // Bloque si l’utilisateur n’a pas le rôle requis et n’est pas super admin ou n'est pas DOJ
+      // Bloque si l’utilisateur n’a le rôle blacklist (avant toute autre vérification)
+      // (déjà géré plus haut) et s'il n’a pas le rôle requis et n’est pas super admin ou n'est pas DOJ
       if (!hasRequiredRole && !req.user.isDOJ) {
         return res.status(403).send(`
           <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Accès refusé</title></head><body>
@@ -105,6 +136,12 @@ router.get('/callback',
         delete req.session.returnTo; // Nettoyer après utilisation
       }
 
+      // Enregistrer la session pour ce discord id (permet d'invalider la session si blacklist)
+      try {
+        const sessionStore = require('../config/sessionStore');
+        if (req.sessionID) sessionStore.registerSession(req.user.id, req.sessionID);
+      } catch (e) { /* ignore */ }
+
 
       return res.redirect(redirectTo);
 
@@ -124,6 +161,12 @@ router.get("/logout", (req, res) => {
     if (err) {
       console.error("Erreur lors de la déconnexion:", err);
     }
+    // Cleanup mapping for session
+    try {
+      const sessionStore = require('../config/sessionStore');
+      if (req.sessionID) sessionStore.unregisterSession(req.sessionID);
+    } catch (e) { /* ignore */ }
+
     req.session.destroy((err) => {
       if (err) {
         console.error("Erreur destruction session:", err);
