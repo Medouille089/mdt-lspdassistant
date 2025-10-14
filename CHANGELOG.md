@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.10.0](https://github.com/Medouille089/lspdassistant/compare/v1.9.6...v1.10.0) (2025-10-14)
+
+
+### Features
+
+* add calculateur de peines ([e2d4102](https://github.com/Medouille089/lspdassistant/commit/e2d41027569a19b680b4e44dc68022f5f9692723))
+* added check mark on rookie patrol cards to notify that the report has been made ([bee1b50](https://github.com/Medouille089/lspdassistant/commit/bee1b507752ec06deaf05d2519646e23d0f27cde))
+* delete rookie patrol history only if report is written ([4d57650](https://github.com/Medouille089/lspdassistant/commit/4d5765003b01ba04437f0132ea758dc3f1aa7016))
+* reset agent cards and remove patrol cards at 4:00 a.m. (Resetting Trello) ([7858984](https://github.com/Medouille089/lspdassistant/commit/7858984364ea95745f214bc9c839841b5ea18695))
+
+
+### Bug Fixes
+
+* add /clear command in multi-guild ([8e25d1a](https://github.com/Medouille089/lspdassistant/commit/8e25d1a70eb597401c2bec1fcd66af46e44eb377))
+* add blacklist rôle ([613a32c](https://github.com/Medouille089/lspdassistant/commit/613a32c58fd9944e134021f88cb01e33f1b4f774))
+* add image uploader ([d2bacd0](https://github.com/Medouille089/lspdassistant/commit/d2bacd0b75b7ae4575b48bfa6e1e854b8e522494))
+* add some desc in peinescalculées ([e7f0965](https://github.com/Medouille089/lspdassistant/commit/e7f096536ad9ed66baaee353b827fc3e460c5604))
+* display button to delete rookie patrol history for supervisors and command staff ([979d19b](https://github.com/Medouille089/lspdassistant/commit/979d19b66977178b40cb5d9c10ffa38bf1c5f74f))
+* file uploader ([631a6d5](https://github.com/Medouille089/lspdassistant/commit/631a6d54429a34278c6db2f2a11c43056af4e409))
+* minor fixes ([2229ec0](https://github.com/Medouille089/lspdassistant/commit/2229ec0a0d10dfef88778e6c6fb1723e4e5c6ef6))
+* some css ([3744c8f](https://github.com/Medouille089/lspdassistant/commit/3744c8fe31c6595d9d67b317870278c69875ae88))
+* sorting rookie patrol history in ascending order ([10a3280](https://github.com/Medouille089/lspdassistant/commit/10a3280bc699308845bf4e4c555446e4b633bad3))
+* transcript in fermer button ([bf28cc7](https://github.com/Medouille089/lspdassistant/commit/bf28cc7a97269c589b5befd454c75b7135ea13aa))
+* update blacklist ([d445f98](https://github.com/Medouille089/lspdassistant/commit/d445f983e602fd0710eaa8079f2a2a20f49deb02))
+
 ### [1.9.6](https://github.com/Medouille089/lspdassistant/compare/v1.9.5...v1.9.6) (2025-10-13)
 
 
