@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.3](https://github.com/Medouille089/lspdassistant/compare/v1.10.2...v1.10.3) (2025-10-14)
+
+
+### Bug Fixes
+
+* bl logs & commands ([e86770a](https://github.com/Medouille089/lspdassistant/commit/e86770a1d56bb44f089a4c285bcfc69d4402fef8))
+
+### [1.10.2](https://github.com/Medouille089/lspdassistant/compare/v1.10.1...v1.10.2) (2025-10-14)
+
+
+### Bug Fixes
+
+* better image quality on Trello using Discord image links ([22edd0c](https://github.com/Medouille089/lspdassistant/commit/22edd0c3f4f179325d7f99c95b2e0bf4fa6926fd))
+
 ### [1.10.1](https://github.com/Medouille089/lspdassistant/compare/v1.10.0...v1.10.1) (2025-10-14)
 
 
