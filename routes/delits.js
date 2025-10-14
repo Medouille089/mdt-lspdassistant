@@ -119,27 +119,102 @@ router.get('/api/getDelits', async (req, res) => {
     try {
         const result = await pool.query(`
       SELECT
+       id,
        chef_accusation, 
        code_article, 
        type, 
-       amende
+       amende,
+       peine,
+       commentaire
       FROM lspd_delit
+      ORDER BY type, code_article
     `);
 
-        const delits = await Promise.all(result.rows.map(async row => {
+        const delits = result.rows.map(row => {
             return {
+                id: row.id,
                 chef_accusation: row.chef_accusation,
                 code_article: row.code_article,
                 type: row.type,
                 amende: row.amende,
+                peine: row.peine,
+                commentaire: row.commentaire,
             };
-        }));
+        });
 
         res.json(delits);
 
     } catch (err) {
-        console.error('Erreur GET /api/getArrestation :', err);
+        console.error('Erreur GET /api/getDelits :', err);
         res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// POST - Ajouter un nouveau délit
+router.post('/api/delits', async (req, res) => {
+    try {
+        const { chef_accusation, code_article, type, amende, peine, commentaire } = req.body;
+
+        if (!chef_accusation || !type) {
+            return res.status(400).json({ error: 'Chef d\'accusation et type sont requis' });
+        }
+
+        const result = await pool.query(`
+            INSERT INTO lspd_delit (chef_accusation, code_article, type, amende, peine, commentaire)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+        `, [chef_accusation, code_article, type, amende || '$0', peine || '00:00', commentaire || '']);
+
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error('Erreur POST /api/delits :', err);
+        res.status(500).json({ error: 'Erreur lors de l\'ajout du délit' });
+    }
+});
+
+// PUT - Modifier un délit existant
+router.put('/api/delits/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { chef_accusation, code_article, type, amende, peine, commentaire } = req.body;
+
+        const result = await pool.query(`
+            UPDATE lspd_delit
+            SET chef_accusation = $1, code_article = $2, type = $3, amende = $4, peine = $5, commentaire = $6, updated_at = NOW()
+            WHERE id = $7
+            RETURNING *
+        `, [chef_accusation, code_article, type, amende, peine, commentaire, id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Délit non trouvé' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Erreur PUT /api/delits/:id :', err);
+        res.status(500).json({ error: 'Erreur lors de la modification du délit' });
+    }
+});
+
+// DELETE - Supprimer un délit
+router.delete('/api/delits/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const result = await pool.query(`
+            DELETE FROM lspd_delit
+            WHERE id = $1
+            RETURNING *
+        `, [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Délit non trouvé' });
+        }
+
+        res.json({ message: 'Délit supprimé avec succès', delit: result.rows[0] });
+    } catch (err) {
+        console.error('Erreur DELETE /api/delits/:id :', err);
+        res.status(500).json({ error: 'Erreur lors de la suppression du délit' });
     }
 });
 

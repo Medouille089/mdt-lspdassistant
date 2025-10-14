@@ -20,6 +20,7 @@
   --border-light: #eee;
   --border-table: #2f3e57;
   --border-input: #c5cbd5;
+  --hover-light: #f5f7ff;
   --input-bg: #f9fafc;
   --input-bg-focus: #eef1f5;
   --input-text: #0b1b5a;
@@ -68,6 +69,7 @@
     --border-light: #ffd6db;
     --border-table: #e07b87;
     --border-input: #f2a6af;
+    --hover-light: #ffe8ed;
 
     --input-bg: #fff0f3;
     --input-bg-focus: #ffe0e5;

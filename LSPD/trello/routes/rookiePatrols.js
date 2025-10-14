@@ -137,4 +137,36 @@ router.delete('/api/rookie-patrols', checkAuth, async (req, res) => {
   }
 });
 
+/**
+ * PUT /api/rookie-patrols/:cardId/report - Met à jour l'état du rapport pour une patrouille
+ */
+router.put('/api/rookie-patrols/:cardId/report', checkAuth, async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    const { completed } = req.body;
+
+    if (typeof completed !== 'boolean') {
+      return res.status(400).json({ error: 'Paramètre "completed" invalide' });
+    }
+
+    const result = await pool.query(`
+      UPDATE trello_historiquerookie
+      SET report_completed = $2,
+          report_completed_at = CASE WHEN $2 THEN NOW() ELSE NULL END,
+          updated_at = NOW()
+      WHERE card_id = $1
+      RETURNING *
+    `, [cardId, completed]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Patrouille non trouvée' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Erreur lors de la mise à jour du rapport de patrouille:", err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 module.exports = router;
