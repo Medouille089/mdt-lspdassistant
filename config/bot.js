@@ -51,8 +51,9 @@ async function registerCommands() {
   const all = bot.commands.map(c => c.data.toJSON());
   const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
-  // Liste des commandes qui doivent fonctionner en DM
-  const globalNames = ['rappel'];
+  // Liste des commandes qui doivent fonctionner en DM / global
+  // Ajouter les commandes ici pour qu'elles soient publiées globalement (ex: 'rappel', 'clear')
+  const globalNames = ['rappel', 'clear'];
   const globalCommands = all.filter(c => globalNames.includes(c.name));
   const guildCommands = all.filter(c => !globalNames.includes(c.name));
 
