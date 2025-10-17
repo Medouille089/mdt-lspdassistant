@@ -2,15 +2,17 @@
 const passwordInputField = document.getElementById("password");
 const togglePasswordBtn = document.getElementById("togglePassword");
 const eyePassword = document.getElementById("eyePassword");
-togglePasswordBtn.addEventListener("click", function () {
-  if (passwordInputField.type === "password") {
-    passwordInputField.type = "text";
-    eyePassword.textContent = "visibility_off";
-  } else {
-    passwordInputField.type = "password";
-    eyePassword.textContent = "visibility";
-  }
-});
+if (togglePasswordBtn && passwordInputField && eyePassword) {
+  togglePasswordBtn.addEventListener("click", function () {
+    if (passwordInputField.type === "password") {
+      passwordInputField.type = "text";
+      eyePassword.textContent = "visibility_off";
+    } else {
+      passwordInputField.type = "password";
+      eyePassword.textContent = "visibility";
+    }
+  });
+}
 function switchTab(tab) {
   // Mettre à jour les boutons
   document.querySelectorAll(".tab-button").forEach((btn) => {
