@@ -609,6 +609,53 @@ body:not(.edit-mode) .form-group textarea:focus {
   padding: 20px;
 }
 
+/* Make equipment rows glue together: shared borders and rounded corners only on first/last */
+.equipment-list .equipment-item {
+  margin-bottom: 0; /* remove gap between rows */
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color);
+  border-radius: 0; /* radius applied only on first/last */
+}
+
+.equipment-list .equipment-item + .equipment-item {
+  border-top: 0; /* avoid double border between adjacent items */
+}
+
+.equipment-list .equipment-item:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.equipment-list .equipment-item:last-child {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Same behavior but adapted for the light/agent-profile-container variables */
+.agent-profile-container .equipment-list .equipment-item {
+  margin-bottom: 0;
+  border-left: 1px solid var(--border-input) !important;
+  border-right: 1px solid var(--border-input) !important;
+  border-top: 1px solid var(--border-input) !important;
+  border-radius: 0;
+}
+.agent-profile-container .equipment-list .equipment-item + .equipment-item {
+  border-top: 0 !important;
+}
+.agent-profile-container .equipment-list .equipment-item:first-child {
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+}
+.agent-profile-container .equipment-list .equipment-item:last-child {
+  border-bottom-left-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+  border-bottom: 1px solid var(--border-input) !important;
+}
+
+/* keep default list behavior (no glued rows) */
+
 /* Styles pour les formulaires d'ajout d'équipement */
 .add-equipment-form {
   margin-top: 15px;
@@ -936,11 +983,14 @@ textarea:disabled,
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  /* remove vertical gaps so items "collent"; borders are used to separate rows */
+  margin-bottom: 0;
   padding: 10px;
   background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  border-radius: 0;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color);
 }
 
 /* Mode édition */
@@ -1088,7 +1138,7 @@ body:not(.edit-mode) textarea:focus {
 /* ---- Badge ID clickable + feedback copie (réintroduit) ---- */
 #agent_id {
   background: rgba(0, 0, 0, 0.55);
-  margin-top: 4px;
+  margin-top: 2px;
   padding: 6px 10px;
   border-radius: 8px;
   color: #fff;
@@ -1234,6 +1284,8 @@ body:not(.edit-mode) .agent-profile-container .form-group textarea {
   background: var(--input-bg) !important;
   border: 1px solid var(--border-input) !important;
 }
+
+/* In light container, glue items and round only first/last */
 
 .agent-profile-container .equipment-name {
   color: var(--text-dark) !important;
