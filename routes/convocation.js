@@ -35,11 +35,30 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
     // Si user vient d'un middleware d'auth, on peut fetch Member du serveur si besoin
     try {
 
+      // Insert en base d'abord pour récupérer l'ID et pouvoir inclure le lien directement
+      const safeDate = date && date.trim() !== '' ? date : null;
+      const safeHeure = heure && heure.trim() !== '' ? heure : null;
+      const insertRes = await pool.query(`
+        INSERT INTO lspd_convocations (nom, prenom, date, heure, lieu, motif, officer, grade)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id
+      `, [nom, prenom, safeDate, safeHeure, lieu, motif, officier, grade]);
+
+      const convocationId = insertRes.rows[0]?.id;
+      const isLocal = process.env.IS_LOCAL === "true";
+      const baseUrl = isLocal ? "http://localhost:3001/viewConvocation.html" : "https://lspd-assistant.fr/viewConvocation.html";
+      const convocationLink = convocationId ? `${baseUrl}?id=${convocationId}` : null;
+
+      // Déclarer le displayName en brut (nick serveur ou username) pour l'affichage
+      const displayName = req.user?.guild_member?.nick || req.user?.username || 'Utilisateur inconnu';
+
       const embed = new EmbedBuilder()
         .setTitle("Nouvelle convocation")
         .addFields(
           { name: "Personne concernée", value: nomComplet, inline: true },
-          { name: "Envoyée par", value: `<@${req.user.id}>`, inline: false }
+          // Le lien doit apparaître AU-DESSUS de "Envoyée par"
+          ...(convocationLink ? [{ name: "Consulter la convocation", value: `[Voir la convocation ${convocationId}](${convocationLink})` }] : []),
+          { name: "Envoyée par", value: displayName, inline: false }
         )
         .setColor(0x0b1b5a)
         .setThumbnail(botUser.displayAvatarURL({ extension: 'png' }))
@@ -72,34 +91,30 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
       await convocationThread.send({ files: [attachment] });
 
 
-      // Handle empty date/heure fields
-      const safeDate = date && date.trim() !== '' ? date : null;
-      const safeHeure = heure && heure.trim() !== '' ? heure : null;
-      await pool.query(`
-        INSERT INTO lspd_convocations (nom, prenom, date, heure, lieu, motif, officer, grade)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      `, [nom, prenom, safeDate, safeHeure, lieu, motif, officier, grade]);
+      
 
       // LOG
       if (logsChannel?.isTextBased()) {
         const embedLog = new EmbedBuilder()
           .setColor(0x0b1b5a)
           .setTitle(`Nouvelle convocation - ${nomComplet}`)
-          .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a envoyé une convocation - <#${convocationThread.id}>`)
+          .setDescription(`${displayName} a envoyé une convocation - <#${convocationThread.id}>`)
           .addFields({
             name: "ID's",
-            value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${user?.id || 'ID inconnu'}\`) \n> <#${convocationThread.id}> (\`${convocationThread.id}\`)`
-          })
-          .setFooter({
-            text: "LSPD Assistant",
-            iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 })
-          })
-          .setTimestamp();
+            value: `> ${displayName} (\`${user?.id || 'ID inconnu'}\`) \n> <#${convocationThread.id}> (\`${convocationThread.id}\`)`,
+            inline: false
+          });
+
+        if (convocationLink) {
+          embedLog.addFields({ name: "Consulter la convocation", value: convocationLink });
+        }
+
+        embedLog.setFooter({ text: "LSPD Assistant", iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 }) }).setTimestamp();
 
         await logsChannel.send({ embeds: [embedLog] });
       }
 
-      res.json({ success: true, message: "Convocation envoyée avec succès." });
+      res.json({ success: true, message: "Convocation envoyée avec succès.", id: convocationId, link: convocationLink });
 
     } catch (error) {
       console.error("Erreur envoi convocation :", error);
