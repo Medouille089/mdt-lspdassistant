@@ -44,7 +44,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 if (!id) {
     showAnimation('error').then(() => {
-        window.location.href = 'getConvocation.html';
+    window.location.href = '/liste-convocations';
     });
 }
 

@@ -9,8 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const userInfo = await userResponse.json();
 
             // Choisir la sidebar appropriée
-            const sidebarFile = userInfo.isDOJ && !userInfo.isLSPD ? 'sidebar-doj.html' : 'sidebar.html';
-
+            const sidebarFile = userInfo.isDOJ && !userInfo.isLSPD ? '/sidebar-doj' : '/sidebar';
 
             const sidebarResponse = await fetch(sidebarFile);
             const html = await sidebarResponse.text();
@@ -25,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (err) {
             console.error("Erreur chargement sidebar :", err);
             // Fallback sur la sidebar par défaut
-            const fallbackResponse = await fetch('sidebar.html');
+            const fallbackResponse = await fetch('/sidebar');
             const fallbackHtml = await fallbackResponse.text();
             container.innerHTML = fallbackHtml;
 

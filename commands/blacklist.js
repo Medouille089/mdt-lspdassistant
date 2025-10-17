@@ -3,10 +3,10 @@ const pool = require('../config/db');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('blacklist')
-    .setDescription('Ajoute un utilisateur à la blacklist')
-    .addUserOption(opt => opt.setName('user').setDescription('Utilisateur à blacklist').setRequired(true))
-    .addStringOption(opt => opt.setName('reason').setDescription('Raison (optionnel)').setRequired(false)),
+     .setName('blacklist')
+     .setDescription('Ajoute un utilisateur à la blacklist')
+     .addUserOption(opt => opt.setName('user').setDescription('Utilisateur à blacklist').setRequired(true))
+     .addStringOption(opt => opt.setName('reason').setDescription('Raison (obligatoire)').setRequired(true)),
 
   async execute(interaction) {
     try {
@@ -21,7 +21,10 @@ module.exports = {
   if (!allowed) return interaction.reply({ content: 'Permission refusée.', flags: 64 });
 
       const target = interaction.options.getUser('user');
-      const reason = interaction.options.getString('reason') || null;
+      const reason = interaction.options.getString('reason');
+      if (!reason || reason.trim() === "") {
+        return interaction.reply({ content: 'La raison est obligatoire.', flags: 64 });
+      }
 
       // Vérifier si déjà blacklist
       const res = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1', [target.id]);
@@ -58,7 +61,10 @@ module.exports = {
               .setTitle('⚠️ Nouveau blacklist')
               .setColor(0xFF0000)
               .setDescription(`<@${interaction.user.id}> à blacklisté <@${target.id}>`)
-              .addFields({ name: "ID's", value: `> <@${interaction.user.id}>\n> (\`${interaction.user.id}\`)\n> <@${target.id}> (\`${target.id}\`)${blacklist_role_id ? `\n> <@&${blacklist_role_id}>\n> (\`${blacklist_role_id}\`)` : ''}` , inline: false })
+              .addFields(
+                { name: 'Raison', value: `> ${reason}`, inline: false },
+                { name: "ID's", value: `> <@${interaction.user.id}>\n> (\`${interaction.user.id}\`)\n> <@${target.id}> (\`${target.id}\`)${blacklist_role_id ? `\n> <@&${blacklist_role_id}>\n> (\`${blacklist_role_id}\`)` : ''}` , inline: false }
+              )
               .setTimestamp();
             await logsChannel.send({ embeds: [embed] });
           }

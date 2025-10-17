@@ -87,7 +87,7 @@ function renderTable() {
         // Ajouter l'événement de clic pour ouvrir les détails
         tr.style.cursor = 'pointer';
         tr.addEventListener('click', () => {
-            window.location.href = `viewConvocationAgent.html?id=${item.id}`;
+            window.location.href = `/viewConvocationAgent?id=${item.id}`;
         });
         
         tableBody.appendChild(tr);

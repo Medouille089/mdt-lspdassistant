@@ -288,8 +288,9 @@ router.get('/api/discord-channels', async (req, res) => {
         const guild = bot.guilds.cache.get(process.env.GUILD_ID);
         if (!guild) return res.status(400).send('Guild not found');
 
+        // include both text channels (type 0) and category channels (type 4)
         const channels = guild.channels.cache
-            .filter(ch => ch.type === 0)
+            .filter(ch => ch.type === 0 || ch.type === 4)
             .sort((a, b) => {
                 // Si les salons sont dans la même catégorie, trier par position
                 if (a.parentId === b.parentId) {
@@ -303,7 +304,8 @@ router.get('/api/discord-channels', async (req, res) => {
                 const parentB = guild.channels.cache.get(b.parentId);
                 return (parentA?.position || 0) - (parentB?.position || 0);
             })
-            .map(ch => ({ id: ch.id, name: ch.name, type: 'text' }));
+            // return native type (numeric) and parentId so the client can decide how to use them
+            .map(ch => ({ id: ch.id, name: ch.name, type: ch.type, parentId: ch.parentId }));
 
         res.json(channels);
     } catch (err) {

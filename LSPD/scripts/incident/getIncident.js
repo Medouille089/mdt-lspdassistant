@@ -89,7 +89,7 @@ function renderTable() {
             <td>${item.type || 'Non précisé'}</td>
         `;
         tr.addEventListener('click', () => {
-            window.location.href = `viewIncident.html?id=${item.id}`;
+            window.location.href = `/viewIncident?id=${item.id}`;
         });
         tableBody.appendChild(tr);
     });

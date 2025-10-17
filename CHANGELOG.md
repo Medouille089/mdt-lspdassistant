@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.0](https://github.com/Medouille089/lspdassistant/compare/v1.10.3...v1.11.0) (2025-10-17)
+
+
+### Features
+
+* change all page name + fix images in arrestations, and add link in embed ([38aac5a](https://github.com/Medouille089/lspdassistant/commit/38aac5a80fa926ae37062e2533ff307b5a230afa))
+
+
+### Bug Fixes
+
+* add link in convocation embed + remove ping to write displayName ([5b54b64](https://github.com/Medouille089/lspdassistant/commit/5b54b64a9c30e99bd018a38117553e20534cef57))
+* force style in html2canvas for convocation to ensure the display ([bd837b8](https://github.com/Medouille089/lspdassistant/commit/bd837b80038995dfed3a4ef76d054bfa56fe0f09))
+* general update admin tickets ([cd73d11](https://github.com/Medouille089/lspdassistant/commit/cd73d11e2582e75a052af23c5ad507322d43a190))
+* test fix convocation for 56 ([6d323f5](https://github.com/Medouille089/lspdassistant/commit/6d323f57c6545ac7b3f9a8ed81b7cd9927e46f4a))
+* update https link to remove .html ([62b963e](https://github.com/Medouille089/lspdassistant/commit/62b963eec66cbd6f0ad94e85367d1c013a728bf0))
+
 ### [1.10.3](https://github.com/Medouille089/lspdassistant/compare/v1.10.2...v1.10.3) (2025-10-14)
 
 

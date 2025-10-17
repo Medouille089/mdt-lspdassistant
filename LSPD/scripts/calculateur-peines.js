@@ -154,7 +154,6 @@ async function loadDelitsFromDatabase() {
         });
 
         isDataLoaded = true;
-        console.log('Délits chargés depuis la base de données:', delitsDatabase);
 
     } catch (error) {
         console.error('Erreur chargement délits:', error);
@@ -412,8 +411,6 @@ function applySelectedPeine(type, multiplier) {
     highlightSelectedPeine(type);
 
     updatePeinesCardColor(type);
-
-    console.log(`Peine ${type.toUpperCase()} appliquée: ${minutesToTime(adjustedPeinesMinutes)} et ${formatCurrency(adjustedAmendes)}`);
 }
 
 function highlightSelectedPeine(selectedType) {

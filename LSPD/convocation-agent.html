@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <meta charset="UTF-8" />
+  <title>Convoquer un agent - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/popup.css">
+  <link rel="stylesheet" href="styles/sanction/sanctions.css">
+</head>
+
+<body>
+  <script src="scripts/annonce-popup.js"></script>
+  <div id="loaderOverlay" class="loader-overlay">
+    <div class="loader-spinner"></div>
+  </div>
+  <div class="main-container">
+    <div id="sidebar-container"></div>
+    <h1>Nouvelle convocation</h1>
+    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+      ← Retour
+    </button>
+    <div class="sanction-container">
+      <form id="convocationForm">
+        <label for="agent">Agent convoqué :</label>
+        <select id="agent">
+          <option value="">-- Choisir un agent --</option>
+        </select>
+
+        <label for="date">Date :</label>
+        <input type="date" id="date">
+
+        <label for="lieu">Lieu :</label>
+        <input type="text" id="lieu">
+
+        <label for="raison">Raison :</label>
+        <textarea id="raison"></textarea>
+
+        <div class="user-info-row">
+          <div class="user-info-field">
+            <label for="officier">Agent convoquant :</label>
+            <input type="text" id="officier" readonly>
+          </div>
+          <div class="user-info-field">
+            <label for="grade">Grade :</label>
+            <input type="text" id="grade" readonly>
+          </div>
+        </div>
+
+        <div class="button-container">
+          <button type="submit" id="submit">Envoyer convocation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  </div>
+
+  <div id="customConfirmSend" class="custom-confirm-overlay" style="display:none;">
+    <div class="custom-confirm-box">
+      <p>Confirmer l'envoi de cette sanction ?</p>
+      <div class="custom-confirm-buttons">
+        <button class="btn btn-blue">Annuler</button>
+        <button class="btn btn-red">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+  <script src="scripts/loadSidebar.js"></script>
+  <script src="scripts/convocAgent.js"></script>
+  <script>
+    (function () {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      function init() {
+        const btn = document.getElementById('backlinkBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.location.href = 'menu-convocation-agent';
+          }
+        });
+      }
+    })();
+  </script>
+</body>
+
+</html>

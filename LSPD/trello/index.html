@@ -65,27 +65,18 @@
                 const container = document.getElementById('sidebar-container');
 
                 if (container) {
-                    fetch('../sidebar.html')
+                    fetch('/sidebar')
                         .then(res => res.text())
                         .then(html => {
-                            // Corriger tous les liens relatifs pour qu'ils pointent vers le bon dossier
-                            // Remplacer les href relatifs par des chemins absolus depuis le dossier LSPD
-                            html = html.replace(/href="([^"]*\.html)"/g, 'href="../$1"');
+                            // Make image paths absolute so they resolve correctly from /trello/
+                            html = html.replace(/src="data\/images\//g, 'src="/data/images/');
 
-                            // Corriger les images qui utilisent des chemins relatifs
-                            html = html.replace(/src="data\/images\//g, 'src="../data/images/');
-
-                            // Le lien trello doit pointer vers le dossier courant
-                            html = html.replace('href="../trello"', 'href="./"');
-
-                            // Lien vers le trello remplacé par /trello
-                            html = html.replace('href="../trello"', 'href="/trello"');
-
+                            // Inject sidebar
                             container.innerHTML = html;
 
                             // Charger les fonctionnalités JS du sidebar
                             const script = document.createElement('script');
-                            script.src = '../scripts/sidebar.js';
+                            script.src = '/scripts/sidebar.js';
                             document.body.appendChild(script);
                         })
                         .catch(err => console.error("Erreur chargement sidebar :", err));

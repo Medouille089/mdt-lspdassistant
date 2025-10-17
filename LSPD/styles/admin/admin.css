@@ -1,0 +1,98 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  z-index: 0;
+  background: none;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: var(--background-gradient);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+form label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--main-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+form input[type="text"],
+form input[type="date"],
+form input[type="time"],
+form textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  background-color: var(--input-bg);
+  resize: none;
+  box-sizing: border-box;
+  color: var(--input-text);
+  transition: border-color 0.2s ease;
+}
+
+form input[type="text"]:focus,
+form input[type="date"]:focus,
+form input[type="time"]:focus,
+form textarea:focus {
+  border-color: var(--main-color);
+  outline: none;
+  background-color: var(--input-bg-focus);
+}
+
+fieldset {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  font-size: 15px;
+  color: var(--main-color);
+  border-color: var(--main-color);
+  border-radius: 8px;
+}
+
+legend {
+  font-weight: bold;
+}
+
+label {
+  display: block;
+  margin: 0.5rem 0;
+}
+
+.btn-save {
+  padding: 1rem 3rem;
+  font-size: 100%;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-save:hover {
+  background-color: var(--button-bg-hover);
+}
+
+form button[type="button"] {
+  padding: 0.5rem 1.5rem;
+  font-size: 100%;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}

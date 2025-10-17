@@ -59,7 +59,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 if (!id) {
     showAnimation('error').then(() => {
-        window.location.href = 'getArrestation.html';
+    window.location.href = '/getdossier-arrestation';
     });
 }
 
@@ -191,29 +191,26 @@ async function loadIncidentDetail() {
         preview.innerHTML = '';
 
         if (arrestation.images && arrestation.images.length > 0) {
-            // Créer toutes les images
-            let i = 1;
-            // Reverse l'ordre pour afficher les plus récentes en premier
-            arrestation.images.reverse();
-            const imgElements = arrestation.images.map(url => {
-                if (i === 1) {
-                    fileInput1.src = url
-                } else if (i === 2) {
-                    fileInput2.src = url
-                } else {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.alt = 'Pièce jointe';
-                    img.style.maxWidth = '200px';
-                    img.style.margin = '5px';
-                    img.style.cursor = 'pointer';
-                    img.classList.add('preview-image');
-                    container.appendChild(img);
-                    return img;
+                // Créer toutes les images dans l'ordre d'upload (ancien -> récent)
+                for (let idx = 0; idx < arrestation.images.length; idx++) {
+                    const url = arrestation.images[idx];
+                    if (idx === 0) {
+                        // première image uploadée -> preview1 (photo masquée)
+                        fileInput1.src = url;
+                    } else if (idx === 1) {
+                        // deuxième image uploadée -> preview2 (démasquée)
+                        fileInput2.src = url;
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = url;
+                        img.alt = 'Pièce jointe';
+                        img.style.maxWidth = '200px';
+                        img.style.margin = '5px';
+                        img.style.cursor = 'pointer';
+                        img.classList.add('preview-image');
+                        container.appendChild(img);
+                    }
                 }
-                i++;
-
-            });
 
             // List of img elements to wait for
             const imgContainer = Array.from(document.querySelectorAll('#incident-container img'));

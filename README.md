@@ -141,7 +141,7 @@ Assure-toi d'avoir `DATABASE_URL` pour la persistance Trello.
 |---------|------|
 | connect.html | Page d'entrée / login flow |
 | dashboard.html | Vue synthèse (statistiques / navigation) |
-| infosagent.html | Profil agent (édition inline équipements) |
+| infos-agent.html | Profil agent (édition inline équipements) |
 | admin*.html | Interfaces d'administration (grades, annonces, pointeuse, absences, sanctions) |
 | trello/index.html | Board collaboratif temps réel |
 

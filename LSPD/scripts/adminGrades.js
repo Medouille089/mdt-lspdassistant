@@ -1,14 +1,14 @@
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('loaderOverlay').style.display = 'flex';
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("loaderOverlay").style.display = "flex";
   loadGrades();
 });
 
 async function loadGrades() {
-  const loader = document.getElementById('loaderOverlay');
-  loader.style.display = 'flex';
+  const loader = document.getElementById("loaderOverlay");
+  loader.style.display = "flex";
 
   try {
-    const res = await fetch('/api/grades');
+    const res = await fetch("/api/grades");
     const grades = await res.json();
 
     for (const key in grades) {
@@ -16,55 +16,59 @@ async function loadGrades() {
       if (input) input.value = grades[key];
     }
   } catch (err) {
-    console.error('Erreur lors du chargement des grades :', err);
+    console.error("Erreur lors du chargement des grades :", err);
   } finally {
-    loader.style.display = 'none';
+    loader.style.display = "none";
   }
 }
 
-document.getElementById('gradesForm').addEventListener('submit', async (e) => {
+document.getElementById("gradesForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const loader = document.getElementById('loaderOverlay');
-  loader.style.display = 'flex';
+  const loader = document.getElementById("loaderOverlay");
+  loader.style.display = "flex";
 
   const data = Object.fromEntries(new FormData(e.target).entries());
 
   let success = false;
 
   try {
-    const res = await fetch('/api/grades', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+    const res = await fetch("/api/grades", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
 
     const result = await res.json();
     success = res.ok;
   } catch (err) {
-    console.error('Erreur lors de la mise à jour des grades :', err);
+    console.error("Erreur lors de la mise à jour des grades :", err);
   } finally {
-    loader.style.display = 'none';
-    await showAnimation(success ? 'success' : 'error');
+    loader.style.display = "none";
+    await showAnimation(success ? "success" : "error");
 
     if (success) {
-      const container = document.getElementById('feedbackAnimation');
-      container.classList.add('fade-out');
-      container.addEventListener('transitionend', () => {
-        location.reload();
-      }, { once: true });
+      const container = document.getElementById("feedbackAnimation");
+      container.classList.add("fade-out");
+      container.addEventListener(
+        "transitionend",
+        () => {
+          location.reload();
+        },
+        { once: true }
+      );
     }
   }
 });
 
-function showAnimation(type = 'success') {
+function showAnimation(type = "success") {
   return new Promise((resolve) => {
-    const container = document.getElementById('feedbackAnimation');
-    container.innerHTML = '';
-    const content = document.createElement('div');
-    content.className = 'feedback-inner';
+    const container = document.getElementById("feedbackAnimation");
+    container.innerHTML = "";
+    const content = document.createElement("div");
+    content.className = "feedback-inner";
 
-    if (type === 'success') {
+    if (type === "success") {
       content.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
           <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
@@ -84,7 +88,29 @@ function showAnimation(type = 'success') {
     }
 
     container.appendChild(content);
-    container.style.display = 'flex';
+    container.style.display = "flex";
     setTimeout(() => resolve(), 1800);
   });
 }
+
+(function () {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  function init() {
+    const btn = document.getElementById("backlinkBtn");
+    if (!btn) return;
+
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+  window.location.href = "/menu-admin-salons";
+      }
+    });
+  }
+})();

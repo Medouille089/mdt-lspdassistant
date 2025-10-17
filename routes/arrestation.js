@@ -35,6 +35,12 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
         const [hh, min] = dividedDate[1].split(":");
         const formattedDate = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
 
+        const isLocal = process.env.IS_LOCAL === "true";
+        const baseUrl = isLocal
+            ? "http://localhost:3001/viewArrestation.html"
+            : "https://lspd-assistant.fr/viewArrestation.html";
+        const arrestationLink = `${baseUrl}?id=${arrestationId}`;
+
         const embed = new EmbedBuilder()
             .setTitle("Nouveau rapport d'arrestation")
             .setThumbnail(botUser.displayAvatarURL({ extension: 'png' }))
@@ -46,6 +52,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
                 { name: "Avocat", value: avocatName || "Non précisé", inline: true },
                 { name: "Accusations", value: JSON.parse(accusations || "[]").map(a => a).join("\n") || "Aucune", inline: true },
                 { name: "Lieu", value: lieu || "Non précisé", inline: true },
+                { name: "Consulter le rapport", value: `[Voir le rapport d'arrestation ${arrestationId}](${arrestationLink})` }
             )
             .setFooter({
                 text: "LSPD Assistant",
@@ -60,13 +67,18 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
             autoArchiveDuration: 1440,
         });
 
-        if (files?.length > 0) {
-            for (const file of files) {
-                const attachment = new AttachmentBuilder(file.buffer, {
-                    name: file.originalname
+        // Envoyer uniquement les images uploadées (ne PAS envoyer les PDF)
+        try {
+            const imageFiles = (files || []).filter(f => f.mimetype && f.mimetype.startsWith("image/"));
+            if (imageFiles.length) {
+                const attachments = imageFiles.map(f => new AttachmentBuilder(f.buffer, { name: f.originalname }));
+                // Envoyer les images dans le thread
+                await thread.send({ files: attachments }).catch(err => {
+                    console.error("Erreur envoi images au thread Discord :", err);
                 });
-                await thread.send({ files: [attachment] });
             }
+        } catch (err) {
+            console.error("Erreur traitement fichiers uploadés (images) :", err);
         }
 
         await pool.query(`
@@ -159,7 +171,9 @@ router.get('/api/getArrestation', async (req, res) => {
                 if (thread?.isThread()) {
                     const messages = await thread.messages.fetch({ limit: 100 });
                     const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
-                    messages.forEach(msg => {
+                    // messages.fetch returns messages usually newest-first; sort by timestamp ascending
+                    const orderedMessages = Array.from(messages.values()).sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+                    orderedMessages.forEach(msg => {
                         msg.attachments.forEach(att => {
                             if (att.contentType?.startsWith("image/")) {
                                 images.push(att.url);

@@ -1,372 +1,168 @@
 <!DOCTYPE html>
 <html lang="fr">
-
-<head>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <head>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="icon" href="data/images/favicon.png" type="image/png" />
 
-    <meta name="description"
-        content="LSPD Assistant - Plateforme de gestion complète pour le Los Santos Police Department. Gérez vos rapports, absences, sanctions et bien plus encore.">
-    <meta name="keywords" content="LSPD, Police, Los Santos, Assistant, Gestion, Rapports">
-    <meta name="author" content="LSPD">
+    <meta
+      name="description"
+      content="LSPD Assistant - Plateforme de gestion complète pour le Los Santos Police Department. Gérez vos rapports, absences, sanctions et bien plus encore."
+    />
+    <meta
+      name="keywords"
+      content="LSPD, Police, Los Santos, Assistant, Gestion, Rapports"
+    />
+    <meta name="author" content="LSPD" />
 
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://lspd-assistant.com/">
-    <meta property="og:title" content="LSPD Assistant - To protect and serve">
-    <meta property="og:description"
-        content="Plateforme officielle de gestion du Los Santos Police Department. Rapports d'incident, gestion des absences, suivi des sanctions, et bien plus encore.">
-    <meta property="og:image"
-        content="https://media.discordapp.net/attachments/1315607319769518202/1425795339604066325/9ABZBFC.png?ex=68e8e2e2&is=68e79162&hm=eb41990737ff8b8c7d80b0c33b479205776f66405dbcbd415545fd12bf6cf891&=&format=webp&quality=lossless&width=630&height=630">
-    <meta property="og:image:width" content="630">
-    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://lspd-assistant.com/" />
+    <meta property="og:title" content="LSPD Assistant - To protect and serve" />
+    <meta
+      property="og:description"
+      content="Plateforme officielle de gestion du Los Santos Police Department. Rapports d'incident, gestion des absences, suivi des sanctions, et bien plus encore."
+    />
+    <meta
+      property="og:image"
+      content="https://media.discordapp.net/attachments/1315607319769518202/1425795339604066325/9ABZBFC.png?ex=68e8e2e2&is=68e79162&hm=eb41990737ff8b8c7d80b0c33b479205776f66405dbcbd415545fd12bf6cf891&=&format=webp&quality=lossless&width=630&height=630"
+    />
+    <meta property="og:image:width" content="630" />
+    <meta property="og:image:height" content="630" />
 
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://lspd-assistant.com/">
-    <meta name="twitter:title" content="LSPD Assistant - To protect and serve">
-    <meta name="twitter:description" content="Plateforme officielle de gestion du Los Santos Police Department.">
-    <meta name="twitter:image"
-        content="https://media.discordapp.net/attachments/1315607319769518202/1425795339604066325/9ABZBFC.png?ex=68e8e2e2&is=68e79162&hm=eb41990737ff8b8c7d80b0c33b479205776f66405dbcbd415545fd12bf6cf891&=&format=webp&quality=lossless&width=630&height=630">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://lspd-assistant.com/" />
+    <meta
+      name="twitter:title"
+      content="LSPD Assistant - To protect and serve"
+    />
+    <meta
+      name="twitter:description"
+      content="Plateforme officielle de gestion du Los Santos Police Department."
+    />
+    <meta
+      name="twitter:image"
+      content="https://media.discordapp.net/attachments/1315607319769518202/1425795339604066325/9ABZBFC.png?ex=68e8e2e2&is=68e79162&hm=eb41990737ff8b8c7d80b0c33b479205776f66405dbcbd415545fd12bf6cf891&=&format=webp&quality=lossless&width=630&height=630"
+    />
 
-    <meta name="theme-color" content="#0b1b5a">
+    <meta name="theme-color" content="#0b1b5a" />
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles/colors.css" />
-    <link rel="stylesheet" href="styles/connect.css">
+    <link rel="stylesheet" href="styles/connect.css" />
 
     <title>Connexion - LSPD Assistant</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-    <style>
-        .material-symbols-outlined {
-            font-family: 'Material Symbols Outlined';
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            font-size: 24px;
-            vertical-align: middle;
-            color: #fff;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-        button[id^="toggle"]:hover .material-symbols-outlined {
-            opacity: 1;
-        }
-        .login-container {
-            max-width: 450px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 10;
-        }
-
-        .login-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            padding: 5px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .tab-button {
-            flex: 1;
-            padding: 12px;
-            background: transparent;
-            border: none;
-            border-radius: 8px;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 11;
-        }
-
-        .tab-button:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-
-        .tab-button.active {
-            background: var(--main-color, #5865F2);
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
-        }
-
-        .tab-content {
-            display: none;
-            position: relative;
-            z-index: 10;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .discord-connect-wrapper {
-            position: relative;
-            z-index: 10;
-        }
-
-        .local-login-form {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 8px;
-            font-size: 0.9em;
-            font-weight: 500;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            box-sizing: border-box;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary-color, #0b1b5a);
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.2);
-        }
-
-        .form-group input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .login-button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--main-color, #5865F2) 0%, #4752C4 100%);
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 10;
-        }
-
-        .login-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(88, 101, 242, 0.5);
-        }
-
-        .login-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .forgot-password {
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .forgot-password a {
-            color: var(--main-color, #5865F2);
-            text-decoration: none;
-            font-size: 0.9em;
-            transition: opacity 0.3s ease;
-        }
-
-        .forgot-password a:hover {
-            opacity: 0.8;
-            text-decoration: underline;
-        }
-
-        .error-message {
-            background: rgba(255, 68, 68, 0.1);
-            border: 1px solid rgba(255, 68, 68, 0.3);
-            border-radius: 8px;
-            padding: 12px;
-            color: #ff4444;
-            margin-bottom: 20px;
-            display: none;
-            text-align: center;
-        }
-
-        .divider {
-            text-align: center;
-            margin: 20px 0;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.9em;
-        }
-    </style>
-</head>
-
-<body>
+  <body>
     <div class="header">
-        <img src="data/images/lspdcancer.png" alt="LSPD Logo" class="logo" />
-        <div class="slogan">To protect and serve.</div>
+      <img src="data/images/lspdcancer.png" alt="LSPD Logo" class="logo" />
+      <div class="slogan">To protect and serve.</div>
     </div>
 
     <div class="main-content">
-        <div class="login-container">
-            <div class="login-tabs">
-                <button class="tab-button active" onclick="switchTab('discord')">Discord</button>
-                <button class="tab-button" onclick="switchTab('local')">Compte Local</button>
-            </div>
-
-            <!-- Connexion Discord -->
-            <div id="discord-tab" class="tab-content active">
-                <div class="discord-connect-wrapper">
-                    <button class="connect-button" onclick="window.location.href='/login'">
-                        <img src="https://upload.wikimedia.org/wikipedia/fr/thumb/4/4f/Discord_Logo_sans_texte.svg/1818px-Discord_Logo_sans_texte.svg.png"
-                            alt="">Se connecter avec Discord
-                    </button>
-                </div>
-            </div>
-
-            <!-- Connexion Locale -->
-            <div id="local-tab" class="tab-content">
-                <div class="local-login-form">
-                    <div class="error-message" id="errorMessage"></div>
-
-                    <form id="localLoginForm">
-                        <div class="form-group">
-                            <label for="username">Nom d'utilisateur</label>
-                            <input type="text" id="username" name="username" required
-                                placeholder="Votre nom d'utilisateur" autocomplete="username">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="password">Mot de passe</label>
-                            <div style="position:relative;">
-                                <input type="password" id="password" name="password" required
-                                    placeholder="Votre mot de passe" autocomplete="current-password"
-                                    style="padding-right:40px;">
-                                <button type="button" id="togglePassword" aria-label="Afficher le mot de passe" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:white">
-                                    <span id="eyePassword" class="material-symbols-outlined">visibility</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="login-button" id="loginBtn">
-                            Se connecter
-                        </button>
-                    </form>
-
-                    <div class="forgot-password">
-                        <a href="/forgot-password.html">Mot de passe oublié ?</a>
-                    </div>
-                </div>
-            </div>
+      <div class="login-container">
+        <div class="login-tabs">
+          <button class="tab-button active" onclick="switchTab('discord')">
+            Discord
+          </button>
+          <button class="tab-button" onclick="switchTab('local')">
+            Compte Local
+          </button>
         </div>
+
+        <!-- Connexion Discord -->
+        <div id="discord-tab" class="tab-content active">
+          <div class="discord-connect-wrapper">
+            <button
+              class="connect-button"
+              onclick="window.location.href='/login'"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/fr/thumb/4/4f/Discord_Logo_sans_texte.svg/1818px-Discord_Logo_sans_texte.svg.png"
+                alt=""
+              />Se connecter avec Discord
+            </button>
+          </div>
+        </div>
+
+        <!-- Connexion Locale -->
+        <div id="local-tab" class="tab-content">
+          <div class="local-login-form">
+            <div class="error-message" id="errorMessage"></div>
+
+            <form id="localLoginForm">
+              <div class="form-group">
+                <label for="username">Nom d'utilisateur</label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  required
+                  placeholder="Votre nom d'utilisateur"
+                  autocomplete="username"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <div style="position: relative">
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    placeholder="Votre mot de passe"
+                    autocomplete="current-password"
+                    style="padding-right: 40px"
+                  />
+                  <button
+                    type="button"
+                    id="togglePassword"
+                    aria-label="Afficher le mot de passe"
+                    style="
+                      position: absolute;
+                      right: 8px;
+                      top: 50%;
+                      transform: translateY(-50%);
+                      background: none;
+                      border: none;
+                      cursor: pointer;
+                      padding: 0;
+                      color: white;
+                    "
+                  >
+                    <span id="eyePassword" class="material-symbols-outlined"
+                      >visibility</span
+                    >
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="login-button" id="loginBtn">
+                Se connecter
+              </button>
+            </form>
+
+            <div class="forgot-password">
+              <a href="/forgot-password">Mot de passe oublié ?</a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="watermark">LSPD Assistant</div>
 
-    <script>
-        // Password viewer for login
-        const passwordInputField = document.getElementById('password');
-        const togglePasswordBtn = document.getElementById('togglePassword');
-        const eyePassword = document.getElementById('eyePassword');
-        togglePasswordBtn.addEventListener('click', function () {
-            if (passwordInputField.type === 'password') {
-                passwordInputField.type = 'text';
-                eyePassword.textContent = 'visibility_off';
-            } else {
-                passwordInputField.type = 'password';
-                eyePassword.textContent = 'visibility';
-            }
-        });
-        function switchTab(tab) {
-            // Mettre à jour les boutons
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Trouver le bouton cliqué via l'event ou par le tab
-            if (window.event && window.event.target) {
-                window.event.target.classList.add('active');
-            } else {
-                // Fallback si event n'est pas disponible
-                const buttons = document.querySelectorAll('.tab-button');
-                if (tab === 'discord') {
-                    buttons[0].classList.add('active');
-                } else {
-                    buttons[1].classList.add('active');
-                }
-            }
-
-            // Mettre à jour le contenu
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(tab + '-tab').classList.add('active');
-        }
-
-        // Gestion de la soumission du formulaire local
-        document.getElementById('localLoginForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-
-            const loginBtn = document.getElementById('loginBtn');
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Connexion...';
-
-            try {
-                const response = await fetch('/login-local', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    window.location.href = data.redirect || '/protected';
-                } else {
-                    showError(data.error || 'Nom d\'utilisateur ou mot de passe incorrect');
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = 'Se connecter';
-                }
-            } catch (error) {
-                console.error('Erreur:', error);
-                showError('Erreur de connexion au serveur');
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'Se connecter';
-            }
-        });
-
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
-        }
-    </script>
-</body>
-
+    <script src="scripts/connect.js"></script>
+  </body>
 </html>

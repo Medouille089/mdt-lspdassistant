@@ -1,75 +1,113 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Configuration des salons de logs - LSPD Assistant</title>
-  <link rel="icon" href="data/images/favicon.png" type="image/png">
-  <link rel="stylesheet" href="styles/sidebar.css">
-  <link rel="stylesheet" href="styles/colors.css">
-  <link rel="stylesheet" href="styles/admin.css">
-  <link rel="stylesheet" href="styles/loader.css">
-  <link rel="stylesheet" href="styles/checkmark.css">
-  <link rel="stylesheet" href="styles/warning.css">
-</head>
-<body>
-  <script src="scripts/annonce-popup.js"></script>
-  <div class="main-container">
-    <div id="sidebar-container"></div>
-    <h1>Configuration des salons de logs</h1>
-    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">← Retour</button>
-    <div class="warning-modern">
-      <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon" class="warning-icon-modern">
-      <span>Merci de bien vérifier les informations avant de soumettre la nouvelle configuration</span>
-      <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon" class="warning-icon-modern">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Configuration des salons de logs - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css" />
+    <link rel="stylesheet" href="styles/warning.css" />
+    <link rel="stylesheet" href="styles/admin/admin.css" />
+  </head>
+  <body>
+    <script src="scripts/annonce-popup.js"></script>
+    <div class="main-container">
+      <div id="sidebar-container"></div>
+      <h1>Configuration des salons de logs</h1>
+      <button
+        id="backlinkBtn"
+        class="backlink-btn"
+        type="button"
+        aria-label="Retour"
+      >
+        ← Retour
+      </button>
+      <div class="warning-modern">
+        <img
+          src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg"
+          alt="warning icon"
+          class="warning-icon-modern"
+        />
+        <span
+          >Merci de bien vérifier les informations avant de soumettre la
+          nouvelle configuration</span
+        >
+        <img
+          src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg"
+          alt="warning icon"
+          class="warning-icon-modern"
+        />
+      </div>
+      <form id="logsConfigForm">
+        <fieldset>
+          <legend>&nbsp;&nbsp;Salons de logs&nbsp;&nbsp;</legend>
+          <label
+            >Salon logs_pointeuse :
+            <input type="text" name="logs_pointeuse" /></label
+          ><br />
+          <label
+            >Salon logs_config : <input type="text" name="logs_config" /></label
+          ><br />
+          <label
+            >Salon logs_connexion :
+            <input type="text" name="logs_connexion" /></label
+          ><br />
+          <label
+            >Salon logs_bracelets :
+            <input type="text" name="logs_bracelets" /></label
+          ><br />
+          <label
+            >Salon logs_arrestations :
+            <input type="text" name="logs_arrestations" /></label
+          ><br />
+          <label
+            >Salon logs_incidents :
+            <input type="text" name="logs_incidents" /></label
+          ><br />
+          <label
+            >Salon logs_convocations :
+            <input type="text" name="logs_convocations" /></label
+          ><br />
+          <label
+            >Salon logs_convocations_agent :
+            <input type="text" name="logs_convocations_agent" /></label
+          ><br />
+          <label
+            >Salon logs_documentation :
+            <input type="text" name="logs_documentation" /></label
+          ><br />
+          <label
+            >Salon logs_rapport_rookie :
+            <input type="text" name="logs_rapport_rookie" /></label
+          ><br />
+          <label
+            >Salon logs_sanctions :
+            <input type="text" name="logs_sanctions" /></label
+          ><br />
+          <label
+            >Salon logs_tickets :
+            <input type="text" name="logs_tickets" /></label
+          ><br />
+          <label
+            >Salon logs_calendrier :
+            <input type="text" name="logs_calendrier" /></label
+          ><br />
+        </fieldset>
+        <br />
+        <button class="btn-save" type="submit">Sauvegarder</button>
+      </form>
+      <div id="statusMessage" style="margin-top: 10px"></div>
+      <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+      </div>
+      <div
+        id="feedbackAnimation"
+        style="display: none; text-align: center"
+      ></div>
+      <script src="scripts/admin-logs.js"></script>
+      <script src="scripts/loadSidebar.js"></script>
     </div>
-    <form id="logsConfigForm">
-      <fieldset>
-        <legend>&nbsp;&nbsp;Salons de logs&nbsp;&nbsp;</legend>
-        <label>Salon logs_pointeuse : <input type="text" name="logs_pointeuse"></label><br>
-        <label>Salon logs_config : <input type="text" name="logs_config"></label><br>
-        <label>Salon logs_connexion : <input type="text" name="logs_connexion"></label><br>
-        <label>Salon logs_bracelets : <input type="text" name="logs_bracelets"></label><br>
-        <label>Salon logs_arrestations : <input type="text" name="logs_arrestations"></label><br>
-        <label>Salon logs_incidents : <input type="text" name="logs_incidents"></label><br>
-        <label>Salon logs_convocations : <input type="text" name="logs_convocations"></label><br>
-        <label>Salon logs_convocations_agent : <input type="text" name="logs_convocations_agent"></label><br>
-        <label>Salon logs_documentation : <input type="text" name="logs_documentation"></label><br>
-        <label>Salon logs_rapport_rookie : <input type="text" name="logs_rapport_rookie"></label><br>
-        <label>Salon logs_sanctions : <input type="text" name="logs_sanctions"></label><br>
-        <label>Salon logs_tickets : <input type="text" name="logs_tickets"></label><br>
-        <label>Salon logs_calendrier : <input type="text" name="logs_calendrier"></label><br>
-      </fieldset>
-      <br>
-      <button class="btn-save" type="submit">Sauvegarder</button>
-    </form>
-    <div id="statusMessage" style="margin-top:10px;"></div>
-    <div class="loader-overlay" id="loaderOverlay">
-      <div class="loader-spinner"></div>
-    </div>
-    <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
-    <script src="scripts/admin-logs.js"></script>
-    <script src="scripts/loadSidebar.js"></script>
-    <script>
-      (function () {
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', init);
-        } else {
-          init();
-        }
-        function init() {
-          const btn = document.getElementById('backlinkBtn');
-          if (!btn) return;
-          btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            if (window.history.length > 1) {
-              window.history.back();
-            } else {
-              window.location.href = 'adminMenu.html';
-            }
-          });
-        }
-      })();
-    </script>
-  </div>
-</body>
+  </body>
 </html>

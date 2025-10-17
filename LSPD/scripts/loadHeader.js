@@ -1,4 +1,4 @@
-fetch('./data/header.html')
+fetch('./data/header')
     .then(response => {
         if (!response.ok) throw new Error('Erreur de chargement du header');
         return response.text();

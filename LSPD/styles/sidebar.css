@@ -1,5 +1,5 @@
 /* Importing Google Fonts - Poppins */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 * {
   margin: 0;
@@ -178,7 +178,7 @@ body.collapsed .main-content {
   transition: 0.4s ease;
 }
 
-.sidebar-nav .nav-item:is(:hover, .open)>.nav-link:not(.dropdown-title) {
+.sidebar-nav .nav-item:is(:hover, .open) > .nav-link:not(.dropdown-title) {
   color: var(--sidebar-text);
   background: var(--main-header-bg);
 }
@@ -243,14 +243,16 @@ body.collapsed .main-content {
   padding: 7px 10px 7px 24px;
 }
 
-.sidebar.sidebar.collapsed .nav-item:hover>.dropdown-menu {
+.sidebar.sidebar.collapsed .nav-item:hover > .dropdown-menu {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(12px);
   transition: all 0.4s ease;
 }
 
-.sidebar.sidebar.collapsed .nav-item:hover>.dropdown-menu:has(.dropdown-link) {
+.sidebar.sidebar.collapsed
+  .nav-item:hover
+  > .dropdown-menu:has(.dropdown-link) {
   transform: translateY(10px);
 }
 

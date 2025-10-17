@@ -10,10 +10,9 @@
     <link rel="stylesheet" href="styles/checkmark.css">
     <link rel="stylesheet" href="styles/colors.css" />
     <link rel="stylesheet" href="styles/warning.css">
-    <link rel="stylesheet" href="styles/tickets.css">
     <link rel="stylesheet" href="styles/popup.css">
     <link rel="stylesheet" href="styles/annonce-popup.css" />
-
+    <link rel="stylesheet" href="styles/admin/tickets.css">
 </head>
 
 <body>
@@ -34,98 +33,115 @@
             <div class="header">
             </div>
 
-            <h2>Créer un embed pour le panel</h2>
-            <label>Titre du selecteur</label>
-            <input type="text" id="embedTitle" placeholder="Titre de l'embed">
-            <label>Description du selecteur</label>
-            <textarea id="embedDescription" placeholder="Description"></textarea>
-            <label>Couleur de l'embed</label>
-            <input type="color" id="panelEmbedColor" value="#0b1b5a">
-            <label>Salon</label>
-            <select id="panelChannel"></select>
+            <h2>Créer un panel</h2>
+                <div class="panel-row panel-row--three">
+                    <div class="field">
+                        <label for="embedTitle">Titre du selecteur</label>
+                        <input type="text" id="embedTitle" placeholder="Titre de l'embed">
+                    </div>
+                    <div class="field">
+                        <label for="panelChannel">Catégorie / Salon</label>
+                        <select id="panelChannel"></select>
+                    </div>
+                    <div class="field">
+                        <label for="panelEmbedColor">Couleur de l'embed</label>
+                        <input type="color" id="panelEmbedColor" value="#0b1b5a">
+                    </div>
+                </div>
+                <label>Description du selecteur</label>
+                <textarea id="embedDescription" placeholder="Description"></textarea>
 
             <hr>
 
+            <div style="display:flex;justify-content:flex-end; margin-bottom:14px;">
+                <button id="openCreateModal" class="btn btn-primary">Ajouter catégorie</button>
+            </div>
             <h2>Catégories de tickets</h2>
             <div id="categoriesContainer"></div>
-
-            <h3>Ajouter / éditer une catégorie</h3>
-            <form id="categoryForm">
-                <div class="form-row">
-                    <input type="text" id="title" placeholder="Titre" required>
-                    <input type="text" id="emoji" placeholder="Emoji" required>
-                </div>
-                <div class="form-row">
-                    <input type="text" id="prefix" placeholder="Préfix (ex: ppa)">
-                    <input type="text" id="targetChannel" placeholder="ID de la catégorie cible">
-                </div>
-                <textarea id="description" placeholder="Description"></textarea>
-
-                <label>Message de bienvenue (embed)</label>
-                <textarea id="welcomeMessage" placeholder="Message envoyé dans le ticket (markdown/texte)"></textarea>
-
-                <label>Couleur embed catégorie</label>
-                <input type="color" id="categoryEmbedColor" value="#0b1b5a">
-
-                <label>Roles (sélectionne puis clique "Ajouter role")</label>
-                <div class="form-row">
-                    <select id="rolesSelect"></select>
-                </div>
-                <div class="form-row">
-                    <button id="addRoleBtn" type="button">Ajouter role</button>
-                </div>
-
-                <div class="roles-list" id="selectedRolesContainer"></div>
-
-                <div class="form-row">
-                    <label class="switch"><input type="checkbox" id="visibleCheckbox" checked> Afficher dans le
-                        panel</label>
-                    <button type="submit">Créer catégorie</button>
-                </div>
-            </form>
 
             <div class="button-container">
                 <button id="sendPanel" class="send-button">Envoyer le panel sur Discord</button>
             </div>
         </div>
     </div>
-    <div id="customConfirmDelete" class="custom-confirm-overlay" style="display:none;">
-        <div class="custom-confirm-box">
-            <p>Êtes-vous sûr de vouloir supprimer de la catégorie ?</p>
+    <!-- Single reusable confirm modal -->
+    <div id="customConfirm" class="custom-confirm-overlay" style="display:none;">
+        <div class="custom-confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+            <p id="confirmMessage">Confirmer l'opération ?</p>
             <div class="custom-confirm-buttons">
-                <button id="cancelDeleteBtn" class="btn btn-blue">Annuler</button>
-                <button id="confirmDeleteBtn" class="btn btn-red">Confirmer</button>
+                <button id="confirmCancelBtn" class="btn btn-blue">Annuler</button>
+                <button id="confirmOkBtn" class="btn btn-red">Confirmer</button>
             </div>
         </div>
     </div>
 
-    <div id="customConfirmModify" class="custom-confirm-overlay" style="display:none;">
-        <div class="custom-confirm-box">
-            <p>Confirmer la modification de la catégorie ?</p>
-            <div class="custom-confirm-buttons">
-                <button id="cancelModifyBtn" class="btn btn-blue">Annuler</button>
-                <button id="confirmModifyBtn" class="btn btn-red">Confirmer</button>
+    <!-- Edit category modal (popup) -->
+    <div id="editCategoryModal" class="custom-confirm-overlay" style="display:none;">
+        <div class="custom-confirm-box modal-card" role="dialog" aria-modal="true" aria-labelledby="editCategoryTitle">
+            <div class="modal-header">
+                <h3 id="editCategoryTitle">Modifier la catégorie</h3>
+                <button id="editCancelBtn" type="button" class="btn btn-icon" aria-label="Fermer">✕</button>
             </div>
-        </div>
-    </div>
 
-    <div id="customConfirmAdd" class="custom-confirm-overlay" style="display:none;">
-        <div class="custom-confirm-box">
-            <p>Confirmer l'ajout de la catégorie ?</p>
-            <div class="custom-confirm-buttons">
-                <button id="cancelModifyBtn" class="btn btn-blue">Annuler</button>
-                <button id="confirmModifyBtn" class="btn btn-red">Confirmer</button>
-            </div>
-        </div>
-    </div>
+            <form id="editCategoryForm">
+                <div class="modal-row modal-row--four">
+                    <div class="field">
+                        <label for="edit_title">Titre</label>
+                        <input id="edit_title" name="title" type="text" required />
+                    </div>
+                    <div class="field">
+                        <label for="edit_emoji">Emoji</label>
+                        <input id="edit_emoji" name="emoji" type="text" required />
+                    </div>
+                    <div class="field">
+                        <label for="edit_prefix">Préfix</label>
+                        <input id="edit_prefix" name="prefix" type="text" />
+                    </div>
+                    <div class="field">
+                        <label for="edit_categoryEmbedColor">Couleur</label>
+                        <input id="edit_categoryEmbedColor" name="embed_color" type="color" value="#0b1b5a" />
+                    </div>
+                </div>
 
-    <div id="customConfirmSend" class="custom-confirm-overlay" style="display:none;">
-        <div class="custom-confirm-box">
-            <p>Confirmer l'envoie du panel ?</p>
-            <div class="custom-confirm-buttons">
-                <button id="cancelModifyBtn" class="btn btn-blue">Annuler</button>
-                <button id="confirmModifyBtn" class="btn btn-red">Confirmer</button>
-            </div>
+                <div class="modal-row">
+                    <div class="field">
+                            <label for="edit_targetCategorySelect">Catégorie cible</label>
+                            <select id="edit_targetCategorySelect" name="target_channel_id"></select>
+                        </div>
+                </div>
+
+                <div class="modal-row">
+                    <div class="field">
+                        <label for="edit_description">Description</label>
+                        <textarea id="edit_description" name="description"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-row">
+                    <div class="field">
+                        <label for="edit_welcomeMessage">Message de bienvenue</label>
+                        <textarea id="edit_welcomeMessage" name="welcome_message"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-row">
+                    <div class="field">
+                        <label for="edit_rolesSelect">Roles (sélectionne pour ajouter)</label>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <select id="edit_rolesSelect"></select>
+                        </div>
+                        <div class="roles-list" id="edit_selectedRolesContainer" style="margin-top:8px;"></div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <label class="switch"><input id="edit_visibleCheckbox" name="visible" type="checkbox" checked> Afficher dans le panel</label>
+                    <div class="modal-actions">
+                        <button id="editCancelBtnFooter" type="button" class="btn btn-outline">Annuler</button>
+                        <button id="editSaveBtn" type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
     <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
@@ -149,7 +165,7 @@
                     if (window.history.length > 1) {
                         window.history.back();
                     } else {
-                        window.location.href = 'adminMenu.html';
+                        window.location.href = '/menu-admin-salons';
                     }
                 });
             }

@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const ROOKIE_ROLE_ID = "1096965866303787094";
 
         if (!user.roles.includes(ROOKIE_ROLE_ID)) {
-            const rapportRookieBtn = document.querySelector('a[href="rapport-rookie.html"]');
+            const rapportRookieBtn = document.querySelector('a[href="/rapport-rookie"]');
             if (rapportRookieBtn) rapportRookieBtn.classList.remove("hidden");
         }
     } catch (err) {

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="styles/sidebar.css" />
     <link rel="stylesheet" href="styles/incident/incident.css" />
     <link rel="stylesheet" href="styles/annonce-popup.css" />
-    <link rel="stylesheet" href="styles/admin-annonce.css" />
+    <link rel="stylesheet" href="styles/admin/admin-annonce.css" />
 </head>
 
 <body>
@@ -33,29 +33,6 @@
     </div>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/admin-annonce.js"></script>
-    <script>
-        (function () {
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-
-            function init() {
-                const btn = document.getElementById('backlinkBtn');
-                if (!btn) return;
-
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    if (window.history.length > 1) {
-                        window.history.back();
-                    } else {
-                        window.location.href = 'adminMenu.html';
-                    }
-                });
-            }
-        })();
-    </script>
 </body>
 
 </html>

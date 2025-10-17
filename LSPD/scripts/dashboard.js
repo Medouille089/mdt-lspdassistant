@@ -89,10 +89,10 @@ async function loadDashboardStats() {
 
       function getReportUrl(report) {
         if (report.type === 'Incident') {
-          return `viewIncident.html?id=${report.id}`;
+          return `/viewIncident?id=${report.id}`;
         }
         if (report.type === 'Arrestation') {
-          return `viewArrestation.html?id=${report.id}`;
+          return `/viewArrestation?id=${report.id}`;
         }
         // Ajouter d'autres types ici si besoin
         return '#';

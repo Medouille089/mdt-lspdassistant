@@ -1,0 +1,390 @@
+/* === RESET & BASE === */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: none;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: var(--background-gradient);
+}
+
+/* === LAYOUT PRINCIPAL === */
+.layout {
+  display: flex;
+  justify-content: center;
+  /* centre par rapport à la sidebar */
+  align-items: flex-start;
+  gap: 30px;
+  padding: 20px;
+}
+
+#sidebar-container {
+  width: 250px;
+}
+
+/* Container principal */
+.incident-container {
+  max-width: 900px;
+  width: 100%;
+  margin: auto;
+  background: var(--white);
+  border-radius: 15px;
+  padding: 40px 50px 100px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border: 4px solid var(--main-color-dark);
+  position: relative;
+}
+
+/* Titres */
+h1 {
+  color: var(--main-color-dark);
+  font-size: 2rem;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+h2,
+h3 {
+  color: var(--main-color-dark);
+  margin-bottom: 12px;
+}
+
+/* === FORMULAIRES === */
+label {
+  color: var(--main-color-dark);
+  font-weight: 500;
+  margin-top: 18px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+input[type="text"],
+input[type="color"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--text-light);
+  background: var(--input-bg);
+  font-size: 1rem;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+input[type="color"] {
+  height: 42px;
+  cursor: pointer;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--main-color-dark);
+  outline: none;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Form row */
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.form-row > input,
+.form-row > select {
+  flex: 1;
+}
+
+/* Select roles plus large */
+#rolesSelect {
+  flex: 2;
+  padding: 10px;
+  font-size: 1rem;
+}
+
+/* Boutons discrets */
+button,
+.send-button {
+  background: var(--main-color-dark);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(11, 27, 90, 0.1);
+  transition: all 0.2s;
+}
+
+button:hover,
+.send-button:hover {
+  background: var(--button-bg-hover);
+}
+
+/* Roles tags */
+.roles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 15px;
+}
+
+.roles-list .tag {
+  background: var(--main-color-dark);
+  color: var(--white);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.roles-list .tag .remove {
+  margin-left: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Edit banner */
+.edit-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(90deg, rgba(11,27,90,0.06), rgba(11,27,90,0.02));
+  border: 2px dashed var(--main-color-dark);
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+}
+.edit-banner .cancel-edit {
+  background: transparent;
+  color: var(--main-color-dark);
+  border: 1px solid var(--main-color-dark);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+/* Confirm modal */
+.custom-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.45);
+  /* base overlay z-index (page-level overlays) */
+  z-index: 10000;
+}
+.custom-confirm-box {
+  background: var(--white);
+  padding: 18px 22px;
+  border-radius: 10px;
+  min-width: 280px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.custom-confirm-buttons { display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
+
+/* tag remove hover */
+.roles-list .tag .remove:hover { color: #222; transform: translateY(-1px); }
+
+/* Edit modal specifics */
+#editCategoryModal .custom-confirm-box {
+  width: 680px;
+  max-width: calc(100% - 40px);
+  padding: 18px 20px;
+}
+#editCategoryModal label { margin-top:8px; }
+#editCategoryModal input[type="text"],
+#editCategoryModal textarea,
+#editCategoryModal input[type="color"] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--text-light);
+}
+#editCategoryModal textarea { min-height:80px; }
+
+/* Modal card modern look */
+.modal-card {
+  border-radius: 12px;
+  padding: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbff 100%);
+  box-shadow: 0 20px 50px rgba(11,27,90,0.12);
+}
+.modal-card { position: relative; border: 3px solid rgba(11,27,90,0.08); }
+.modal-header { display:flex; align-items:center; gap:12px; }
+.modal-header h3 { margin:0; font-size:1.15rem; color:var(--main-color-dark); }
+.btn.btn-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: var(--main-color-dark, #0b1b5a);
+  transition: transform 0.12s, background 0.12s, box-shadow 0.12s;
+  box-shadow: 0 6px 22px rgba(11,27,90,0.18);
+  z-index: 10010;
+}
+.btn.btn-icon svg { width: 14px; height: 14px; }
+.btn.btn-icon:hover { background: rgba(11,27,90,0.06); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(11,27,90,0.08); }
+
+/* Ensure SVG paths are visible even if CSS vars are missing */
+.btn.btn-icon svg path {
+  stroke-opacity: 1 !important;
+}
+.btn.btn-icon { color: var(--main-color, #0b5aff); font-size:18px; line-height:1; font-weight:700; }
+
+/* Ensure specific confirm overlays (those whose id starts with 'customConfirm') are always rendered above
+   other modals like the edit/create modal. Use !important to override page ordering and any inline styles. */
+[id^="customConfirm"] {
+  z-index: 22000 !important;
+}
+
+/* Keep the edit/create modal below the generic confirm overlays so confirmations are always visible */
+#editCategoryModal {
+  z-index: 15000;
+}
+
+/* emoji input styling — make consistent with other inputs */
+#edit_emoji {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--text-light);
+  background: var(--input-bg);
+  font-size: 1rem;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+/* Stronger outline button visibility */
+.btn-outline {
+  background: transparent;
+  border: 1px solid #0b1b5a !important;
+  color: #0b1b5a !important;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.btn-outline:hover { background: rgba(11,27,90,0.04); }
+
+/* align send panel button to the right */
+.button-container { display:flex; justify-content:flex-end; }
+
+.modal-row { margin-top:12px; display:block; }
+.modal-row--four { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
+.modal-row--four .field label { margin-bottom:6px; display:block; text-align:left; }
+.field label { font-weight:600; color:var(--main-color-dark); text-align:left; }
+
+.modal-footer { display:flex; align-items:center; margin-top:14px; gap:12px; }
+.modal-actions { margin-left:auto; display:flex; gap:8px; }
+
+/* Buttons */
+.btn-primary { background: var(--main-color-dark); color:var(--white); border:none; padding:8px 12px; border-radius:8px; }
+.btn-outline { background:transparent; border:1px solid var(--main-color-dark, #0b1b5a); color:var(--main-color-dark, #0b1b5a); padding:8px 12px; border-radius:8px; }
+.btn-outline:hover { background: rgba(11,27,90,0.04); }
+.btn.btn-blue { background: var(--button-bg-hover); }
+
+/* Responsive: stack the 4 fields on smaller screens */
+@media (max-width: 900px) {
+  .modal-row--four { grid-template-columns: 1fr; }
+}
+
+/* Panel embed row (title | channel | color) */
+.panel-row--three { display: grid; grid-template-columns: 1fr 1fr 160px; gap: 12px; align-items: end; }
+.panel-row--three .field label { margin-bottom:6px; }
+@media (max-width: 900px) {
+  .panel-row--three { grid-template-columns: 1fr; }
+}
+
+/* Category box */
+.category {
+  border: 2px solid var(--text-light);
+  border-radius: 12px;
+  padding: 15px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--input-bg);
+  transition: all 0.2s;
+}
+
+.category:hover {
+  background: var(--input-bg-focus);
+  box-shadow: 0 4px 15px rgba(11, 27, 90, 0.1);
+}
+
+.category button {
+  background: var(--main-color-dark);
+  color: var(--white);
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.category button:hover {
+  background: var(--button-bg-hover);
+}
+
+/* Switch */
+.switch input {
+  width: auto;
+  margin-right: 6px;
+}
+
+/* HR */
+hr {
+  border: none;
+  border-bottom: 2px solid var(--main-color-dark);
+  margin: 30px 0;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #sidebar-container {
+    width: 100%;
+  }
+
+  .incident-container {
+    max-width: 100%;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+}

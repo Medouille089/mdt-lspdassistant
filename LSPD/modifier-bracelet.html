@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <title>Modifier Bracelet - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/bracelet/bracelet.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/checkmark.css">
+    <link rel="stylesheet" href="styles/warning.css">
+    <link rel="stylesheet" href="styles/popup.css">
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+
+    <div class="main-container">
+
+        <div id="sidebar-container"></div>
+        <h1>Modifier le bracelet <span id="id_brac_title"></span></h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
+        <div class="warning-modern">
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern">
+            <span>Merci de bien vérifier les informations avant de soumettre la modification du bracelet</span>
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern">
+        </div>
+        <form id="editForm" class="embed-form">
+            <div class="embed-header">
+                <img src="https://i.ibb.co/DDQWSHmZ/assistant.png" alt="Thumbnail">
+                <div class="embed-title">Modifier le bracelet électronique <span id="id_brac_title"></span></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_brac">ID Bracelet</label>
+                    <input type="text" id="id_brac" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="nom">Nom</label>
+                    <input type="text" id="nom" required />
+                </div>
+                <div class="form-group">
+                    <label for="prenom">Prénom</label>
+                    <input type="text" id="prenom" required />
+                </div>
+  
+            </div>
+
+            <div class="form-group">
+                <label for="motif">Motif</label>
+                <input type="text" id="motif" placeholder="Entrez le motif" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tel">Téléphone</label>
+                <input type="text" id="tel" maxlength="14" required />
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dateDebut">Date d'activation</label>
+                    <input type="date" id="dateDebut" required />
+                </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                    <label for="createdBy">Créé par</label>
+                    <input type="text" id="createdBy" readonly style="font-weight:600;color:#0b1b5a" />
+                </div>
+            </div>
+
+            <div class="embed-footer">
+                <div class="embed-footer-left">
+                    <img src="https://i.ibb.co/DDQWSHmZ/assistant.png" alt="footer-icon">
+                    <span>LSPD Assistant</span>
+                </div>
+                <div id="timestamp"></div>
+            </div>
+
+            <button id="pointerBtn" type="button">Pointer</button>
+            <button type="submit">Modifier</button>
+            <button id="deleteBtn" type="button">Archiver</button>
+
+            <div class="loader-overlay" id="loaderOverlay">
+                <div class="loader-spinner"></div>
+            </div>
+        </form>
+    </div>
+
+    <div id="customConfirmDelete" class="custom-confirm-overlay" style="display:none;">
+        <div class="custom-confirm-box">
+            <p>Êtes-vous sûr de vouloir supprimer ce bracelet ?</p>
+            <div class="custom-confirm-buttons">
+                <button id="cancelDeleteBtn" class="btn btn-blue">Annuler</button>
+                <button id="confirmDeleteBtn" class="btn btn-red">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customConfirmModify" class="custom-confirm-overlay" style="display:none;">
+        <div class="custom-confirm-box">
+            <p>Confirmer la modification du bracelet ?</p>
+            <div class="custom-confirm-buttons">
+                <button id="cancelModifyBtn" class="btn btn-blue">Annuler</button>
+                <button id="confirmModifyBtn" class="btn btn-red">Confirmer</button>
+            </div>
+        </div>
+    </div>
+    <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+
+    <script src="scripts/bracelet/editBracelet.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+    <script>
+        (function () {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            function init() {
+                const btn = document.getElementById('backlinkBtn');
+                if (!btn) return;
+
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = '/liste-bracelets';
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>
