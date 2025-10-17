@@ -73,6 +73,7 @@ p {
   }
 }
 
+/* Ensure feedback animation sits above all overlays/modals so checkmark is always visible */
 #feedbackAnimation {
   position: fixed;
   top: 0;
@@ -84,12 +85,13 @@ p {
   align-items: center;
   backdrop-filter: blur(10px);
   background-color: rgba(255, 255, 255, 0.1);
-  z-index: 10000;
+  /* slightly above the confirm overlays (22000) */
+  z-index: 23000 !important;
   pointer-events: none;
 }
 
 #feedbackAnimation > * {
-  z-index: 1;
+  z-index: 23001 !important;
   pointer-events: auto;
   filter: none;
 }

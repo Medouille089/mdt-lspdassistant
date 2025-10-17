@@ -38,36 +38,78 @@ function showAnimation(type = 'success', message = '') {
 }
 
 // --- Confirm popups ---
-function showConfirm(type = 'delete') {
+function showConfirm(message = 'Confirmer ?', timeout = 0) {
     return new Promise((resolve) => {
-        const overlay = document.getElementById(`customConfirm${type.charAt(0).toUpperCase() + type.slice(1)}`);
-        overlay.style.display = 'flex';
+        const overlay = document.getElementById('customConfirm');
+        const msg = document.getElementById('confirmMessage');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+        const okBtn = document.getElementById('confirmOkBtn');
 
-        const cancelBtn = overlay.querySelector('.btn-blue');
-        const confirmBtn = overlay.querySelector('.btn-red');
+        msg.textContent = message;
+        overlay.style.display = 'flex';
 
         function cleanup() {
             overlay.style.display = 'none';
             cancelBtn.removeEventListener('click', onCancel);
-            confirmBtn.removeEventListener('click', onConfirm);
+            okBtn.removeEventListener('click', onOk);
         }
 
-        function onCancel() {
-            cleanup();
-            resolve(false);
-        }
-        function onConfirm() {
-            cleanup();
-            resolve(true);
-        }
+        function onCancel() { cleanup(); resolve(false); }
+        function onOk() { cleanup(); resolve(true); }
 
         cancelBtn.addEventListener('click', onCancel);
-        confirmBtn.addEventListener('click', onConfirm);
+        okBtn.addEventListener('click', onOk);
+
+        if (timeout > 0) {
+            setTimeout(() => { cleanup(); resolve(false); }, timeout);
+        }
     });
 }
 
 // --- Gestion des catégories ---
 let editingCategoryId = null;
+let isSubmitting = false;
+let modalMode = 'create'; // 'create' or 'edit'
+
+// --- Edit modal mode (popup) ---
+let editingCategoryIdModal = null;
+function openEditModal(cat) {
+    modalMode = 'edit';
+    editingCategoryIdModal = cat.id;
+    document.getElementById('edit_title').value = cat.title || '';
+    document.getElementById('edit_emoji').value = cat.emoji || '';
+    document.getElementById('edit_prefix').value = cat.prefix || '';
+    // set selected category/channel in modal select (if present)
+    const editTargetSelect = document.getElementById('edit_targetCategorySelect');
+    if (editTargetSelect) {
+        editTargetSelect.value = cat.target_channel_id || '';
+    }
+    document.getElementById('edit_description').value = cat.description || '';
+    document.getElementById('edit_welcomeMessage').value = cat.welcome_message || '';
+    document.getElementById('edit_categoryEmbedColor').value = cat.embed_color || '#00ff00';
+    document.getElementById('edit_visibleCheckbox').checked = !!cat.visible;
+    // populate selected roles in modal
+    const container = document.getElementById('edit_selectedRolesContainer');
+    container.innerHTML = '';
+    (cat.roles || []).forEach(id => {
+        // try to get name from select
+        const select = document.getElementById('edit_rolesSelect');
+        let name = id;
+        for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === id) { name = select.options[i].text; break; }
+        }
+        container.appendChild(createRoleChip(id, name));
+    });
+    document.getElementById('editSaveBtn').textContent = 'Enregistrer';
+    document.getElementById('editCategoryTitle').textContent = 'Modifier la catégorie';
+    document.getElementById('editCategoryModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    editingCategoryIdModal = null;
+    document.getElementById('editCategoryForm').reset();
+    document.getElementById('editCategoryModal').style.display = 'none';
+}
 
 async function fetchCategories() {
     const res = await fetch('/api/ticket-categories');
@@ -82,7 +124,7 @@ async function fetchCategories() {
         meta.innerHTML = `
             <strong>${cat.emoji || ''} ${cat.title}</strong> <span class="small">(#${cat.id})</span><br>
             <div class="small">${cat.description || ''}</div>
-            <div class="small">Prefix: ${cat.prefix || '-'} | Salon cible: ${cat.target_channel_id || '-'}</div>
+            <div class="small">Prefix: ${cat.prefix || '-'} | Catégorie cible: ${cat.target_channel_id || '-'}</div>
             <div class="small">Roles: ${(cat.roles || []).join(', ')}</div>
             <div class="small">Visible: ${cat.visible ? 'oui' : 'non'}</div>
         `;
@@ -94,12 +136,20 @@ async function fetchCategories() {
         toggle.type = 'checkbox';
         toggle.checked = !!cat.visible;
         toggle.addEventListener('change', async () => {
-            await fetch(`/api/ticket-categories/${cat.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ visible: toggle.checked })
-            });
-            fetchCategories();
+            try {
+                const r = await fetch(`/api/ticket-categories/${cat.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ visible: toggle.checked })
+                });
+                if (!r.ok) throw new Error('Erreur serveur');
+                await showAnimation('success', 'Visibilité mise à jour');
+            } catch (e) {
+                await showAnimation('error', 'Impossible de mettre à jour');
+                toggle.checked = !toggle.checked; // revert
+            } finally {
+                fetchCategories();
+            }
         });
 
         // delete button
@@ -108,14 +158,19 @@ async function fetchCategories() {
         del.title = 'Supprimer la catégorie';
         del.style.marginLeft = '8px';
         del.addEventListener('click', async () => {
-            const confirmed = await showConfirm('delete');
+            const confirmed = await showConfirm(`Supprimer la catégorie « ${cat.title} » ?`);
             if (!confirmed) return;
 
-            const r = await fetch(`/api/ticket-categories/${cat.id}`, { method: 'DELETE' });
-            if (r.status === 204) {
-                await showAnimation('success', 'Catégorie supprimée avec succès');
-                fetchCategories();
-            } else {
+            try {
+                const r = await fetch(`/api/ticket-categories/${cat.id}`, { method: 'DELETE' });
+                if (r.status === 204) {
+                    await showAnimation('success', 'Catégorie supprimée');
+                    fetchCategories();
+                } else {
+                    const txt = await r.text();
+                    throw new Error(txt || 'Erreur');
+                }
+            } catch (e) {
                 await showAnimation('error', 'Erreur lors de la suppression');
             }
         });
@@ -125,7 +180,10 @@ async function fetchCategories() {
         edit.textContent = '✎';
         edit.title = 'Éditer (charge dans le formulaire)';
         edit.style.marginLeft = '8px';
-        edit.addEventListener('click', () => loadCategoryToForm(cat));
+        edit.addEventListener('click', () => {
+            // open modal for editing instead of loading into create form
+            openEditModal(cat);
+        });
 
         actions.appendChild(toggle);
         actions.appendChild(edit);
@@ -141,28 +199,70 @@ async function fetchChannels() {
     const channels = await res.json();
     const select = document.getElementById('panelChannel');
     select.innerHTML = '';
+    // helper to detect category-type channels (supports numeric or string types)
+    function isCategoryType(t) {
+        if (typeof t === 'number') return t === 4; // discord numeric type for category
+        if (!t) return false;
+        const s = String(t).toLowerCase();
+        return s === 'guild_category' || s === 'category' || s.includes('category');
+    }
+
+    // optionally populate the edit modal's category select
+    const editCatSelect = document.getElementById('edit_targetCategorySelect');
+    if (editCatSelect) {
+        editCatSelect.innerHTML = '';
+        const emptyOpt = document.createElement('option');
+        emptyOpt.value = '';
+        emptyOpt.textContent = '— Aucune —';
+        editCatSelect.appendChild(emptyOpt);
+    }
+
     channels.forEach(ch => {
-        const opt = document.createElement('option');
-        opt.value = ch.id;
-        opt.textContent = `${ch.name} (${ch.type})`;
-        select.appendChild(opt);
+        // if category-type, add only to editCatSelect
+        if (isCategoryType(ch.type)) {
+            if (editCatSelect) {
+                const copt = document.createElement('option');
+                copt.value = ch.id;
+                copt.textContent = ch.name;
+                editCatSelect.appendChild(copt);
+            }
+            return; // skip adding to panelChannel
+        }
+
+        // otherwise consider it a text channel and add to the panelChannel select
+    const opt = document.createElement('option');
+    opt.value = ch.id;
+    opt.textContent = ch.name;
+    select.appendChild(opt);
     });
 }
 
 async function fetchRoles() {
     const res = await fetch('/api/discord-roles');
     const roles = await res.json();
-    const select = document.getElementById('rolesSelect');
-    select.innerHTML = '';
-    roles.forEach(r => {
-        const opt = document.createElement('option');
-        opt.value = r.id;
-        opt.textContent = r.name;
-        select.appendChild(opt);
+    // populate both main select (if present) and modal select
+    const selectMain = document.getElementById('rolesSelect');
+    const selectModal = document.getElementById('edit_rolesSelect');
+    [selectMain, selectModal].forEach(sel => {
+        if (!sel) return;
+        sel.innerHTML = '';
+        // placeholder
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '— Sélectionner un rôle —';
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        sel.appendChild(placeholder);
+        roles.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r.id;
+            opt.textContent = r.name;
+            sel.appendChild(opt);
+        });
     });
 }
 
-// Tag UI pour roles
+// Tag UI pour roles (modal)
 function createRoleChip(id, name) {
     const span = document.createElement('span');
     span.className = 'tag';
@@ -178,63 +278,117 @@ function createRoleChip(id, name) {
     return span;
 }
 
-document.getElementById('addRoleBtn').addEventListener('click', () => {
-    const sel = document.getElementById('rolesSelect');
-    const id = sel.value;
-    const name = sel.options[sel.selectedIndex].text;
-    if (!id) return;
-    const container = document.getElementById('selectedRolesContainer');
-    if (container.querySelector(`[data-id="${id}"]`)) return;
-    container.appendChild(createRoleChip(id, name));
-});
+// add role immediately when selecting it in modal
+const editRolesSelect = document.getElementById('edit_rolesSelect');
+if (editRolesSelect) {
+    editRolesSelect.addEventListener('change', () => {
+        const sel = editRolesSelect;
+        const id = sel.value;
+        const name = sel.options[sel.selectedIndex]?.text;
+        if (!id) return;
+        const container = document.getElementById('edit_selectedRolesContainer');
+        if (container.querySelector(`[data-id="${id}"]`)) {
+            sel.selectedIndex = 0; // reset to placeholder
+            return;
+        }
+        container.appendChild(createRoleChip(id, name || id));
+        sel.selectedIndex = 0; // reset to placeholder after add
+    });
+}
 
-function collectSelectedRoleIds() {
-    return Array.from(document.getElementById('selectedRolesContainer').children).map(ch => ch.dataset.id);
+function collectSelectedRoleIdsFromModal() {
+    return Array.from(document.getElementById('edit_selectedRolesContainer').children).map(ch => ch.dataset.id);
 }
 
 // Création / édition de catégorie
-document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+// wire open create modal
+document.getElementById('openCreateModal').addEventListener('click', () => {
+    modalMode = 'create';
+    editingCategoryIdModal = null;
+    // reset modal fields
+    document.getElementById('editCategoryForm').reset();
+    document.getElementById('edit_selectedRolesContainer').innerHTML = '';
+    document.getElementById('editSaveBtn').textContent = 'Créer';
+    document.getElementById('editCategoryTitle').textContent = 'Créer une catégorie';
+    document.getElementById('editCategoryModal').style.display = 'flex';
+});
+
+// adapt edit modal submit to handle create/edit
+document.getElementById('editCategoryForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    // title and emoji required
+    const title = document.getElementById('edit_title').value.trim();
+    // sanitize emoji field: keep only first emoji
+    function extractFirstEmoji(str) {
+        // regex for most emoji sequences (including flags, modifiers)
+        const emojiRegex = /\p{Extended_Pictographic}(?:\uFE0F|\u200D[\p{Extended_Pictographic}])*/u;
+        const m = str.match(emojiRegex);
+        return m ? m[0] : '';
+    }
+    let emoji = document.getElementById('edit_emoji').value.trim();
+    emoji = extractFirstEmoji(emoji);
+    document.getElementById('edit_emoji').value = emoji;
+    if (!title || !emoji) { await showAnimation('error', 'Titre & Emoji requis'); return; }
+    if (isSubmitting) return;
+
     const payload = {
-        title: document.getElementById('title').value,
-        emoji: document.getElementById('emoji').value,
-        description: document.getElementById('description').value,
-        roles: collectSelectedRoleIds(),
-        target_channel_id: document.getElementById('targetChannel').value || null,
-        prefix: document.getElementById('prefix').value || '',
-        welcome_message: document.getElementById('welcomeMessage').value || '',
-        embed_color: document.getElementById('categoryEmbedColor').value || '#00ff00',
-        visible: document.getElementById('visibleCheckbox').checked
+        title,
+        emoji,
+        description: document.getElementById('edit_description').value || '',
+        roles: collectSelectedRoleIdsFromModal(),
+    target_channel_id: (document.getElementById('edit_targetCategorySelect') ? document.getElementById('edit_targetCategorySelect').value : null) || null,
+        prefix: document.getElementById('edit_prefix').value || '',
+        welcome_message: document.getElementById('edit_welcomeMessage').value || '',
+        embed_color: document.getElementById('edit_categoryEmbedColor').value || '#00ff00',
+        visible: document.getElementById('edit_visibleCheckbox').checked
     };
 
-    if (editingCategoryId) {
-        const confirmed = await showConfirm('modify');
-        if (!confirmed) return;
-
-        const res = await fetch(`/api/ticket-categories/${editingCategoryId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        await showAnimation(res.ok ? 'success' : 'error', res.ok ? 'Catégorie mise à jour !' : 'Erreur mise à jour');
-    } else {
-        const confirmed = await showConfirm('add');
-        if (!confirmed) return;
-
-        const res = await fetch('/api/ticket-categories', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        await showAnimation(res.ok ? 'success' : 'error', res.ok ? 'Catégorie créée !' : 'Erreur création');
+    isSubmitting = true;
+    const saveBtn = document.getElementById('editSaveBtn');
+    saveBtn.disabled = true;
+    try {
+        if (modalMode === 'edit' && editingCategoryIdModal) {
+            const confirmed = await showConfirm('Confirmer la modification ?');
+            if (!confirmed) return;
+            const r = await fetch(`/api/ticket-categories/${editingCategoryIdModal}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+            });
+            if (!r.ok) throw new Error('Erreur mise à jour');
+            await showAnimation('success', 'Catégorie mise à jour');
+        } else {
+            const confirmed = await showConfirm('Confirmer la création ?');
+            if (!confirmed) return;
+            const r = await fetch('/api/ticket-categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!r.ok) throw new Error('Erreur création');
+            await showAnimation('success', 'Catégorie créée');
+        }
+        closeEditModal();
+        fetchCategories();
+    } catch (err) {
+        await showAnimation('error', err.message || 'Erreur');
+    } finally {
+        isSubmitting = false;
+        saveBtn.disabled = false;
     }
-
-    document.getElementById('categoryForm').reset();
-    document.getElementById('selectedRolesContainer').innerHTML = '';
-    document.querySelector('#categoryForm button[type="submit"]').textContent = 'Créer catégorie';
-    editingCategoryId = null;
-    fetchCategories();
 });
+
+// emoji input sanitation on change/blur
+const emojiInput = document.getElementById('edit_emoji');
+if (emojiInput) {
+    function keepFirstEmoji(str) {
+        const m = str.match(/\p{Extended_Pictographic}(?:\uFE0F|\u200D[\p{Extended_Pictographic}])*/u);
+        return m ? m[0] : '';
+    }
+    // sanitize continuously to enforce only one emoji
+    emojiInput.addEventListener('input', () => {
+        const val = emojiInput.value || '';
+        const e = keepFirstEmoji(val);
+        emojiInput.value = e;
+    });
+    emojiInput.addEventListener('blur', () => {
+        emojiInput.value = keepFirstEmoji(emojiInput.value || '');
+    });
+}
 
 // Envoi du panel
 document.getElementById('sendPanel').addEventListener('click', async () => {
@@ -260,32 +414,15 @@ document.getElementById('sendPanel').addEventListener('click', async () => {
     }
 });
 
-function loadCategoryToForm(cat) {
-    editingCategoryId = cat.id;
-    document.getElementById('title').value = cat.title || '';
-    document.getElementById('emoji').value = cat.emoji || '';
-    document.getElementById('prefix').value = cat.prefix || '';
-    document.getElementById('targetChannel').value = cat.target_channel_id || '';
-    document.getElementById('description').value = cat.description || '';
-    document.getElementById('welcomeMessage').value = cat.welcome_message || '';
-    document.getElementById('categoryEmbedColor').value = cat.embed_color || '#00ff00';
-    document.getElementById('visibleCheckbox').checked = !!cat.visible;
-
-    const container = document.getElementById('selectedRolesContainer');
-    container.innerHTML = '';
-    (cat.roles || []).forEach(async id => {
-        const select = document.getElementById('rolesSelect');
-        let name = id;
-        for (let i = 0; i < select.options.length; i++) {
-            if (select.options[i].value === id) { name = select.options[i].text; break; }
-        }
-        container.appendChild(createRoleChip(id, name));
-    });
-
-    document.querySelector('#categoryForm button[type="submit"]').textContent = 'Mettre à jour catégorie';
-}
-
 // --- Initial load ---
 fetchCategories();
 fetchChannels();
 fetchRoles();
+// ensure accessible focus order
+document.querySelectorAll('input,select,textarea,button').forEach(el => { if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0'); });
+
+// Edit modal event handlers
+document.getElementById('editCancelBtn').addEventListener('click', () => closeEditModal());
+// footer cancel
+const footerCancel = document.getElementById('editCancelBtnFooter');
+if (footerCancel) footerCancel.addEventListener('click', () => closeEditModal());
