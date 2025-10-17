@@ -23,7 +23,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-document.querySelector('.send-button').addEventListener('click', async () => {
+const sendButton = document.querySelector('.send-button');
+if (sendButton) {
+  sendButton.addEventListener('click', async () => {
   const container = document.querySelector('.convocation-container');
 
   const dateInput = document.getElementById('date-input');
@@ -157,7 +159,8 @@ document.querySelector('.send-button').addEventListener('click', async () => {
   } else {
     await showAnimation('error');
   }
-});
+  });
+}
 
 (function () {
   if (document.readyState === 'loading') {

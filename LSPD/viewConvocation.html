@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/warning.css">
+    <link rel="stylesheet" href="styles/checkmark.css">
     <link rel="stylesheet" href="styles/annonce-popup.css" />
 </head>
 
@@ -86,6 +87,10 @@
                 <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo">
             </div>
         </div>
+        <div class="button-container" style="text-align:center; margin-top:12px">
+            <button id="editConvocBtn" class="convoc-action">Modifier la convocation</button>
+            <button id="saveAndResendBtn" class="convoc-action" style="display:none">Sauvegarder et renvoyer</button>
+        </div>
     </div>
     <div class="loader-overlay" id="loaderOverlay">
         <div class="loader-spinner"></div>
@@ -94,31 +99,9 @@
 
     <script src="scripts/loadSidebar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="scripts/convocation/convocation.js"></script>
     <script src="scripts/convocation/viewConvocation.js"></script>
     <script src="scripts/annonce-popup.js"></script>
-    <script>
-        (function () {
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-
-            function init() {
-                const btn = document.getElementById('backlinkBtn');
-                if (!btn) return;
-
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    if (window.history.length > 1) {
-                        window.history.back();
-                    } else {
-                        window.location.href = '/liste-convocations';
-                    }
-                });
-            }
-        })();
-    </script>
 </body>
 
 </html>
