@@ -1,5 +1,5 @@
 :root {
-  --background-gradient: linear-gradient(#F1F3FF, #CBD4FF);
+  --background-gradient: linear-gradient(#f1f3ff, #cbd4ff);
   --main-color: #0b1b5a;
   --main-color-dark: #08123a;
   --main-color-normal: #1a2c7a;
@@ -8,12 +8,12 @@
   --sidebar-bg: #0b1b5a;
   --sidebar-link: #ffffff;
   --sidebar-hover-bg: #d9e1fd;
-  --sidebar-text: #151A2D;
-  --main-header-bg: #EEF2FF;
-  --dropdown-bg: #151A2D;
-  --dropdown-link: #F1F4FF;
-  --text-light: #EEF2FF;
-  --text-dark: #151A2D;
+  --sidebar-text: #151a2d;
+  --main-header-bg: #eef2ff;
+  --dropdown-bg: #151a2d;
+  --dropdown-link: #f1f4ff;
+  --text-light: #eef2ff;
+  --text-dark: #151a2d;
   --text-muted: #555;
   --text-muted-2: #444;
   --border-color: #0b1b5a;
@@ -28,11 +28,11 @@
   --button-bg-dark: #060d29;
   --button-bg-hover: #08123a;
   --button-text: #ffffff;
-  --scrollbar-hover: #EEF2FF;
+  --scrollbar-hover: #eef2ff;
   --watermark-gradient: linear-gradient(135deg, #0b1b5acc, #0b1b5a95);
-  --pastel-orange: linear-gradient(135deg, #FDEBD0, #FAD7A0);
-  --pastel-red: linear-gradient(135deg, #FADBD8, #F5B7B1);
-  --pastel-green: linear-gradient(135deg, #D5F5E3, #A2D9CE);
+  --pastel-orange: linear-gradient(135deg, #fdebd0, #fad7a0);
+  --pastel-red: linear-gradient(135deg, #fadbd8, #f5b7b1);
+  --pastel-green: linear-gradient(135deg, #d5f5e3, #a2d9ce);
   --table-bg: #344863;
   --table-header-bg: #1d284a;
   --table-hover-bg: #2a3b67;
@@ -100,7 +100,7 @@
   } */
 
 .backlink-btn {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
@@ -122,7 +122,7 @@
   background: var(--button-bg-hover) !important;
 }
 
-.main-container>.backlink-btn {
+.main-container > .backlink-btn {
   align-self: flex-start !important;
   transform: translateX(-6px) !important;
 }

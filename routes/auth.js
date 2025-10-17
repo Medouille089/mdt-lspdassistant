@@ -188,10 +188,10 @@ router.get("/logout", (req, res) => {
 
 // Pages protégées Command Staff uniquement
 const protectedPages = [
-  'admin.html',
-  'adminPointeuse.html',
-  'adminMenu.html',
-  'adminGrades.html',
+  'admin-salons.html',
+  'admin-pointeuse.html',
+  'menu-admin-salons.html',
+  'admin-grades.html',
   'admin-presence.html',
   'admin-annonce.html',
   'admin-logs.html',
@@ -202,15 +202,15 @@ const protectedPages = [
 const protectedPagesSupervisor = [
   'sanctions.html',
   'admin-absences.html',
-  'getSanctions.html',
-  'sanctionMenu.html',
-  'superviseurMenu.html',
-  'convocAgent.html',
-  'officerMenu.html',
+  'liste-sanctions.html',
+  'menu-sanctions.html',
+  'menu-superviseur.html',
+  'convocation-agent.html',
+  'menu-officier.html',
   'getOfficerSanction.html',
-  'getConvocationsAgents.html',
-  'officers.html',
-  'convocAgentMenu.html'
+  'liste-convocations-agent.html',
+  'liste-officiers.html',
+  'menu-convocation-agent'
 ];
 
 const blockedForRookies = [
@@ -222,9 +222,9 @@ const whiteListedPagesDOJ = [
   'viewIncident.html',
   'viewArrestation.html',
   'viewConvocation.html',
-  'getIncident.html',
-  'getArrestation.html',
-  'getConvocation.html'
+  'liste-incidents.html',
+  'liste-arrestations.html',
+  'liste-convocations.html'
 ];// Middleware commun (protège toutes les routes listées)
 router.use(
   ['/protected', ...protectedPages.map(page => `/${page}`), ...protectedPagesSupervisor.map(page => `/${page}`)],

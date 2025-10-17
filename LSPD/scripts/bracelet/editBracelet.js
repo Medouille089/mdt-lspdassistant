@@ -2,7 +2,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 if (!id) {
     showAnimation('error').then(() => {
-        window.location.href = 'getBracelet.html';
+        window.location.href = 'liste-bracelets.html';
     });
 }
 
@@ -41,7 +41,7 @@ async function loadBracelet() {
         const bracelet = list.find(b => b.id == id);
         if (!bracelet) {
             await showAnimation('error');
-            window.location.href = 'getBracelet.html';
+            window.location.href = 'liste-bracelets.html';
             return;
         }
 
@@ -95,7 +95,7 @@ confirmDeleteBtn.addEventListener('click', async () => {
 
         loaderOverlay.style.display = 'none';
         await showAnimation('success', 'Bracelet archivé avec succès!');
-        window.location.href = 'histoBracelet.html';
+        window.location.href = 'historique-bracelets.html';
     } catch (err) {
         loaderOverlay.style.display = 'none';
         await showAnimation('error');
@@ -134,7 +134,7 @@ confirmModifyBtn.addEventListener('click', async () => {
 
         loaderOverlay.style.display = 'none';
         await showAnimation('success', 'Bracelet modifié avec succès!');
-        window.location.href = 'getBracelet.html';
+        window.location.href = 'liste-bracelets.html';
     } catch (err) {
         loaderOverlay.style.display = 'none';
         await showAnimation('error');

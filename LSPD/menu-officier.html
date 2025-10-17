@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/admin.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/genMenu.css">
+    <title>Menu officer - LSPD Assistant</title>
+    <style>
+        /* Force le bouton retour à gauche pour cette page */
+        .backlink-row { display: flex; justify-content: flex-start; }
+        .backlink-row .backlink-btn { margin-left: 0 !important; margin-right: auto !important; }
+    </style>
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+
+    <div class="main-container">
+        <h1 id="agent-name">Menu officer</h1>
+        <div class="backlink-row">
+            <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">← Retour</button>
+        </div>
+        <div class="grid-wrapper">
+            <div class="button-grid">
+                <a href="infos-agent.html" class="send-button" id="info-btn">Informations</a>
+                <a href="#" class="send-button" id="sanctions-btn">Sanctions</a>
+                <a href="#" class="send-button">Bouton 3</a>
+                <a href="#" class="send-button">Bouton 4</a>
+            </div>
+        </div>
+
+        <div id="content-area"></div>
+    </div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('userId'); // ID Discord de l'agent
+        const agentNameH1 = document.getElementById('agent-name');
+
+        // Supprime les boutons sans id
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('.send-button').forEach(btn => {
+                if (!btn.id) btn.remove();
+            });
+        });
+
+        // Fetch du displayName du membre Discord
+        async function fetchAgentDisplayName() {
+            if (!userId) return;
+
+            try {
+                const res = await fetch(`/api/discord/member/${userId}`);
+                if (!res.ok) throw new Error('Impossible de récupérer le nom de l’agent');
+
+                const data = await res.json();
+                agentNameH1.textContent = `Menu officer de l'agent ${data.displayName}`;
+            } catch (err) {
+                console.warn('Impossible de récupérer le nom de l’agent:', err);
+                agentNameH1.textContent = `Menu officer - Utilisateur inconnu`;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchAgentDisplayName);
+
+        // Redirection vers la page des sanctions
+        document.getElementById('sanctions-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!userId) return;
+
+            // on ne passe que l'ID, le displayName sera récupéré côté getOfficerSanctions
+            window.location.href = `liste-sanctions-agent.html?userId=${userId}`;
+        });
+
+        // Redirection vers la page des informations de l'agent
+        document.getElementById('info-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!userId) return;
+
+            window.location.href = `infos-agent.html?userId=${userId}`;
+        });
+    </script>
+    <script>
+        (function () {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            function init() {
+                const btn = document.getElementById('backlinkBtn');
+                if (!btn) return;
+
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = 'liste-officiers.html';
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>

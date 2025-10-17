@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Dossier d'arrestation - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <link rel="stylesheet" href="styles/arrestation/daViewer.css" />
+</head>
+
+<body>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Dossier d'arrestation</h1>
+        <div class="annexe-wrapper">
+            <div class="annexe-toolbar">
+                <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour"
+                    onclick="if (history.length>1) { history.back(); } else { window.location.href='menu-dossier-arrestation'; }">←
+                    Retour</button>
+                <button id="openExternal" class="open-external" type="button">Ouvrir dans un nouvel onglet</button>
+            </div>
+            <div id="annexeInfo" class="annexe-warning" aria-live="polite" style="display: none !important;"></div>
+            <iframe id="annexFrame" class="annexe-frame" referrerpolicy="no-referrer"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        </div>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <script src="scripts/annonce-popup.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/arrestation/daViewer.js"></script>
+</body>
+
+</html>

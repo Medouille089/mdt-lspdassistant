@@ -1,0 +1,252 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  z-index: 0;
+  background: none;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: var(--background-gradient);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#message {
+  min-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+  text-align: center;
+  color: var(--black);
+}
+
+.main-container {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  color: var(--black);
+  padding: 0 2rem 2rem 2rem;
+}
+
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--main-color);
+  color: var(--white);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3em;
+  font-weight: bold;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  flex-direction: column;
+  padding: 20px;
+  text-align: center;
+}
+
+#overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#overlay.hide {
+  animation: curtainUp 1s forwards;
+}
+
+@keyframes curtainUp {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin: 0 !important;
+}
+
+.stats-cards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.card {
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  background-color: var(--white);
+  color: var(--black);
+  flex: 1;
+}
+
+.stat .title {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.stat .number {
+  font-size: 2.5em;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.stat .info {
+  font-size: 0.9em;
+  color: var(--text-muted-2);
+}
+
+/* Dégradés pastel personnalisés */
+.card.stat:nth-child(1) {
+  background: var(--pastel-orange);
+}
+
+.card.stat:nth-child(2) {
+  background: var(--pastel-red);
+}
+
+.card.stat:nth-child(3) {
+  background: var(--pastel-green);
+}
+
+.blink-red {
+  color: var(--blink-red);
+  animation: fade-blink 2s infinite;
+}
+
+@keyframes fade-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.middle-section {
+  display: flex;
+  gap: 20px;
+  height: 100%;
+}
+
+.chart {
+  flex: 2;
+}
+
+.chart-placeholder {
+  height: 200px;
+  background: var(--placeholder-bg);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--placeholder-text);
+  font-size: 1.2em;
+}
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-summary ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.profile-summary li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Styles tableau */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--table-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  margin-top: 15px;
+}
+
+thead {
+  background: var(--table-header-bg);
+}
+
+thead th {
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: default;
+  color: var(--white);
+}
+
+tbody tr {
+  cursor: pointer;
+  transition: background 0.25s;
+}
+
+tbody tr:hover {
+  background: var(--table-hover-bg);
+}
+
+tbody td {
+  padding: 12px 15px;
+  border-top: 1px solid var(--border-table);
+  color: var(--white);
+}
+
+.connected-agents-list {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--main-color) transparent;
+}
+
+/* Scrollbar personnalisée pour Chrome, Edge, Safari */
+.connected-agents-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.connected-agents-list::-webkit-scrollbar-track {
+  background: var(--main-color);
+}
+
+.connected-agents-list::-webkit-scrollbar-thumb {
+  background-color: var(--main-color);
+  border-radius: 4px;
+}

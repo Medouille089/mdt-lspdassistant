@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/admin.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/checkmark.css">
+    <link rel="stylesheet" href="styles/warning.css">
+    <link rel="stylesheet" href="styles/genMenu.css">
+    <title>Nouveau rapport - LSPD Assistant</title>
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+
+    <div class="main-container">
+        <h1>Nouveau rapport</h1>
+
+        <div class="grid-wrapper">
+            <div class="button-grid">
+                <a href="incident.html" class="send-button"><span class="material-symbols-rounded">add_circle</span>Incident</a>
+                <a href="dossier-arrestation.html" class="send-button"><span class="material-symbols-rounded">add_circle</span>Arrestation</a>
+                <a href="bracelet.html" class="send-button"><span class="material-symbols-rounded">add_circle</span>Bracelet</a>
+                <a href="convocation.html" class="send-button"><span class="material-symbols-rounded">add_circle</span>Convocation</a>
+                <a href="rapport-rookie.html" class="send-button hidden"><span class="material-symbols-rounded">add_circle</span> Rookie</a>
+                <a href="#" class="send-button"><span class="material-symbols-rounded">add_circle</span> Bouton 6</a>
+                <a href="#" class="send-button"><span class="material-symbols-rounded">add_circle</span> Bouton 7</a>
+                <a href="#" class="send-button"><span class="material-symbols-rounded">add_circle</span> Bouton 8</a>
+                <a href="#" class="send-button"><span class="material-symbols-rounded">add_circle</span> Bouton 9</a>
+            </div>
+        </div>
+    </div>
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/genMenu.js"></script>
+</body>
+
+</html>

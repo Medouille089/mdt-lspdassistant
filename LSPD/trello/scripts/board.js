@@ -11,7 +11,6 @@ async function fetchCurrentUser() {
         const res = await fetch('/api/user');
         if (!res.ok) throw new Error('Non connecté');
         const user = await res.json();
-        console.log('Utilisateur connecté:', user);
         setCurrentUser(user);
     } catch (error) {
         console.error('Erreur lors de la récupération de l\'utilisateur:', error);

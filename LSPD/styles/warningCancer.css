@@ -1,62 +1,61 @@
 .warning-blink {
-    border: 2px solid red;
-    background-color: #ffcccc;
-    padding: 15px;
-    margin: 20px 0;
-    text-align: center;
-    font-weight: bold;
-    color: #a10000;
-    font-family: Arial, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    animation: blink-bg 1.5s infinite alternate;
-    border-radius: 8px;
+  border: 2px solid red;
+  background-color: #ffcccc;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: center;
+  font-weight: bold;
+  color: #a10000;
+  font-family: Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  animation: blink-bg 1.5s infinite alternate;
+  border-radius: 8px;
 }
 
 .warning-modern {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 14px 20px;
-    margin: 20px auto;
-    background-color: #ffeaea;
-    border: 1px solid #f5b5b5;
-    color: #912d2d;
-    font-weight: 500;
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(255, 0, 0, 0.1);
-    animation: fadeBlink 2s ease-in-out infinite;
-    min-width: 900px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  margin: 20px auto;
+  background-color: #ffeaea;
+  border: 1px solid #f5b5b5;
+  color: #912d2d;
+  font-weight: 500;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.1);
+  animation: fadeBlink 2s ease-in-out infinite;
+  min-width: 900px;
 }
 
 a {
-    color: #912d2d;
+  color: #912d2d;
 }
 
 .warning-icon-modern {
-    width: 20px;
-    height: 20px;
-    opacity: 0.8;
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
 }
 
 @keyframes fadeBlink {
+  0%,
+  100% {
+    background-color: #ffeaea;
+    opacity: 1;
+  }
 
-    0%,
-    100% {
-        background-color: #ffeaea;
-        opacity: 1;
-    }
-
-    50% {
-        background-color: #ffbcbc;
-        /* un rouge pastel un peu plus intense */
-        opacity: 0.7;
-    }
+  50% {
+    background-color: #ffbcbc;
+    /* un rouge pastel un peu plus intense */
+    opacity: 0.7;
+  }
 }
 
 /* HTML DU WARNING

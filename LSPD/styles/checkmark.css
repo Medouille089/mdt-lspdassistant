@@ -10,18 +10,18 @@ svg {
   stroke-dasharray: 1000;
   stroke-dashoffset: 0;
   &.circle {
-    -webkit-animation: dash .9s ease-in-out;
-    animation: dash .9s ease-in-out;
+    -webkit-animation: dash 0.9s ease-in-out;
+    animation: dash 0.9s ease-in-out;
   }
   &.line {
     stroke-dashoffset: 1000;
-    -webkit-animation: dash .9s .35s ease-in-out forwards;
-    animation: dash .9s .35s ease-in-out forwards;
+    -webkit-animation: dash 0.9s 0.35s ease-in-out forwards;
+    animation: dash 0.9s 0.35s ease-in-out forwards;
   }
   &.check {
     stroke-dashoffset: -100;
-    -webkit-animation: dash-check .9s .35s ease-in-out forwards;
-    animation: dash-check .9s .35s ease-in-out forwards;
+    -webkit-animation: dash-check 0.9s 0.35s ease-in-out forwards;
+    animation: dash-check 0.9s 0.35s ease-in-out forwards;
   }
 }
 
@@ -33,10 +33,9 @@ p {
     color: var(--bg);
   }
   &.error {
-    color: #D06079;
+    color: #d06079;
   }
 }
-
 
 @-webkit-keyframes dash {
   0% {
@@ -75,37 +74,37 @@ p {
 }
 
 #feedbackAnimation {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(10px);
-    background-color: rgba(255, 255, 255, 0.1); 
-    z-index: 10000;
-    pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.1);
+  z-index: 10000;
+  pointer-events: none;
 }
 
 #feedbackAnimation > * {
-    z-index: 1;
-    pointer-events: auto;
-    filter: none;
+  z-index: 1;
+  pointer-events: auto;
+  filter: none;
 }
 
 #feedbackAnimation svg,
 #feedbackAnimation p {
-    z-index: 1;
-    filter: none;
+  z-index: 1;
+  filter: none;
 }
 
 #feedbackAnimation {
-    transition: opacity 0.2s ease;
-    opacity: 1;
+  transition: opacity 0.2s ease;
+  opacity: 1;
 }
 
 #feedbackAnimation.fade-out {
-    opacity: 0;
+  opacity: 0;
 }

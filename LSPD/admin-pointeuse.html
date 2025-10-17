@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin pointage - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css" />
+    <link rel="stylesheet" href="styles/warning.css" />
+    <link rel="stylesheet" href="styles/popup.css" />
+    <link rel="stylesheet" href="styles/admin/adminPointeuse.css" />
+  </head>
+
+  <body>
+    <div class="main-container">
+      <div id="sidebar-container"></div>
+      <h1>Configuration pointeuse</h1>
+      <button
+        id="backlinkBtn"
+        class="backlink-btn"
+        type="button"
+        aria-label="Retour"
+      >
+        ← Retour
+      </button>
+
+      <h2 style="margin-top: 0 !important">Rôles & Salaires</h2>
+      <form id="add-role-form" style="margin-bottom: 20px">
+        <input
+          type="text"
+          id="role_id"
+          placeholder="ID du rôle Discord"
+          required
+        />
+        <input type="text" id="role_name" placeholder="Nom du rôle" required />
+        <input
+          type="number"
+          id="salary_rate"
+          placeholder="Salaire $/h"
+          step="0.01"
+          required
+        />
+        <input
+          type="number"
+          id="rank"
+          placeholder="Rang (plus petit = + haut)"
+          required
+        />
+        <button type="submit">Ajouter</button>
+      </form>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID Rôle</th>
+            <th>Nom</th>
+            <th>Salaire $/h</th>
+            <th>Rang</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="roles-body"></tbody>
+      </table>
+
+      <h2>Salaires par Utilisateur</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nom Discord</th>
+            <th>ID</th>
+            <th>Salaire cette semaine ($)</th>
+            <th>Heures cette semaine</th>
+            <th>Salaire semaine dernière ($)</th>
+            <th>Heures semaine dernière</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-salary-body"></tbody>
+      </table>
+
+      <h2>Pointeuses actives</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nom Discord</th>
+            <th>ID</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="active-pointeuses-body"></tbody>
+      </table>
+
+      <h2>Heure d'alerte pointeuse</h2>
+      <div style="margin-bottom: 1em">
+        <input type="time" id="alertTime" />
+        <button id="saveAlertTimeBtn" style="margin-left: 0.5em">
+          Sauvegarder
+        </button>
+        <span
+          id="alertTimeStatus"
+          style="margin-left: 1em; color: green; display: none"
+          >✔️ Sauvegardé</span
+        >
+      </div>
+    </div>
+    <div class="loader-overlay" id="loaderOverlay">
+      <div class="loader-spinner"></div>
+    </div>
+    <div
+      id="customConfirmSend"
+      class="custom-confirm-overlay"
+      style="display: none"
+    >
+      <div class="custom-confirm-box">
+        <p>Confirmer l'envoi de cette sanction ?</p>
+        <div class="custom-confirm-buttons">
+          <button class="btn btn-blue">Annuler</button>
+          <button class="btn btn-red">Confirmer</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="feedbackAnimation" style="display: none; text-align: center"></div>
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/adminPointeuse.js"></script>
+    <script src="scripts/annonce-popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,229 @@
+/* === RESET & BASE === */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: none;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: var(--background-gradient);
+}
+
+/* === LAYOUT PRINCIPAL === */
+.layout {
+  display: flex;
+  justify-content: center;
+  /* centre par rapport à la sidebar */
+  align-items: flex-start;
+  gap: 30px;
+  padding: 20px;
+}
+
+#sidebar-container {
+  width: 250px;
+}
+
+/* Container principal */
+.incident-container {
+  max-width: 900px;
+  width: 100%;
+  margin: auto;
+  background: var(--white);
+  border-radius: 15px;
+  padding: 40px 50px 100px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border: 4px solid var(--main-color-dark);
+  position: relative;
+}
+
+/* Titres */
+h1 {
+  color: var(--main-color-dark);
+  font-size: 2rem;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+h2,
+h3 {
+  color: var(--main-color-dark);
+  margin-bottom: 12px;
+}
+
+/* === FORMULAIRES === */
+label {
+  color: var(--main-color-dark);
+  font-weight: 500;
+  margin-top: 18px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+input[type="text"],
+input[type="color"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--text-light);
+  background: var(--input-bg);
+  font-size: 1rem;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+input[type="color"] {
+  height: 42px;
+  cursor: pointer;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--main-color-dark);
+  outline: none;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Form row */
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.form-row > input,
+.form-row > select {
+  flex: 1;
+}
+
+/* Select roles plus large */
+#rolesSelect {
+  flex: 2;
+  padding: 10px;
+  font-size: 1rem;
+}
+
+/* Boutons discrets */
+button,
+.send-button {
+  background: var(--main-color-dark);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(11, 27, 90, 0.1);
+  transition: all 0.2s;
+}
+
+button:hover,
+.send-button:hover {
+  background: var(--button-bg-hover);
+}
+
+/* Roles tags */
+.roles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 15px;
+}
+
+.roles-list .tag {
+  background: var(--main-color-dark);
+  color: var(--white);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.roles-list .tag .remove {
+  margin-left: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Category box */
+.category {
+  border: 2px solid var(--text-light);
+  border-radius: 12px;
+  padding: 15px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--input-bg);
+  transition: all 0.2s;
+}
+
+.category:hover {
+  background: var(--input-bg-focus);
+  box-shadow: 0 4px 15px rgba(11, 27, 90, 0.1);
+}
+
+.category button {
+  background: var(--main-color-dark);
+  color: var(--white);
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.category button:hover {
+  background: var(--button-bg-hover);
+}
+
+/* Switch */
+.switch input {
+  width: auto;
+  margin-right: 6px;
+}
+
+/* HR */
+hr {
+  border: none;
+  border-bottom: 2px solid var(--main-color-dark);
+  margin: 30px 0;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #sidebar-container {
+    width: 100%;
+  }
+
+  .incident-container {
+    max-width: 100%;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+}

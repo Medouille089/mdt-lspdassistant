@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/admin.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/genMenu.css">
+    <title>Sanctions - LSPD Assistant</title>
+    <style>
+        /* Force le bouton retour à gauche pour cette page */
+        .backlink-row { display: flex; justify-content: flex-start; }
+        .backlink-row .backlink-btn { margin-left: 0 !important; margin-right: auto !important; }
+    </style>
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+
+    <div class="main-container">
+        <h1>Sanctions</h1>
+        <div class="backlink-row">
+            <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">← Retour</button>
+        </div>
+        <div class="grid-wrapper">
+            <div class="button-grid">
+                <a href="sanctions.html" class="send-button"><span
+                        class="material-symbols-rounded">add_circle</span>Sanction</a>
+                <a href="liste-sanctions.html" class="send-button">Liste sanctions</a>
+            </div>
+        </div>
+    </div>
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/genMenu.js"></script>
+    <script>
+        (function () {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            function init() {
+                const btn = document.getElementById('backlinkBtn');
+                if (!btn) return;
+
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = 'menu-superviseur.html';
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>
