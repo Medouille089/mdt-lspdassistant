@@ -49,7 +49,6 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
       const baseUrl = isLocal ? "http://localhost:3001/viewConvocation.html" : "https://lspd-assistant.fr/viewConvocation.html";
       const convocationLink = convocationId ? `${baseUrl}?id=${convocationId}` : null;
 
-      // Déclarer le displayName en brut (nick serveur ou username) pour l'affichage
       const displayName = req.user?.guild_member?.nick || req.user?.username || 'Utilisateur inconnu';
 
       const embed = new EmbedBuilder()
