@@ -227,6 +227,16 @@ async function loadConvocationDetail() {
         motifInput.value = convocation.motif || '';
         officierInput.value = convocation.officer || '';
         gradeInput.value = convocation.grade || '';
+        
+            // Show/hide edit button depending on presence of discord_thread_id
+            const editBtn = document.getElementById('editConvocBtn');
+            if (editBtn) {
+                if (convocation.discord_thread_id || convocation.discord_thread) {
+                    editBtn.style.display = 'inline-block';
+                } else {
+                    editBtn.style.display = 'none';
+                }
+            }
 
     } catch (err) {
         console.error(err);

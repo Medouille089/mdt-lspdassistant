@@ -25,6 +25,10 @@ body::before {
   background-size: cover;
 }
 
+p {
+  text-align: left !important;
+}
+
 .convocation-container {
   max-width: 900px;
   margin: auto;
@@ -94,6 +98,19 @@ body::before {
   border-radius: 8px;
   background-color: #f9fafc;
   margin-top: 5px;
+}
+
+/* Ensure the 'lieu' input text is left aligned */
+#lieu-input {
+  text-align: left;
+}
+
+/* More specific rule to override global `p { text-align: center }` from checkmark.css
+   This targets labels inside the convocation content so they keep left alignment. */
+.convocation-container .content p > label,
+.convocation-container .content p label {
+  display: block;
+  text-align: left !important;
 }
 
 .content-input-replacement {
@@ -266,3 +283,4 @@ body::before {
   font-weight: bold;
   background-color: #eef1f5;
 }
+

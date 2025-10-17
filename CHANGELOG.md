@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.11.2](https://github.com/Medouille089/lspdassistant/compare/v1.11.1...v1.11.2) (2025-10-17)
+
+
+### Bug Fixes
+
+* remove button modifier where convoc didn't have a thread id + some fixes ([beac6e8](https://github.com/Medouille089/lspdassistant/commit/beac6e85948fc09726de8d148db1bc22f3ab686f))
+* update login page ([de6cff9](https://github.com/Medouille089/lspdassistant/commit/de6cff98bddb846a4506c0ae4c471cce54268266))
+
 ### [1.11.1](https://github.com/Medouille089/lspdassistant/compare/v1.11.0...v1.11.1) (2025-10-17)
 
 

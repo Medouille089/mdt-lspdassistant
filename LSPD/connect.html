@@ -71,18 +71,75 @@
 
     <div class="main-content">
       <div class="login-container">
-        <div class="login-tabs">
-          <button class="tab-button active" onclick="switchTab('discord')">
-            Discord
-          </button>
-          <button class="tab-button" onclick="switchTab('local')">
-            Compte Local
-          </button>
-        </div>
+        <!-- Connexion Locale (affichée par défaut) -->
+        <div class="local-login-form">
+          <div class="error-message" id="errorMessage"></div>
 
-        <!-- Connexion Discord -->
-        <div id="discord-tab" class="tab-content active">
-          <div class="discord-connect-wrapper">
+          <form id="localLoginForm">
+            <div class="form-group">
+              <label for="username">Nom d'utilisateur</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                required
+                placeholder="Votre nom d'utilisateur"
+                autocomplete="username"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Mot de passe</label>
+              <div style="position: relative">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  required
+                  placeholder="Votre mot de passe"
+                  autocomplete="current-password"
+                  style="padding-right: 40px"
+                />
+                <button
+                  type="button"
+                  id="togglePassword"
+                  aria-label="Afficher le mot de passe"
+                  style="
+                    position: absolute;
+                    right: 8px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    padding: 0;
+                    color: white;
+                  "
+                >
+                  <span id="eyePassword" class="material-symbols-outlined"
+                    >visibility</span
+                  >
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="login-button" id="loginBtn">
+              Se connecter
+            </button>
+          </form>
+
+          <div class="forgot-password">
+            <a href="/forgot-password">Mot de passe oublié ?</a>
+          </div>
+
+          <!-- small divider -->
+          <hr class="inline-divider" />
+
+          <!-- Discord option placed below the local login -->
+          <div class="discord-hint">
+            <em>Pas encore d'identifiants?</em>
+          </div>
+          <div style="margin-top: 10px; text-align: center;">
             <button
               class="connect-button"
               onclick="window.location.href='/login'"
@@ -90,72 +147,10 @@
               <img
                 src="https://upload.wikimedia.org/wikipedia/fr/thumb/4/4f/Discord_Logo_sans_texte.svg/1818px-Discord_Logo_sans_texte.svg.png"
                 alt=""
-              />Se connecter avec Discord
+                style="height:20px; vertical-align:middle; margin-right:8px;"
+              />
+              Se connecter avec Discord
             </button>
-          </div>
-        </div>
-
-        <!-- Connexion Locale -->
-        <div id="local-tab" class="tab-content">
-          <div class="local-login-form">
-            <div class="error-message" id="errorMessage"></div>
-
-            <form id="localLoginForm">
-              <div class="form-group">
-                <label for="username">Nom d'utilisateur</label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  required
-                  placeholder="Votre nom d'utilisateur"
-                  autocomplete="username"
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <div style="position: relative">
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    required
-                    placeholder="Votre mot de passe"
-                    autocomplete="current-password"
-                    style="padding-right: 40px"
-                  />
-                  <button
-                    type="button"
-                    id="togglePassword"
-                    aria-label="Afficher le mot de passe"
-                    style="
-                      position: absolute;
-                      right: 8px;
-                      top: 50%;
-                      transform: translateY(-50%);
-                      background: none;
-                      border: none;
-                      cursor: pointer;
-                      padding: 0;
-                      color: white;
-                    "
-                  >
-                    <span id="eyePassword" class="material-symbols-outlined"
-                      >visibility</span
-                    >
-                  </button>
-                </div>
-              </div>
-
-              <button type="submit" class="login-button" id="loginBtn">
-                Se connecter
-              </button>
-            </form>
-
-            <div class="forgot-password">
-              <a href="/forgot-password">Mot de passe oublié ?</a>
-            </div>
           </div>
         </div>
       </div>
