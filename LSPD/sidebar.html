@@ -21,9 +21,35 @@
             display: none;
         }
     </style>
+    <style>
+        /* Hide sidebar and main content briefly until JS applies the stored sidebar state to avoid flash */
+        .no-js-sidebar-hide .sidebar,
+        .no-js-sidebar-hide .main-container {
+            visibility: hidden !important;
+            transition: none !important;
+        }
+    </style>
 </head>
 
-<body>
+<body class="no-js-sidebar-hide">
+    <!-- Apply persisted sidebar state as early as possible to avoid visual flash when navigating pages -->
+    <script>
+        try {
+            var _s = localStorage.getItem('sidebarCollapsed');
+            if (_s !== null) {
+                if (_s === 'true') document.body.classList.add('collapsed');
+                else document.body.classList.remove('collapsed');
+                // Mark that initial state was applied early so later scripts can be aware
+                window.__sidebarStateApplied = true;
+            }
+        } catch (e) {
+            // ignore localStorage errors
+            console.warn('sidebar state not applied early:', e);
+        } finally {
+            // Reveal UI now that initial state (if any) has been applied
+            try { document.body.classList.remove('no-js-sidebar-hide'); } catch (e) { }
+        }
+    </script>
     <script src="scripts/annonce-popup.js"></script>
     <!-- Mobile Sidebar Menu Button -->
     <button class="sidebar-menu-button">
@@ -36,9 +62,10 @@
             <a href="#" class="header-logo">
                 <img src="data/images/lspdcancer.png" alt="LSPD Logo" />
             </a>
-            <!-- <button class="sidebar-toggler">
+            <!-- Sidebar toggler restored: allows collapsing/expanding the sidebar -->
+            <button class="sidebar-toggler" aria-label="Toggle sidebar" title="Toggle sidebar">
                 <span class="material-symbols-rounded">chevron_left</span>
-            </button> -->
+            </button>
         </header>
 
         <nav class="sidebar-nav">
@@ -84,6 +111,16 @@
                     </ul>
                 </li>
 
+                <li class="nav-item">
+                    <a href="/menu-rapports" class="nav-link">
+                        <span class="material-symbols-rounded">add_circle</span>
+                        <span class="nav-label">Nouveau rapport</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="nav-item"><a class="nav-link dropdown-title">Nouveau rapport</a></li>
+                    </ul>
+                </li>
+
                 <li class="nav-item dropdown-container">
                     <a href="#" class="nav-link dropdown-toggle">
                         <span class="material-symbols-rounded">bookmark</span>
@@ -92,23 +129,14 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li class="nav-item"><a class="nav-link dropdown-title">Outils</a></li>
-                        <li class="nav-item"><a href="/calculateur-peine"
-                                class="nav-link dropdown-link">Calculateur de peines</a>
+                        <li class="nav-item"><a href="/calculateur-peine" class="nav-link dropdown-link">Calculateur de
+                                peine</a>
                         </li>
                         <li class="nav-item"><a href="/menu-annexes" class="nav-link dropdown-link">Annexes</a>
                         </li>
-                        <li class="nav-item"><a href="/image-uploader" class="nav-link dropdown-link">Uploader d'images</a>
+                        <li class="nav-item"><a href="/image-uploader" class="nav-link dropdown-link">Uploader
+                                d'images</a>
                         </li>
-                    </ul>
-                </li>
-
-                <li class="nav-item">
-                    <a href="/menu-rapports" class="nav-link">
-                        <span class="material-symbols-rounded">add_circle</span>
-                        <span class="nav-label">Nouveau rapport</span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li class="nav-item"><a class="nav-link dropdown-title">Nouveau rapport</a></li>
                     </ul>
                 </li>
 
@@ -141,7 +169,8 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li class="nav-item"><a class="nav-link dropdown-title">Liste</a></li>
-                        <li class="nav-item"><a href="/historique-bracelets" class="nav-link dropdown-link">Bracelets</a>
+                        <li class="nav-item"><a href="/historique-bracelets"
+                                class="nav-link dropdown-link">Bracelets</a>
                         </li>
                     </ul>
                 </li>

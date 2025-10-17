@@ -190,6 +190,23 @@ body::before {
   background-color: #1a2c7a;
 }
 
+/* Buttons used on the view convocation page (edit / save) */
+.convoc-action {
+  background-color: #0b1b5a;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.convoc-action:hover {
+  background-color: #1a2c7a;
+}
+
 .footer-logo {
   position: absolute;
   bottom: 30px;

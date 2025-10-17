@@ -37,11 +37,80 @@ document.querySelectorAll(".sidebar-toggler, .sidebar-menu-button").forEach((but
   });
 });
 
-// Collapse sidebar by default on small screens
-if (window.innerWidth <= 1024) {
-  document.querySelector(".sidebar").classList.add("collapsed");
-  document.body.classList.add("collapsed");
+// Local storage key for persisted sidebar state
+const SIDEBAR_KEY = 'sidebarCollapsed';
+
+// Apply sidebar state from localStorage (if present) or use responsive default
+function applySidebarStateFromStorage() {
+  const sidebar = document.querySelector('.sidebar');
+  const body = document.body;
+  if (!sidebar) return;
+  const stored = localStorage.getItem(SIDEBAR_KEY);
+  if (stored !== null) {
+    const collapsed = stored === 'true';
+    // If an early inline script already applied the body class, don't toggle it again.
+    if (!window.__sidebarStateApplied) {
+      sidebar.classList.toggle('collapsed', collapsed);
+      body.classList.toggle('collapsed', collapsed);
+    } else {
+      // Ensure sidebar element and body agree
+      sidebar.classList.toggle('collapsed', body.classList.contains('collapsed'));
+    }
+    // update toggler icon direction if present
+    updateTogglerIcon(collapsed);
+  } else {
+    // No stored preference: collapse by default on small screens
+    const shouldCollapse = window.innerWidth <= 1024;
+    // If early script applied something, respect it
+    if (!window.__sidebarStateApplied) {
+      sidebar.classList.toggle('collapsed', shouldCollapse);
+      body.classList.toggle('collapsed', shouldCollapse);
+    } else {
+      sidebar.classList.toggle('collapsed', body.classList.contains('collapsed'));
+    }
+    updateTogglerIcon(body.classList.contains('collapsed'));
+  }
 }
+
+function updateTogglerIcon(collapsed) {
+  const toggler = document.querySelector('.sidebar-toggler');
+  if (!toggler) return;
+  const icon = toggler.querySelector('.material-symbols-rounded');
+  if (!icon) return;
+  // When collapsed, show chevron_right (indicating expand), else chevron_left
+  icon.textContent = collapsed ? 'chevron_right' : 'chevron_left';
+}
+
+// Initialize sidebar state on DOMContentLoaded to ensure elements exist
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', applySidebarStateFromStorage);
+} else {
+  applySidebarStateFromStorage();
+}
+
+// Enhance toggle buttons to persist state
+document.querySelectorAll('.sidebar-toggler, .sidebar-menu-button').forEach((button) => {
+  // click handler already defined above; attach a small listener to persist after toggle
+  button.addEventListener('click', () => {
+    const sidebar = document.querySelector('.sidebar');
+    const collapsed = sidebar ? sidebar.classList.contains('collapsed') : false;
+    try {
+      localStorage.setItem(SIDEBAR_KEY, String(collapsed));
+    } catch (e) {
+      // ignore storage errors (e.g., privacy mode)
+      console.warn('Unable to persist sidebar state:', e);
+    }
+    updateTogglerIcon(collapsed);
+  });
+
+  // allow keyboard activation (space/enter)
+  button.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      button.click();
+    }
+  });
+});
 
 async function fetchUser() {
   try {

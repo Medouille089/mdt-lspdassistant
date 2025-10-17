@@ -230,10 +230,10 @@ async function fetchChannels() {
         }
 
         // otherwise consider it a text channel and add to the panelChannel select
-    const opt = document.createElement('option');
-    opt.value = ch.id;
-    opt.textContent = ch.name;
-    select.appendChild(opt);
+        const opt = document.createElement('option');
+        opt.value = ch.id;
+        opt.textContent = ch.name;
+        select.appendChild(opt);
     });
 }
 
@@ -336,7 +336,7 @@ document.getElementById('editCategoryForm').addEventListener('submit', async (e)
         emoji,
         description: document.getElementById('edit_description').value || '',
         roles: collectSelectedRoleIdsFromModal(),
-    target_channel_id: (document.getElementById('edit_targetCategorySelect') ? document.getElementById('edit_targetCategorySelect').value : null) || null,
+        target_channel_id: (document.getElementById('edit_targetCategorySelect') ? document.getElementById('edit_targetCategorySelect').value : null) || null,
         prefix: document.getElementById('edit_prefix').value || '',
         welcome_message: document.getElementById('edit_welcomeMessage').value || '',
         embed_color: document.getElementById('edit_categoryEmbedColor').value || '#00ff00',
@@ -426,3 +426,25 @@ document.getElementById('editCancelBtn').addEventListener('click', () => closeEd
 // footer cancel
 const footerCancel = document.getElementById('editCancelBtnFooter');
 if (footerCancel) footerCancel.addEventListener('click', () => closeEditModal());
+
+(function () {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        const btn = document.getElementById('backlinkBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/menu-admin-salons';
+            }
+        });
+    }
+})();

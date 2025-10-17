@@ -59,7 +59,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 if (!id) {
     showAnimation('error').then(() => {
-    window.location.href = '/getdossier-arrestation';
+        window.location.href = '/getdossier-arrestation';
     });
 }
 
@@ -191,26 +191,26 @@ async function loadIncidentDetail() {
         preview.innerHTML = '';
 
         if (arrestation.images && arrestation.images.length > 0) {
-                // Créer toutes les images dans l'ordre d'upload (ancien -> récent)
-                for (let idx = 0; idx < arrestation.images.length; idx++) {
-                    const url = arrestation.images[idx];
-                    if (idx === 0) {
-                        // première image uploadée -> preview1 (photo masquée)
-                        fileInput1.src = url;
-                    } else if (idx === 1) {
-                        // deuxième image uploadée -> preview2 (démasquée)
-                        fileInput2.src = url;
-                    } else {
-                        const img = document.createElement('img');
-                        img.src = url;
-                        img.alt = 'Pièce jointe';
-                        img.style.maxWidth = '200px';
-                        img.style.margin = '5px';
-                        img.style.cursor = 'pointer';
-                        img.classList.add('preview-image');
-                        container.appendChild(img);
-                    }
+            // Créer toutes les images dans l'ordre d'upload (ancien -> récent)
+            for (let idx = 0; idx < arrestation.images.length; idx++) {
+                const url = arrestation.images[idx];
+                if (idx === 0) {
+                    // première image uploadée -> preview1 (photo masquée)
+                    fileInput1.src = url;
+                } else if (idx === 1) {
+                    // deuxième image uploadée -> preview2 (démasquée)
+                    fileInput2.src = url;
+                } else {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = 'Pièce jointe';
+                    img.style.maxWidth = '200px';
+                    img.style.margin = '5px';
+                    img.style.cursor = 'pointer';
+                    img.classList.add('preview-image');
+                    container.appendChild(img);
                 }
+            }
 
             // List of img elements to wait for
             const imgContainer = Array.from(document.querySelectorAll('#incident-container img'));
@@ -239,3 +239,25 @@ async function loadIncidentDetail() {
 }
 
 loadIncidentDetail();
+
+(function () {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        const btn = document.getElementById('backlinkBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/getdossier-arrestation';
+            }
+        });
+    }
+})();

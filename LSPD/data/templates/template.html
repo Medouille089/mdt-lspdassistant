@@ -14,9 +14,16 @@
     <link rel="stylesheet" href="styles/colors.css" />
     <link rel="stylesheet" href="styles/annonce-popup.css" />
     <link rel="stylesheet" href="styles/warningCancer.css" />
+    <style>
+        /* While sidebar is loading, hide its container and prevent layout shift.
+           The body starts with class 'sidebar-loading' and the loader script will
+           remove it once the sidebar HTML is injected. */
+        .sidebar-loading #sidebar-container { visibility: hidden; }
+        .sidebar-loading .main-container { margin-left: 85px; }
+    </style>
 </head>
 
-<body>
+<body class="sidebar-loading">
 
     <div class="main-container">
         <div id="sidebar-container"></div>

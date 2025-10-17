@@ -36,7 +36,7 @@ function formatDate(dateStr) {
 async function loadConvocationDetails() {
     if (!convocationId) {
         alert('ID de convocation manquant');
-            window.location.href = '/liste-convocations-agent';
+        window.location.href = '/liste-convocations-agent';
         return;
     }
 
@@ -46,13 +46,13 @@ async function loadConvocationDetails() {
     try {
         const response = await fetch('/api/getConvocationsAgents');
         if (!response.ok) throw new Error('Erreur lors du chargement');
-        
+
         const convocations = await response.json();
         const convocation = convocations.find(c => c.id == convocationId);
 
         if (!convocation) {
             alert('Convocation introuvable');
-                window.location.href = '/liste-convocations-agent';
+            window.location.href = '/liste-convocations-agent';
             return;
         }
 
@@ -67,11 +67,11 @@ async function loadConvocationDetails() {
 
         // Mettre à jour le titre de la page
         document.title = `Convocation Agent #${convocation.id} - LSPD Assistant`;
-        
+
     } catch (error) {
         console.error('Erreur:', error);
         alert('Erreur lors du chargement des détails');
-            window.location.href = '/liste-convocations-agent';
+        window.location.href = '/liste-convocations-agent';
     } finally {
         loader.style.display = 'none';
     }
@@ -86,3 +86,25 @@ backButton.addEventListener('click', () => {
 document.addEventListener('DOMContentLoaded', () => {
     loadConvocationDetails();
 });
+
+(function () {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        const btn = document.getElementById('backlinkBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/getConvocationAgent';
+            }
+        });
+    }
+})();
