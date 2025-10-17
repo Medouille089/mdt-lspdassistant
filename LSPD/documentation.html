@@ -36,6 +36,52 @@
             <!-- FAQ dynamique ici -->
         </div>
     </div>
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <script>
+        (function(){
+            const overlay = document.getElementById('loaderOverlay');
+            if (!overlay) return;
+            // Show overlay immediately
+            overlay.style.display = 'flex';
+
+            let sidebarReady = false;
+            let windowReady = false;
+
+            const tryHide = () => {
+                if (sidebarReady && windowReady) {
+                    overlay.style.display = 'none';
+                }
+            };
+
+            // When sidebar is injected
+            const onSidebarReady = () => {
+                sidebarReady = true;
+                tryHide();
+                document.removeEventListener('sidebar:ready', onSidebarReady);
+            };
+            document.addEventListener('sidebar:ready', onSidebarReady);
+
+            // When window load occurs
+            if (document.readyState === 'complete') {
+                windowReady = true;
+                tryHide();
+            } else {
+                window.addEventListener('load', () => {
+                    windowReady = true;
+                    tryHide();
+                });
+            }
+
+            // Safety timeout: hide overlay after 6s to avoid permanently blocking UI
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 6000);
+        })();
+    </script>
+
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/faq.js"></script>
 </body>

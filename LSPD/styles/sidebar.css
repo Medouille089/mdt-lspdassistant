@@ -120,6 +120,11 @@ body.collapsed .main-content {
   transition: 0.4s ease;
 }
 
+/* Hide desktop collapse toggler button: keep mobile .sidebar-menu-button intact */
+.sidebar-header .sidebar-toggler {
+  display: none !important;
+}
+
 .sidebar.collapsed .sidebar-header .sidebar-toggler {
   transform: translate(-4px, 65px);
 }

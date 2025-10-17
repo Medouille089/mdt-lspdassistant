@@ -9,6 +9,7 @@
     <title>Trello</title>
     <link rel="stylesheet" href="../styles/sidebar.css">
     <link rel="stylesheet" href="../styles/colors.css">
+    <link rel="stylesheet" href="../styles/loader.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/rookie-patrols.css">
     <link rel="icon" href="../data/images/favicon.png" type="image/png">
@@ -50,7 +51,13 @@
             window.closeFullscreenImage = closeFullscreenImage;
 
             document.addEventListener('DOMContentLoaded', () => {
-                initialize();
+                const initResult = initialize();
+                // Emit board:ready when initialization completes (supports sync or Promise returns)
+                Promise.resolve(initResult).then(() => {
+                    try { document.dispatchEvent(new Event('board:ready')); } catch (e) {}
+                }).catch(() => {
+                    try { document.dispatchEvent(new Event('board:ready')); } catch (e) {}
+                });
                 
                 // Bouton patrouilles avec rookies
                 const rookieBtn = document.getElementById('rookiePatrolsBtn');
@@ -67,7 +74,7 @@
                 if (container) {
                     fetch('/sidebar')
                         .then(res => res.text())
-                        .then(html => {
+                .then(html => {
                             // Make image paths absolute so they resolve correctly from /trello/
                             html = html.replace(/src="data\/images\//g, 'src="/data/images/');
 
@@ -78,6 +85,8 @@
                             const script = document.createElement('script');
                             script.src = '/scripts/sidebar.js';
                             document.body.appendChild(script);
+                    // Notify that sidebar has been injected
+                    try { document.dispatchEvent(new Event('sidebar:ready')); } catch (e) {}
                         })
                         .catch(err => console.error("Erreur chargement sidebar :", err));
                 }
@@ -224,6 +233,35 @@
                 </div>
             </div>
         </template>
+            <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-spinner"></div>
+    </div>
+            <script>
+                (function(){
+                    const overlay = document.getElementById('loaderOverlay');
+                    if (!overlay) return;
+                    overlay.style.display = 'flex';
+
+                    let sidebarReady = false;
+                    let boardReady = false;
+                    let windowReady = false;
+
+                    const tryHide = () => {
+                        if (sidebarReady && boardReady && windowReady) overlay.style.display = 'none';
+                    };
+
+                    const onSidebar = () => { sidebarReady = true; tryHide(); document.removeEventListener('sidebar:ready', onSidebar); };
+                    const onBoard = () => { boardReady = true; tryHide(); document.removeEventListener('board:ready', onBoard); };
+
+                    document.addEventListener('sidebar:ready', onSidebar);
+                    document.addEventListener('board:ready', onBoard);
+
+                    if (document.readyState === 'complete') { windowReady = true; tryHide(); }
+                    else window.addEventListener('load', () => { windowReady = true; tryHide(); });
+
+                    setTimeout(() => { overlay.style.display = 'none'; }, 6000);
+                })();
+            </script>
 </body>
 
 </html>

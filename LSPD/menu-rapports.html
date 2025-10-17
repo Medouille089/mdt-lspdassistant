@@ -8,11 +8,36 @@
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
-    <link rel="stylesheet" href="styles/admin.css">
+    <link rel="stylesheet" href="styles/admin/admin.css">
     <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/checkmark.css">
     <link rel="stylesheet" href="styles/warning.css">
     <link rel="stylesheet" href="styles/genMenu.css">
+    <!-- Preconnect & preload Google fonts to speed up Material Symbols rendering and avoid text fallback flash -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Load Material Symbols Rounded early -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+
+    <style>
+        /* Accessible hide for text meant only for screen readers */
+        .visually-hidden {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+        /* Ensure icon and visible label align nicely */
+        .send-button { display:inline-flex; align-items:center; gap:0.6rem; }
+        .send-button .material-symbols-rounded { font-variation-settings: 'wght' 400; font-size:1.25rem; }
+        .send-button .label { color: inherit; }
+    </style>
+
     <title>Nouveau rapport - LSPD Assistant</title>
 </head>
 
@@ -25,15 +50,15 @@
 
         <div class="grid-wrapper">
             <div class="button-grid">
-                <a href="/incident" class="send-button"><span class="material-symbols-rounded">add_circle</span>Incident</a>
-                <a href="/dossier-arrestation" class="send-button"><span class="material-symbols-rounded">add_circle</span>Arrestation</a>
-                <a href="/bracelet" class="send-button"><span class="material-symbols-rounded">add_circle</span>Bracelet</a>
-                <a href="/convocation" class="send-button"><span class="material-symbols-rounded">add_circle</span>Convocation</a>
-                <a href="/rapport-rookie" class="send-button hidden"><span class="material-symbols-rounded">add_circle</span> Rookie</a>
-                <a href="#" class="send-button"><span class="material-symbols-rounded">add_circle</span> Bouton 6</a>
-                <a href="#" class="send-button"><span class="material-symbols-rounded">add_circle</span> Bouton 7</a>
-                <a href="#" class="send-button"><span class="material-symbols-rounded">add_circle</span> Bouton 8</a>
-                <a href="#" class="send-button"><span class="material-symbols-rounded">add_circle</span> Bouton 9</a>
+                <a href="/incident" class="send-button"><span class="material-symbols-rounded" aria-hidden="true">add_circle</span><span class="visually-hidden">Incident</span><span class="label">Incident</span></a>
+                <a href="/dossier-arrestation" class="send-button"><span class="material-symbols-rounded" aria-hidden="true">add_circle</span><span class="visually-hidden">Arrestation</span><span class="label">Arrestation</span></a>
+                <a href="/bracelet" class="send-button"><span class="material-symbols-rounded" aria-hidden="true">add_circle</span><span class="visually-hidden">Bracelet</span><span class="label">Bracelet</span></a>
+                <a href="/convocation" class="send-button"><span class="material-symbols-rounded" aria-hidden="true">add_circle</span><span class="visually-hidden">Convocation</span><span class="label">Convocation</span></a>
+                <a href="/rapport-rookie" class="send-button hidden"><span class="material-symbols-rounded" aria-hidden="true">add_circle</span><span class="visually-hidden">Rookie</span><span class="label">Rookie</span></a>
+                <a href="#" class="send-button"><span class="material-symbols-rounded" aria-hidden="true">add_circle</span><span class="visually-hidden">Bouton 6</span><span class="label">Bouton 6</span></a>
+                <a href="#" class="send-button"><span class="material-symbols-rounded" aria-hidden="true">add_circle</span><span class="visually-hidden">Bouton 7</span><span class="label">Bouton 7</span></a>
+                <a href="#" class="send-button"><span class="material-symbols-rounded" aria-hidden="true">add_circle</span><span class="visually-hidden">Bouton 8</span><span class="label">Bouton 8</span></a>
+                <a href="#" class="send-button"><span class="material-symbols-rounded" aria-hidden="true">add_circle</span><span class="visually-hidden">Bouton 9</span><span class="label">Bouton 9</span></a>
             </div>
         </div>
     </div>

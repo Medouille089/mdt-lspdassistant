@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const script = document.createElement('script');
             script.src = 'scripts/sidebar.js';
             document.body.appendChild(script);
+            // Reveal page now that sidebar is injected
+            document.body.classList.remove('sidebar-loading');
+            // Notify listeners that sidebar has been injected
+            try { document.dispatchEvent(new Event('sidebar:ready')); } catch (e) { /* ignore */ }
 
         } catch (err) {
             console.error("Erreur chargement sidebar :", err);
@@ -31,6 +35,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const script = document.createElement('script');
             script.src = 'scripts/sidebar.js';
             document.body.appendChild(script);
+            // Reveal page even after fallback
+            document.body.classList.remove('sidebar-loading');
+            // Notify listeners that sidebar has been injected (fallback)
+            try { document.dispatchEvent(new Event('sidebar:ready')); } catch (e) { /* ignore */ }
         }
     }
 });

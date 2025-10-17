@@ -21,6 +21,10 @@ body::before {
   background-size: cover;
 }
 
+.main-container {
+  margin-top: -32px!important;
+}
+
 /* Container */
 .embed-form {
   max-width: 900px;
@@ -216,4 +220,43 @@ button:hover {
 
 .btn-red:hover {
   background-color: #c24c5e;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--border-color);
+  padding-bottom: 15px;
+  margin-bottom: 30px;
+}
+
+.header img {
+  height: 70px;
+}
+
+.header-title {
+  text-align: center;
+  flex: 1;
+}
+
+.header-title h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: var(--text-dark);
+}
+
+.header-title h3 {
+  margin: 4px 0 0;
+  font-size: 16px;
+  color: var(--text-muted-2);
+  text-transform: uppercase;
+}
+
+/* Hide helper small labels that may appear under the date input without using JS */
+#dateDebut + small,
+#dateDebut ~ small {
+  display: none !important;
 }
