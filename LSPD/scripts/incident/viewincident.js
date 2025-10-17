@@ -35,7 +35,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 if (!id) {
     showAnimation('error').then(() => {
-    window.location.href = '/liste-incidents';
+        window.location.href = '/liste-incidents';
     });
 }
 
@@ -237,7 +237,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
         formDataPut.append("messageId", messageId || null);
         formDataPut.append("pieces", pdfBlob, `incident_${id}.pdf`);
         formDataPut.append("editBy", editBy || 'Utilisateur inconnu');
-        
+
         const res = await fetch('/api/updateIncident', {
             method: 'PUT',
             body: formDataPut
@@ -291,3 +291,25 @@ function showAnimation(type = 'success') {
         setTimeout(() => resolve(), 1800);
     });
 }
+
+(function () {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        const btn = document.getElementById('backlinkBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/liste-incidents';
+            }
+        });
+    }
+})();
