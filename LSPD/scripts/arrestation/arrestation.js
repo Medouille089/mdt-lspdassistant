@@ -611,3 +611,25 @@ function showAnimation(type = 'success') {
     setTimeout(() => resolve(), 1800);
   });
 }
+
+(function () {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  function init() {
+    const btn = document.getElementById('backlinkBtn');
+    if (!btn) return;
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '/menu-rapports';
+      }
+    });
+  }
+})();

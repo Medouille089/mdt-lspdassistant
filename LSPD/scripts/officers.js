@@ -61,7 +61,7 @@ function renderTable() {
     `;
         tr.addEventListener('click', () => {
             // On ouvre le menu officer en transmettant l'ID Discord de l'agent
-            window.location.href = `menu-officier.html?userId=${item.id}`;
+            window.location.href = `/menu-officier?userId=${item.id}`;
         });
         tableBody.appendChild(tr);
     });

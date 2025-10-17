@@ -83,7 +83,7 @@ function renderTable() {
             
         `;
         tr.addEventListener('click', () => {
-            window.location.href = `viewArrestation.html?id=${item.arrestationId}`;
+            window.location.href = `/viewArrestation?id=${item.arrestationId}`;
         });
         tableBody.appendChild(tr);
     });

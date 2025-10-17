@@ -82,7 +82,7 @@ function renderTable() {
                     <td>${formatDate(item.dateDebut)}</td>
                 `;
         tr.addEventListener('click', () => {
-            window.location.href = `modifier-bracelet.html?id=${item.id}`;
+            window.location.href = `/modifier-bracelet?id=${item.id}`;
         });
         tableBody.appendChild(tr);
     });

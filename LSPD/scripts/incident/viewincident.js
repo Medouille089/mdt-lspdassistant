@@ -35,7 +35,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 if (!id) {
     showAnimation('error').then(() => {
-        window.location.href = 'liste-incidents.html';
+    window.location.href = '/liste-incidents';
     });
 }
 
@@ -246,7 +246,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
         if (!res.ok) throw new Error('Erreur lors de la mise à jour');
         const data = await res.json();
         showAnimation('success').then(() => {
-            window.location.href = `viewIncident.html?id=${id}`;
+            window.location.href = `/viewIncident?id=${id}`;
         });
     } catch (err) {
         console.error(err);

@@ -71,19 +71,15 @@ app.use(async (req, res, next) => {
     if (!req.isAuthenticated || !req.isAuthenticated()) return next();
 
     // Eviter de boucler sur la page blacklisted ou sur les assets publics
-    const skipPaths = [
-      "/",
-      "/connect.html",
-      "/blacklisted.html",
-      "/login",
-      "/logout",
-      "/callback",
-    ];
-    const isStaticAsset = req.path.match(
-      /\.(css|js|png|jpg|jpeg|gif|svg|ico)$/i
-    );
+    const skipPaths = ["/", "/connect.html", "/blacklisted.html", "/login", "/logout", "/callback"];
+    const isStaticAsset = req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico)$/i);
     if (isStaticAsset) return next();
-    if (skipPaths.includes(req.path)) return next();
+
+    // Normaliser la comparaison pour accepter /page et /page.html
+    const normalize = (p) => (p || "").replace(/\/$/, "").replace(/\.html$/, "");
+    const requestNormalized = normalize(req.path);
+    const skipNormalized = skipPaths.map(normalize);
+    if (skipNormalized.includes(requestNormalized)) return next();
 
     // First: check DB table lspd_blacklist so users are blocked even if they don't have the role
     try {
@@ -179,8 +175,12 @@ app.use((req, res, next) => {
   const isStaticAsset = req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg)$/i);
   if (isStaticAsset) return next();
 
+  // Normaliser la comparaison pour accepter /page et /page.html
+  const normalize = (p) => (p || "").replace(/\/$/, "").replace(/\.html$/, "");
+  const requestNormalized = normalize(req.path);
+  const publicNormalized = publicPaths.map(normalize);
   // Autoriser seulement les routes publiques
-  if (publicPaths.includes(req.path)) return next();
+  if (publicNormalized.includes(requestNormalized)) return next();
 
   // Cas API interne
   if (req.headers["x-internal"] === "true") return next();
@@ -255,6 +255,36 @@ app.use(rookiePatrolsRoutes);
 app.use(rapportRookie);
 // Route utilitaire pour uploader des images via le bot Discord
 app.use(discordUploader);
+
+// Middleware: canonicalize .html URLs -> redirect to extensionless, and
+// serve *.html when users request /page (without extension).
+app.use(async (req, res, next) => {
+  try {
+    // Ignore assets (css/js/images/etc.) and API routes
+    if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico)$/i)) return next();
+    if (req.path.startsWith("/api/")) return next();
+
+    // If URL ends with .html, redirect to extensionless canonical URL
+    if (req.path.endsWith(".html")) {
+      const canonical = req.path.replace(/\.html$/, "");
+      // preserve querystring
+      const qs = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
+      return res.redirect(301, canonical + qs);
+    }
+
+    // Try to serve a corresponding .html file for extensionless path
+    // e.g. /dashboard -> LSPD/dashboard.html
+    const candidate = path.join(__dirname, "LSPD", req.path === "/" ? "index.html" : `${req.path.replace(/^\//, "")}.html`);
+    const fs = require("fs");
+    if (fs.existsSync(candidate)) {
+      return res.sendFile(candidate);
+    }
+
+    return next();
+  } catch (e) {
+    return next();
+  }
+});
 
 // 🗂️ Frontend statique
 app.use(express.static(path.join(__dirname, "LSPD")));

@@ -87,7 +87,7 @@ function renderTable() {
             <td>${item.officer || 'Non précisé'}</td>
         `;
         tr.addEventListener('click', () => {
-            window.location.href = `viewConvocation.html?id=${item.id}`;
+            window.location.href = `/viewConvocation?id=${item.id}`;
         });
         tableBody.appendChild(tr);
     });

@@ -59,7 +59,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 if (!id) {
     showAnimation('error').then(() => {
-        window.location.href = 'getdossier-arrestation.html';
+    window.location.href = '/getdossier-arrestation';
     });
 }
 

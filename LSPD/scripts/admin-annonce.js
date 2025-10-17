@@ -53,7 +53,7 @@ document.getElementById("annonce-send").onclick = async function () {
       if (window.history.length > 1) {
         window.history.back();
       } else {
-        window.location.href = "menu-admin-salons.html";
+  window.location.href = "/menu-admin-salons";
       }
     });
   }

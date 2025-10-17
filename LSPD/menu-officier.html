@@ -29,7 +29,7 @@
         </div>
         <div class="grid-wrapper">
             <div class="button-grid">
-                <a href="infos-agent.html" class="send-button" id="info-btn">Informations</a>
+                <a href="/infos-agent" class="send-button" id="info-btn">Informations</a>
                 <a href="#" class="send-button" id="sanctions-btn">Sanctions</a>
                 <a href="#" class="send-button">Bouton 3</a>
                 <a href="#" class="send-button">Bouton 4</a>
@@ -76,7 +76,7 @@
             if (!userId) return;
 
             // on ne passe que l'ID, le displayName sera récupéré côté getOfficerSanctions
-            window.location.href = `liste-sanctions-agent.html?userId=${userId}`;
+            window.location.href = `/liste-sanctions-agent?userId=${userId}`;
         });
 
         // Redirection vers la page des informations de l'agent
@@ -84,7 +84,7 @@
             e.preventDefault();
             if (!userId) return;
 
-            window.location.href = `infos-agent.html?userId=${userId}`;
+            window.location.href = `/infos-agent?userId=${userId}`;
         });
     </script>
     <script>
@@ -104,7 +104,7 @@
                     if (window.history.length > 1) {
                         window.history.back();
                     } else {
-                        window.location.href = 'liste-officiers.html';
+                        window.location.href = '/liste-officiers';
                     }
                 });
             }
