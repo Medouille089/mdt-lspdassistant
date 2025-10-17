@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.11.1](https://github.com/Medouille089/lspdassistant/compare/v1.11.0...v1.11.1) (2025-10-17)
+
+
+### Bug Fixes
+
+* add loader to trello + documentation. opti du menu rapports ([b5825bf](https://github.com/Medouille089/lspdassistant/commit/b5825bfcb1454e12fd7475426dcd97b2a9d60189))
+* add modify convocation ([9948283](https://github.com/Medouille089/lspdassistant/commit/994828393ec5568786125bae7a0f970d98a633fe))
+* change on sidebar ([eb24bc4](https://github.com/Medouille089/lspdassistant/commit/eb24bc415af27a1d3c563eb37b7c8801ed813f89))
+* opti dev files ([f2313f2](https://github.com/Medouille089/lspdassistant/commit/f2313f29144e12e1795581fa66c2412ef652b17a))
+
 ## [1.11.0](https://github.com/Medouille089/lspdassistant/compare/v1.10.3...v1.11.0) (2025-10-17)
 
 
