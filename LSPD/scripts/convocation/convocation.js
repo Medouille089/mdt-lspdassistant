@@ -60,7 +60,34 @@ document.querySelector('.send-button').addEventListener('click', async () => {
   container.style.width = "900px";
   container.style.border = "none";
 
+  // Inject a temporary style to force readable colors/alignment for the canvas capture.
+  // Some users may have browser themes or extensions (dark mode, High Contrast, Dark Reader, etc.)
+  // that override colors and alignment; html2canvas captures the rendered output, so we
+  // enforce explicit styles here and remove them immediately after capture.
+  const tempStyle = document.createElement('style');
+  tempStyle.setAttribute('data-temp', 'convocation-canvas-fix');
+  tempStyle.textContent = `
+    /* Make all text inside the convocation explicitly black so it's visible on white bg */
+    .convocation-container, .convocation-container * { color: #000 !important; }
+    /* Ensure inputs/replacements keep dark text and expected backgrounds */
+    .convocation-container input, .convocation-container textarea, .convocation-container select, .content-input-replacement { color: #000 !important; background-color: transparent !important; }
+    /* Make sure replaced input spans are left-aligned (some user styles may center them) */
+    .content-input-replacement { text-align: left !important; }
+    /* Keep header/title alignment as designed */
+    .header-title { text-align: center !important; }
+  `;
+  container.appendChild(tempStyle);
+
+  // Ensure our temporary replacement elements are explicitly left-aligned and black
+  dateFormatted.style.color = '#000';
+  dateFormatted.style.textAlign = 'left';
+  heureFormatted.style.color = '#000';
+  heureFormatted.style.textAlign = 'left';
+
   const canvas = await html2canvas(container, { scale: 2 });
+
+  // Remove the temporary style to restore original appearance
+  if (tempStyle && tempStyle.parentNode) tempStyle.parentNode.removeChild(tempStyle);
   const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 
   // Restaurer la largeur et la bordure originale
