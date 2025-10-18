@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.11.3](https://github.com/Medouille089/lspdassistant/compare/v1.11.2...v1.11.3) (2025-10-18)
+
+
+### Bug Fixes
+
+* fix weapons & vehicles table ([b5d3f25](https://github.com/Medouille089/lspdassistant/commit/b5d3f250918974c7ebc1ea63908299e40770bb59))
+* menu-convocation-agent link ([5bc8cb9](https://github.com/Medouille089/lspdassistant/commit/5bc8cb9cf7b3d3341f2ad14581158b54e314975b))
+
 ### [1.11.2](https://github.com/Medouille089/lspdassistant/compare/v1.11.1...v1.11.2) (2025-10-17)
 
 
