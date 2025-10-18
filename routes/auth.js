@@ -272,7 +272,9 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
 
     // Super admin bypass
     if (id_superadmin && roleIds.includes(id_superadmin)) {
-      return res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
+      const requested = req.path.replace(/^\//, '');
+      const fileName = requested.endsWith('.html') ? requested : `${requested}.html`;
+      return res.sendFile(path.join(__dirname, `../LSPD/${fileName}`));
     }
 
     // Vérifie le rôle Command Staff
@@ -280,7 +282,9 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
       return res.redirect('/error.html');
     }
 
-    res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
+  const requested = req.path.replace(/^\//, '');
+  const fileName = requested.endsWith('.html') ? requested : `${requested}.html`;
+  res.sendFile(path.join(__dirname, `../LSPD/${fileName}`));
   } catch (err) {
     console.error(`Erreur ${req.path}:`, err);
     res.status(500).send('Erreur serveur');
@@ -312,7 +316,9 @@ router.get(protectedPagesSupervisor.map(page => `/${page}`), async (req, res) =>
 
     // Super admin bypass
     if (id_superadmin && roleIds.includes(id_superadmin)) {
-      return res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
+      const requested = req.path.replace(/^\//, '');
+      const fileName = requested.endsWith('.html') ? requested : `${requested}.html`;
+      return res.sendFile(path.join(__dirname, `../LSPD/${fileName}`));
     }
 
     // Vérifie Command Staff OU Supervisor
@@ -320,7 +326,9 @@ router.get(protectedPagesSupervisor.map(page => `/${page}`), async (req, res) =>
       return res.redirect('/error.html');
     }
 
-    res.sendFile(path.join(__dirname, `../LSPD/${req.path.replace('/', '')}`));
+    const requested = req.path.replace(/^\//, '');
+    const fileName = requested.endsWith('.html') ? requested : `${requested}.html`;
+    res.sendFile(path.join(__dirname, `../LSPD/${fileName}`));
   } catch (err) {
     console.error(`Erreur ${req.path}:`, err);
     res.status(500).send('Erreur serveur');
