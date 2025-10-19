@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.11.4](https://github.com/Medouille089/lspdassistant/compare/v1.11.3...v1.11.4) (2025-10-19)
+
+
+### Bug Fixes
+
+* add pp + footer in ticket panel ([6882e99](https://github.com/Medouille089/lspdassistant/commit/6882e99b2b040c4e66055eafecbdb3182f0d0608))
+
 ### [1.11.3](https://github.com/Medouille089/lspdassistant/compare/v1.11.2...v1.11.3) (2025-10-18)
 
 

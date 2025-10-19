@@ -260,7 +260,10 @@ router.post('/api/send-panel', async (req, res) => {
                 description: embed.description || '',
                 color: colorInt,
                 thumbnail: { url: bot.user.displayAvatarURL() },
-                footer: embed.footer ? { text: embed.footer } : undefined,
+                footer: {
+                    text: 'LSPD Assistant',
+                    icon_url: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
+                },
                 timestamp: new Date()
             }],
             components: [selectMenu]
