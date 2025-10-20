@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Fiche cérémonie - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            z-index: 0;
+            background: none;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background: var(--background-gradient);
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .annexe-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .annexe-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .annexe-toolbar .open-external {
+            background: var(--button-bg);
+            color: var(--button-text);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: -32px;
+        }
+
+        .annexe-toolbar .open-external:hover {
+            background: var(--button-bg-hover);
+        }
+
+        .annexe-frame {
+            width: 100%;
+            height: calc(100vh - 180px);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .annexe-warning {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Fiche cérémonie</h1>
+        <div class="annexe-wrapper">
+            <div class="annexe-toolbar">
+                <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour"
+                    onclick="if (history.length>1) { history.back(); } else { window.location.href='/menu-superviseur'; }">←
+                    Retour</button>
+                <button id="openExternal" class="open-external" type="button">Ouvrir dans un nouvel onglet</button>
+            </div>
+            <div id="annexeInfo" class="annexe-warning" aria-live="polite" style="display: none !important;"></div>
+            <iframe id="annexFrame" class="annexe-frame" referrerpolicy="no-referrer"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                src="https://docs.google.com/spreadsheets/d/1hcanB99NBnLcQfO4BkCkQOfBVffdFFxJEYWF-Gb2m4M/edit?gid=0#gid=0&fvid=1716173874"></iframe>
+        </div>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <script src="scripts/annonce-popup.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+    <script>
+        document.getElementById('openExternal').onclick = function() {
+            window.open('https://docs.google.com/spreadsheets/d/1hcanB99NBnLcQfO4BkCkQOfBVffdFFxJEYWF-Gb2m4M/edit?gid=0#gid=0&fvid=1716173874', '_blank');
+        };
+    </script>
+</body>
+
+</html>
