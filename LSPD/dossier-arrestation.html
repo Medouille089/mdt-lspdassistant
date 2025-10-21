@@ -46,25 +46,25 @@
           <div>
             <label for="date">Date et heure de rédaction</label>
             <input type="datetime-local" id="date" name="date" required />
-        <script>
-          // Remplit le champ date avec la date et l'heure actuelles en heure française
-          document.addEventListener('DOMContentLoaded', function () {
-            const dateInput = document.getElementById('date');
-            if (dateInput) {
-              const now = new Date();
-              // Convertit en heure française (Europe/Paris)
-              const offset = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
-              const year = offset.getFullYear();
-              const month = String(offset.getMonth() + 1).padStart(2, '0');
-              const day = String(offset.getDate()).padStart(2, '0');
-              const hours = String(offset.getHours()).padStart(2, '0');
-              const minutes = String(offset.getMinutes()).padStart(2, '0');
-              // Format pour input type="datetime-local"
-              const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-              dateInput.value = localDateTime;
-            }
-          });
-        </script>
+            <script>
+              // Remplit le champ date avec la date et l'heure actuelles en heure française
+              document.addEventListener('DOMContentLoaded', function () {
+                const dateInput = document.getElementById('date');
+                if (dateInput) {
+                  const now = new Date();
+                  // Convertit en heure française (Europe/Paris)
+                  const offset = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+                  const year = offset.getFullYear();
+                  const month = String(offset.getMonth() + 1).padStart(2, '0');
+                  const day = String(offset.getDate()).padStart(2, '0');
+                  const hours = String(offset.getHours()).padStart(2, '0');
+                  const minutes = String(offset.getMinutes()).padStart(2, '0');
+                  // Format pour input type="datetime-local"
+                  const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+                  dateInput.value = localDateTime;
+                }
+              });
+            </script>
           </div>
           <div>
             <label for="name">Nom de l'individu</label>
@@ -178,11 +178,13 @@
           </div>
           <div style="width: 100%; margin-top: 10px;">
             <label for="motifArrestation">Motif d'arrestation</label>
-            <textarea id="motifArrestation" name="motifArrestation" required style="width: 100%; min-height: 30px; max-height: 150px;"></textarea>
+            <textarea id="motifArrestation" name="motifArrestation" required
+              style="width: 100%; min-height: 30px; max-height: 150px;"></textarea>
           </div>
           <div style="width: 100%; margin-top: 10px;">
             <label for="circonstances">Circonstance d'arrestation</label>
-            <textarea id="circonstances" name="circonstances" required style="width: 100%; min-height: 30px; max-height: 150px;"></textarea>
+            <textarea id="circonstances" name="circonstances" required
+              style="width: 100%; min-height: 30px; max-height: 150px;"></textarea>
           </div>
         </div>
         <div class="page-break"></div>
@@ -203,21 +205,20 @@
         <label for="inline-fields-4-infos">Chef(s) d'accusation(s)</label>
         <ul id="listAccusations"></ul>
         <div class="inline-fields addInput" style="margin-top: 5px;">
-          <div>
+          <div style="width:100%">
             <select id="accusations-input" name="accusations-input">
               <option value="">-- Sélectionner une accusation --</option>
             </select>
           </div>
-          <div>
-            <input type="button" onclick="ajouterElement()" value="Ajouter">
-          </div>
         </div>
-        <label for="pieces">Pièces jointes (Images)</label>
-        <div class="file-upload-wrapper">
-          <label for="pieces" class="custom-file-upload">
-            Sélectionner des fichiers
-          </label>
-          <input type="file" id="pieces" name="pieces" accept="image/*" multiple />
+        <label for="liensRapportsConvoc">Rapports/Convocations liés</label>
+        <ul id="liensRapportsConvoc" class="empty-list"></ul>
+  <input type="hidden" name="rapports_lies" id="rapports_lies_hidden" />
+        <div class="inline-fields addInput" style="margin-top: 5px;">
+          <div style="width:100%">
+            <input type="text" id="searchRapportConvoc" placeholder="Rechercher par nom..." />
+            <div id="searchResultsRapportConvoc" class="search-results"></div>
+          </div>
         </div>
       </form>
       <div class="image-container">
@@ -227,7 +228,6 @@
     <div class="button-container">
       <button type="submit" class="send-button">Envoyer le rapport d'arrestation</button>
     </div>
-    <div class="attachments-preview" id="attachmentsPreview"></div>
   </div>
   <div class="loader-overlay" id="loaderOverlay">
     <div class="loader-spinner"></div>

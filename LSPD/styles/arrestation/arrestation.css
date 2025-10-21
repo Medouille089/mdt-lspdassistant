@@ -1,3 +1,41 @@
+#searchResultsRapportConvoc:empty {
+  display: none;
+}
+/* Résultats de recherche rapports/convocations */
+#searchResultsRapportConvoc {
+  position: absolute;
+  z-index: 10;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(11,27,90,0.08);
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  margin-top: 4px;
+  padding: 0;
+}
+
+.search-result-item {
+  padding: 14px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-size: 15px;
+  color: var(--main-color);
+  background: #fff;
+}
+.search-result-item:last-child {
+  border-bottom: none;
+  border-radius: 0 0 8px 8px;
+}
+.search-result-item:first-child {
+  border-radius: 8px 8px 0 0;
+}
+.search-result-item:hover {
+  background: #e0e7ff;
+  color: #0b1b5a;
+}
 /* Reset & base */
 html,
 body {
@@ -131,7 +169,8 @@ form select:focus {
 }
 
 #accusations-input {
-  width: 100%;
+  width: calc(100% - 2px);
+  margin-left: 0;
   padding: 12px 15px;
   font-size: 15px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -272,6 +311,75 @@ form textarea {
   transition: all 0.2s ease;
   position: relative;
   border-left: 4px solid var(--main-color);
+}
+
+#liensRapportsConvoc {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0 20px 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  min-height: 54px;
+  display: block;
+}
+
+#liensRapportsConvoc:empty::before {
+  content: "Aucun rapport lié";
+  display: block;
+  padding: 16px;
+  text-align: center;
+  color: #64748b;
+  font-style: italic;
+  font-size: 14px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border-left: none !important;
+}
+
+#liensRapportsConvoc li {
+  padding: 12px 16px;
+  margin: 0;
+  background-color: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  color: var(--main-color);
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  border-left: 4px solid var(--main-color);
+}
+
+#liensRapportsConvoc li:last-child {
+  border-bottom: none;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+}
+
+#liensRapportsConvoc li:first-child {
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+}
+
+#liensRapportsConvoc li:hover {
+  background-color: #fee2e2;
+  border-left-color: #dc2626;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
+}
+
+#liensRapportsConvoc li:hover::after {
+  content: "✕ Cliquer pour supprimer";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #dc2626;
+  font-weight: bold;
+  background-color: rgba(220, 38, 38, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 #listAccusations li:last-child {
@@ -651,7 +759,8 @@ form input[type="checkbox"] {
 }
 
 .search-input {
-  width: 100%;
+  width: calc(100% - 2px);
+  margin-left: 0;
   padding: 6px;
   margin-bottom: 0.5rem;
   box-sizing: border-box;

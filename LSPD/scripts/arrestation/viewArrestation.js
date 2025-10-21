@@ -190,6 +190,104 @@ async function loadIncidentDetail() {
         const preview = document.getElementById('attachmentsPreview');
         preview.innerHTML = '';
 
+        // Affichage enrichi des rapports/convocations liés
+        if (arrestation.rapports_lies && Array.isArray(arrestation.rapports_lies) && arrestation.rapports_lies.length > 0) {
+            const label = document.createElement('label');
+            label.textContent = "Rapports/Convocations liés";
+            label.style.marginTop = "25px";
+            label.style.fontWeight = "600";
+            label.style.fontSize = "14px";
+            label.style.color = "var(--main-color)";
+            container.appendChild(label);
+
+            const ul = document.createElement('ul');
+            ul.id = "liensRapportsConvoc";
+            ul.style.listStyle = "none";
+            ul.style.padding = "0";
+            ul.style.margin = "15px 0 20px 0";
+            ul.style.border = "1px solid #e2e8f0";
+            ul.style.borderRadius = "8px";
+            ul.style.backgroundColor = "#f8fafc";
+
+            const isProd = window.location.hostname === 'lspd-assistant.fr';
+            const baseUrl = isProd ? 'https://lspd-assistant.fr' : '';
+
+            // Fonction utilitaire pour fetch et afficher chaque lien
+            async function fetchAndRenderLien(lien) {
+                let type = 'INC';
+                let idLien = lien;
+                if (typeof lien === 'object') {
+                    type = lien.type || (lien.incidentId ? 'INC' : 'CONVOC');
+                    idLien = lien.incidentId || lien.id || lien;
+                } else if (typeof lien === 'string' && lien.startsWith('INC')) {
+                    type = 'INC';
+                } else {
+                    type = 'CONVOC';
+                }
+
+                let label = idLien;
+                let infos = '';
+                let found = false;
+                try {
+                    if (type === 'INC') {
+                        const res = await fetch(`/api/incidents/${idLien}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            label = `INC${idLien.replace('INC','')}${(data.prenom || data.nom) ? ' - ' : ''}${data.prenom || ''} ${data.nom || ''}`.trim();
+                            infos = `Date: ${data.date_incident || ''} Par: ${data.officier_redacteur || ''}`;
+                            found = true;
+                        }
+                    } else {
+                        const res = await fetch(`/api/convocations/${idLien}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            label = `CONVOC${idLien} - ${data.prenom || ''} ${data.nom || ''}`.trim();
+                            infos = `Date: ${data.date || ''} Par: ${data.agent_redacteur || ''}`;
+                            found = true;
+                        }
+                    }
+                } catch {}
+
+                // Si pas trouvé, fallback minimal
+                if (!found) {
+                    if (type === 'INC') {
+                        label = `INC${idLien.replace('INC','')}`;
+                    } else {
+                        label = `CONVOC${idLien}`;
+                    }
+                    infos = '';
+                }
+
+                                const li = document.createElement('li');
+                                li.innerHTML = `
+                                    <span style="font-weight:700;font-size:16px;letter-spacing:0.5px;">${label}</span><br>
+                                    <span style="font-size:15px;color:#0b1b5a;">${infos}</span>
+                                `;
+                                li.style.padding = "12px 16px";
+                                li.style.margin = "0";
+                                li.style.backgroundColor = "#fff";
+                                li.style.borderBottom = "1px solid #e2e8f0";
+                                li.style.color = "var(--main-color)";
+                                li.style.fontSize = "15px";
+                                li.style.cursor = "pointer";
+                                li.style.transition = "all 0.2s ease";
+                                li.style.position = "relative";
+                                li.style.borderLeft = "4px solid var(--main-color)";
+                                li.addEventListener('click', function () {
+                                        let url = '#';
+                                        if (type === 'INC') url = `${baseUrl}/viewIncident?id=${idLien}`;
+                                        if (type === 'CONVOC') url = `${baseUrl}/viewConvocation?id=${idLien}`;
+                                        window.open(url, '_blank');
+                                });
+                                ul.appendChild(li);
+            }
+
+            // Pour chaque lien, fetch et affiche
+            Promise.all(arrestation.rapports_lies.map(fetchAndRenderLien)).then(() => {
+                container.appendChild(ul);
+            });
+        }
+
         if (arrestation.images && arrestation.images.length > 0) {
             // Créer toutes les images dans l'ordre d'upload (ancien -> récent)
             for (let idx = 0; idx < arrestation.images.length; idx++) {

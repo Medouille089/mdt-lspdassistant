@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+router.use(express.urlencoded({ extended: true }));
 const multer = require("multer");
 const pool = require("../config/db");
 const config = require("../config/config");
@@ -12,6 +13,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
     const conf = await config.getConfig();
     const forumChannelId = conf.arrestation_thread_id;
     const logsChannelId = conf.logs_arrestations;
+
     try {
         const {
             date, name, fileInput1, fileInput2, profession,
@@ -20,9 +22,19 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
             miranda, avocat, nourriture, ems,
             avocatName, officer, grade, lieu,
             motifArrestation, circonstances, arme, uof,
-            accusations, implique
+            accusations, implique, rapports_lies
         } = req.body;
+
         const files = req.files;
+
+        console.log('req.body complet:', req.body);
+        console.log('rapports_lies reçu:', req.body.rapports_lies);
+        console.log('Type de rapports_lies:', typeof req.body.rapports_lies);
+        try {
+            console.log('JSON.parse(rapports_lies):', JSON.parse(req.body.rapports_lies));
+        } catch (err) {
+            console.error('Erreur de parsing rapports_lies:', err);
+        }
 
         const forum = await bot.channels.fetch(forumChannelId);
         const botUser = await bot.user;
@@ -30,9 +42,14 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
         const { rows } = await pool.query("SELECT COUNT(*) FROM lspd_arrestations");
         const count = parseInt(rows[0].count, 10) + 1;
         const arrestationId = `ART${count.toString().padStart(4, "0")}`;
-        const dividedDate = date.split('T');
-        const [yyyy, mm, dd] = dividedDate[0].split("-");
-        const [hh, min] = dividedDate[1].split(":");
+
+        // Construire la date formatée
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, "0");
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const yyyy = now.getFullYear();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const min = String(now.getMinutes()).padStart(2, "0");
         const formattedDate = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
 
         const isLocal = process.env.IS_LOCAL === "true";
@@ -50,7 +67,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
                 { name: "Individu", value: name, inline: true },
                 { name: "Officier rédacteur", value: officer, inline: true },
                 { name: "Avocat", value: avocatName || "Non précisé", inline: true },
-                { name: "Accusations", value: JSON.parse(accusations || "[]").map(a => a).join("\n") || "Aucune", inline: true },
+                { name: "Accusations", value: JSON.parse(accusations || "[]").join("\n") || "Aucune", inline: true },
                 { name: "Lieu", value: lieu || "Non précisé", inline: true },
                 { name: "Consulter le rapport", value: `[Voir le rapport d'arrestation ${arrestationId}](${arrestationLink})` }
             )
@@ -67,33 +84,48 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
             autoArchiveDuration: 1440,
         });
 
-        // Envoyer uniquement les images uploadées (ne PAS envoyer les PDF)
-        try {
-            const imageFiles = (files || []).filter(f => f.mimetype && f.mimetype.startsWith("image/"));
-            if (imageFiles.length) {
-                const attachments = imageFiles.map(f => new AttachmentBuilder(f.buffer, { name: f.originalname }));
-                // Envoyer les images dans le thread
-                await thread.send({ files: attachments }).catch(err => {
-                    console.error("Erreur envoi images au thread Discord :", err);
-                });
-            }
-        } catch (err) {
-            console.error("Erreur traitement fichiers uploadés (images) :", err);
+        // Envoi des images uniquement
+        const imageFiles = (files || []).filter(f => f.mimetype && f.mimetype.startsWith("image/"));
+        if (imageFiles.length) {
+            const attachments = imageFiles.map(f => new AttachmentBuilder(f.buffer, { name: f.originalname }));
+            await thread.send({ files: attachments }).catch(err => {
+                console.error("Erreur envoi images au thread Discord :", err);
+            });
         }
 
+        let rapportsLiesValue = [];
+
+        try {
+            // Si le front a envoyé une string JSON -> parse
+            if (typeof rapports_lies === "string" && rapports_lies.trim() !== "") {
+                rapportsLiesValue = JSON.parse(rapports_lies);
+            }
+            // Si déjà tableau JS (par exemple, si envoyé via JSON)
+            else if (Array.isArray(rapports_lies)) {
+                rapportsLiesValue = rapports_lies;
+            }
+        } catch (err) {
+            console.error("Erreur parsing rapports_lies:", err);
+        }
+
+        // DEBUG: affiche la valeur finale avant INSERT
+        console.log("Valeur finale rapportsLiesValue:", rapportsLiesValue);
+
+
         await pool.query(`
-      INSERT INTO lspd_arrestations
-      (arrestation_id, date_arrestation, profession, ddn, address, tel, droits,
-       entree_cellule, sortie_cellule, bracelet, miranda, avocat, nourriture, ems,
-       avocatname, officer, grade, lieu, motifarrestation, circonstances, arme, uof, accusations, discord_thread_id, name)
-      VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
-    `, [
+            INSERT INTO lspd_arrestations
+            (arrestation_id, date_arrestation, profession, ddn, address, tel, droits,
+             entree_cellule, sortie_cellule, bracelet, miranda, avocat, nourriture, ems,
+             avocatname, officer, grade, lieu, motifarrestation, circonstances, arme, uof, accusations, discord_thread_id, name, rapports_lies)
+            VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+        `, [
             arrestationId, date, profession, DDN, address, tel, droits,
             entreecellule, sortiecellule, bracelet, miranda,
             avocat, nourriture, ems,
             avocatName, officer, grade, lieu,
             motifArrestation, circonstances, arme, uof,
-            JSON.stringify(JSON.parse(accusations || "[]")), thread.id, name
+            JSON.stringify(JSON.parse(accusations || "[]")), thread.id, name,
+            JSON.stringify(rapportsLiesValue)
         ]);
 
         const logsChannel = await bot.channels.fetch(logsChannelId);
@@ -101,11 +133,10 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
             const embedLog = new EmbedBuilder()
                 .setColor(0x0b1b5a)
                 .setTitle(`Nouveau rapport d'arrestation - ${arrestationId}`)
-                .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a créé un nouveau rapport - <#${thread.id}> \`${arrestationId}\``)
+                .setDescription(`${req.user?.guild_member?.nick || 'Utilisateur inconnu'} a créé un nouveau rapport - <#${thread.id}> \`${arrestationId}\``)
                 .addFields({
                     name: "ID's",
-                    value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${req.user?.id || 'ID inconnu'}\`) \n> <#${thread.id}> (\`${thread.id}\`)`,
-                    inline: false
+                    value: `> <@${req.user?.id || 'Utilisateur inconnu'}> (\`${req.user?.id || 'ID inconnu'}\`) \n> <#${thread.id}> (\`${thread.id}\`)`
                 })
                 .setFooter({
                     text: "LSPD Assistant",
@@ -118,7 +149,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
 
         res.json({
             message: "Rapport enregistré et envoyé !",
-            arrestationId: arrestationId
+            arrestationId
         });
 
     } catch (err) {
@@ -127,38 +158,40 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
     }
 });
 
+
 router.get('/api/getArrestation', async (req, res) => {
     try {
         const result = await pool.query(`
-      SELECT
-        name,
-        date_arrestation,
-        profession,
-        ddn,
-        address,
-        tel,
-        droits,
-        entree_cellule,
-        sortie_cellule,
-        bracelet,
-        miranda,
-        avocat,
-        nourriture,
-        ems,
-        avocatname,
-        officer,
-        grade,
-        lieu,
-        motifarrestation,
-        circonstances,
-        arme,
-        uof,
-        accusations,
-        discord_thread_id,
-        arrestation_id
-      FROM lspd_arrestations
-      ORDER BY date_arrestation
-    `);
+            SELECT
+                name,
+                date_arrestation,
+                profession,
+                ddn,
+                address,
+                tel,
+                droits,
+                entree_cellule,
+                sortie_cellule,
+                bracelet,
+                miranda,
+                avocat,
+                nourriture,
+                ems,
+                avocatname,
+                officer,
+                grade,
+                lieu,
+                motifarrestation,
+                circonstances,
+                arme,
+                uof,
+                accusations,
+                discord_thread_id,
+                arrestation_id,
+                rapports_lies
+            FROM lspd_arrestations
+            ORDER BY date_arrestation
+        `);
 
         const bot = getBot(); // Assure-toi que le bot est prêt
 
@@ -212,7 +245,8 @@ router.get('/api/getArrestation', async (req, res) => {
                 accusations: row.accusations,
                 threadId: row.discord_thread_id,
                 arrestationId: row.arrestation_id,
-                images: images
+                images: images,
+                rapports_lies: row.rapports_lies
             };
         }));
 

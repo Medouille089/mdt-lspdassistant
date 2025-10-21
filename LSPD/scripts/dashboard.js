@@ -156,7 +156,20 @@ async function fetchConnectedAgents() {
 
     data.agents.forEach(agent => {
       const li = document.createElement('li');
-      li.textContent = agent.display_name;
+      li.style.display = 'flex';
+      li.style.alignItems = 'center';
+      li.style.gap = '10px';
+      const img = document.createElement('img');
+      img.src = agent.avatar || '';
+      img.alt = 'PP';
+      img.style.width = '32px';
+      img.style.height = '32px';
+      img.style.borderRadius = '50%';
+      img.style.objectFit = 'cover';
+      li.appendChild(img);
+      const span = document.createElement('span');
+      span.textContent = agent.display_name;
+      li.appendChild(span);
       listEl.appendChild(li);
     });
   } catch (err) {
@@ -239,5 +252,5 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 fetchConnectedAgents();
-setInterval(fetchConnectedAgents, 30000);
+setInterval(fetchConnectedAgents, 5000);
 

@@ -37,21 +37,15 @@ if (typeof window.showAnimation !== 'function') {
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loaderOverlay').style.display = 'flex';
-
-    // Charger les infos utilisateur
+    // Désactiver les inputs si utilisateur DOJ
     fetch("/api/user")
         .then((res) => res.json())
         .then((user) => {
-            editBy = user.username || 'Utilisateur inconnu';
-            userInfo = user; // Stocker toutes les infos utilisateur
-
-            // Masquer le bouton et désactiver les inputs si utilisateur DOJ
             if (user.isDOJ && !user.isLSPD && !user.isSuperAdmin) {
                 const updateButton = document.querySelector(".send-button");
                 if (updateButton) {
                     updateButton.style.display = 'none';
                 }
-
                 // Désactiver tous les inputs et textareas
                 const inputs = document.querySelectorAll('input, textarea, select');
                 inputs.forEach(input => {
@@ -218,15 +212,13 @@ async function loadConvocationDetail() {
         const convocations = await res.json();
         const convocation = convocations.find(i => i.id == id);
         if (!convocation) throw new Error('Convocation non trouvée');
-        nom.value = convocation.nom || '';
-        prenom.value = convocation.prenom || '';
-        officierInput.value = convocation.officier || '';
-        gradeInput.value = convocation.grade || '';
-        dateInput.value = formatDate(convocation.date) || '';
-        heureInput.value = convocation.heure || '';
-        motifInput.value = convocation.motif || '';
-        officierInput.value = convocation.officer || '';
-        gradeInput.value = convocation.grade || '';
+    nom.value = convocation.nom || '';
+    prenom.value = convocation.prenom || '';
+    officierInput.value = convocation.officer || '';
+    gradeInput.value = convocation.grade || '';
+    dateInput.value = formatDate(convocation.date) || '';
+    heureInput.value = convocation.heure || '';
+    motifInput.value = convocation.motif || '';
         
             // Show/hide edit button depending on presence of discord_thread_id
             const editBtn = document.getElementById('editConvocBtn');
