@@ -61,11 +61,13 @@
         }
 
         .annexe-frame {
-            width: 100%;
-            height: calc(100vh - 180px);
+            width: 125%; /* 1/0.8 = 1.25 pour compenser le scale */
+            height: calc((100vh - 180px) / 0.8);
             border: 1px solid var(--border-light);
             border-radius: 8px;
             background: #fff;
+            transform: scale(0.8);
+            transform-origin: 0 0;
         }
 
         .annexe-warning {
@@ -81,9 +83,7 @@
         <h1>Fiche cérémonie</h1>
         <div class="annexe-wrapper">
             <div class="annexe-toolbar">
-                <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour"
-                    onclick="if (history.length>1) { history.back(); } else { window.location.href='/menu-superviseur'; }">←
-                    Retour</button>
+                <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">← Retour</button>
                 <button id="openExternal" class="open-external" type="button">Ouvrir dans un nouvel onglet</button>
             </div>
             <div id="annexeInfo" class="annexe-warning" aria-live="polite" style="display: none !important;"></div>
@@ -99,8 +99,31 @@
 
     <script src="scripts/annonce-popup.js"></script>
     <script src="scripts/loadSidebar.js"></script>
+        <script>
+            (function () {
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', init);
+                } else {
+                    init();
+                }
+
+                function init() {
+                    const btn = document.getElementById('backlinkBtn');
+                    if (!btn) return;
+
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        if (window.history.length > 1) {
+                            window.history.back();
+                        } else {
+                            window.location.href = '/menu-supervisorcs';
+                        }
+                    });
+                }
+            })();
+        </script>
     <script>
-        document.getElementById('openExternal').onclick = function() {
+        document.getElementById('openExternal').onclick = function () {
             window.open('https://docs.google.com/spreadsheets/d/1hcanB99NBnLcQfO4BkCkQOfBVffdFFxJEYWF-Gb2m4M/edit?gid=0#gid=0&fvid=1716173874', '_blank');
         };
     </script>

@@ -46,6 +46,25 @@
           <div>
             <label for="date">Date et heure de rédaction</label>
             <input type="datetime-local" id="date" name="date" required />
+        <script>
+          // Remplit le champ date avec la date et l'heure actuelles en heure française
+          document.addEventListener('DOMContentLoaded', function () {
+            const dateInput = document.getElementById('date');
+            if (dateInput) {
+              const now = new Date();
+              // Convertit en heure française (Europe/Paris)
+              const offset = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+              const year = offset.getFullYear();
+              const month = String(offset.getMonth() + 1).padStart(2, '0');
+              const day = String(offset.getDate()).padStart(2, '0');
+              const hours = String(offset.getHours()).padStart(2, '0');
+              const minutes = String(offset.getMinutes()).padStart(2, '0');
+              // Format pour input type="datetime-local"
+              const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+              dateInput.value = localDateTime;
+            }
+          });
+        </script>
           </div>
           <div>
             <label for="name">Nom de l'individu</label>
@@ -153,17 +172,17 @@
           </div>
         </div>
         <div class="inline-fields-3">
-          <div>
+          <div style="width: 100%;">
             <label for="lieu">Lieu</label>
-            <input type="text" id="lieu" name="lieu" required />
+            <input type="text" id="lieu" name="lieu" required style="width: 100%;" />
           </div>
-          <div>
+          <div style="width: 100%; margin-top: 10px;">
             <label for="motifArrestation">Motif d'arrestation</label>
-            <input type="text" id="motifArrestation" name="motifArrestation" required />
+            <textarea id="motifArrestation" name="motifArrestation" required style="width: 100%; min-height: 30px; max-height: 150px;"></textarea>
           </div>
-          <div>
+          <div style="width: 100%; margin-top: 10px;">
             <label for="circonstances">Circonstance d'arrestation</label>
-            <input type="text" id="circonstances" name="circonstances" required />
+            <textarea id="circonstances" name="circonstances" required style="width: 100%; min-height: 30px; max-height: 150px;"></textarea>
           </div>
         </div>
         <div class="page-break"></div>
