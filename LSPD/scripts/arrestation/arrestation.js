@@ -104,9 +104,15 @@ window.ajouterLienRapportConvoc = function () {
     return;
   }
 
-  // Correction: pour les incidents, afficher juste incident_id (ex: INC0031)
+  // Formatage label selon type
   if (type === 'INC') {
-    label = input.dataset.incidentId || input.value;
+    // label = numéro incident uniquement
+    label = input.dataset.incidentId || id;
+  } else if (type === 'CONVOC') {
+    // label = CONVOCid - prénom nom
+    const nom = input.dataset.nom || '';
+    const prenom = input.dataset.prenom || '';
+    label = `CONVOC${id} - ${prenom} ${nom}`.trim();
   }
 
   // Affichage style chef d'accusation (même style que #listAccusations)
@@ -161,40 +167,99 @@ document.getElementById('searchRapportConvoc').addEventListener('input', async f
   } catch { }
 
   // Affichage résultats
+  function formatDateTime(dateStr, heureStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    let datePart = dateStr;
+    if (!isNaN(d)) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      datePart = `${day}/${month}/${year}`;
+    }
+    let heurePart = '';
+    if (heureStr && heureStr.length >= 5) {
+      heurePart = heureStr.slice(0,5);
+    }
+    return `Date : ${datePart}${heurePart ? ' à ' + heurePart : ''}`;
+  }
+  // Filter convocations by id, 'CONVOC'+id, nom, or prenom
+  const queryLower = query.toLowerCase();
+  let filteredConvocs;
+  if (!query) {
+    filteredConvocs = convocations;
+  } else {
+    filteredConvocs = convocations.filter(conv => {
+      const idStr = String(conv.id);
+      // Match if query is exactly the id, contained in id, matches 'CONVOC'+id, or matches name/prénom
+      return (
+        idStr === query ||
+        idStr.includes(query) ||
+        ('convoc' + idStr).toLowerCase().includes(queryLower) ||
+        (conv.nom && conv.nom.toLowerCase().includes(queryLower)) ||
+        (conv.prenom && conv.prenom.toLowerCase().includes(queryLower))
+      );
+    });
+  }
   const allResults = [
-    ...incidents.map(inc => ({
-      type: 'INC',
-      id: inc.id,
-      title: `${inc.nom || ''} ${inc.prenom || ''}`.trim(),
-      infos: `Date: ${inc.date_incident} Heure: ${inc.heure_incident} Officier: ${inc.officier_redacteur} Lieu: ${inc.lieu_incident}`,
-      incident_id: inc.incident_id // Ajout de l'ID d'incident
-    })),
-    ...convocations.map(conv => ({
+    ...incidents.map(inc => {
+      // Use only one incident_id, never duplicate, no name/prénom for incidents
+      let labelId = '';
+      if (inc.incident_id) {
+        labelId = inc.incident_id;
+      } else if (inc.id) {
+        labelId = inc.id.startsWith('INC') ? inc.id : `INC${inc.id}`;
+      }
+      return {
+        type: 'INC',
+        id: inc.id,
+        nom: '',
+        prenom: '',
+        date_incident: inc.date_incident,
+        heure_incident: inc.heure_incident,
+        title: `${labelId}`,
+        infos: `${formatDateTime(inc.date_incident, inc.heure_incident)} Officier: ${inc.officier_redacteur} Lieu: ${inc.lieu_incident}`,
+        incident_id: inc.incident_id // Ajout de l'ID d'incident
+      };
+    }),
+    ...filteredConvocs.map(conv => ({
       type: 'CONVOC',
       id: conv.id,
-      title: `${conv.nom || ''} ${conv.prenom || ''}`.trim(),
-      infos: `Date: ${conv.date} Heure: ${conv.heure} Officier: ${conv.officer} Lieu: ${conv.lieu}`
+      nom: conv.nom || '',
+      prenom: conv.prenom || '',
+      date: conv.date,
+      heure: conv.heure,
+      title: `CONVOC${conv.id} - ${conv.prenom || ''} ${conv.nom || ''}`.trim(),
+        infos: `${formatDateTime(conv.date, conv.heure)} Par: ${conv.officer}`
     }))
   ];
 
   allResults.forEach(res => {
     const div = document.createElement('div');
     div.className = 'search-result-item';
-    div.innerHTML = `<strong>${res.type} - ${res.title}</strong><br><span style='font-size:0.9em;'>${res.infos}</span>`;
+    div.innerHTML = `<strong>${res.title}</strong><br><span style='font-size:0.9em;'>${res.infos}</span>`;
     div.dataset.type = res.type;
     div.dataset.id = res.id;
     div.dataset.title = res.title;
+    div.dataset.nom = res.nom || '';
+    div.dataset.prenom = res.prenom || '';
     if (res.type === 'INC' && res.incident_id) {
       div.dataset.incidentId = res.incident_id;
+      div.dataset.date_incident = res.date_incident || '';
     }
     div.addEventListener('click', function () {
       const input = document.getElementById('searchRapportConvoc');
       if (res.type === 'INC') {
-        input.value = res.incident_id || `INC${res.id}`;
+        input.value = res.title;
         input.dataset.incidentId = res.incident_id || '';
+        input.dataset.nom = res.nom || '';
+        input.dataset.prenom = res.prenom || '';
+        input.dataset.date_incident = res.date_incident || '';
       } else {
-        input.value = `${res.type} - ${res.title}`;
+        input.value = res.title;
         input.dataset.incidentId = '';
+        input.dataset.nom = res.nom || '';
+        input.dataset.prenom = res.prenom || '';
       }
       input.dataset.selectedId = res.id;
       input.dataset.selectedType = res.type;
