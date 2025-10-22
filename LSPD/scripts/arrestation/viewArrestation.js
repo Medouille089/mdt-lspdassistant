@@ -190,26 +190,135 @@ async function loadIncidentDetail() {
         const preview = document.getElementById('attachmentsPreview');
         preview.innerHTML = '';
 
-        if (arrestation.images && arrestation.images.length > 0) {
-            // Créer toutes les images dans l'ordre d'upload (ancien -> récent)
-            for (let idx = 0; idx < arrestation.images.length; idx++) {
-                const url = arrestation.images[idx];
-                if (idx === 0) {
-                    // première image uploadée -> preview1 (photo masquée)
-                    fileInput1.src = url;
-                } else if (idx === 1) {
-                    // deuxième image uploadée -> preview2 (démasquée)
-                    fileInput2.src = url;
+        // Affichage enrichi des rapports/convocations liés
+        if (arrestation.rapports_lies && Array.isArray(arrestation.rapports_lies) && arrestation.rapports_lies.length > 0) {
+            const label = document.createElement('label');
+            label.textContent = "Rapports/Convocations liés";
+            label.style.marginTop = "25px";
+            label.style.fontWeight = "600";
+            label.style.fontSize = "14px";
+            label.style.color = "var(--main-color)";
+            container.appendChild(label);
+
+            const ul = document.createElement('ul');
+            ul.id = "liensRapportsConvoc";
+            ul.style.listStyle = "none";
+            ul.style.padding = "0";
+            ul.style.margin = "15px 0 20px 0";
+            ul.style.border = "1px solid #e2e8f0";
+            ul.style.borderRadius = "8px";
+            ul.style.backgroundColor = "#f8fafc";
+
+            const isProd = window.location.hostname === 'lspd-assistant.fr';
+            const baseUrl = isProd ? 'https://lspd-assistant.fr' : '';
+
+            // Fonction utilitaire pour fetch et afficher chaque lien
+            async function fetchAndRenderLien(lien) {
+                let type = 'INC';
+                let idLien = lien;
+                if (typeof lien === 'object') {
+                    type = lien.type || (lien.incidentId ? 'INC' : 'CONVOC');
+                    idLien = lien.incidentId || lien.id || lien;
+                } else if (typeof lien === 'string' && lien.startsWith('INC')) {
+                    type = 'INC';
                 } else {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.alt = 'Pièce jointe';
-                    img.style.maxWidth = '200px';
-                    img.style.margin = '5px';
-                    img.style.cursor = 'pointer';
-                    img.classList.add('preview-image');
-                    container.appendChild(img);
+                    type = 'CONVOC';
                 }
+
+                let label = idLien;
+                let infos = '';
+                let found = false;
+                try {
+                    if (type === 'INC') {
+                        const res = await fetch(`/api/incidents/${idLien}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            label = `INC${idLien.replace('INC','')}${(data.prenom || data.nom) ? ' - ' : ''}${data.prenom || ''} ${data.nom || ''}`.trim();
+                            infos = `Date: ${data.date_incident || ''} Par: ${data.officier_redacteur || ''}`;
+                            found = true;
+                        }
+                    } else {
+                        const res = await fetch(`/api/convocations/${idLien}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            label = `CONVOC${idLien} - ${data.prenom || ''} ${data.nom || ''}`.trim();
+                            infos = `Date: ${data.date || ''} Par: ${data.agent_redacteur || ''}`;
+                            found = true;
+                        }
+                    }
+                } catch {}
+
+                // Si pas trouvé, fallback minimal
+                if (!found) {
+                    if (type === 'INC') {
+                        label = `INC${idLien.replace('INC','')}`;
+                    } else {
+                        label = `CONVOC${idLien}`;
+                    }
+                    infos = '';
+                }
+
+                                const li = document.createElement('li');
+                                li.innerHTML = `
+                                    <span style="font-weight:700;font-size:16px;letter-spacing:0.5px;">${label}</span><br>
+                                    <span style="font-size:15px;color:#0b1b5a;">${infos}</span>
+                                `;
+                                li.style.padding = "12px 16px";
+                                li.style.margin = "0";
+                                li.style.backgroundColor = "#fff";
+                                li.style.borderBottom = "1px solid #e2e8f0";
+                                li.style.color = "var(--main-color)";
+                                li.style.fontSize = "15px";
+                                li.style.cursor = "pointer";
+                                li.style.transition = "all 0.2s ease";
+                                li.style.position = "relative";
+                                li.style.borderLeft = "4px solid var(--main-color)";
+                                li.addEventListener('click', function () {
+                                        let url = '#';
+                                        if (type === 'INC') url = `${baseUrl}/viewIncident?id=${idLien}`;
+                                        if (type === 'CONVOC') url = `${baseUrl}/viewConvocation?id=${idLien}`;
+                                        window.location.href = url;
+                                });
+                                li.addEventListener('mouseenter', function () {
+                                    li.style.backgroundColor = '#f5f5f5';
+                                });
+                                li.addEventListener('mouseleave', function () {
+                                    li.style.backgroundColor = '#fff';
+                                });
+                                ul.appendChild(li);
+            }
+
+            // Pour chaque lien, fetch et affiche
+            Promise.all(arrestation.rapports_lies.map(fetchAndRenderLien)).then(() => {
+                container.appendChild(ul);
+            });
+        }
+
+        const placeholderUrl = 'https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc=';
+        if (arrestation.images && arrestation.images.length > 0) {
+            // première image uploadée -> preview1 (photo masquée)
+            if (arrestation.images[0]) {
+                fileInput1.src = arrestation.images[0];
+            } else {
+                fileInput1.src = placeholderUrl;
+            }
+            // deuxième image uploadée -> preview2 (démasquée)
+            if (arrestation.images[1]) {
+                fileInput2.src = arrestation.images[1];
+            } else {
+                fileInput2.src = placeholderUrl;
+            }
+            // Les autres images (s'il y en a)
+            for (let idx = 2; idx < arrestation.images.length; idx++) {
+                const url = arrestation.images[idx] || placeholderUrl;
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'Pièce jointe';
+                img.style.maxWidth = '200px';
+                img.style.margin = '5px';
+                img.style.cursor = 'pointer';
+                img.classList.add('preview-image');
+                container.appendChild(img);
             }
 
             // List of img elements to wait for
@@ -228,6 +337,9 @@ async function loadIncidentDetail() {
             enableFullscreenOnImages();
 
         } else {
+            // Si aucune image, afficher les placeholders pour preview1 et preview2
+            fileInput1.src = placeholderUrl;
+            fileInput2.src = placeholderUrl;
             container.textContent = 'Aucune pièce jointe disponible.';
         }
 

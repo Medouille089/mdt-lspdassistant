@@ -7,6 +7,30 @@ const { getBot } = require("../config/config");
 const { AttachmentBuilder, EmbedBuilder, ChannelType } = require("discord.js");
 const upload = multer({ storage: multer.memoryStorage() });
 
+// Recherche d'incidents par officier ou ID
+router.get('/api/incidents/search', async (req, res) => {
+  const query = (req.query.name || '').trim();
+  if (!query || query.length < 2) return res.json([]);
+  try {
+    const result = await pool.query(
+      `SELECT id, incident_id, date_incident, heure_incident, officier_redacteur, lieu_incident
+       FROM incidents
+       WHERE LOWER(officier_redacteur) LIKE LOWER($1) OR LOWER(incident_id) LIKE LOWER($1)
+       ORDER BY date_incident DESC LIMIT 10`,
+      [`%${query}%`]
+    );
+    // Ajoute un champ 'nom' pour l'affichage si absent
+    const rows = result.rows.map(row => ({
+      ...row,
+      nom: row.incident_id // pour affichage, toujours le champ incident_id formaté (ex: INC0004)
+    }));
+    res.json(rows);
+  } catch (err) {
+    console.error('Erreur recherche incidents:', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 async function createOrGetThread(forum, situationsChannel, situationsArray, data, files = []) {
   const { incidentId, formattedDate, officier, embed } = data;
 
@@ -333,6 +357,31 @@ const { formatDateFR } = require('../utils/formatDate');
   } catch (err) {
     console.error('Erreur PUT /api/updateIncident :', err);
     res.status(500).json({ error: 'Erreur lors de la mise à jour de l’incident.' });
+  }
+});
+
+// Détail d'un incident par ID (pour viewArrestation.js)
+router.get('/api/incidents/:id', async (req, res) => {
+  const incidentId = req.params.id;
+  try {
+    const result = await pool.query(
+      `SELECT incident_id, date_incident, heure_incident, officier_redacteur, lieu_incident
+       FROM incidents
+       WHERE incident_id = $1
+       LIMIT 1`,
+      [incidentId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({});
+    // Formatage date JJ/MM/AAAA
+    const row = result.rows[0];
+    if (row && row.date_incident) {
+      const d = new Date(row.date_incident);
+      row.date_incident = d.toLocaleDateString('fr-FR');
+    }
+    res.json(row);
+  } catch (err) {
+    console.error('Erreur GET /api/incidents/:id', err);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 

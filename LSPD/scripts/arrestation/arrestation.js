@@ -1,3 +1,209 @@
+// Ajout du bouton de remplissage automatique
+const autoFillBtn = document.createElement('button');
+autoFillBtn.type = 'button';
+autoFillBtn.textContent = 'Remplir automatiquement';
+autoFillBtn.style.marginBottom = '10px';
+autoFillBtn.className = 'btn btn-autofill';
+const form = document.querySelector('form');
+if (form) {
+  form.appendChild(autoFillBtn);
+  autoFillBtn.addEventListener('click', function () {
+    // Remplissage automatique des champs sauf bracelet, chefs d'accusation et rapports liés
+    const fields = [
+      { id: 'date', value: new Date().toISOString().slice(0, 16) },
+      { id: 'name', value: 'John Doe' },
+      { id: 'profession', value: 'Agent de sécurité' },
+      { id: 'DDN', value: '1990-01-01' },
+      { id: 'address', value: '123 Rue de la Paix' },
+      { id: 'tel', value: '0601020304' },
+      { id: 'droits', value: '12:00' },
+      { id: 'entreecellule', value: '12:30' },
+      { id: 'sortiecellule', value: '13:00' },
+      { id: 'miranda', value: true },
+      { id: 'avocat', value: false },
+      { id: 'nourriture', value: true },
+      { id: 'ems', value: false },
+      { id: 'avocatName', value: 'Maître Dupont' },
+      { id: 'officier', value: 'Capitaine Martin' },
+      { id: 'grade', value: 'Capitaine' },
+      { id: 'lieu', value: 'Commissariat Central' },
+      { id: 'motifArrestation', value: 'Trouble à l’ordre public' },
+      { id: 'circonstances', value: 'Interpellation sur la voie publique.' },
+      { id: 'arme', value: 'Aucune' },
+      { id: 'uof', value: false }
+    ];
+    fields.forEach(f => {
+      const el = document.getElementById(f.id);
+      if (el) {
+        if (el.type === 'checkbox') {
+          el.checked = !!f.value;
+        } else {
+          el.value = f.value;
+        }
+      }
+    });
+  });
+}
+// Ajout de l'envoi des liens rapport/convocation
+document.querySelector('form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  // Collecte des liens ajoutés
+  const liensUl = document.getElementById('liensRapportsConvoc');
+  // On envoie un tableau d'ids comme pour accusations
+  const liens = [...liensUl.children].map(li => {
+    if (li.dataset.type === 'INC') {
+      return li.dataset.incidentId || li.dataset.id;
+    } else {
+      return li.dataset.id;
+    }
+  });
+
+  // Met à jour l'input caché avant l'envoi
+  const hiddenInput = document.getElementById('rapports_lies_hidden');
+  hiddenInput.value = JSON.stringify(liens);
+  // Ajout d'un log pour vérifier la valeur juste avant la création du FormData
+  console.log('Valeur rapports_lies_hidden:', hiddenInput.value);
+
+  const formData = new FormData(this);
+  // Ajout du champ rapports_lies comme pour accusations
+  formData.append('rapports_lies', hiddenInput.value || '[]');
+  // Log pour vérifier la valeur dans le FormData
+  console.log('FormData rapports_lies:', formData.get('rapports_lies'));
+
+  // DEBUG: log FormData content
+  for (let pair of formData.entries()) {
+    window.alert(pair[0] + ': ' + pair[1]);
+  }
+
+  // Envoi AJAX
+  const res = await fetch('/api/arrestation', {
+    method: 'POST',
+    body: formData
+  });
+
+  // Remplace l'envoi classique par fetch si besoin
+  // ...existing code d'envoi...
+});
+// Ajout d'un lien rapport/convocation sélectionné
+window.ajouterLienRapportConvoc = function () {
+  const input = document.getElementById('searchRapportConvoc');
+  const ul = document.getElementById('liensRapportsConvoc');
+  const id = input.dataset.selectedId;
+  const type = input.dataset.selectedType;
+  let label = input.value;
+  // Log pour debug : affiche l'id, le type et le label sélectionné
+  console.log('ajouterLienRapportConvoc:', { id, type, label, incidentId: input.dataset.incidentId });
+  if (!id || !type || !label) {
+    alert('Sélectionnez un rapport ou une convocation dans la recherche.');
+    return;
+  }
+  // Empêcher doublon
+  if ([...ul.children].some(li => li.dataset && li.dataset.id === id && li.dataset.type === type)) {
+    alert('Déjà ajouté !');
+    return;
+  }
+
+  // Correction: pour les incidents, afficher juste incident_id (ex: INC0031)
+  if (type === 'INC') {
+    label = input.dataset.incidentId || input.value;
+  }
+
+  // Affichage style chef d'accusation (même style que #listAccusations)
+  const li = document.createElement('li');
+  li.dataset.id = id;
+  li.dataset.type = type;
+  li.textContent = label + (type ? ` (${type})` : '');
+  if (type === 'INC') {
+    li.dataset.incidentId = input.dataset.incidentId || '';
+  }
+  li.style.cursor = 'pointer';
+  li.addEventListener('click', function () {
+    li.remove();
+    // Si plus aucun rapport, le message vide s'affiche automatiquement via le CSS
+  });
+  ul.appendChild(li);
+  input.value = '';
+  input.dataset.selectedId = '';
+  input.dataset.selectedType = '';
+  input.dataset.incidentId = '';
+};
+// Recherche rapports et convocations par nom
+// Affichage des résultats au focus
+const searchInput = document.getElementById('searchRapportConvoc');
+const resultsDiv = document.getElementById('searchResultsRapportConvoc');
+if (searchInput && resultsDiv) {
+  searchInput.addEventListener('focus', function () {
+    resultsDiv.style.display = 'block';
+  });
+  searchInput.addEventListener('blur', function () {
+    setTimeout(() => { resultsDiv.style.display = 'none'; }, 200);
+  });
+}
+document.getElementById('searchRapportConvoc').addEventListener('input', async function () {
+  const query = this.value.trim();
+  const resultsDiv = document.getElementById('searchResultsRapportConvoc');
+  resultsDiv.innerHTML = '';
+  if (query.length < 2) return;
+
+  // Requête incidents
+  let incidents = [];
+  try {
+    const resInc = await fetch(`/api/incidents/search?name=${encodeURIComponent(query)}`);
+    if (resInc.ok) incidents = await resInc.json();
+  } catch { }
+
+  // Requête convocations
+  let convocations = [];
+  try {
+    const resConv = await fetch(`/api/convocations/search?name=${encodeURIComponent(query)}`);
+    if (resConv.ok) convocations = await resConv.json();
+  } catch { }
+
+  // Affichage résultats
+  const allResults = [
+    ...incidents.map(inc => ({
+      type: 'INC',
+      id: inc.id,
+      title: `${inc.nom || ''} ${inc.prenom || ''}`.trim(),
+      infos: `Date: ${inc.date_incident} Heure: ${inc.heure_incident} Officier: ${inc.officier_redacteur} Lieu: ${inc.lieu_incident}`,
+      incident_id: inc.incident_id // Ajout de l'ID d'incident
+    })),
+    ...convocations.map(conv => ({
+      type: 'CONVOC',
+      id: conv.id,
+      title: `${conv.nom || ''} ${conv.prenom || ''}`.trim(),
+      infos: `Date: ${conv.date} Heure: ${conv.heure} Officier: ${conv.officer} Lieu: ${conv.lieu}`
+    }))
+  ];
+
+  allResults.forEach(res => {
+    const div = document.createElement('div');
+    div.className = 'search-result-item';
+    div.innerHTML = `<strong>${res.type} - ${res.title}</strong><br><span style='font-size:0.9em;'>${res.infos}</span>`;
+    div.dataset.type = res.type;
+    div.dataset.id = res.id;
+    div.dataset.title = res.title;
+    if (res.type === 'INC' && res.incident_id) {
+      div.dataset.incidentId = res.incident_id;
+    }
+    div.addEventListener('click', function () {
+      const input = document.getElementById('searchRapportConvoc');
+      if (res.type === 'INC') {
+        input.value = res.incident_id || `INC${res.id}`;
+        input.dataset.incidentId = res.incident_id || '';
+      } else {
+        input.value = `${res.type} - ${res.title}`;
+        input.dataset.incidentId = '';
+      }
+      input.dataset.selectedId = res.id;
+      input.dataset.selectedType = res.type;
+      resultsDiv.innerHTML = '';
+      window.ajouterLienRapportConvoc();
+    });
+    resultsDiv.appendChild(div);
+  });
+});
 document.addEventListener("DOMContentLoaded", async () => {
 
   try {
@@ -37,12 +243,9 @@ async function loadAccusations() {
     const accusations = await getAccusationsFromDB();
 
     const select = document.getElementById('accusations-input');
-
     while (select.children.length > 1) {
       select.removeChild(select.lastChild);
     }
-
-
     accusations.forEach(accusation => {
       const option = document.createElement('option');
       option.value = accusation.chef_accusation || accusation;
@@ -50,12 +253,16 @@ async function loadAccusations() {
       option.accusation = accusation;
       select.appendChild(option);
     });
-
   } catch (error) {
     console.error("Erreur lors du chargement des accusations:", error);
-
     loadDefaultAccusations();
   }
+
+  document.getElementById('accusations-input').addEventListener('change', function (e) {
+    if (this.value) {
+      ajouterElement();
+    }
+  });
 }
 
 async function getAccusationsFromDB() {
@@ -67,18 +274,7 @@ async function getAccusationsFromDB() {
       resolve([
         "Vol de véhicule",
         "Agression",
-        "Port d'arme illégal",
-        "Trafic de drogue",
-        "Résistance à arrestation",
-        "Conduite en état d'ivresse",
-        "Excès de vitesse",
-        "Vandalisme",
-        "Trouble à l'ordre public",
-        "Faux et usage de faux",
-        "Homicide",
-        "Tentative d'homicide",
-        "Vol à main armée",
-        "Cambriolage",
+        "Port d'arme illégale",
         "Menaces",
         "Harcèlement",
         "Conduite sans permis",
@@ -146,7 +342,7 @@ document.getElementById('accusations-input').addEventListener('keydown', functio
   if (e.key === 'Enter') {
     ajouterElement();
   }
-})
+});
 
 function supprimerElement(li) {
   const ul = document.getElementById("listAccusations");
@@ -332,7 +528,10 @@ async function previewAttachments(event) {
   }
 }
 
-document.getElementById("pieces").addEventListener("change", previewAttachments);
+const piecesInput = document.getElementById("pieces");
+if (piecesInput) {
+  piecesInput.addEventListener("change", previewAttachments);
+}
 
 async function waitForImagesToLoad(container) {
   const images = Array.from(container.querySelectorAll('img'));
@@ -530,20 +729,20 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     formData.append("uof", document.getElementById("uof").checked);
     const listAccusations = document.getElementById("listAccusations");
     formData.append("accusations", JSON.stringify(Array.from(listAccusations.children).map(li => li.textContent.trim())));
-    formData.append("pieces", pdfBlob, "Rapport d'arrestation.pdf");
-    // NOM + PRENOM | DATE
-
-    const files = document.getElementById("pieces").files;
-    for (const file of files) {
-      if (file.type.startsWith("image/")) {
-        try {
-          const compressed = await compressImage(file, 0.6);
-          formData.append("pieces", compressed);
-        } catch (err) {
-          console.warn("Erreur compression fichier :", file.name, err);
+    const liensUl = document.getElementById('liensRapportsConvoc');
+    const hiddenRapports = document.getElementById("rapports_lies_hidden");
+    hiddenRapports.value = JSON.stringify(
+      Array.from(liensUl.children).map(li => {
+        if (li.dataset.type === 'INC') {
+          return li.dataset.incidentId; // corrige ici
+        } else {
+          return li.dataset.id;
         }
-      }
-    }
+      })
+    );
+
+    formData.append("rapports_lies", hiddenRapports.value);
+
 
     const res = await fetch("/api/arrestation", {
       method: "POST",
@@ -572,11 +771,15 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
   }
 });
 
-document.getElementById('implique').addEventListener('input', function (e) {
-  let input = e.target.value.replace(/\D/g, '');
-  let formatted = input.match(/.{1,2}/g);
-  e.target.value = formatted ? formatted.join(', ') : '';
-});
+
+const impliqueInput = document.getElementById('implique');
+if (impliqueInput) {
+  impliqueInput.addEventListener('input', function (e) {
+    let input = e.target.value.replace(/\D/g, '');
+    let formatted = input.match(/.{1,2}/g);
+    e.target.value = formatted ? formatted.join(', ') : '';
+  });
+}
 
 function showAnimation(type = 'success') {
   return new Promise((resolve) => {

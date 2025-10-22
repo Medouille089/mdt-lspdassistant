@@ -64,6 +64,11 @@
                             <input type="text" id="nom" placeholder="Nom">
                         </div>
 
+                        <div class="form-group">
+                            <label for="telephone">Téléphone</label>
+                            <input type="text" id="telephone" placeholder="(000) 000-0000" maxlength="14">
+                        </div>
+
                     </div>
                 </div>
 
@@ -99,6 +104,7 @@
                             </div>
                         </div>
 
+
                         <!-- Véhicules -->
                         <div class="equipment-category">
                             <h4>Véhicules</h4>
@@ -126,6 +132,22 @@
                     </div>
                 </div>
 
+                <!-- Section Formations -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <span class="material-symbols-rounded">school</span>
+                        Formations
+                    </h3>
+                    <div class="equipment-category">
+                        <div class="equipment-headers formations" style="display: none;">
+                            <span>Nom de la formation</span>
+                        </div>
+                        <div id="formations-container" class="equipment-list">
+                            <!-- Les formations seront ajoutées dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Section Informations système -->
                 <div class="form-section info-section">
                     <h3 class="section-title">
@@ -146,21 +168,17 @@
 
                 <!-- Boutons d'action -->
                 <div class="action-buttons">
-                    <button type="button" id="back-btn" class="btn btn-secondary">
-                        <span class="material-symbols-rounded">arrow_back</span>
-                        Retour
-                    </button>
                     <button type="button" id="edit-mode-btn" class="btn btn-warning" style="display: none;">
                         <span class="material-symbols-rounded">edit</span>
                         Modifier le profil
                     </button>
-                    <button type="submit" id="save-btn" class="btn btn-primary" style="display: none;">
-                        <span class="material-symbols-rounded">save</span>
-                        Sauvegarder
-                    </button>
                     <button type="button" id="cancel-edit-btn" class="btn btn-secondary" style="display: none;">
                         <span class="material-symbols-rounded">close</span>
                         Annuler
+                    </button>
+                    <button type="submit" id="save-btn" class="btn btn-primary" style="display: none;">
+                        <span class="material-symbols-rounded">save</span>
+                        Sauvegarder
                     </button>
                 </div>
             </form>

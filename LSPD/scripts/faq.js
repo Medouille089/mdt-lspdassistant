@@ -318,20 +318,6 @@ function ensureFAQStyles() {
     }
     .faq-card-body a.faq-link:hover { opacity: 0.9; }
     /* Character counter badge shown over the textarea bottom-right */
-    .faq-char-counter {
-        position: absolute;
-        right: 18px;
-        bottom: 30px;
-        color: var(--main-color-dark);
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 13px;
-        font-weight: 700;
-        pointer-events: none;
-        transition: background-color 0.12s, color 0.12s, transform 0.08s;
-        z-index: 9999;
-    }
-    .faq-char-counter.warn { color: #FF0000; transform: scale(1.03); }
         `;
     document.head.appendChild(style);
 }
@@ -890,10 +876,9 @@ function showFAQForm(categoryId, parentDiv) {
         <label>Titre</label>
         <input type="text" name="titre" maxlength="100" required />
     <label>Description</label>
-    <div class="faq-textarea-wrapper" style="position:relative">
-      <textarea name="description" rows="4" required></textarea>
-      <div class="faq-char-counter">3000</div>
-    </div>
+        <div class="faq-textarea-wrapper" style="position:relative">
+            <textarea name="description" rows="4" required></textarea>
+        </div>
         <label>Lien image (optionnel)</label>
         <input type="url" name="image" class="faq-image-link" placeholder="https://..." />
         <img class="faq-image-preview" style="display:none;max-width:180px;" />
@@ -914,16 +899,12 @@ function showFAQForm(categoryId, parentDiv) {
     // Attach code font handler and character counter to textarea
     const descTa = form.querySelector('textarea[name="description"]');
     attachCodeFontHandler(descTa);
-    addCharCounter(descTa, 3000);
     form.onsubmit = async e => {
         e.preventDefault();
         const titre = form.titre.value.trim();
         const description = form.description.value.trim();
         const image = form.image.value.trim();
-        if (description.length > 3000) {
-            alert('La description dépasse la limite de 3000 caractères');
-            return;
-        }
+        // character limit removed
         if (!titre || !description) return;
         const ok = await addFAQEntry({ titre, description, image, categoryId });
         if (ok) renderFAQ();
@@ -961,10 +942,9 @@ function showEditFAQForm(entry, card, header, categoryId) {
         <label>Titre</label>
         <input type="text" name="titre" maxlength="100" required value="${(entry.titre||'').replace(/"/g,'&quot;')}" />
     <label>Description</label>
-    <div class="faq-textarea-wrapper" style="position:relative">
-      <textarea name="description" rows="4" required>${(entry.description||'').replace(/</g,'&lt;')}</textarea>
-      <div class="faq-char-counter">3000</div>
-    </div>
+        <div class="faq-textarea-wrapper" style="position:relative">
+            <textarea name="description" rows="4" required>${(entry.description||'').replace(/</g,'&lt;')}</textarea>
+        </div>
         <label>Lien image (optionnel)</label>
         <input type="url" name="image" class="faq-image-link" placeholder="https://..." value="${entry.image || ''}" />
         <img class="faq-image-preview" style="display:${entry.image ? '' : 'none'};max-width:180px;" src="${entry.image || ''}" />
@@ -1029,8 +1009,6 @@ function showEditFAQForm(entry, card, header, categoryId) {
     const textarea = form.querySelector('textarea[name="description"]');
     // Attach code font handler so edit textarea uses Lucida Console when inside backticks
     attachCodeFontHandler(textarea);
-    // attach character counter (3000 chars)
-    addCharCounter(textarea, 3000);
     form.querySelectorAll('.faq-tb').forEach(btn => {
         btn.onclick = () => {
             const action = btn.getAttribute('data-action');
@@ -1117,39 +1095,5 @@ function showCategoryForm() {
 
 // Initialisation
 // --- Character counter helpers ------------------------------------------------
-function addCharCounter(textarea, max) {
-    try {
-        if (!textarea) return;
-        // container to position badge relative to
-        const container = textarea.parentNode;
-        if (getComputedStyle(container).position === 'static') container.style.position = 'relative';
-        // Reuse existing badge if markup already contains one
-        let badge = container.querySelector('.faq-char-counter');
-        if (!badge) {
-            badge = document.createElement('div');
-            badge.className = 'faq-char-counter';
-            container.appendChild(badge);
-        }
-        const update = () => updateCharCounter(textarea, badge, max);
-        textarea.addEventListener('input', update);
-        textarea.addEventListener('change', update);
-        // initial update
-        update();
-    } catch (e) {}
-}
-
-function updateCharCounter(textarea, badge, max) {
-    try {
-        const len = (textarea.value || '').length;
-        const remaining = max - len;
-        if (remaining < 0) {
-            badge.textContent = '-' + Math.abs(remaining);
-            badge.classList.add('warn');
-        } else {
-            badge.textContent = remaining;
-            badge.classList.remove('warn');
-        }
-    } catch (e) {}
-}
 
 initFAQ();

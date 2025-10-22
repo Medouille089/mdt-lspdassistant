@@ -460,10 +460,13 @@ async function exporterCalcul() {
     }
 
     try {
-        const exportBtn = document.getElementById('exportBtn');
-        const originalText = exportBtn.textContent;
-        exportBtn.textContent = 'Exportation en cours...';
-        exportBtn.disabled = true;
+    const exportBtn = document.getElementById('exportBtn');
+    const originalText = exportBtn.textContent;
+    exportBtn.textContent = 'Exportation en cours...';
+    exportBtn.disabled = true;
+    // Affiche le loader
+    const loader = document.getElementById('loaderOverlay');
+    if (loader) loader.style.display = 'flex';
 
         const tableauSection = document.querySelector('.tableau-section');
         const totauxSection = document.querySelector('.totaux-section');
@@ -475,9 +478,21 @@ async function exporterCalcul() {
         const tempContainer = document.createElement('div');
         tempContainer.style.cssText = 'position: absolute; left: -9999px; top: 0; background: white; padding: 30px;';
 
+        // Clone tableau and remove Action column and delete buttons
         const tableauClone = tableauSection.cloneNode(true);
-        const totauxClone = totauxSection.cloneNode(true);
+        const theadRow = tableauClone.querySelector('thead tr');
+        if (theadRow) {
+            // Remove last th (Action)
+            theadRow.removeChild(theadRow.lastElementChild);
+        }
+        const tbodyRows = tableauClone.querySelectorAll('tbody tr');
+        tbodyRows.forEach(tr => {
+            if (tr.children.length > 0) {
+                tr.removeChild(tr.lastElementChild); // Remove last td (button)
+            }
+        });
 
+        const totauxClone = totauxSection.cloneNode(true);
         const actionsSection = totauxClone.querySelector('.actions-section');
         if (actionsSection) {
             actionsSection.style.display = 'none';
@@ -488,16 +503,24 @@ async function exporterCalcul() {
 
         document.body.appendChild(tempContainer);
 
+        // Fixe une largeur obligatoire pour la capture (ex: 1200px)
+        const fixedWidth = 1200;
+        tempContainer.style.width = fixedWidth + 'px';
+        tempContainer.style.maxWidth = fixedWidth + 'px';
+        tempContainer.style.minWidth = fixedWidth + 'px';
+
         const canvas = await html2canvas(tempContainer, {
             backgroundColor: '#ffffff',
             scale: 2,
             logging: false,
             useCORS: true,
-            width: tempContainer.scrollWidth,
+            width: fixedWidth,
             height: tempContainer.scrollHeight
         });
 
-        document.body.removeChild(tempContainer);
+    document.body.removeChild(tempContainer);
+    // Masque le loader
+    if (loader) loader.style.display = 'none';
 
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 
@@ -516,10 +539,28 @@ async function exporterCalcul() {
 
         const result = await response.json();
 
-        exportBtn.textContent = originalText;
-        exportBtn.disabled = false;
+                exportBtn.textContent = originalText;
+                exportBtn.disabled = false;
 
-        alert('Le calcul de peines a été envoyé avec succès via Discord DM !');
+                // Affiche le checkmark SVG de succès
+                let feedback = document.getElementById('feedbackAnimation');
+                if (!feedback) {
+                        feedback = document.createElement('div');
+                        feedback.id = 'feedbackAnimation';
+                        feedback.className = 'feedback-animation';
+                        document.body.appendChild(feedback);
+                }
+                feedback.innerHTML = `<div class=\"feedback-inner\">
+                    <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 130.2 130.2\">
+                        <circle class=\"path circle\" fill=\"none\" stroke=\"#0b1b5a\" stroke-width=\"8\" stroke-miterlimit=\"10\" cx=\"65.1\" cy=\"65.1\" r=\"60\"/>
+                        <polyline class=\"path check\" fill=\"none\" stroke=\"#0b1b5a\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" points=\"100.2,40.2 51.5,88.8 29.8,67.5 \"/>
+                    </svg>
+                    <p class=\"success\">Exportation réussie !</p>
+                </div>`;
+                feedback.style.display = 'flex';
+                setTimeout(() => {
+                        feedback.style.display = 'none';
+                }, 2000);
 
     } catch (error) {
         console.error('Erreur lors de l\'exportation:', error);

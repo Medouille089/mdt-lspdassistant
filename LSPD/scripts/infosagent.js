@@ -259,6 +259,7 @@ async function displayProfile(profile) {
     document.getElementById('matricule').value = profile.matricule || '';
     document.getElementById('nom').value = profile.nom || '';
     document.getElementById('prenom').value = profile.prenom || '';
+    document.getElementById('telephone').value = profile.telephone || '';
     document.getElementById('agent_id').textContent = `ID: ${profile.discord_id || currentUserId}`;
     document.getElementById('date_creation').textContent = formatDate(profile.date_creation);
     document.getElementById('date_modification').textContent = formatDate(profile.date_modification);
@@ -273,6 +274,9 @@ async function displayProfile(profile) {
     fillEquipmentInDOM(armesContainer, armes, 'arme');
     fillEquipmentInDOM(vehiculesContainer, vehicules, 'vehicule');
     updatePhotoPreview(profile.photo_url);
+
+    // Récupérer et afficher les formations
+    await fillFormationsInDOM(profile.discord_id || currentUserId);
 
     originalData = { matricule: profile.matricule||'', nom: profile.nom||'', prenom: profile.prenom||'', photo_url: profile.photo_url||'', armes, vehicules };
     updateEquipmentVisibility();
@@ -290,6 +294,61 @@ async function displayProfile(profile) {
     if (canEdit) {
         document.getElementById('edit-mode-btn').style.display = 'block';
     }
+// Fonction pour remplir les formations dans le DOM
+async function fillFormationsInDOM(userId) {
+    const formationsContainer = document.getElementById('formations-container');
+    const formationsHeaders = document.querySelector('.equipment-headers.formations');
+    formationsContainer.innerHTML = '';
+    let formations = [];
+    try {
+        const res = await fetch(`/api/agent-formations/${userId}`);
+        if (res.ok) {
+            formations = await res.json();
+        }
+    } catch (e) {
+        console.warn('Erreur récupération formations:', e);
+    }
+
+    // Liste complète des formations possibles (doit matcher l'ordre du backend)
+    const allFormations = [
+        { nom: 'Négociateur' },
+        { nom: 'Lead Terrain' },
+        { nom: 'Dispatcher' },
+        { nom: 'Mary Unit' },
+        { nom: 'Nautics Unit' },
+        { nom: 'VIR' },
+        { nom: 'Convoi' },
+        { nom: 'ASD' },
+        { nom: 'Plongée' },
+        { nom: 'Parachute' },
+        { nom: 'Premiers Secours' },
+        { nom: 'Bomb Squad' }
+    ];
+
+    // Créer le tableau des formations
+    let hasFormation = false;
+    allFormations.forEach(f => {
+        const isValid = formations.some(userF => userF.nom === f.nom);
+        const div = document.createElement('div');
+        div.className = 'equipment-item';
+        div.innerHTML = `
+            <span class="equipment-name">${f.nom}</span>
+            <span class="equipment-detail">
+                <span class="formation-check ${isValid ? 'valid' : 'invalid'}">
+                    ${isValid
+                        ? '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 9.5L8 12.5L13 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+                        : '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6L12 12M12 6L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
+                </span>
+            </span>
+        `;
+        formationsContainer.appendChild(div);
+        if (isValid) hasFormation = true;
+    });
+    // Afficher les headers si au moins une formation
+    if (formationsHeaders) {
+        formationsHeaders.style.display = hasFormation ? 'grid' : 'none';
+    }
+}
 }
 
 // Fonction pour récupérer le nom d'affichage et le grade de l'agent
@@ -372,6 +431,7 @@ async function saveProfile(event) {
             matricule: document.getElementById('matricule').value.trim(),
             nom: document.getElementById('nom').value.trim(),
             prenom: document.getElementById('prenom').value.trim(),
+            telephone: document.getElementById('telephone').value.trim(),
             photo_url: document.getElementById('photo_preview').src || '',
             armes: getEquipmentFromDOM('arme'),
             vehicules: getEquipmentFromDOM('vehicule')
@@ -410,6 +470,28 @@ async function saveProfile(event) {
 
 // Initialisation de la page
 document.addEventListener('DOMContentLoaded', async () => {
+
+    // Formatage automatique du champ téléphone (parenthèses, espaces, limite)
+    const telephoneInput = document.getElementById('telephone');
+    if (telephoneInput) {
+        telephoneInput.addEventListener('input', function(e) {
+            let value = telephoneInput.value.replace(/\D/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+            let formatted = value;
+            if (value.length > 0) {
+                formatted = '(';
+                formatted += value.substring(0, 3);
+                if (value.length >= 4) {
+                    formatted += ') ' + value.substring(3, 6);
+                }
+                if (value.length >= 7) {
+                    formatted += '-' + value.substring(6, 10);
+                }
+            }
+            telephoneInput.value = formatted;
+        });
+        telephoneInput.setAttribute('maxlength', '14');
+    }
     const loader = document.getElementById('loaderOverlay');
     loader.style.display = 'flex';
     
@@ -420,10 +502,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         setupPhotoPopup();
 
         // Boutons d'action
-        document.getElementById('edit-mode-btn').addEventListener('click', activateEditModeLocal);
-        document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
-        document.getElementById('profileForm').addEventListener('submit', saveProfile);
-        document.getElementById('back-btn').addEventListener('click', () => history.back());
+    document.getElementById('edit-mode-btn').addEventListener('click', activateEditModeLocal);
+    document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
+    document.getElementById('profileForm').addEventListener('submit', saveProfile);
+    document.getElementById('backlinkBtn').addEventListener('click', () => history.back());
 
         // Boutons d'ajout d'équipement
         document.getElementById('add-arme-btn').addEventListener('click', () => {
@@ -506,9 +588,9 @@ async function activateEditMode() {
         document.body.classList.add('edit-mode');
         
         // Masquer le bouton édition, afficher sauvegarde et annulation
-        document.getElementById('edit-mode-btn').style.display = 'none';
-        document.getElementById('save-btn').style.display = 'block';
-        document.getElementById('cancel-edit-btn').style.display = 'block';
+    document.getElementById('edit-mode-btn').style.display = 'none';
+    document.getElementById('cancel-edit-btn').style.display = 'block';
+    document.getElementById('save-btn').style.display = 'block';
 
         // Activer les champs
         const inputs = document.querySelectorAll('input, textarea');

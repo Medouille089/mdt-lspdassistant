@@ -80,12 +80,16 @@
 <body>
     <div class="main-container">
         <div id="sidebar-container"></div>
-        <h1>Uploader d'images</h1>
+        <h1>Fiche cérémonie</h1>
         <div class="annexe-wrapper">
+            <div class="annexe-toolbar">
+                <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">← Retour</button>
+                <button id="openExternal" class="open-external" type="button">Ouvrir dans un nouvel onglet</button>
+            </div>
             <div id="annexeInfo" class="annexe-warning" aria-live="polite" style="display: none !important;"></div>
             <iframe id="annexFrame" class="annexe-frame" referrerpolicy="no-referrer"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                src="https://files.fantasticrp.fr/"></iframe>
+                src="https://docs.google.com/spreadsheets/d/1hcanB99NBnLcQfO4BkCkQOfBVffdFFxJEYWF-Gb2m4M/edit?gid=0#gid=0&fvid=1716173874"></iframe>
         </div>
     </div>
 
@@ -95,10 +99,32 @@
 
     <script src="scripts/annonce-popup.js"></script>
     <script src="scripts/loadSidebar.js"></script>
+        <script>
+            (function () {
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', init);
+                } else {
+                    init();
+                }
 
+                function init() {
+                    const btn = document.getElementById('backlinkBtn');
+                    if (!btn) return;
+
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        if (window.history.length > 1) {
+                            window.history.back();
+                        } else {
+                            window.location.href = '/menu-supervisorcs';
+                        }
+                    });
+                }
+            })();
+        </script>
     <script>
         document.getElementById('openExternal').onclick = function () {
-            window.open('https://files.fantasticrp.fr/', '_blank');
+            window.open('https://docs.google.com/spreadsheets/d/1hcanB99NBnLcQfO4BkCkQOfBVffdFFxJEYWF-Gb2m4M/edit?gid=0#gid=0&fvid=1716173874', '_blank');
         };
     </script>
 </body>

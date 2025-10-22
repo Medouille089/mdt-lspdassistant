@@ -92,15 +92,25 @@ router.get('/api/dashboard', async (req, res) => {
 router.get('/api/connected-agents', async (req, res) => {
   try {
     const query = `
-      SELECT user_id, display_name, last_seen
-      FROM lspd_live_users
-      WHERE last_seen > NOW() - INTERVAL '10 minutes'
-      ORDER BY last_seen DESC
+      SELECT l.user_id, l.display_name, l.last_seen, p.photo_url
+      FROM lspd_live_users l
+      LEFT JOIN lspd_agent_profiles p ON l.user_id = p.discord_id
+      WHERE l.last_seen > NOW() - INTERVAL '10 minutes'
+      ORDER BY l.last_seen DESC
     `;
 
     const { rows } = await pool.query(query);
 
-    res.json({ agents: rows });
+    // Ajoute avatar Discord par défaut si photo_url manquante
+    const agents = rows.map(agent => {
+      let avatar = agent.photo_url;
+      if (!avatar && agent.user_id) {
+        avatar = `https://cdn.discordapp.com/embed/avatars/${parseInt(agent.user_id.slice(-3), 10) % 5}.png`;
+      }
+      return { ...agent, avatar };
+    });
+
+    res.json({ agents });
   } catch (err) {
     console.error("Erreur récupération agents connectés :", err);
     res.status(500).json({ error: "Erreur serveur" });

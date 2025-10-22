@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.12.0](https://github.com/Medouille089/lspdassistant/compare/v1.11.4...v1.12.0) (2025-10-22)
+
+
+### Features
+
+* add rap link in DA ([a6a7cc7](https://github.com/Medouille089/lspdassistant/commit/a6a7cc7c70f5009142036277068c743efd4a234b))
+
+
+### Bug Fixes
+
+* add default 'unknown' image in ART when no images are uploaded ([f3ee87b](https://github.com/Medouille089/lspdassistant/commit/f3ee87b12383e8fce12b21f0ccd1f227c021fe53))
+* add fanta files, removed limiter in documentation + add supervisor, cs ceremonie ([9ddf3d1](https://github.com/Medouille089/lspdassistant/commit/9ddf3d1094a4530f04aafc0ea6ee514f20b0338c))
+* add formations in infos agents + fix some bugs ([2b190d6](https://github.com/Medouille089/lspdassistant/commit/2b190d6ea78940c3353699041f76bac9d4737780))
+* add phone number in fiche-agent + fix some css ([e064107](https://github.com/Medouille089/lspdassistant/commit/e06410764a02fb1e7032504a5899e7797bf6bd77))
+* adjust css in calcul-peine + add loader + confirm ([bb3519c](https://github.com/Medouille089/lspdassistant/commit/bb3519c29f54d198fe8acf0cd94edd72478365ca))
+* change on DA + del image-uploader for fantastic files ([0df50cb](https://github.com/Medouille089/lspdassistant/commit/0df50cb751c1ca7f8bb80b6d61b83ad931d9febc))
+* removed char counter from documentation ([11e01e0](https://github.com/Medouille089/lspdassistant/commit/11e01e05ad1a13b33aa58dc56dd67e36d4920fe0))
+* removed conneted agent name in viewConvocation ([ddf404c](https://github.com/Medouille089/lspdassistant/commit/ddf404cd0ae3e1622811bd75b2f370d3e6b54e0b))
+* removed del column on screen in calcul peine + fix width at 1200px for small screen ([114df20](https://github.com/Medouille089/lspdassistant/commit/114df20832a6a76e4bbf8b76a6c8f23197a812d3))
+
 ### [1.11.4](https://github.com/Medouille089/lspdassistant/compare/v1.11.3...v1.11.4) (2025-10-19)
 
 

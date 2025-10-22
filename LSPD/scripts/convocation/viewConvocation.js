@@ -37,29 +37,27 @@ if (typeof window.showAnimation !== 'function') {
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loaderOverlay').style.display = 'flex';
-
-    // Charger les infos utilisateur
+    // Désactiver les inputs selon le rôle utilisateur
     fetch("/api/user")
         .then((res) => res.json())
         .then((user) => {
-            editBy = user.username || 'Utilisateur inconnu';
-            userInfo = user; // Stocker toutes les infos utilisateur
-
-            // Masquer le bouton et désactiver les inputs si utilisateur DOJ
-            if (user.isDOJ && !user.isLSPD && !user.isSuperAdmin) {
-                const updateButton = document.querySelector(".send-button");
-                if (updateButton) {
-                    updateButton.style.display = 'none';
+            userInfo = user;
+            // Si pas LSPD ou SuperAdmin, désactiver nom et grade
+            if (!user.isLSPD && !user.isSuperAdmin) {
+                const nomInput = document.getElementById('nom-input');
+                const gradeInput = document.getElementById('grade');
+                if (nomInput) {
+                    nomInput.readOnly = true;
+                    nomInput.disabled = true;
+                    nomInput.style.backgroundColor = '#f5f5f5';
+                    nomInput.style.cursor = 'not-allowed';
                 }
-
-                // Désactiver tous les inputs et textareas
-                const inputs = document.querySelectorAll('input, textarea, select');
-                inputs.forEach(input => {
-                    input.readOnly = true;
-                    input.disabled = true;
-                    input.style.backgroundColor = '#f5f5f5';
-                    input.style.cursor = 'not-allowed';
-                });
+                if (gradeInput) {
+                    gradeInput.readOnly = true;
+                    gradeInput.disabled = true;
+                    gradeInput.style.backgroundColor = '#f5f5f5';
+                    gradeInput.style.cursor = 'not-allowed';
+                }
             }
         })
         .catch((err) => {
@@ -89,10 +87,10 @@ if (id) {
 }
 
 if (id) {
-    document.title = `Convocation - ${id}`;
+    document.title = `Convocation n°${id}`;
     const titres = document.querySelectorAll('h1, h3');
     titres.forEach(el => {
-        el.textContent = `Convocation - ${id}`;
+        el.textContent = `Convocation n°${id}`;
     });
 } else {
     document.title = "Convocation - Aucun ID";
@@ -154,16 +152,19 @@ async function captureConvocationImage() {
 }
 
 async function updateConvocationOnServer(id) {
-    const payload = {
-        nom: nom.value,
+    // Empêcher la modification de nom et grade si pas LSPD ou SuperAdmin
+    let payload = {
         prenom: prenom.value,
         date: dateInput.value,
         heure: heureInput.value,
         lieu: lieuInput.value,
         motif: motifInput.value,
-        officier: officierInput.value,
-        grade: gradeInput.value
+        officier: officierInput.value
     };
+    if (userInfo && (userInfo.isLSPD || userInfo.isSuperAdmin)) {
+        payload.nom = nom.value;
+        payload.grade = gradeInput.value;
+    }
 
     const res = await fetch(`/api/convocation/${id}`, {
         method: 'PUT',
@@ -218,15 +219,13 @@ async function loadConvocationDetail() {
         const convocations = await res.json();
         const convocation = convocations.find(i => i.id == id);
         if (!convocation) throw new Error('Convocation non trouvée');
-        nom.value = convocation.nom || '';
-        prenom.value = convocation.prenom || '';
-        officierInput.value = convocation.officier || '';
-        gradeInput.value = convocation.grade || '';
-        dateInput.value = formatDate(convocation.date) || '';
-        heureInput.value = convocation.heure || '';
-        motifInput.value = convocation.motif || '';
-        officierInput.value = convocation.officer || '';
-        gradeInput.value = convocation.grade || '';
+    nom.value = convocation.nom || '';
+    prenom.value = convocation.prenom || '';
+    officierInput.value = convocation.officer || '';
+    gradeInput.value = convocation.grade || '';
+    dateInput.value = formatDate(convocation.date) || '';
+    heureInput.value = convocation.heure || '';
+    motifInput.value = convocation.motif || '';
         
             // Show/hide edit button depending on presence of discord_thread_id
             const editBtn = document.getElementById('editConvocBtn');
