@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.2](https://github.com/Medouille089/lspdassistant/compare/v1.12.1...v1.12.2) (2025-10-22)
+
+
+### Bug Fixes
+
+* removed fil all button in arrestation ([46f30fc](https://github.com/Medouille089/lspdassistant/commit/46f30fcc10bd7179416718b9957045ea0a064f9f))
+
 ### [1.12.1](https://github.com/Medouille089/lspdassistant/compare/v1.12.0...v1.12.1) (2025-10-22)
 
 
