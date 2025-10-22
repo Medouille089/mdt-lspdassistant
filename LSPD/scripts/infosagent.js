@@ -259,6 +259,7 @@ async function displayProfile(profile) {
     document.getElementById('matricule').value = profile.matricule || '';
     document.getElementById('nom').value = profile.nom || '';
     document.getElementById('prenom').value = profile.prenom || '';
+    document.getElementById('telephone').value = profile.telephone || '';
     document.getElementById('agent_id').textContent = `ID: ${profile.discord_id || currentUserId}`;
     document.getElementById('date_creation').textContent = formatDate(profile.date_creation);
     document.getElementById('date_modification').textContent = formatDate(profile.date_modification);
@@ -372,6 +373,7 @@ async function saveProfile(event) {
             matricule: document.getElementById('matricule').value.trim(),
             nom: document.getElementById('nom').value.trim(),
             prenom: document.getElementById('prenom').value.trim(),
+            telephone: document.getElementById('telephone').value.trim(),
             photo_url: document.getElementById('photo_preview').src || '',
             armes: getEquipmentFromDOM('arme'),
             vehicules: getEquipmentFromDOM('vehicule')
@@ -410,6 +412,28 @@ async function saveProfile(event) {
 
 // Initialisation de la page
 document.addEventListener('DOMContentLoaded', async () => {
+
+    // Formatage automatique du champ téléphone (parenthèses, espaces, limite)
+    const telephoneInput = document.getElementById('telephone');
+    if (telephoneInput) {
+        telephoneInput.addEventListener('input', function(e) {
+            let value = telephoneInput.value.replace(/\D/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+            let formatted = value;
+            if (value.length > 0) {
+                formatted = '(';
+                formatted += value.substring(0, 3);
+                if (value.length >= 4) {
+                    formatted += ') ' + value.substring(3, 6);
+                }
+                if (value.length >= 7) {
+                    formatted += '-' + value.substring(6, 10);
+                }
+            }
+            telephoneInput.value = formatted;
+        });
+        telephoneInput.setAttribute('maxlength', '14');
+    }
     const loader = document.getElementById('loaderOverlay');
     loader.style.display = 'flex';
     
@@ -506,9 +530,9 @@ async function activateEditMode() {
         document.body.classList.add('edit-mode');
         
         // Masquer le bouton édition, afficher sauvegarde et annulation
-        document.getElementById('edit-mode-btn').style.display = 'none';
-        document.getElementById('save-btn').style.display = 'block';
-        document.getElementById('cancel-edit-btn').style.display = 'block';
+    document.getElementById('edit-mode-btn').style.display = 'none';
+    document.getElementById('cancel-edit-btn').style.display = 'block';
+    document.getElementById('save-btn').style.display = 'block';
 
         // Activer les champs
         const inputs = document.querySelectorAll('input, textarea');
