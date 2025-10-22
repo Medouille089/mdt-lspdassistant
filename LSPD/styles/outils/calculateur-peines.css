@@ -353,9 +353,19 @@ tbody tr.empty-row:hover {
   background: var(--input-bg);
   border-radius: 10px;
   padding: 30px;
+  padding-bottom: 50px; /* Ajoute de l'espace sous les cases */
   max-height: 230px;
   margin-bottom: 20px;
   border: 2px solid var(--main-color-dark);
+  position: relative;
+  box-sizing: border-box;
+}
+
+.peines-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 0;
 }
 
 .peines-grid {

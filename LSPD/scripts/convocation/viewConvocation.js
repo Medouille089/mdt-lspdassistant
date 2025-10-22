@@ -87,10 +87,10 @@ if (id) {
 }
 
 if (id) {
-    document.title = `Convocation - ${id}`;
+    document.title = `Convocation n°${id}`;
     const titres = document.querySelectorAll('h1, h3');
     titres.forEach(el => {
-        el.textContent = `Convocation - ${id}`;
+        el.textContent = `Convocation n°${id}`;
     });
 } else {
     document.title = "Convocation - Aucun ID";

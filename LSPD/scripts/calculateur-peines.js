@@ -475,9 +475,21 @@ async function exporterCalcul() {
         const tempContainer = document.createElement('div');
         tempContainer.style.cssText = 'position: absolute; left: -9999px; top: 0; background: white; padding: 30px;';
 
+        // Clone tableau and remove Action column and delete buttons
         const tableauClone = tableauSection.cloneNode(true);
-        const totauxClone = totauxSection.cloneNode(true);
+        const theadRow = tableauClone.querySelector('thead tr');
+        if (theadRow) {
+            // Remove last th (Action)
+            theadRow.removeChild(theadRow.lastElementChild);
+        }
+        const tbodyRows = tableauClone.querySelectorAll('tbody tr');
+        tbodyRows.forEach(tr => {
+            if (tr.children.length > 0) {
+                tr.removeChild(tr.lastElementChild); // Remove last td (button)
+            }
+        });
 
+        const totauxClone = totauxSection.cloneNode(true);
         const actionsSection = totauxClone.querySelector('.actions-section');
         if (actionsSection) {
             actionsSection.style.display = 'none';
@@ -488,12 +500,18 @@ async function exporterCalcul() {
 
         document.body.appendChild(tempContainer);
 
+        // Fixe une largeur obligatoire pour la capture (ex: 1200px)
+        const fixedWidth = 1200;
+        tempContainer.style.width = fixedWidth + 'px';
+        tempContainer.style.maxWidth = fixedWidth + 'px';
+        tempContainer.style.minWidth = fixedWidth + 'px';
+
         const canvas = await html2canvas(tempContainer, {
             backgroundColor: '#ffffff',
             scale: 2,
             logging: false,
             useCORS: true,
-            width: tempContainer.scrollWidth,
+            width: fixedWidth,
             height: tempContainer.scrollHeight
         });
 
