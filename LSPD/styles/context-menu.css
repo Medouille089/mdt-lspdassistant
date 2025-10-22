@@ -1,0 +1,35 @@
+/* context-menu.css */
+.context-menu {
+  position: fixed;
+  z-index: 9999;
+  background: #fff;
+  color: var(--main-color);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  border-radius: 12px;
+  min-width: 240px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 8px 0;
+  user-select: none;
+}
+.context-menu__item {
+  padding: 10px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  transition: background 0.15s;
+}
+.context-menu__item:hover {
+  background: #f2f4fa;
+}
+.context-menu__separator {
+  height: 1px;
+  background: #e5e7ef;
+  margin: 6px 0;
+}
+.context-menu__shortcut {
+  color: #b3b8c7;
+  font-size: 13px;
+  margin-left: 16px;
+}
