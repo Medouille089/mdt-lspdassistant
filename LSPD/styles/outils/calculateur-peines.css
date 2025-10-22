@@ -353,12 +353,14 @@ tbody tr.empty-row:hover {
   background: var(--input-bg);
   border-radius: 10px;
   padding: 30px;
-  padding-bottom: 50px; /* Ajoute de l'espace sous les cases */
-  max-height: 230px;
+  min-height: 220px;
   margin-bottom: 20px;
   border: 2px solid var(--main-color-dark);
   position: relative;
   box-sizing: border-box;
+.actions-section {
+  margin-top: 60px !important;
+}
 }
 
 .peines-grid {
