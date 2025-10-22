@@ -190,7 +190,7 @@ router.get('/api/getArrestation', async (req, res) => {
                 arrestation_id,
                 rapports_lies
             FROM lspd_arrestations
-            ORDER BY date_arrestation
+            ORDER BY date_arrestation DESC
         `);
 
         const bot = getBot(); // Assure-toi que le bot est prêt

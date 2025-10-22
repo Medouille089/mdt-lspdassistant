@@ -437,24 +437,23 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
       { nom: 'Nautics Unit', discord_role_id: config.nautics_unit_role_id },
       { nom: 'VIR', discord_role_id: config.vir_role_id },
       { nom: 'Convoi', discord_role_id: config.convoie_role_id },
-      { nom: 'ASD', discord_role_id: config.asd_role_id }
+      { nom: 'ASD', discord_role_id: config.asd_role_id },
+      { nom: 'Plongée', discord_role_id: config.plongee_role_id },
+      { nom: 'Parachute', discord_role_id: config.parachute_role_id },
+      { nom: 'Premiers Secours', discord_role_id: config.premiers_secours_role_id },
+      { nom: 'Bomb Squad', discord_role_id: config.bomb_squad_role_id }
     ].filter(formation => formation.discord_role_id && formation.discord_role_id.trim() !== ''); // Exclure les formations sans rôle défini
 
     // Récupérer les rôles de l'utilisateur ciblé depuis Discord
     let targetUserRoles = [];
-    
     try {
-      // Essayer de récupérer les rôles via l'API Discord
-  const discordResponse = await fetch(`${req.protocol}://${req.get('host')}/api/discord/member/${userId}`);
-      if (discordResponse.ok) {
-        const memberData = await discordResponse.json();
-        targetUserRoles = memberData.roles || [];
-      } else {
-        // Fallback : si c'est notre propre profil, utiliser nos rôles de session
-        if (user.id === userId) {
-          targetUserRoles = user.roles || [];
-        }
-      }
+      const bot = require('../config/bot');
+      const guildId = process.env.GUILD_ID;
+      const guild = await bot.guilds.fetch(guildId);
+      // Forcer le refresh du membre
+      guild.members.cache.delete(userId);
+      const member = await guild.members.fetch(userId);
+      targetUserRoles = member.roles.cache.map(role => role.id);
     } catch (error) {
       console.warn('Erreur récupération rôles Discord:', error);
       // Fallback : si c'est notre propre profil, utiliser nos rôles de session

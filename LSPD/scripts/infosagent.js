@@ -275,6 +275,9 @@ async function displayProfile(profile) {
     fillEquipmentInDOM(vehiculesContainer, vehicules, 'vehicule');
     updatePhotoPreview(profile.photo_url);
 
+    // Récupérer et afficher les formations
+    await fillFormationsInDOM(profile.discord_id || currentUserId);
+
     originalData = { matricule: profile.matricule||'', nom: profile.nom||'', prenom: profile.prenom||'', photo_url: profile.photo_url||'', armes, vehicules };
     updateEquipmentVisibility();
 
@@ -291,6 +294,61 @@ async function displayProfile(profile) {
     if (canEdit) {
         document.getElementById('edit-mode-btn').style.display = 'block';
     }
+// Fonction pour remplir les formations dans le DOM
+async function fillFormationsInDOM(userId) {
+    const formationsContainer = document.getElementById('formations-container');
+    const formationsHeaders = document.querySelector('.equipment-headers.formations');
+    formationsContainer.innerHTML = '';
+    let formations = [];
+    try {
+        const res = await fetch(`/api/agent-formations/${userId}`);
+        if (res.ok) {
+            formations = await res.json();
+        }
+    } catch (e) {
+        console.warn('Erreur récupération formations:', e);
+    }
+
+    // Liste complète des formations possibles (doit matcher l'ordre du backend)
+    const allFormations = [
+        { nom: 'Négociateur' },
+        { nom: 'Lead Terrain' },
+        { nom: 'Dispatcher' },
+        { nom: 'Mary Unit' },
+        { nom: 'Nautics Unit' },
+        { nom: 'VIR' },
+        { nom: 'Convoi' },
+        { nom: 'ASD' },
+        { nom: 'Plongée' },
+        { nom: 'Parachute' },
+        { nom: 'Premiers Secours' },
+        { nom: 'Bomb Squad' }
+    ];
+
+    // Créer le tableau des formations
+    let hasFormation = false;
+    allFormations.forEach(f => {
+        const isValid = formations.some(userF => userF.nom === f.nom);
+        const div = document.createElement('div');
+        div.className = 'equipment-item';
+        div.innerHTML = `
+            <span class="equipment-name">${f.nom}</span>
+            <span class="equipment-detail">
+                <span class="formation-check ${isValid ? 'valid' : 'invalid'}">
+                    ${isValid
+                        ? '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 9.5L8 12.5L13 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+                        : '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6L12 12M12 6L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
+                </span>
+            </span>
+        `;
+        formationsContainer.appendChild(div);
+        if (isValid) hasFormation = true;
+    });
+    // Afficher les headers si au moins une formation
+    if (formationsHeaders) {
+        formationsHeaders.style.display = hasFormation ? 'grid' : 'none';
+    }
+}
 }
 
 // Fonction pour récupérer le nom d'affichage et le grade de l'agent
@@ -444,10 +502,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         setupPhotoPopup();
 
         // Boutons d'action
-        document.getElementById('edit-mode-btn').addEventListener('click', activateEditModeLocal);
-        document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
-        document.getElementById('profileForm').addEventListener('submit', saveProfile);
-        document.getElementById('back-btn').addEventListener('click', () => history.back());
+    document.getElementById('edit-mode-btn').addEventListener('click', activateEditModeLocal);
+    document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
+    document.getElementById('profileForm').addEventListener('submit', saveProfile);
+    document.getElementById('backlinkBtn').addEventListener('click', () => history.back());
 
         // Boutons d'ajout d'équipement
         document.getElementById('add-arme-btn').addEventListener('click', () => {

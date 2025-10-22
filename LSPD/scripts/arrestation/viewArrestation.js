@@ -277,7 +277,13 @@ async function loadIncidentDetail() {
                                         let url = '#';
                                         if (type === 'INC') url = `${baseUrl}/viewIncident?id=${idLien}`;
                                         if (type === 'CONVOC') url = `${baseUrl}/viewConvocation?id=${idLien}`;
-                                        window.open(url, '_blank');
+                                        window.location.href = url;
+                                });
+                                li.addEventListener('mouseenter', function () {
+                                    li.style.backgroundColor = '#f5f5f5';
+                                });
+                                li.addEventListener('mouseleave', function () {
+                                    li.style.backgroundColor = '#fff';
                                 });
                                 ul.appendChild(li);
             }

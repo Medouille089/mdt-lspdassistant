@@ -1,3 +1,25 @@
+/* Coches formations visuelles */
+.formation-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3em;
+  font-weight: bold;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  margin: 0 2px;
+}
+.formation-check.valid {
+  background: #eafaf3;
+  color: var(--success);
+  border: 2px solid var(--success);
+}
+.formation-check.invalid {
+  background: #fff0f0;
+  color: var(--danger);
+  border: 2px solid var(--danger);
+}
 /* Design moderne de carte d'agent LSPD */
 
 /* Styles globaux pour les icônes Material Symbols */
