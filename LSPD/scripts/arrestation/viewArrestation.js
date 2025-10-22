@@ -288,26 +288,31 @@ async function loadIncidentDetail() {
             });
         }
 
+        const placeholderUrl = 'https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc=';
         if (arrestation.images && arrestation.images.length > 0) {
-            // Créer toutes les images dans l'ordre d'upload (ancien -> récent)
-            for (let idx = 0; idx < arrestation.images.length; idx++) {
-                const url = arrestation.images[idx];
-                if (idx === 0) {
-                    // première image uploadée -> preview1 (photo masquée)
-                    fileInput1.src = url;
-                } else if (idx === 1) {
-                    // deuxième image uploadée -> preview2 (démasquée)
-                    fileInput2.src = url;
-                } else {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.alt = 'Pièce jointe';
-                    img.style.maxWidth = '200px';
-                    img.style.margin = '5px';
-                    img.style.cursor = 'pointer';
-                    img.classList.add('preview-image');
-                    container.appendChild(img);
-                }
+            // première image uploadée -> preview1 (photo masquée)
+            if (arrestation.images[0]) {
+                fileInput1.src = arrestation.images[0];
+            } else {
+                fileInput1.src = placeholderUrl;
+            }
+            // deuxième image uploadée -> preview2 (démasquée)
+            if (arrestation.images[1]) {
+                fileInput2.src = arrestation.images[1];
+            } else {
+                fileInput2.src = placeholderUrl;
+            }
+            // Les autres images (s'il y en a)
+            for (let idx = 2; idx < arrestation.images.length; idx++) {
+                const url = arrestation.images[idx] || placeholderUrl;
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'Pièce jointe';
+                img.style.maxWidth = '200px';
+                img.style.margin = '5px';
+                img.style.cursor = 'pointer';
+                img.classList.add('preview-image');
+                container.appendChild(img);
             }
 
             // List of img elements to wait for
@@ -326,6 +331,9 @@ async function loadIncidentDetail() {
             enableFullscreenOnImages();
 
         } else {
+            // Si aucune image, afficher les placeholders pour preview1 et preview2
+            fileInput1.src = placeholderUrl;
+            fileInput2.src = placeholderUrl;
             container.textContent = 'Aucune pièce jointe disponible.';
         }
 
