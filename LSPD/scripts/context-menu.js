@@ -39,8 +39,6 @@ function pasteHandler() {
         target.value = value.slice(0, start) + text + value.slice(end);
         target.selectionStart = target.selectionEnd = start + text.length;
         target.focus();
-      } else {
-        alert('Placez le curseur dans un champ texte pour coller.');
       }
     });
   }
@@ -63,8 +61,6 @@ function cutHandler() {
       target.selectionEnd = target.value.length;
     }
     document.execCommand('cut');
-  } else {
-    alert('Placez le curseur dans un champ texte pour couper.');
   }
 }
 

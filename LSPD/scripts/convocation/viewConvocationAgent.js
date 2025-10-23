@@ -77,10 +77,6 @@ async function loadConvocationDetails() {
     }
 }
 
-// Bouton retour
-backButton.addEventListener('click', () => {
-    window.location.href = '/liste-convocations-agent';
-});
 
 // Charger les détails au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
