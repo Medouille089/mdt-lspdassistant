@@ -7,7 +7,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data/images/favicon.png" type="image/png">
-    <link rel="icon" href="styles/colors.css" type="image/png">
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/context-menu.css" />
     <title>LSPD Assistant</title>
 
     <!-- Google Fonts for Icons -->
@@ -121,24 +122,6 @@
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown-container">
-                    <a href="#" class="nav-link dropdown-toggle">
-                        <span class="material-symbols-rounded">bookmark</span>
-                        <span class="nav-label">Outils</span>
-                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li class="nav-item"><a href="/menu-annexes" class="nav-link dropdown-link">Annexes</a>
-                        </li>
-                        <li class="nav-item"><a class="nav-link dropdown-title">Outils</a></li>
-                        <li class="nav-item"><a href="/calculateur-peine" class="nav-link dropdown-link">Calculateur de
-                                peine</a>
-                        </li>
-                        <li class="nav-item"><a href="/image-uploader" class="nav-link dropdown-link">Uploader
-                                d'images</a>
-                        </li>
-                    </ul>
-                </li>
 
                 <!-- Dropdown Liste -->
                 <li class="nav-item dropdown-container">
@@ -191,6 +174,25 @@
                     </ul>
                 </li>
 
+                <li class="nav-item dropdown-container">
+                    <a href="#" class="nav-link dropdown-toggle">
+                        <span class="material-symbols-rounded">bookmark</span>
+                        <span class="nav-label">Outils</span>
+                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="nav-item"><a href="/menu-annexes" class="nav-link dropdown-link">Annexes</a>
+                        </li>
+                        <li class="nav-item"><a class="nav-link dropdown-title">Outils</a></li>
+                        <li class="nav-item"><a href="/calculateur-peine" class="nav-link dropdown-link">Calculateur de
+                                peine</a>
+                        </li>
+                        <li class="nav-item"><a href="/image-uploader" class="nav-link dropdown-link">Uploader
+                                d'images</a>
+                        </li>
+                    </ul>
+                </li>
+
                 <li class="nav-item onlySupervisor">
                     <a href="/menu-superviseur" class="nav-link">
                         <span class="material-symbols-rounded">brightness_alert</span>
@@ -238,6 +240,7 @@
     <!-- Scripts - L'ordre est important ! -->
     <script src="scripts/clientCache.js"></script>
     <script src="scripts/sidebar.js"></script>
+    <script src="scripts/context-menu.js"></script>
 </body>
 
 </html>

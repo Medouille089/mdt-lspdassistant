@@ -13,10 +13,12 @@
   <link rel="stylesheet" href="styles/warning.css">
   <link rel="stylesheet" href="styles/popup.css">
   <link rel="stylesheet" href="styles/sanction/sanctions.css">
+  <link rel="stylesheet" href="styles/context-menu.css" />
 </head>
 
 <body>
   <script src="scripts/annonce-popup.js"></script>
+  <script src="scripts/context-menu.js"></script>
   <div id="loaderOverlay" class="loader-overlay">
     <div class="loader-spinner"></div>
   </div>
@@ -26,7 +28,16 @@
     <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
       ← Retour
     </button>
+      <div id="feedbackAnimation" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; align-items:center; justify-content:center;"></div>
     <div class="sanction-container">
+      <div class="header">
+        <img src="data/images/lspd.png" alt="Logo LSPD">
+        <div class="header-title">
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3>CONVOCATION AGENT</h3>
+        </div>
+        <div style="width: 70px;"></div>
+      </div>
       <div class="form-content">
         <label for="agent">Agent convoqué :</label>
         <input type="text" id="agent" readonly>
@@ -58,9 +69,10 @@
           </div>
         </div>
 
-        <div class="button-container">
-          <button type="button" id="backButton" class="btn btn-secondary">← Retour à la liste</button>
-        </div>
+        <!-- Bouton retour supprimé -->
+          <label for="commentaire">Commentaires :</label>
+          <textarea id="commentaire" placeholder="Saisir les points abordés lors de la convocation..."></textarea>
+          <button id="saveCommentaireBtn" type="button">Sauvegarder</button>
       </div>
     </div>
   </div>

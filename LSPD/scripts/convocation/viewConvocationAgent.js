@@ -11,6 +11,41 @@ const officierInput = document.getElementById('officier');
 const gradeInput = document.getElementById('grade');
 const createdAtInput = document.getElementById('created_at');
 const backButton = document.getElementById('backButton');
+const commentaireInput = document.getElementById('commentaire');
+const saveCommentaireBtn = document.getElementById('saveCommentaireBtn');
+// Provide a global showAnimation helper if not already defined by another script
+if (typeof window.showAnimation !== 'function') {
+    window.showAnimation = function (type = 'success', message = '') {
+        const feedback = document.getElementById('feedbackAnimation');
+        if (!feedback) return Promise.resolve();
+        return new Promise((resolve) => {
+            feedback.innerHTML = '';
+            const content = document.createElement('div');
+            content.className = 'feedback-inner';
+            if (type === 'success') {
+                content.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+                      <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
+                      <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" points="100.2,40.2 51.5,88.8 29.8,67.5"/>
+                    </svg>
+                    <p class="success">${message || 'Opération réussie.'}</p>
+                `;
+            } else {
+                content.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
+                      <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" cx="65.1" cy="65.1" r="60"/>
+                      <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
+                      <line class="path line" fill="none" stroke="#D06079" stroke-width="8" x1="95.8" y1="38" x2="34.4" y2="92.2"/>
+                    </svg>
+                    <p class="error">${message || 'Erreur.'}</p>
+                `;
+            }
+            feedback.appendChild(content);
+            feedback.style.display = 'flex';
+            setTimeout(() => resolve(), 1200);
+        });
+    };
+}
 
 // Fonction pour formater la date et l'heure
 function formatDateTime(dateStr) {
@@ -64,6 +99,7 @@ async function loadConvocationDetails() {
         officierInput.value = convocation.agent_convoquant_nom || '';
         gradeInput.value = convocation.agent_convoquant_grade || '';
         createdAtInput.value = formatDateTime(convocation.created_at) || '';
+        commentaireInput.value = convocation.commentaire || '';
 
         // Mettre à jour le titre de la page
         document.title = `Convocation Agent #${convocation.id} - LSPD Assistant`;
@@ -77,14 +113,42 @@ async function loadConvocationDetails() {
     }
 }
 
-// Bouton retour
-backButton.addEventListener('click', () => {
-    window.location.href = '/liste-convocations-agent';
-});
 
 // Charger les détails au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
     loadConvocationDetails();
+    if (saveCommentaireBtn) {
+        saveCommentaireBtn.addEventListener('click', async () => {
+            const commentaire = commentaireInput.value;
+            if (!convocationId) {
+                await window.showAnimation('error', 'ID de convocation manquant');
+                return;
+            }
+            saveCommentaireBtn.disabled = true;
+            document.getElementById('loaderOverlay').style.display = 'flex';
+            try {
+                const response = await fetch(`/api/convocations_agents/${convocationId}/commentaire`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ commentaire })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    await window.showAnimation('success', 'Commentaire sauvegardé !');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    await window.showAnimation('error', result.error || 'Erreur lors de la sauvegarde');
+                }
+            } catch (err) {
+                await window.showAnimation('error', 'Erreur serveur');
+            } finally {
+                saveCommentaireBtn.disabled = false;
+                document.getElementById('loaderOverlay').style.display = 'none';
+            }
+        });
+    }
 });
 
 (function () {

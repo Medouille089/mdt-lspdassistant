@@ -13,10 +13,12 @@
   <link rel="stylesheet" href="styles/warning.css">
   <link rel="stylesheet" href="styles/popup.css">
   <link rel="stylesheet" href="styles/sanction/sanctions.css">
+  <link rel="stylesheet" href="styles/context-menu.css" />
 </head>
 
 <body>
   <script src="scripts/annonce-popup.js"></script>
+  <script src="scripts/context-menu.js"></script>
   <div id="loaderOverlay" class="loader-overlay">
     <div class="loader-spinner"></div>
   </div>
@@ -27,6 +29,14 @@
       ← Retour
     </button>
     <div class="sanction-container">
+      <div class="header">
+        <img src="data/images/lspd.png" alt="Logo LSPD">
+        <div class="header-title">
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3>CONVOCATION AGENT</h3>
+        </div>
+        <div style="width: 70px;"></div>
+      </div>
       <form id="convocationForm">
         <label for="agent">Agent convoqué :</label>
         <select id="agent">
