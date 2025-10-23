@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.3](https://github.com/Medouille089/lspdassistant/compare/v1.12.2...v1.12.3) (2025-10-23)
+
+
+### Bug Fixes
+
+* add custom right clic ([f105e9c](https://github.com/Medouille089/lspdassistant/commit/f105e9c00edddc03667a63c866eb89defa92669a))
+* change connect background image ([d744256](https://github.com/Medouille089/lspdassistant/commit/d7442568f82c082b81f4abea1bd0a03bd6bd55dc))
+
 ### [1.12.2](https://github.com/Medouille089/lspdassistant/compare/v1.12.1...v1.12.2) (2025-10-22)
 
 
