@@ -174,15 +174,6 @@ async function loadIncidentDetail() {
         armeInput.value = arrestation.arme || '';
         uofInput.textContent = arrestation.uof ? 'Oui' : 'Non';
 
-        // Affichage de la peine appliquée si présente
-        const peineImageView = document.getElementById('peineImageView');
-        if (arrestation.peine_image_url) {
-            peineImageView.src = arrestation.peine_image_url;
-            peineImageView.style.display = 'block';
-        } else {
-            peineImageView.style.display = 'none';
-        }
-
         listAccusations.innerHTML = '';
         if (arrestation.accusations && arrestation.accusations.length > 0) {
             arrestation.accusations.forEach(accusation => {
@@ -200,8 +191,6 @@ async function loadIncidentDetail() {
         preview.innerHTML = '';
 
         // Affichage enrichi des rapports/convocations liés
-        const liensRapportsContainer = document.getElementById('liensRapportsContainer');
-        liensRapportsContainer.innerHTML = '';
         if (arrestation.rapports_lies && Array.isArray(arrestation.rapports_lies) && arrestation.rapports_lies.length > 0) {
             const label = document.createElement('label');
             label.textContent = "Rapports/Convocations liés";
@@ -209,7 +198,7 @@ async function loadIncidentDetail() {
             label.style.fontWeight = "600";
             label.style.fontSize = "14px";
             label.style.color = "var(--main-color)";
-            liensRapportsContainer.appendChild(label);
+            container.appendChild(label);
 
             const ul = document.createElement('ul');
             ul.id = "liensRapportsConvoc";
@@ -268,39 +257,40 @@ async function loadIncidentDetail() {
                     }
                     infos = '';
                 }
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span style="font-weight:700;font-size:16px;letter-spacing:0.5px;">${label}</span><br>
-                    <span style="font-size:15px;color:#0b1b5a;">${infos}</span>
-                `;
-                li.style.padding = "12px 16px";
-                li.style.margin = "0";
-                li.style.backgroundColor = "#fff";
-                li.style.borderBottom = "1px solid #e2e8f0";
-                li.style.color = "var(--main-color)";
-                li.style.fontSize = "15px";
-                li.style.cursor = "pointer";
-                li.style.transition = "all 0.2s ease";
-                li.style.position = "relative";
-                li.style.borderLeft = "4px solid var(--main-color)";
-                li.addEventListener('click', function () {
-                        let url = '#';
-                        if (type === 'INC') url = `${baseUrl}/viewIncident?id=${idLien}`;
-                        if (type === 'CONVOC') url = `${baseUrl}/viewConvocation?id=${idLien}`;
-                        window.location.href = url;
-                });
-                li.addEventListener('mouseenter', function () {
-                    li.style.backgroundColor = '#f5f5f5';
-                });
-                li.addEventListener('mouseleave', function () {
-                    li.style.backgroundColor = '#fff';
-                });
-                ul.appendChild(li);
+
+                                const li = document.createElement('li');
+                                li.innerHTML = `
+                                    <span style="font-weight:700;font-size:16px;letter-spacing:0.5px;">${label}</span><br>
+                                    <span style="font-size:15px;color:#0b1b5a;">${infos}</span>
+                                `;
+                                li.style.padding = "12px 16px";
+                                li.style.margin = "0";
+                                li.style.backgroundColor = "#fff";
+                                li.style.borderBottom = "1px solid #e2e8f0";
+                                li.style.color = "var(--main-color)";
+                                li.style.fontSize = "15px";
+                                li.style.cursor = "pointer";
+                                li.style.transition = "all 0.2s ease";
+                                li.style.position = "relative";
+                                li.style.borderLeft = "4px solid var(--main-color)";
+                                li.addEventListener('click', function () {
+                                        let url = '#';
+                                        if (type === 'INC') url = `${baseUrl}/viewIncident?id=${idLien}`;
+                                        if (type === 'CONVOC') url = `${baseUrl}/viewConvocation?id=${idLien}`;
+                                        window.location.href = url;
+                                });
+                                li.addEventListener('mouseenter', function () {
+                                    li.style.backgroundColor = '#f5f5f5';
+                                });
+                                li.addEventListener('mouseleave', function () {
+                                    li.style.backgroundColor = '#fff';
+                                });
+                                ul.appendChild(li);
             }
 
             // Pour chaque lien, fetch et affiche
             Promise.all(arrestation.rapports_lies.map(fetchAndRenderLien)).then(() => {
-                liensRapportsContainer.appendChild(ul);
+                container.appendChild(ul);
             });
         }
 

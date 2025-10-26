@@ -138,24 +138,3 @@ router.get("/api/getConvocationsAgents", async (req, res) => {
 });
 
 module.exports = router;
-// Route pour modifier le commentaire d'une convocation agent
-router.put('/api/convocations_agents/:id/commentaire', async (req, res) => {
-    const id = req.params.id;
-    const { commentaire } = req.body;
-    if (typeof commentaire !== 'string') {
-        return res.status(400).json({ error: 'Commentaire manquant ou invalide.' });
-    }
-    try {
-        const result = await pool.query(
-            'UPDATE lspd_convocations_agents SET commentaire = $1 WHERE id = $2 RETURNING *',
-            [commentaire, id]
-        );
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Convocation agent non trouvée.' });
-        }
-        res.json({ success: true, convocation: result.rows[0] });
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour du commentaire :', error);
-        res.status(500).json({ error: 'Erreur serveur.' });
-    }
-});
