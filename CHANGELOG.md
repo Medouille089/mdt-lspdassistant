@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.7](https://github.com/Medouille089/lspdassistant/compare/v1.12.6...v1.12.7) (2025-10-26)
+
+
+### Bug Fixes
+
+* login name in live users ([92b162a](https://github.com/Medouille089/lspdassistant/commit/92b162a8d5de176a7a73bae6f01f023ea56f0c1f))
+* trello css folder ([a492ce7](https://github.com/Medouille089/lspdassistant/commit/a492ce7a49846751601d6f2b6a233e0a73db685d))
+
 ### [1.12.6](https://github.com/Medouille089/lspdassistant/compare/v1.12.5...v1.12.6) (2025-10-26)
 
 
