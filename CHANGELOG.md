@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.5](https://github.com/Medouille089/lspdassistant/compare/v1.12.4...v1.12.5) (2025-10-26)
+
+
+### Bug Fixes
+
+* sidebar in calc peine ([d09c55f](https://github.com/Medouille089/lspdassistant/commit/d09c55f40e6fb3622676a3e7630d10b7dedfb0b0))
+
 ### [1.12.4](https://github.com/Medouille089/lspdassistant/compare/v1.12.3...v1.12.4) (2025-10-23)
 
 

@@ -1,3 +1,41 @@
+// Uploader et preview pour Peine appliquée
+const peineImageInput = document.getElementById('peineImageInput');
+const peineImagePreview = document.getElementById('peineImagePreview');
+let peineImageUrl = '';
+
+if (peineImageInput) {
+  peineImageInput.addEventListener('change', async function () {
+    const file = this.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        peineImagePreview.src = e.target.result;
+        peineImagePreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+// Ajout dans le submit du form : upload dans le thread puis stocker l'URL
+document.querySelector('form').addEventListener('submit', async function (e) {
+  // ...existing code...
+  // Ajout upload image Peine appliquée
+  if (peineImageInput && peineImageInput.files && peineImageInput.files[0]) {
+    const file = peineImageInput.files[0];
+    // Upload dans le thread Discord (remplacer par ton endpoint d'upload)
+    const formDataImg = new FormData();
+    formDataImg.append('image', file);
+    const resImg = await fetch('/api/uploadPeineImage', { method: 'POST', body: formDataImg });
+    if (resImg.ok) {
+      const data = await resImg.json();
+      peineImageUrl = data.url;
+      // Ajoute l'URL dans le form principal
+      formData.append('peine_image_url', peineImageUrl);
+    }
+  }
+  // ...existing code d'envoi...
+});
 // Ajout de l'envoi des liens rapport/convocation
 document.querySelector('form').addEventListener('submit', async function (e) {
   e.preventDefault();
