@@ -42,3 +42,21 @@ router.get('/api/connected-agents', checkAuth, async (req, res) => {
 });
 
 module.exports = router;
+
+// Enregistre ou met à jour la présence de l'utilisateur (heartbeat)
+router.post('/api/live-user-heartbeat', checkAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const displayName = req.user.displayName || req.user.username || '';
+    // Upsert dans la table lspd_live_users
+    await pool.query(`
+      INSERT INTO lspd_live_users (user_id, display_name, last_seen)
+      VALUES ($1, $2, NOW())
+      ON CONFLICT (user_id) DO UPDATE SET last_seen = NOW(), display_name = EXCLUDED.display_name
+    `, [userId, displayName]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[LiveUserHeartbeat] Erreur:', err);
+    res.status(500).json({ error: 'Erreur heartbeat live user' });
+  }
+});
