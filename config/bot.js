@@ -243,7 +243,7 @@ async function startBot() {
   await loadConfig();
   await bot.login(process.env.TOKEN);
 
-  bot.once("ready", async () => {
+  bot.once("clientReady", async () => {
 
     let index = 0;
     async function cyclePresence() {

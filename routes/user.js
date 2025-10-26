@@ -300,9 +300,16 @@ router.post('/login-local', async (req, res) => {
       const guildMember = await response.json();
 
       // Créer un objet user similaire à celui de Discord OAuth
+      // Récupérer le displayName Discord (nick ou username Discord)
+      let displayName = account.username;
+      if (guildMember && guildMember.nick) {
+        displayName = guildMember.nick;
+      } else if (guildMember && guildMember.user && guildMember.user.username) {
+        displayName = guildMember.user.username;
+      }
       const user = {
         id: account.discord_id,
-        username: account.username,
+        username: displayName,
         discriminator: '0000', // Pas disponible via bot
         avatar: null,
         guild_member: guildMember
