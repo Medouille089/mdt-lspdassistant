@@ -46,8 +46,21 @@ module.exports = router;
 // Enregistre ou met à jour la présence de l'utilisateur (heartbeat)
 router.post('/api/live-user-heartbeat', checkAuth, async (req, res) => {
   try {
+    // Si login local, req.user.id = discord_id (lié), sinon c'est l'id Discord direct
     const userId = req.user.id;
-    const displayName = req.user.displayName || req.user.username || '';
+    let displayName = req.user.username || '';
+
+    // Si le compte est lié à Discord, on récupère toujours le displayName Discord
+    try {
+      const guild = await bot.guilds.fetch(GUILD_ID);
+      const member = await guild.members.fetch(userId);
+      if (member && member.displayName) {
+        displayName = member.displayName;
+      }
+    } catch (e) {
+      // ignore si erreur Discord
+    }
+
     // Upsert dans la table lspd_live_users
     await pool.query(`
       INSERT INTO lspd_live_users (user_id, display_name, last_seen)
