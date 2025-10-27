@@ -50,15 +50,28 @@ router.post('/api/live-user-heartbeat', checkAuth, async (req, res) => {
     const userId = req.user.id;
     let displayName = req.user.username || '';
 
-    // Si le compte est lié à Discord, on récupère toujours le displayName Discord
+    // Récupère le rôle superadmin depuis la config
+    const config = await getConfig();
+    const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+
+    // Si le compte est lié à Discord, on récupère toujours le displayName Discord et on check le rôle
+    let isSuperAdmin = false;
     try {
       const guild = await bot.guilds.fetch(GUILD_ID);
       const member = await guild.members.fetch(userId);
       if (member && member.displayName) {
         displayName = member.displayName;
       }
+      if (SUPER_ADMIN_ROLE && member.roles.cache.has(SUPER_ADMIN_ROLE)) {
+        isSuperAdmin = true;
+      }
     } catch (e) {
       // ignore si erreur Discord
+    }
+
+    // Ne pas enregistrer les superadmins
+    if (isSuperAdmin) {
+      return res.json({ ok: true, skipped: 'superadmin' });
     }
 
     // Upsert dans la table lspd_live_users
