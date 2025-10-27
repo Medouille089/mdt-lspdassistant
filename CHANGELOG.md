@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.11](https://github.com/Medouille089/lspdassistant/compare/v1.12.10...v1.12.11) (2025-10-27)
+
+
+### Bug Fixes
+
+* remove user who have superadmin role from liveUsers ([4008d11](https://github.com/Medouille089/lspdassistant/commit/4008d11d988a0936a53dc6670fc2fc04e137f670))
+
 ### [1.12.10](https://github.com/Medouille089/lspdassistant/compare/v1.12.9...v1.12.10) (2025-10-27)
 
 
