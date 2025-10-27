@@ -62,6 +62,30 @@ async function loadAgents() {
 
 // DOMContentLoaded
 document.addEventListener("DOMContentLoaded", async () => {
+  // Ajout compteur de caractères pour attitude et appreciation
+  function updateCounter(textareaId, counterId, max) {
+    const textarea = document.getElementById(textareaId);
+    const counter = document.getElementById(counterId);
+    if (!textarea || !counter) return;
+    function setCounterColor(remaining) {
+      if (remaining === 0) {
+        counter.style.color = '#FF0000'; // rouge vif
+      } else {
+        counter.style.color = '#888'; // gris
+      }
+    }
+    textarea.addEventListener('input', function () {
+      const remaining = max - textarea.value.length;
+      counter.textContent = remaining;
+      setCounterColor(remaining);
+    });
+    // Initialiser le compteur
+    const initial = max - textarea.value.length;
+    counter.textContent = initial;
+    setCounterColor(initial);
+  }
+  updateCounter('attitude', 'attitude-counter', 1024);
+  updateCounter('appreciation', 'appreciation-counter', 1024);
   const loader = document.getElementById("loaderOverlay");
   loader.style.display = "flex"; // afficher loader
 
