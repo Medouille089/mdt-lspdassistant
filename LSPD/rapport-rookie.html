@@ -144,7 +144,10 @@
         <div class="user-info-row">
           <div class="user-info-field">
             <label for="attitude">Attitude :</label>
-            <textarea id="attitude" placeholder="Décrire l’attitude du Rookie..."></textarea>
+            <div style="position: relative;">
+              <textarea id="attitude" maxlength="1024" placeholder="Décrire l’attitude du Rookie..." style="width: 100%; box-sizing: border-box;"></textarea>
+              <span class="char-counter" id="attitude-counter" style="position: absolute; bottom: 22px; right: 20px; font-size: 0.85em; color: #888; pointer-events: none; background: transparent;">1024</span>
+            </div>
           </div>
         </div>
 
@@ -152,7 +155,10 @@
         <div class="user-info-row">
           <div class="user-info-field">
             <label for="appreciation">Appréciation Globale :</label>
-            <textarea id="appreciation" placeholder="Décrire l’appréciation Globale..."></textarea>
+            <div style="position: relative;">
+              <textarea id="appreciation" maxlength="1024" placeholder="Décrire l’appréciation Globale..." style="width: 100%; box-sizing: border-box;"></textarea>
+              <span class="char-counter" id="appreciation-counter" style="position: absolute; bottom: 22px; right: 20px; font-size: 0.85em; color: #888; pointer-events: none; background: transparent;">1024</span>
+            </div>
           </div>
         </div>
 

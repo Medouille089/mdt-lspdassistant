@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.10](https://github.com/Medouille089/lspdassistant/compare/v1.12.9...v1.12.10) (2025-10-27)
+
+
+### Bug Fixes
+
+* add char limiter to rapport rookie ([00bac08](https://github.com/Medouille089/lspdassistant/commit/00bac084298c019b62bf410f0c701b91cf2e7663))
+* fix blocking to rapport rookie for rookies ([faf8a4d](https://github.com/Medouille089/lspdassistant/commit/faf8a4d605534501aa1c2fe905397b5de696e7cf))
+
 ### [1.12.9](https://github.com/Medouille089/lspdassistant/compare/v1.12.8...v1.12.9) (2025-10-26)
 
 

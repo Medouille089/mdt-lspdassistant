@@ -43,7 +43,29 @@ router.get('/api/agents-rookie', async (req, res) => {
 });
 
 // routes/rapport-rookie.js
-router.post('/api/rapport-rookie', checkAuth, async (req, res) => {
+// Middleware pour bloquer les rookies sur l'API
+async function blockRookieApi(req, res, next) {
+    try {
+        const bot = getBot();
+        const guild = await bot.guilds.fetch(process.env.GUILD_ID);
+        guild.members.cache.delete(req.user.id);
+        const member = await guild.members.fetch(req.user.id);
+        const roleIds = member.roles.cache.map(role => role.id);
+        const { rows } = await pool.query('SELECT rookie_role_id FROM lspd_grades LIMIT 1');
+        if (rows.length) {
+            const rookieRoleId = rows[0].rookie_role_id?.trim();
+            if (rookieRoleId && roleIds.includes(rookieRoleId)) {
+                return res.status(403).json({ error: 'Accès interdit : les rookies ne peuvent pas soumettre de rapport.' });
+            }
+        }
+        next();
+    } catch (err) {
+        console.error('Erreur blocage rookie API:', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+}
+
+router.post('/api/rapport-rookie', checkAuth, blockRookieApi, async (req, res) => {
     try {
         const {
             agent, conduite, radio, procedures, ville,

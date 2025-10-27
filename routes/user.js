@@ -13,13 +13,14 @@ const { cacheUser } = require('../config/cacheMiddleware');
 router.get('/api/user', checkAuthOrDOJ, async (req, res) => {
   const user = req.user;
 
-  try {
-    const cacheKey = `user:${user.id}`;
-    const cachedUser = cache.get(cacheKey);
 
-    if (cachedUser) {
-      return res.json(cachedUser);
-    }
+  try {
+    // Désactivation du cache pour toujours refetch les rôles/grade à jour
+    // const cacheKey = `user:${user.id}`;
+    // const cachedUser = cache.get(cacheKey);
+    // if (cachedUser) {
+    //   return res.json(cachedUser);
+    // }
 
     const conf = await getConfig();
     const SUPER_ADMIN_ROLE = conf.id_superadmin ? String(conf.id_superadmin).trim() : null;
@@ -115,7 +116,7 @@ router.get('/api/user', checkAuthOrDOJ, async (req, res) => {
       grade
     };
 
-    cache.set(cacheKey, userData, CACHE_DURATIONS.USER_SESSION);
+
 
     res.set('Cache-Control', 'no-store');
     res.json(userData);
