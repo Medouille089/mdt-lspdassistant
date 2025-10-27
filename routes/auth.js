@@ -214,7 +214,8 @@ const protectedPagesSupervisor = [
 ];
 
 const blockedForRookies = [
-  'rapport-rookie.html'
+  'rapport-rookie.html',
+  'rapport-rookie'
 ];
 
 const whiteListedPagesDOJ = [

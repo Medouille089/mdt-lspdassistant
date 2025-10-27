@@ -1,15 +1,26 @@
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        const res = await fetch("/api/user");
-        if (!res.ok) return;
+        // Fetch user info
+        const userRes = await fetch("/api/user");
+        if (!userRes.ok) return;
+        const user = await userRes.json();
 
-        const user = await res.json();
-        const ROOKIE_ROLE_ID = "1096965866303787094";
+        // Fetch grades config to get rookie_role_id
+        const gradesRes = await fetch("/api/grades");
+        if (!gradesRes.ok) return;
+        const grades = await gradesRes.json();
+        const rookieRoleId = grades.rookie_role_id?.trim();
 
-        if (!user.roles.includes(ROOKIE_ROLE_ID)) {
+        // DEBUG : log les rôles et le rookieRoleId
+        console.log('[DEBUG] rookieRoleId:', rookieRoleId);
+        console.log('[DEBUG] user.roles:', user.roles);
+
+        // Si l'utilisateur N'A PAS le rôle rookie, on affiche le bouton
+        if (rookieRoleId && !user.roles.includes(rookieRoleId)) {
             const rapportRookieBtn = document.querySelector('a[href="/rapport-rookie"]');
             if (rapportRookieBtn) rapportRookieBtn.classList.remove("hidden");
         }
+        // Sinon, il reste caché (hidden)
     } catch (err) {
         console.error("Impossible de vérifier les rôles de l'utilisateur :", err);
     }

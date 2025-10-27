@@ -69,9 +69,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!textarea || !counter) return;
     function setCounterColor(remaining) {
       if (remaining === 0) {
-        counter.style.color = '#FF0000'; // rouge vif
+        counter.style.color = '#FF0000';
       } else {
-        counter.style.color = '#888'; // gris
+        counter.style.color = '#888';
       }
     }
     textarea.addEventListener('input', function () {
