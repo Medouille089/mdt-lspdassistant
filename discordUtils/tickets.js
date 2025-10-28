@@ -165,7 +165,7 @@ module.exports = async function handleTicket(interaction, bot) {
                             text: "LSMS Assistant",
                             iconURL: interaction.client.user.displayAvatarURL({ extension: "png", size: 256 }),
                         })
-                        .setColor(0xFFFFFF)
+                        .setColor(0x0b1b5a)
                         .setTimestamp();
 
                     await logsChannel.send({ embeds: [ticketEmbed] });

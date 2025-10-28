@@ -101,7 +101,7 @@ router.get('/callback',
 
           const embed = new EmbedBuilder()
             .setTitle(logTitle)
-            .setColor(hasRequiredRole || req.user.isDOJ ? 0xFFFFFF : 0xff0000)
+            .setColor(hasRequiredRole || req.user.isDOJ ? 0x0b1b5a : 0xff0000)
             .setDescription(`${member.displayName || 'Utilisateur inconnu'} ${action}`)
             .addFields({
               name: "ID's",

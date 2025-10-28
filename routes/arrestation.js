@@ -75,7 +75,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
                 text: "LSPD Assistant",
                 iconURL: botUser.displayAvatarURL()
             })
-            .setColor(0xFFFFFF)
+            .setColor(0x0b1b5a)
             .setTimestamp();
 
         const thread = await forum.threads.create({
@@ -131,7 +131,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
         const logsChannel = await bot.channels.fetch(logsChannelId);
         if (logsChannel?.isTextBased()) {
             const embedLog = new EmbedBuilder()
-                .setColor(0xFFFFFF)
+                .setColor(0x0b1b5a)
                 .setTitle(`Nouveau rapport d'arrestation - ${arrestationId}`)
                 .setDescription(`${req.user?.guild_member?.nick || 'Utilisateur inconnu'} a créé un nouveau rapport - <#${thread.id}> \`${arrestationId}\``)
                 .addFields({

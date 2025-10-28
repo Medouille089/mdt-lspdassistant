@@ -37,7 +37,7 @@ router.post('/api/convocations', async (req, res) => {
                     { name: 'Agent convoquant', value: officier, inline: true },
                     { name: 'Grade', value: grade, inline: true }
                 )
-                .setColor(0xFFFFFF)
+                .setColor(0x0b1b5a)
                 .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL() })
                 .setTimestamp();
 
@@ -109,7 +109,7 @@ router.post('/api/convocations', async (req, res) => {
                             value: `> Convoqueur : <@${req.user?.id || "inconnu"}> (\`${req.user?.id || "inconnu"}\`)\n> Convoqué : <@${agentId}> (\`${agentId}\`)`
                         }
                     ])
-                    .setColor(0xFFFFFF)
+                    .setColor(0x0b1b5a)
                     .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL() })
                     .setTimestamp();
 

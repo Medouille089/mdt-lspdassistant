@@ -40,7 +40,7 @@ async function checkOvertimePunches() {
             const displayName = member ? member.displayName : "Utilisateur inconnu";
 
             const embed = new EmbedBuilder()
-                .setColor(0xFFFFFF)
+                .setColor(0x0b1b5a)
                 .setTitle("Dépassement horaire")
                 .setDescription(`${displayName} a dépassé l'horaire limite qui est de **${heure}h${minute.toString().padStart(2, '0')}**.`)
                 .addFields([

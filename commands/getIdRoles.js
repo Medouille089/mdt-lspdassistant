@@ -39,7 +39,7 @@ module.exports = {
     const embeds = chunks.map((desc, idx) => new EmbedBuilder()
       .setTitle(`Liste des rôles (${idx + 1}/${total})`)
       .setDescription(desc)
-      .setColor(0xFFFFFF)
+      .setColor(0x0b1b5a)
       .setFooter({ text: 'LSPD Assistant', iconURL: botUser.displayAvatarURL() })
       .setTimestamp()
     );

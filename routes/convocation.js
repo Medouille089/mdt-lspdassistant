@@ -63,7 +63,7 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
           ...(convocationLink ? [{ name: "Consulter la convocation", value: `[Voir la convocation ${convocationId}](${convocationLink})` }] : []),
           { name: "Envoyée par", value: displayName, inline: false }
         )
-        .setColor(0xFFFFFF)
+        .setColor(0x0b1b5a)
         .setThumbnail(botUser.displayAvatarURL({ extension: 'png' }))
         .setFooter({
           text: "LSPD Assistant",
@@ -109,7 +109,7 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
       // LOG
       if (logsChannel?.isTextBased()) {
         const embedLog = new EmbedBuilder()
-          .setColor(0xFFFFFF)
+          .setColor(0x0b1b5a)
           .setTitle(`Nouvelle convocation - ${nomComplet}`)
           .setDescription(`${displayName} a envoyé une convocation - <#${convocationThread.id}>`)
           .addFields({

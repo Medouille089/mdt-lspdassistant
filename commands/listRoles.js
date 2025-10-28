@@ -47,7 +47,7 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setTitle('Membres ayant le rôle')
                 .setDescription(`${role} **- ${membersWithRole.length}**\n\n${membersWithRole.join('\n')}`)
-                .setColor(0xFFFFFF)
+                .setColor(0x0b1b5a)
                 .setTimestamp()
                 .setFooter({
                     text: 'LSPD Assistant',

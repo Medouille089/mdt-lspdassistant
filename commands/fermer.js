@@ -151,7 +151,7 @@ module.exports = {
 
             const logEmbed = new EmbedBuilder()
                 .setTitle('Ticket Fermé')
-                .setColor(0xFFFFFF)
+                .setColor(0x0b1b5a)
                 .addFields(
                     { name: 'Salon', value: `#${ticketChannel.name}`, inline: true },
                     { name: 'Fermé par', value: `<@${interaction.user.id}>`, inline: true },
