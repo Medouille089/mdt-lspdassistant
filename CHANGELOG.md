@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.13](https://github.com/Medouille089/lspdassistant/compare/v1.12.12...v1.12.13) (2025-10-28)
+
+
+### Bug Fixes
+
+* replace blue color by white ([433b79a](https://github.com/Medouille089/lspdassistant/commit/433b79a9a6e53b084ffe2ca9161ffef64d8119d5))
+* replaced white by blue ([bb9f80f](https://github.com/Medouille089/lspdassistant/commit/bb9f80f3da1525e488c7bf125541b114e2272d8f))
+
+### [1.12.12](https://github.com/Medouille089/lspdassistant/compare/v1.12.11...v1.12.12) (2025-10-28)
+
+
+### Bug Fixes
+
+* liste-arrestations route for DOJ ([f0160ff](https://github.com/Medouille089/lspdassistant/commit/f0160ff8ccf3839a9258313d9aab480fef3f9635))
+
 ### [1.12.11](https://github.com/Medouille089/lspdassistant/compare/v1.12.10...v1.12.11) (2025-10-27)
 
 
