@@ -198,7 +198,7 @@ router.post('/api/absence', async (req, res) => {
 
         try {
             const discordMessage = new EmbedBuilder()
-                .setColor(0x0b1b5a)
+                .setColor(0xFFFFFF)
                 .setTitle(`Nouvelle demande d'absence`)
                 .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a fait une demande d'absence`)
                 .addFields({

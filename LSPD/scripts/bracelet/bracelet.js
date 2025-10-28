@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const payload = {
             embeds: [{
                 title: "Nouveau bracelet",
-                color: 0x0b1b5a,
+                color: 0xFFFFFF,
                 fields: [
                     { name: "Nom", value: nom || '-', inline: true },
                     { name: "Prénom", value: prenom || '-', inline: true },

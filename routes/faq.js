@@ -27,7 +27,7 @@ async function logFaqAction({ actorId, type, targetType, targetName, targetId, e
     const targetLabel = targetType === 'category' ? 'la catégorie' : 'la Card';
     const title = `${actorName} ${verbMap[type] || 'a modifié'} ${targetLabel} ${targetName}, dans la documentation`;
     const embed = new EmbedBuilder()
-      .setColor(0x0b1b5a)
+      .setColor(0xFFFFFF)
       .setTitle(title)
       .setTimestamp();
     if (extra) {

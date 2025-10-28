@@ -119,7 +119,7 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
         { name: "Consulter le rapport", value: `[Voir le rapport d'incident ${incidentId}](${incidentLink})` }
       )
       .setFooter({ text: "LSPD Assistant", iconURL: botUser.displayAvatarURL() })
-      .setColor(0x0b1b5a)
+      .setColor(0xFFFFFF)
       .setTimestamp();
 
     const files = req.files || [];
@@ -159,7 +159,7 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
     const logsChannel = await bot.channels.fetch(logsChannelId);
     if (logsChannel?.isTextBased()) {
       const embedLog = new EmbedBuilder()
-        .setColor(0x0b1b5a)
+        .setColor(0xFFFFFF)
         .setTitle(`Nouveau rapport d'incident - ${incidentId}`)
         .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a créé un nouveau rapport - <#${thread.id}> \`${incidentId}\``)
         .addFields({
@@ -330,7 +330,7 @@ const { formatDateFR } = require('../utils/formatDate');
         { name: "Consulter le rapport", value: `[Voir le rapport d'incident ${incidentId}](${incidentLink})` }
       )
       .setFooter({ text: `Modifié par ${editBy}`, iconURL: botUser.displayAvatarURL() })
-      .setColor(0x0b1b5a)
+      .setColor(0xFFFFFF)
       .setTimestamp();
 
     const message = await thread.send({ embeds: [embed] });
@@ -344,7 +344,7 @@ const { formatDateFR } = require('../utils/formatDate');
     const logsChannel = await bot.channels.fetch(logsChannelId);
     if (logsChannel?.isTextBased()) {
       const embedLog = new EmbedBuilder()
-        .setColor(0x0b1b5a)
+        .setColor(0xFFFFFF)
         .setTitle(`Modification d'un rapport d'incident - ${incidentId}`)
         .setDescription(`<@${req.user?.id}> a modifié le rapport - <#${thread.id}>`)
         .setFooter({ text: "LSPD Assistant", iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 }) })

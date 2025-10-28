@@ -83,7 +83,7 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
 
             if (logsChannel?.isTextBased()) {
                 const embedLog = new EmbedBuilder()
-                    .setColor(0x0b1b5a)
+                    .setColor(0xFFFFFF)
                     .setTitle(`Nouveau bracelet - ${id_brac}`)
                     .setDescription(`${user.guild_member?.nick || user.displayName || user.username || 'Utilisateur inconnu'} a ajouté un nouveau bracelet - ${mentionThread} \`${id_brac}\``)
                     .addFields({
@@ -118,7 +118,7 @@ router.post('/api/create-post', async (req, res) => {
         const embedPayload = {
             embeds: [{
                 title: "Nouveau bracelet",
-                color: 0x0b1b5a,
+                color: 0xFFFFFF,
                 fields: [
                     { name: "ID Bracelet", value: id_brac, inline: true },
                     { name: "Nom", value: nom, inline: true },
@@ -220,7 +220,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
 
                 const embed = new EmbedBuilder()
                     .setTitle("Bracelet modifié")
-                    .setColor(0x0b1b5a)
+                    .setColor(0xFFFFFF)
                     .addFields(
                         { name: "ID Bracelet", value: id_brac, inline: true },
                         { name: "Nom", value: nom || '—', inline: true },
@@ -249,7 +249,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
                     const logsChannel = await bot.channels.fetch(conf.logs_bracelets);
                     if (logsChannel?.isTextBased()) {
                         const embedLog = new EmbedBuilder()
-                            .setColor(0x0b1b5a)
+                            .setColor(0xFFFFFF)
                             .setTitle(`Bracelet modifié - ${id_brac}`)
                             .setDescription(`<@${user.id}> a modifié un bracelet - ${mentionThread} \`${id_brac}\``)
                             .addFields({
@@ -328,7 +328,7 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
 
                     const embed = new EmbedBuilder()
                         .setTitle("Bracelet archivé")
-                        .setColor(0x0b1b5a)
+                        .setColor(0xFFFFFF)
                         .addFields(
                             { name: "ID Bracelet", value: data.id_brac, inline: true },
                             { name: "Nom", value: data.nom || '—', inline: true },
@@ -362,7 +362,7 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
                             const mentionThread = data.id_thread ? `<#${data.id_thread}>` : 'Thread inconnu';
 
                             const embedLog = new EmbedBuilder()
-                                .setColor(0x0b1b5a)
+                                .setColor(0xFFFFFF)
                                 .setTitle(`Archive bracelet - ${data.id_brac}`)
                                 .setDescription(`<@${req.user.id}> a archivé le bracelet - ${mentionThread} \`${data.id_brac}\``)
                                 .addFields({
@@ -499,7 +499,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
                 const mentionThread = data.id_thread ? `<#${data.id_thread}>` : 'Thread inconnu';
 
                 const embedLog = new EmbedBuilder()
-                    .setColor(0x0b1b5a)
+                    .setColor(0xFFFFFF)
                     .setTitle(`Bracelet pointé - ${data.id_brac}`)
                     .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a pointé le bracelet - ${mentionThread} \`${data.id_brac}\``)
                     .addFields({

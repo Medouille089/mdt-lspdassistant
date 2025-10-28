@@ -80,7 +80,7 @@ module.exports = {
             desc = `<@&${role.id}> a été ajouté au ticket par <@${interaction.user.id}>.`;
         }
         const embed = new EmbedBuilder()
-            .setColor(0x0b1b5a)
+            .setColor(0xFFFFFF)
             .setDescription(desc)
             .setFooter({ text: 'LSPD Assistant', iconURL: interaction.client.user.displayAvatarURL({ extension: 'png', size: 256 }) })
             .setTimestamp();
@@ -103,7 +103,7 @@ module.exports = {
                     idsField = `> <@&${role.id}> \`(${role.id})\`\n> <#${interaction.channel.id}> \`(${interaction.channel.id})\`\n> <@${interaction.user.id}> \`(${interaction.user.id})\``;
                 }
                 const logEmbed = new EmbedBuilder()
-                    .setColor(0x0b1b5a)
+                    .setColor(0xFFFFFF)
                     .setTitle('Ajout au ticket')
                     .setDescription(logDesc)
                     .addFields({ name: "ID's", value: idsField, inline: false })

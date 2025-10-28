@@ -152,7 +152,7 @@ router.post('/api/sanctions', async (req, res) => {
     const logsChannel = logsChannelId ? await guild.channels.fetch(logsChannelId).catch(() => null) : null;
     if (logsChannel?.isTextBased()) {
             const embedLog = new EmbedBuilder()
-                .setColor(0x0b1b5a)
+                .setColor(0xFFFFFF)
                 .setTitle(`Nouvelle sanction - ${player_name}`)
                 .setDescription(`${issued_by_name} a appliqué une sanction à ${player_name}`)
                 .addFields([

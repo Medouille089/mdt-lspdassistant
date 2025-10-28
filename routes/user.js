@@ -432,7 +432,7 @@ router.post('/login-local', async (req, res) => {
               } catch {}
               const embed = new EmbedBuilder()
                 .setTitle('⚠️  Connexion login')
-                .setColor(0x0b1b5a)
+                .setColor(0xFFFFFF)
                 .setDescription(`${memberDisplayName} s'est connecté(e) avec succès via login`)
                 .addFields(
                   { name: 'Username de login', value: `> ${username}` },
@@ -509,7 +509,7 @@ router.post('/forgot-password', async (req, res) => {
       const { EmbedBuilder } = require('discord.js');
       const embed = new EmbedBuilder()
         .setTitle('🔐 Réinitialisation de mot de passe')
-        .setColor(0x0b1b5a)
+        .setColor(0xFFFFFF)
         .setDescription('Vous avez demandé à réinitialiser votre mot de passe pour LSPD Assistant.')
         .addFields(
           { name: 'Lien de réinitialisation', value: `[Cliquez ici pour réinitialiser](${resetLink})` },

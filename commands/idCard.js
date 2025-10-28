@@ -73,7 +73,7 @@ module.exports = {
       // Création de l'embed
       const embed = new EmbedBuilder()
         .setTitle(`Fiche agent : ${fiche.displayName}`)
-        .setColor(0x0b1b5a)
+        .setColor(0xFFFFFF)
         .setThumbnail(fiche.avatarURL)
         .addFields(
           { name: "ID", value: fiche.userId, inline: true },
@@ -118,7 +118,7 @@ module.exports = {
       // Création de l'embed
       const embed = new EmbedBuilder()
         .setTitle(`Fiche agent : ${fiche.displayName}`)
-        .setColor(0x0b1b5a)
+        .setColor(0xFFFFFF)
         .setThumbnail(fiche.avatarURL)
         .addFields(
           { name: "ID", value: fiche.userId, inline: true },

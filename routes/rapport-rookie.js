@@ -88,7 +88,7 @@ router.post('/api/rapport-rookie', checkAuth, blockRookieApi, async (req, res) =
 
         // Embed principal pour le rapport
         const embed = new EmbedBuilder()
-            .setColor(0x0b1b5a) // bleu
+            .setColor(0xFFFFFF) // bleu
             .setTitle("Rapport Rookie")
             .addFields(
                 { name: "Rapport sur", value: `${member.displayName}`, inline: false },
@@ -117,7 +117,7 @@ router.post('/api/rapport-rookie', checkAuth, blockRookieApi, async (req, res) =
         const authorId = req.user.id; 
 
         const logEmbed = new EmbedBuilder()
-            .setColor(0x0b1b5a)
+            .setColor(0xFFFFFF)
             .setTitle("Nouveau rapport rookie")
             .setDescription(`${officier || "Un agent"} a soumis un nouveau rapport pour ${member.displayName}`)
             .addFields(

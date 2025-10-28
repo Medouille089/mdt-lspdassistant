@@ -51,7 +51,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 //                 text: "LSPD Assistant",
 //                 iconURL: botUser.displayAvatarURL()
 //             })
-//             .setColor(0x0b1b5a)
+//             .setColor(0xFFFFFF)
 //             .setTimestamp();
 
 //         const thread = await forum.threads.create({
@@ -87,7 +87,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 //         const logsChannel = await bot.channels.fetch(logsChannelId);
 //         if (logsChannel?.isTextBased()) {
 //             const embedLog = new EmbedBuilder()
-//                 .setColor(0x0b1b5a)
+//                 .setColor(0xFFFFFF)
 //                 .setTitle(`Nouveau rapport d'arrestation - ${arrestationId}`)
 //                 .setDescription(`<@${req.user?.id || 'Utilisateur inconnu'}> a créé un nouveau rapport - <#${thread.id}> \`${arrestationId}\``)
 //                 .addFields({

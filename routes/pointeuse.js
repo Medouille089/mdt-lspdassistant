@@ -48,7 +48,7 @@ router.post("/pointeuse/start", async (req, res) => {
           const nowFormatted = DateTime.now().setZone("Europe/Paris").toFormat("dd/MM/yyyy - HH:mm");
 
           const embedLog = new EmbedBuilder()
-            .setColor(0x0b1b5a)
+            .setColor(0xFFFFFF)
             .setTitle("Pointeuse lancée")
             .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a lancé sa pointeuse - \`${nowFormatted}\``)
             .addFields(
@@ -120,7 +120,7 @@ router.post("/pointeuse/stop", async (req, res) => {
           const nowFormatted = end.toFormat("dd/MM/yyyy - HH:mm");
 
           const embedLog = new EmbedBuilder()
-            .setColor(0x0b1b5a)
+            .setColor(0xFFFFFF)
             .setTitle("Pointeuse arrêtée")
             .setDescription(`${req.user?.guild_member.nick || 'Utilisateur inconnu'} a arrêté sa pointeuse - \`${nowFormatted}\``)
             .addFields(
@@ -418,7 +418,7 @@ router.post("/admin/pointeuse/stop/:discordId", async (req, res) => {
           const nowFormatted = end.toFormat("dd/MM/yyyy - HH:mm");
 
           const embedLog = new EmbedBuilder()
-            .setColor(0x0b1b5a)
+            .setColor(0xFFFFFF)
             .setTitle("Pointeuse arrêtée (Admin)")
             .setDescription(`⛔ Pointeuse stoppée pour <@${discordId}> par <@${adminDiscordId}> - \`${nowFormatted}\``)
             .addFields({

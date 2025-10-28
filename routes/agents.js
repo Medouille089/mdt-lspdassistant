@@ -32,7 +32,7 @@ async function sendAgentLog({ bot, logsChannelId, action, actorMember, targetMem
   const details = lines.map(l => l.startsWith('>') ? l : `> ${l}`).join('\n').slice(0, 3900);
     const botAvatar = bot.user?.displayAvatarURL({ size: 128 });
     const embed = new EmbedBuilder()
-      .setColor(0x0b1b5a)
+      .setColor(0xFFFFFF)
       .setTitle(title)
   .addFields({ name: 'Détails', value: details })
   .addFields({ name: 'ID\'s', value: `> <@${actorId}> (\`${actorId}\`)` })

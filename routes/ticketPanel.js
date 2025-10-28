@@ -252,7 +252,7 @@ router.post('/api/send-panel', async (req, res) => {
             }]
         };
 
-        const colorInt = 0x0b1b5a;
+        const colorInt = 0xFFFFFF;
 
         await channel.send({
             embeds: [{

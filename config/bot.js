@@ -162,7 +162,7 @@ bot.on(Events.MessageCreate, async (message) => {
       const embed = {
         title: '🌟 Mémo politesse 🌟',
         description: '# Un ticket, une politesse !\nUn petit `BONJOUR` / `BONSOIR` / `COUCOU` / `SALUT` ne mange pas de pain. C\'est toujours bien plus agréable pour nous.\n\nMerci d\'égayer nos journées !',
-        color: 0x0b1b5a,
+        color: 0xFFFFFF,
         thumbnail: { url: avatar },
         footer: { text: 'LSPD Assistant', icon_url: avatar },
         timestamp: new Date().toISOString(),
@@ -325,7 +325,7 @@ async function startBot() {
             if (!r.dm_only) {
               publicEmbed = {
                 title: 'Rappel',
-                color: 0x0b1b5a,
+                color: 0xFFFFFF,
                 fields: publicFields,
                 footer: { text: 'LSPD Assistant', icon_url: botAvatar },
                 timestamp: new Date().toISOString()
@@ -343,7 +343,7 @@ async function startBot() {
                 }
                 const dmEmbed = {
                   title: 'Rappel',
-                  color: 0x0b1b5a,
+                  color: 0xFFFFFF,
                   fields: dmFields,
                   footer: { text: 'LSPD Assistant', icon_url: botAvatar },
                   timestamp: new Date().toISOString()
