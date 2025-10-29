@@ -11,4 +11,5 @@ module.exports = {
   DISCORD_WEBHOOK_LOGS: process.env.DISCORD_WEBHOOK_LOGS,
   DATABASE_URL: process.env.DATABASE_URL,
   PORT: process.env.PORT,
+  DOJ_ROLE_ID: process.env.DOJ_ROLE_ID,
 };
