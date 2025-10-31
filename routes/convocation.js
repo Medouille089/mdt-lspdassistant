@@ -103,9 +103,6 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
 
       await convocationThread.send({ files: [attachment] });
 
-
-      
-
       // LOG
       if (logsChannel?.isTextBased()) {
         const embedLog = new EmbedBuilder()

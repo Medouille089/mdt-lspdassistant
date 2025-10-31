@@ -225,6 +225,7 @@ const calculPeinesRoutes = require("./routes/calculPeines");
 const rookiePatrolsRoutes = require("./LSPD/trello/routes/rookiePatrols");
 const discordUploader = require("./routes/discordUploader");
 const setupLogsRoutes = require("./config/setupLogs");
+const officerConvocations = require('./routes/officerConvocations');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -257,6 +258,7 @@ app.use(rookiePatrolsRoutes);
 app.use(rapportRookie);
 // Route utilitaire pour uploader des images via le bot Discord
 app.use(discordUploader);
+app.use(officerConvocations);
 
 // Middleware: canonicalize .html URLs -> redirect to extensionless, and
 // serve *.html when users request /page (without extension).

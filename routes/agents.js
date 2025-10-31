@@ -180,7 +180,7 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
   try {
     const { userId } = req.params; // cible
     const user = req.user; // acteur
-  let { photo_url, armes, vehicules, matricule, nom, prenom, telephone, specialites } = req.body;
+  let { photo_url, armes, vehicules, matricule, nom, prenom, telephone, numero_casier, specialites } = req.body;
 
     const parseArray = (val) => {
       if (!val) return [];
@@ -210,19 +210,19 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     const result = await pool.query(
       `UPDATE lspd_agent_profiles 
        SET photo_url = $1, armes = $2, vehicules = $3, matricule = $4, 
-           nom = $5, prenom = $6, telephone = $7, date_modification = NOW()
-       WHERE discord_id = $8 
+           nom = $5, prenom = $6, telephone = $7, numero_casier = $8, date_modification = NOW()
+       WHERE discord_id = $9 
        RETURNING *`,
-      [photo_url, JSON.stringify(armes || []), JSON.stringify(vehicules || []), matricule, nom, prenom, telephone, userId]
+      [photo_url, JSON.stringify(armes || []), JSON.stringify(vehicules || []), matricule, nom, prenom, telephone, numero_casier, userId]
     );
 
     if (result.rows.length === 0) {
       // Créer le profil s'il n'existe pas
       const newProfile = await pool.query(
         `INSERT INTO lspd_agent_profiles 
-         (discord_id, photo_url, armes, vehicules, matricule, nom, prenom, telephone)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-        [userId, photo_url, JSON.stringify(armes || []), JSON.stringify(vehicules || []), matricule, nom, prenom, telephone]
+         (discord_id, photo_url, armes, vehicules, matricule, nom, prenom, telephone, numero_casier)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        [userId, photo_url, JSON.stringify(armes || []), JSON.stringify(vehicules || []), matricule, nom, prenom, telephone, numero_casier]
       );
       const created = newProfile.rows[0];
       try { created.armes = JSON.parse(created.armes || '[]'); } catch { created.armes = []; }

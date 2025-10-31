@@ -260,6 +260,7 @@ async function displayProfile(profile) {
     document.getElementById('nom').value = profile.nom || '';
     document.getElementById('prenom').value = profile.prenom || '';
     document.getElementById('telephone').value = profile.telephone || '';
+    document.getElementById('numero_casier').value = profile.numero_casier || '';
     document.getElementById('agent_id').textContent = `ID: ${profile.discord_id || currentUserId}`;
     document.getElementById('date_creation').textContent = formatDate(profile.date_creation);
     document.getElementById('date_modification').textContent = formatDate(profile.date_modification);
@@ -278,7 +279,7 @@ async function displayProfile(profile) {
     // Récupérer et afficher les formations
     await fillFormationsInDOM(profile.discord_id || currentUserId);
 
-    originalData = { matricule: profile.matricule||'', nom: profile.nom||'', prenom: profile.prenom||'', photo_url: profile.photo_url||'', armes, vehicules };
+    originalData = { matricule: profile.matricule||'', nom: profile.nom||'', prenom: profile.prenom||'', numero_casier: profile.numero_casier||'', photo_url: profile.photo_url||'', armes, vehicules };
     updateEquipmentVisibility();
 
     // Ensuite seulement récupérer et afficher grade + titre
@@ -432,6 +433,7 @@ async function saveProfile(event) {
             nom: document.getElementById('nom').value.trim(),
             prenom: document.getElementById('prenom').value.trim(),
             telephone: document.getElementById('telephone').value.trim(),
+            numero_casier: document.getElementById('numero_casier').value.trim(),
             photo_url: document.getElementById('photo_preview').src || '',
             armes: getEquipmentFromDOM('arme'),
             vehicules: getEquipmentFromDOM('vehicule')
