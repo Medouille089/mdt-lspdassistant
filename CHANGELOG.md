@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.16](https://github.com/Medouille089/lspdassistant/compare/v1.12.15...v1.12.16) (2025-10-31)
+
+
+### Bug Fixes
+
+* add convocations in officer menu ([f422aed](https://github.com/Medouille089/lspdassistant/commit/f422aedc08fc57faff0db043698429af3d26e480))
+* add numéro de casier to profil agent ([0faca06](https://github.com/Medouille089/lspdassistant/commit/0faca0676a87b121fa977001ebc155ac7dabdafd))
+* ajoute commentaire sur une convocation agent ([e963ae2](https://github.com/Medouille089/lspdassistant/commit/e963ae26211bee636f5dbea5d50d8af8a93a3081))
+
 ### [1.12.15](https://github.com/Medouille089/lspdassistant/compare/v1.12.14...v1.12.15) (2025-10-30)
 
 
