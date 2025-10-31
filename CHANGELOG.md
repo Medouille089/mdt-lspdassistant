@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.15](https://github.com/Medouille089/lspdassistant/compare/v1.12.14...v1.12.15) (2025-10-30)
+
+
+### Bug Fixes
+
+* fix logs convocation ([ddcca20](https://github.com/Medouille089/lspdassistant/commit/ddcca20fab429bd5bf903efb12020d9ee6999cc7))
+
+### [1.12.14](https://github.com/Medouille089/lspdassistant/compare/v1.12.13...v1.12.14) (2025-10-29)
+
+
+### Bug Fixes
+
+* link in embed dossier agent ([891275b](https://github.com/Medouille089/lspdassistant/commit/891275b9168e2014c51b9c0e6f85ba32e30fcc49))
+
 ### [1.12.13](https://github.com/Medouille089/lspdassistant/compare/v1.12.12...v1.12.13) (2025-10-28)
 
 

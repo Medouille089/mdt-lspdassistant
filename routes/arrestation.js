@@ -69,7 +69,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
                 { name: "Avocat", value: avocatName || "Non précisé", inline: true },
                 { name: "Accusations", value: JSON.parse(accusations || "[]").join("\n") || "Aucune", inline: true },
                 { name: "Lieu", value: lieu || "Non précisé", inline: true },
-                { name: "Consulter le rapport", value: `[Voir le rapport d'arrestation ${arrestationId}](${arrestationLink})` }
+                { name: "Consulter le dossier", value: `[Voir le dossier d'arrestation ${arrestationId}](${arrestationLink})` }
             )
             .setFooter({
                 text: "LSPD Assistant",

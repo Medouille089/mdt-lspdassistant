@@ -111,16 +111,18 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
         const embedLog = new EmbedBuilder()
           .setColor(0x0b1b5a)
           .setTitle(`Nouvelle convocation - ${nomComplet}`)
-          .setDescription(`${displayName} a envoyé une convocation - <#${convocationThread.id}>`)
-          .addFields({
-            name: "ID's",
-            value: `> ${displayName} (\`${user?.id || 'ID inconnu'}\`) \n> <#${convocationThread.id}> (\`${convocationThread.id}\`)`,
-            inline: false
-          });
+          .setDescription(`${displayName} a envoyé une convocation - <#${convocationThread.id}>`);
 
         if (convocationLink) {
           embedLog.addFields({ name: "Consulter la convocation", value: convocationLink });
         }
+
+        // Ajoute le champ ID's après le lien
+        embedLog.addFields({
+          name: "ID's",
+          value: `> <@${user?.id || 'ID inconnu'}> (\`${user?.id || 'ID inconnu'}\`)\n> <#${convocationThread.id}> (\`${convocationThread.id}\`)`,
+          inline: false
+        });
 
         embedLog.setFooter({ text: "LSPD Assistant", iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 }) }).setTimestamp();
 

@@ -9,7 +9,8 @@ const { getConfig } = require('../config/config');
 router.get('/api/connected-agents', checkAuth, async (req, res) => {
   try {
     const config = await getConfig();
-    const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+  const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+  const DOJ_ROLE = config.id_doj ? String(config.id_doj).trim() : null;
 
     const result = await pool.query(`
       SELECT user_id, display_name FROM lspd_live_users
@@ -23,10 +24,11 @@ router.get('/api/connected-agents', checkAuth, async (req, res) => {
       try {
         const member = await guild.members.fetch({ user: agent.user_id, force: true });
 
-        // filtrer les super-admins si définis
+        // filtrer les super-admins et DOJ si définis
         const isSuperAdmin = SUPER_ADMIN_ROLE ? member.roles.cache.has(SUPER_ADMIN_ROLE) : false;
+        const isDOJ = DOJ_ROLE ? member.roles.cache.has(DOJ_ROLE) : false;
 
-        if (!isSuperAdmin) {
+        if (!isSuperAdmin && !isDOJ) {
           filteredAgents.push(agent);
         }
       } catch {
@@ -52,10 +54,12 @@ router.post('/api/live-user-heartbeat', checkAuth, async (req, res) => {
 
     // Récupère le rôle superadmin depuis la config
     const config = await getConfig();
-    const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+  const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+  const DOJ_ROLE = config.id_doj ? String(config.id_doj).trim() : null;
 
     // Si le compte est lié à Discord, on récupère toujours le displayName Discord et on check le rôle
-    let isSuperAdmin = false;
+  let isSuperAdmin = false;
+  let isDOJ = false;
     try {
       const guild = await bot.guilds.fetch(GUILD_ID);
       const member = await guild.members.fetch(userId);
@@ -65,13 +69,19 @@ router.post('/api/live-user-heartbeat', checkAuth, async (req, res) => {
       if (SUPER_ADMIN_ROLE && member.roles.cache.has(SUPER_ADMIN_ROLE)) {
         isSuperAdmin = true;
       }
+      if (DOJ_ROLE && member.roles.cache.has(DOJ_ROLE)) {
+        isDOJ = true;
+      }
     } catch (e) {
       // ignore si erreur Discord
     }
 
-    // Ne pas enregistrer les superadmins
+    // Ne pas enregistrer les superadmins ni DOJ
     if (isSuperAdmin) {
       return res.json({ ok: true, skipped: 'superadmin' });
+    }
+    if (isDOJ) {
+      return res.json({ ok: true, skipped: 'doj' });
     }
 
     // Upsert dans la table lspd_live_users
