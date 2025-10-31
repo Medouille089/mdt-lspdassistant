@@ -50,6 +50,10 @@
         <label for="raison">Raison :</label>
         <textarea id="raison" readonly></textarea>
 
+
+
+        <div id="feedbackAnimation" style="display:none; text-align: center;"></div>
+
         <div class="user-info-row">
           <div class="user-info-field">
             <label for="officier">Agent convoquant :</label>
@@ -67,7 +71,13 @@
             <input type="text" id="created_at" readonly>
           </div>
         </div>
-
+        <label for="commentaire">Commentaires :</label>
+        <textarea id="commentaire" placeholder="Ajouter un commentaire..."
+          style="margin-bottom: 0!important;"></textarea>
+        <div>
+          <button id="ajouterCommentaireBtn" type="button"
+            style="font-size:12px;padding:3px 10px;max-width:100px;margin-top: 0!important;">Ajouter</button>
+        </div>
         <!-- Bouton retour supprimé -->
       </div>
     </div>

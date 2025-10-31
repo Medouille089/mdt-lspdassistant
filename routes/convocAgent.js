@@ -138,3 +138,47 @@ router.get("/api/getConvocationsAgents", async (req, res) => {
 });
 
 module.exports = router;
+
+// Route pour mettre à jour le commentaire d'une convocation agent
+router.put('/api/convocationsAgents/:id/commentaire', async (req, res) => {
+    const id = req.params.id;
+    const { commentaire } = req.body;
+    try {
+        await pool.query('UPDATE lspd_convocations_agents SET commentaire = $1 WHERE id = $2', [commentaire, id]);
+
+        // Log Discord formaté
+        const config = getConfig();
+        const bot = getBot();
+        const logsChannelId = config.logs_convocations_agent;
+        if (logsChannelId) {
+            // Récupérer la convocation pour infos
+            const result = await pool.query('SELECT agent_convoque_nom FROM lspd_convocations_agents WHERE id = $1', [id]);
+            const convocation = result.rows[0];
+            const sanctionne = convocation?.agent_convoque_nom || 'Inconnu';
+            const displayName = req.user?.displayName || req.user?.username || req.user?.id || 'Utilisateur';
+            const baseUrl = process.env.IS_LOCAL === "true"
+                ? "http://localhost:3001/viewConvocationAgent"
+                : "https://lspd-assistant.fr/viewConvocationAgent";
+            const convocationLink = `${baseUrl}?id=${id}`;
+            const logsChannel = await bot.channels.fetch(logsChannelId).catch(() => null);
+            if (logsChannel?.isTextBased()) {
+                const embedLog = new EmbedBuilder()
+                    .setTitle(`Nouveau commentaire`)
+                    .setDescription(`${displayName} a ajouté un commentaire à la sanction de ${sanctionne}`)
+                    .addFields([
+                        { name: `Convocation n°${id}`, value: `[Voir la convocation](${convocationLink})` },
+                            { name: `ID's`, value: `> <@${req.user?.id || 'inconnu'}> (\`${req.user?.id || 'inconnu'}\`)` }
+                    ])
+                    .setColor(0x0b1b5a)
+                    .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL() })
+                    .setTimestamp();
+                await logsChannel.send({ embeds: [embedLog] });
+            }
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Erreur update commentaire:', err);
+        res.status(500).json({ error: 'Erreur lors de la mise à jour du commentaire' });
+    }
+});
