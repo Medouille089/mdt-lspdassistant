@@ -33,8 +33,7 @@
             <div class="button-grid">
                 <a href="/infos-agent" class="send-button" id="info-btn">Informations</a>
                 <a href="#" class="send-button" id="sanctions-btn">Sanctions</a>
-                <a href="#" class="send-button">Bouton 3</a>
-                <a href="#" class="send-button">Bouton 4</a>
+                <a href="#" class="send-button" id="convocations-btn">Convocations reçues</a>
             </div>
         </div>
 
@@ -87,6 +86,13 @@
             if (!userId) return;
 
             window.location.href = `/infos-agent?userId=${userId}`;
+        });
+
+        // Redirection vers la page des convocations reçues
+        document.getElementById('convocations-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!userId) return;
+            window.location.href = `/liste-convocations-officier?userId=${userId}`;
         });
     </script>
     <script>

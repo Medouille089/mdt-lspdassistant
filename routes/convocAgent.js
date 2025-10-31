@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 const { getBot, getConfig } = require('../config/config');
@@ -11,6 +12,23 @@ function formatDate(dateStr) {
     if (isNaN(d)) return "N/A";
     return d.toLocaleDateString('fr-FR');
 }
+
+
+// Place cette route AVANT toute route /api/convocations/:id dans le routeur principal !
+router.get('/api/convocations/received', async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: 'Non authentifié' });
+        const result = await pool.query(
+            `SELECT * FROM lspd_convocations_agents WHERE agent_convoque_id = $1 ORDER BY created_at DESC`,
+            [userId]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des convocations reçues :', error);
+        res.status(500).json({ error: 'Erreur lors de la récupération des convocations reçues.' });
+    }
+});
 
 router.post('/api/convocations', async (req, res) => {
     try {

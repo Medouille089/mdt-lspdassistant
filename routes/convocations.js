@@ -22,8 +22,12 @@ router.get('/api/convocations/search', async (req, res) => {
 });
 
 // Détail d'une convocation par ID (pour viewArrestation.js)
+// Route :id uniquement si id numérique
 router.get('/api/convocations/:id', async (req, res) => {
   const id = req.params.id;
+  if (!/^[0-9]+$/.test(id)) {
+    return res.status(400).json({ error: 'ID invalide' });
+  }
   try {
     const result = await pool.query(
       `SELECT id, nom, prenom, date, heure, officer, lieu
