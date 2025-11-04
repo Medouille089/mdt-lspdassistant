@@ -280,8 +280,8 @@ async function startBot() {
     }
     await cyclePresence();
     setInterval(cyclePresence, 5000);
-    
-    await registerCommands();    cron.schedule("* * * * *", async () => {
+
+    await registerCommands(); cron.schedule("* * * * *", async () => {
       try {
         const res = await db.query(
           "SELECT fiche_de_presence_hour, fiche_de_presence_rappel FROM configlspd LIMIT 1"
