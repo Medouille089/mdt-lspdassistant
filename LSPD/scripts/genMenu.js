@@ -11,10 +11,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         const grades = await gradesRes.json();
         const rookieRoleId = grades.rookie_role_id?.trim();
 
-        // DEBUG : log les rôles et le rookieRoleId
-        console.log('[DEBUG] rookieRoleId:', rookieRoleId);
-        console.log('[DEBUG] user.roles:', user.roles);
-
         // Si l'utilisateur N'A PAS le rôle rookie, on affiche le bouton
         if (rookieRoleId && !user.roles.includes(rookieRoleId)) {
             const rapportRookieBtn = document.querySelector('a[href="/rapport-rookie"]');

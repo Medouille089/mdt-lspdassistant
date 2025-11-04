@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.13.1](https://github.com/Medouille089/lspdassistant/compare/v1.13.0...v1.13.1) (2025-11-04)
+
+
+### Bug Fixes
+
+* add logs to account manager ([b6e6081](https://github.com/Medouille089/lspdassistant/commit/b6e60816d8dd40ca1799b02e1e9c49cb1b101ec3))
+
+## [1.13.0](https://github.com/Medouille089/lspdassistant/compare/v1.12.17...v1.13.0) (2025-11-04)
+
+
+### Features
+
+* add account manager page ([a88c4af](https://github.com/Medouille089/lspdassistant/commit/a88c4af7f65ffd212ccc67d929c47c0192495a8e))
+
 ### [1.12.17](https://github.com/Medouille089/lspdassistant/compare/v1.12.16...v1.12.17) (2025-11-04)
 
 
