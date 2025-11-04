@@ -1,0 +1,329 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+    color: var(--white);
+    z-index: 0;
+    background: none;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: var(--background-gradient);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--text-light);
+}
+
+.main-container {
+    max-width: 95%;
+    margin: 20px auto;
+    margin-left: 280px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.main-container h2 {
+    text-align: center;
+    margin-top: 38px;
+    margin-bottom: 20px;
+    color: var(--text-light);
+    background-color: var(--main-color-dark);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Bouton retour */
+.backlink-btn {
+    background-color: var(--main-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.backlink-btn:hover {
+    background-color: var(--main-color-dark);
+}
+
+/* Section export */
+.export-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.export-section-bottom {
+    text-align: left;
+}
+
+.export-section-final {
+    text-align: center;
+}
+
+.export-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.export-btn:hover {
+    background-color: #218838;
+}
+
+.export-btn-secondary {
+    background-color: #007bff;
+    padding: 10px 25px;
+    font-size: 14px;
+}
+
+.export-btn-secondary:hover {
+    background-color: #0056b3;
+}
+
+/* Wrapper du tableau */
+.table-wrapper {
+    overflow-x: auto;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Tableau */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(30, 50, 90, 0.6);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+thead {
+    background-color: rgba(20, 40, 80, 0.9);
+}
+
+thead th {
+    padding: 15px;
+    text-align: left;
+    font-weight: bold;
+    color: #ffffff;
+    border-bottom: 2px solid rgba(60, 100, 180, 0.5);
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+tbody tr {
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid rgba(60, 100, 180, 0.3);
+    background-color: rgba(40, 65, 110, 0.4);
+}
+
+tbody tr:hover {
+    background-color: rgba(50, 80, 130, 0.6);
+}
+
+tbody tr:last-child {
+    border-bottom: none;
+}
+
+tbody td {
+    padding: 12px 15px;
+    color: #ffffff !important;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+/* Colonnes spécifiques */
+.total-column {
+    background-color: rgba(40, 167, 69, 0.2);
+    font-weight: bold;
+    text-align: center !important;
+}
+
+tbody td.total-value {
+    background-color: rgba(40, 167, 69, 0.15);
+    font-weight: bold;
+    font-size: 15px;
+    color: #4caf50;
+    text-align: center;
+}
+
+/* Cases à cocher */
+input[type="checkbox"] {
+    cursor: pointer;
+    width: 22px;
+    height: 22px;
+    accent-color: #007bff;
+    position: relative;
+    z-index: 10;
+    margin: 0 auto;
+    display: block;
+}
+
+input[type="checkbox"]:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Centrer les cellules avec checkboxes */
+td.checkbox-cell {
+    text-align: center;
+    position: relative;
+    z-index: 5;
+    padding: 12px 15px;
+}
+
+/* Style pour les montants */
+.amount {
+    font-family: "Courier New", monospace;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .main-container {
+        max-width: 98%;
+        margin-left: 250px;
+        padding: 15px;
+    }
+
+    thead th,
+    tbody td {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .export-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .main-container h2 {
+        font-size: 18px;
+        padding: 8px;
+    }
+
+    thead th,
+    tbody td {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .export-btn {
+        width: 100%;
+        padding: 12px;
+    }
+
+    .backlink-btn {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+}
+
+/* Loader overlay */
+.loader-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader-spinner {
+    border: 8px solid rgba(255, 255, 255, 0.3);
+    border-top: 8px solid var(--main-color);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Feedback animation */
+#feedbackAnimation {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.feedback-inner svg {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 15px;
+}
+
+.feedback-inner p {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.feedback-inner p.success {
+    color: #0b1b5a;
+}
+
+.feedback-inner p.error {
+    color: #d06079;
+}
