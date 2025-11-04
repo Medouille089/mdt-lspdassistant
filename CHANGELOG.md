@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.17](https://github.com/Medouille089/lspdassistant/compare/v1.12.16...v1.12.17) (2025-11-04)
+
+
+### Bug Fixes
+
+* changement des logos ([70bf241](https://github.com/Medouille089/lspdassistant/commit/70bf2411aa7b80f0f98c45dbdffbc69ce6b67579))
+* pieces jointes viewArrestation ([d6a9c23](https://github.com/Medouille089/lspdassistant/commit/d6a9c2388fc77a574dca403bedfbb075315d94e0))
+
 ### [1.12.16](https://github.com/Medouille089/lspdassistant/compare/v1.12.15...v1.12.16) (2025-10-31)
 
 
