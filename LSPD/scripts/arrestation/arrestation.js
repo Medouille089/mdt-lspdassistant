@@ -22,7 +22,6 @@ document.querySelector('form').addEventListener('submit', async function (e) {
   // Ajout du champ rapports_lies comme pour accusations
   formData.append('rapports_lies', hiddenInput.value || '[]');
   // Log pour vérifier la valeur dans le FormData
-  console.log('FormData rapports_lies:', formData.get('rapports_lies'));
 
   // DEBUG: log FormData content
   for (let pair of formData.entries()) {
@@ -46,7 +45,6 @@ window.ajouterLienRapportConvoc = function () {
   const type = input.dataset.selectedType;
   let label = input.value;
   // Log pour debug : affiche l'id, le type et le label sélectionné
-  console.log('ajouterLienRapportConvoc:', { id, type, label, incidentId: input.dataset.incidentId });
   if (!id || !type || !label) {
     alert('Sélectionnez un rapport ou une convocation dans la recherche.');
     return;

@@ -27,9 +27,6 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
 
         const files = req.files;
 
-        console.log('req.body complet:', req.body);
-        console.log('rapports_lies reçu:', req.body.rapports_lies);
-        console.log('Type de rapports_lies:', typeof req.body.rapports_lies);
         try {
             console.log('JSON.parse(rapports_lies):', JSON.parse(req.body.rapports_lies));
         } catch (err) {

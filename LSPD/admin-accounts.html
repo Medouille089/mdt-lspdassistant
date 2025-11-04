@@ -83,6 +83,7 @@
                     <tr>
                         <th>Avatar</th>
                         <th>Nom d'utilisateur</th>
+                        <th>Display Name Discord</th>
                         <th>Discord ID</th>
                         <th>Statut</th>
                         <th>Créé le</th>
@@ -148,7 +149,7 @@
                     const tbody = document.querySelector('#accountsTable tbody');
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 40px;">
+                            <td colspan="8" style="text-align: center; padding: 40px;">
                                 <div style="color: #dc3545; font-size: 1.2rem; margin-bottom: 10px;">
                                     🔒 Accès refusé
                                 </div>
@@ -172,7 +173,7 @@
             } catch (error) {
                 console.error('Erreur:', error);
                 const tbody = document.querySelector('#accountsTable tbody');
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #dc3545;">Erreur lors du chargement des comptes</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #dc3545;">Erreur lors du chargement des comptes</td></tr>';
             } finally {
                 loader.style.display = 'none';
             }
@@ -182,7 +183,7 @@
             const tbody = document.querySelector('#accountsTable tbody');
             
             if (filteredAccounts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">Aucun compte trouvé</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">Aucun compte trouvé</td></tr>';
                 updatePagination();
                 return;
             }
@@ -194,9 +195,8 @@
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
             tbody.innerHTML = pageAccounts.map(account => {
-                const avatarUrl = account.discord_id && account.avatar
-                    ? `https://cdn.discordapp.com/avatars/${account.discord_id}/${account.avatar}.png`
-                    : 'data/images/default-avatar.png';
+                // Utiliser la photo_url de la table lspd_agent_profiles
+                const avatarUrl = account.photo_url || 'data/images/default-avatar.png';
                 
                 const createdDate = new Date(account.created_at).toLocaleDateString('fr-FR', {
                     year: 'numeric',
@@ -226,6 +226,7 @@
                     <tr data-account-id="${account.id}">
                         <td><img src="${avatarUrl}" alt="Avatar" class="avatar-img" onerror="this.src='data/images/default-avatar.png'"></td>
                         <td><strong>${escapeHtml(account.username)}</strong></td>
+                        <td>${escapeHtml(account.displayName || account.username)}</td>
                         <td>${escapeHtml(account.discord_id)}</td>
                         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                         <td class="date-cell">${createdDate}</td>
