@@ -5,6 +5,17 @@ const pool = require("../config/db");
 const bot = require("../config/bot");
 const { GUILD_ID } = require("../config/env");
 const { getConfig } = require("../config/config");
+const { EmbedBuilder } = require("discord.js");
+
+// Fonction utilitaire pour fetch un channel avec gestion d'erreur
+async function safeFetchChannel(bot, channelId) {
+  try {
+    return await bot.channels.fetch(channelId);
+  } catch (err) {
+    console.error(`Impossible de récupérer le salon ${channelId}:`, err.message);
+    return null;
+  }
+}
 
 // Middleware pour vérifier si l'utilisateur est super admin
 async function checkSuperAdmin(req, res, next) {
@@ -103,10 +114,57 @@ router.delete("/api/accounts/:id", checkAuth, checkSuperAdmin, async (req, res) 
       return res.status(403).json({ error: "Vous ne pouvez pas supprimer votre propre compte" });
     }
 
+    // Récupérer les membres Discord pour les logs
+    const guild = await bot.guilds.fetch(GUILD_ID);
+    const actorMember = await guild.members.fetch(req.user.id).catch(() => null);
+    const targetMember = await guild.members.fetch(account.discord_id).catch(() => null);
+
     // Supprimer le compte
     await pool.query("DELETE FROM user_accounts WHERE id = $1", [accountId]);
 
     console.log(`Compte supprimé: ${account.username} (${account.discord_id}) par ${req.user.username} (${req.user.id})`);
+
+    // Envoi du log dans logs_config
+    try {
+      const conf = await getConfig();
+      const logsChannel = await safeFetchChannel(bot, conf.logs_config);
+      
+      if (logsChannel) {
+        const actorDisplayName = actorMember?.displayName || req.user.username;
+        const targetDisplayName = targetMember?.displayName || account.username;
+
+        // Construire l'URL de la photo de profil
+        let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png'; // Avatar par défaut
+        if (targetMember && targetMember.user.avatar) {
+          avatarUrl = `https://cdn.discordapp.com/avatars/${account.discord_id}/${targetMember.user.avatar}.png?size=256`;
+        }
+
+        const embed = new EmbedBuilder()
+          .setColor(0xFF0000)
+          .setTitle("⚠️ Suppression de compte")
+          .setDescription(`${actorDisplayName} a supprimé le compte de ${targetDisplayName}`)
+          .addFields({
+            name: "Détails",
+            value: `> **Username:** ${account.username}\n> **Photo de profil:** [Voir l'avatar](${avatarUrl})`,
+            inline: false,
+          })
+          .addFields({
+            name: "ID's",
+            value: `> <@${req.user.id}> (\`${req.user.id}\`)\n> <@${account.discord_id}> (\`${account.discord_id}\`)`,
+            inline: false,
+          })
+          .setFooter({
+            text: "LSPD Assistant",
+            iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }),
+          })
+          .setTimestamp();
+
+        await logsChannel.send({ embeds: [embed] });
+      }
+    } catch (logError) {
+      console.error("Erreur lors de l'envoi du log de suppression:", logError);
+      // Ne pas faire échouer la suppression si le log échoue
+    }
 
     res.json({ 
       success: true, 
