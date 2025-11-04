@@ -64,6 +64,21 @@
             font-size: 0.9rem;
             white-space: nowrap;
         }
+
+        /* Style pour les lignes cliquables */
+        tbody tr {
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: var(--table-hover-bg) !important;
+        }
+
+        /* Empêcher le clic sur le bouton de supprimer de déclencher le clic de la ligne */
+        .delete-btn {
+            position: relative;
+            z-index: 10;
+        }
     </style>
 </head>
 
@@ -223,7 +238,7 @@
                 const statusText = isActive ? 'Actif' : 'Inactif';
 
                 return `
-                    <tr data-account-id="${account.id}">
+                    <tr data-account-id="${account.id}" data-discord-id="${account.discord_id}" onclick="goToAgentProfile(event, '${account.discord_id}')">
                         <td><img src="${avatarUrl}" alt="Avatar" class="avatar-img" onerror="this.src='data/images/default-avatar.png'"></td>
                         <td><strong>${escapeHtml(account.username)}</strong></td>
                         <td>${escapeHtml(account.displayName || account.username)}</td>
@@ -232,7 +247,7 @@
                         <td class="date-cell">${createdDate}</td>
                         <td class="date-cell">${lastLogin}</td>
                         <td>
-                            <button class="delete-btn" onclick="confirmDelete(${account.id}, '${escapeHtml(account.username).replace(/'/g, "\\'")}')">
+                            <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${account.id}, '${escapeHtml(account.username).replace(/'/g, "\\'")}')">
                                 Supprimer
                             </button>
                         </td>
@@ -241,6 +256,14 @@
             }).join('');
 
             updatePagination();
+        }
+
+        function goToAgentProfile(event, discordId) {
+            // Ne pas rediriger si on clique sur le bouton supprimer
+            if (event.target.closest('.delete-btn')) {
+                return;
+            }
+            window.location.href = `/infos-agent?userId=${discordId}`;
         }
 
         function updatePagination() {
