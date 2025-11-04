@@ -17,7 +17,6 @@ document.querySelector('form').addEventListener('submit', async function (e) {
   const hiddenInput = document.getElementById('rapports_lies_hidden');
   hiddenInput.value = JSON.stringify(liens);
   // Ajout d'un log pour vérifier la valeur juste avant la création du FormData
-  console.log('Valeur rapports_lies_hidden:', hiddenInput.value);
 
   const formData = new FormData(this);
   // Ajout du champ rapports_lies comme pour accusations
