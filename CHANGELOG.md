@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.14.1](https://github.com/Medouille089/lspdassistant/compare/v1.14.0...v1.14.1) (2025-11-04)
+
+
+### Bug Fixes
+
+* add displayName + fixed last connection with discord Auth ([3ec0b01](https://github.com/Medouille089/lspdassistant/commit/3ec0b0155492ec43adfa10c00db8697fba20d88f))
+
 ## [1.14.0](https://github.com/Medouille089/lspdassistant/compare/v1.13.1...v1.14.0) (2025-11-04)
 
 
