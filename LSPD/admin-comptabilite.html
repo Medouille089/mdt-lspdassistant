@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Comptabilité Pointeuse - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css" />
+    <link rel="stylesheet" href="styles/warning.css" />
+    <link rel="stylesheet" href="styles/popup.css" />
+    <link rel="stylesheet" href="styles/admin/adminComptabilite.css" />
+</head>
+
+<body>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <h1>Comptabilité - Pointeuse</h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
+
+        <h2>Semaine en cours</h2>
+        <div class="table-wrapper">
+            <table id="tableThisWeek">
+                <thead>
+                    <tr>
+                        <th>Nom Agent</th>
+                        <th>Grade</th>
+                        <th>Heures effectuées</th>
+                        <th>Paie de base (3h+)</th>
+                        <th>Salaire horaire (300$/h)</th>
+                        <th>Prime risque</th>
+                        <th>Remboursement véhicule</th>
+                        <th>Prime essence (333$/h)</th>
+                        <th class="total-column">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-this-week">
+                </tbody>
+            </table>
+        </div>
+        <div class="export-section-bottom">
+            <button id="exportThisWeekBtn" class="export-btn export-btn-secondary">
+                Exporter semaine en cours
+            </button>
+        </div>
+
+        <h2>Semaine précédente</h2>
+        <div class="table-wrapper">
+            <table id="tableLastWeek">
+                <thead>
+                    <tr>
+                        <th>Nom Agent</th>
+                        <th>Grade</th>
+                        <th>Heures effectuées</th>
+                        <th>Paie de base (3h+)</th>
+                        <th>Salaire horaire (300$/h)</th>
+                        <th>Prime risque</th>
+                        <th>Remboursement véhicule</th>
+                        <th>Prime essence (333$/h)</th>
+                        <th class="total-column">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-last-week">
+                </tbody>
+            </table>
+        </div>
+        <div class="export-section-bottom">
+            <button id="exportLastWeekBtn" class="export-btn export-btn-secondary">
+                Exporter semaine précédente
+            </button>
+        </div>
+        <div class="export-section-final">
+            <button id="exportExcelBtn" class="export-btn">
+                Exporter tout en Excel
+            </button>
+        </div>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <div id="feedbackAnimation" style="display: none; text-align: center"></div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="scripts/adminComptabilite.js"></script>
+    <script src="scripts/liveUserHeartbeat.js"></script>
+</body>
+
+</html>
