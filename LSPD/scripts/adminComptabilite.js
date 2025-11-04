@@ -118,6 +118,12 @@ function renderWeekTable(week, tbodyId) {
       </td>
       <td class="amount">${formatMoney(primeEssence)}</td>
       <td class="total-value amount">${formatMoney(total)}</td>
+      <td class="checkbox-cell">
+        <input type="checkbox" 
+               class="paid-checkbox" 
+               data-index="${index}" 
+               data-week="${week}">
+      </td>
     `;
 
         tbody.appendChild(tr);
@@ -142,6 +148,7 @@ function renderWeekTable(week, tbodyId) {
       <td></td>
       <td class="amount" style="font-weight: bold;">${formatMoney(totalPrimeEssence)}</td>
       <td class="total-value amount" style="font-weight: bold;">${formatMoney(grandTotal)}</td>
+      <td></td>
     `;
     tbody.appendChild(totalRow);
 
@@ -152,6 +159,23 @@ function attachCheckboxListeners() {
     document.querySelectorAll(".prime-risque-checkbox, .remboursement-checkbox").forEach(checkbox => {
         checkbox.addEventListener("change", updateTotal);
     });
+
+    // Ajouter listener pour la checkbox "Payée"
+    document.querySelectorAll(".paid-checkbox").forEach(checkbox => {
+        checkbox.addEventListener("change", togglePaidStatus);
+    });
+}
+
+// Fonction pour changer la couleur de la ligne quand elle est payée
+function togglePaidStatus(event) {
+    const checkbox = event.target;
+    const row = checkbox.closest("tr");
+
+    if (checkbox.checked) {
+        row.classList.add("paid-row");
+    } else {
+        row.classList.remove("paid-row");
+    }
 }
 
 function updateTotal(event) {
@@ -226,6 +250,7 @@ function updateTotalRow(week) {
         <td></td>
         <td class="amount" style="font-weight: bold;">${formatMoney(totalPrimeEssence)}</td>
         <td class="total-value amount" style="font-weight: bold;">${formatMoney(grandTotal)}</td>
+        <td></td>
     `;
 }
 
@@ -297,7 +322,8 @@ function createWeekDataForExcel(week, weekTitle) {
         "Prime risque",
         "Remboursement véhicule",
         "Prime essence (333$/h)",
-        "Total"
+        "Total",
+        "Payée"
     ]);
 
     let totalHours = 0;
@@ -319,13 +345,16 @@ function createWeekDataForExcel(week, weekTitle) {
 
         let primeRisque = 0;
         let remboursementVehicule = 0;
+        let isPaid = false;
 
         if (row) {
             const primeRisqueCheckbox = row.querySelector(".prime-risque-checkbox");
             const remboursementCheckbox = row.querySelector(".remboursement-checkbox");
+            const paidCheckbox = row.querySelector(".paid-checkbox");
 
             primeRisque = primeRisqueCheckbox && primeRisqueCheckbox.checked ? 5000 : 0;
             remboursementVehicule = remboursementCheckbox && remboursementCheckbox.checked ? 1000 : 0;
+            isPaid = paidCheckbox && paidCheckbox.checked;
         }
 
         const total = basePay + hourlySalary + primeEssence + primeRisque + remboursementVehicule;
@@ -339,7 +368,8 @@ function createWeekDataForExcel(week, weekTitle) {
             parseFloat(primeRisque.toFixed(2)),
             parseFloat(remboursementVehicule.toFixed(2)),
             parseFloat(primeEssence.toFixed(2)),
-            parseFloat(total.toFixed(2))
+            parseFloat(total.toFixed(2)),
+            isPaid ? "Oui" : "Non"
         ]);
 
         // Accumuler les totaux
@@ -363,7 +393,8 @@ function createWeekDataForExcel(week, weekTitle) {
         parseFloat(totalPrimeRisque.toFixed(2)),
         parseFloat(totalRemboursement.toFixed(2)),
         parseFloat(totalPrimeEssence.toFixed(2)),
-        parseFloat(grandTotal.toFixed(2))
+        parseFloat(grandTotal.toFixed(2)),
+        ""
     ]);
 
     return data;
