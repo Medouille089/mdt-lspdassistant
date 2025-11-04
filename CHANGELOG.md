@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.14.0](https://github.com/Medouille089/lspdassistant/compare/v1.13.1...v1.14.0) (2025-11-04)
+
+
+### Features
+
+* add comptabilité ([f72f842](https://github.com/Medouille089/lspdassistant/commit/f72f842717d649d96bfec54b8883c0ef49d76b50))
+
 ### [1.13.1](https://github.com/Medouille089/lspdassistant/compare/v1.13.0...v1.13.1) (2025-11-04)
 
 
