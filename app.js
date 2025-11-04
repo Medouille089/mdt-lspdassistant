@@ -305,10 +305,15 @@ async function startServer() {
   await loadConfig();
 
   // Initialiser la partie Trello (DB + Socket + routes)
-  await initTrello(app, io);
+  try {
+    await initTrello(app, io);
+    console.log("✅ Trello initialisé");
+  } catch (error) {
+    console.error("❌ Erreur lors de l'initialisation de Trello:", error.message);
+    console.warn("⚠️  Le serveur continue sans Trello");
+  }
 
   httpServer.listen(port, () => {
-    console.clear();
     console.log(
       `🚀 Serveur LSPD démarré sur http://localhost:${port}/connect.html`
     );
