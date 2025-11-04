@@ -143,6 +143,10 @@ router.get("/api/comptabilite", checkAuth, async (req, res) => {
             const basePayThisWeek = getBasePayByGrade(grade, cappedHoursThisWeek);
             const basePayLastWeek = getBasePayByGrade(grade, cappedHoursLastWeek);
 
+            // Calculer le salaire horaire avec heures cappées (300$/h)
+            const calculatedSalaryThisWeek = cappedHoursThisWeek * 300;
+            const calculatedSalaryLastWeek = cappedHoursLastWeek * 300;
+
             const primeEssenceThisWeek = cappedHoursThisWeek * 333;
             const primeEssenceLastWeek = cappedHoursLastWeek * 333;
 
@@ -153,13 +157,13 @@ router.get("/api/comptabilite", checkAuth, async (req, res) => {
                 thisWeek: {
                     hours: hoursThisWeek.toFixed(2), // Heures réelles affichées
                     basePay: basePayThisWeek.toFixed(2),
-                    hourlySalary: salaryThisWeek.toFixed(2),
+                    hourlySalary: calculatedSalaryThisWeek.toFixed(2),
                     primeEssence: primeEssenceThisWeek.toFixed(2),
                 },
                 lastWeek: {
                     hours: hoursLastWeek.toFixed(2), // Heures réelles affichées
                     basePay: basePayLastWeek.toFixed(2),
-                    hourlySalary: salaryLastWeek.toFixed(2),
+                    hourlySalary: calculatedSalaryLastWeek.toFixed(2),
                     primeEssence: primeEssenceLastWeek.toFixed(2),
                 }
             });
