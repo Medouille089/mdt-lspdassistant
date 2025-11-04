@@ -80,6 +80,12 @@ function renderWeekTable(week, tbodyId) {
     const tbody = document.getElementById(tbodyId);
     tbody.innerHTML = "";
 
+    let totalHours = 0;
+    let totalBasePay = 0;
+    let totalHourlySalary = 0;
+    let totalPrimeEssence = 0;
+    let grandTotal = 0;
+
     comptabiliteData.forEach((agent, index) => {
         const hours = parseFloat(agent[week].hours) || 0;
         const basePay = parseFloat(agent[week].basePay) || 0;
@@ -115,7 +121,29 @@ function renderWeekTable(week, tbodyId) {
     `;
 
         tbody.appendChild(tr);
+
+        // Accumuler les totaux
+        totalHours += hours;
+        totalBasePay += basePay;
+        totalHourlySalary += hourlySalary;
+        totalPrimeEssence += primeEssence;
+        grandTotal += total;
     });
+
+    // Ajouter la ligne de totaux
+    const totalRow = document.createElement("tr");
+    totalRow.className = "total-row";
+    totalRow.innerHTML = `
+      <td colspan="2" style="text-align: right; font-weight: bold;">TOTAL</td>
+      <td style="font-weight: bold;">${totalHours.toFixed(2)} h</td>
+      <td class="amount" style="font-weight: bold;">${formatMoney(totalBasePay)}</td>
+      <td class="amount" style="font-weight: bold;">${formatMoney(totalHourlySalary)}</td>
+      <td></td>
+      <td></td>
+      <td class="amount" style="font-weight: bold;">${formatMoney(totalPrimeEssence)}</td>
+      <td class="total-value amount" style="font-weight: bold;">${formatMoney(grandTotal)}</td>
+    `;
+    tbody.appendChild(totalRow);
 
     attachCheckboxListeners();
 }
@@ -143,6 +171,62 @@ function updateTotal(event) {
 
     const totalCell = row.querySelector(".total-value");
     totalCell.textContent = formatMoney(newTotal);
+
+    // Recalculer la ligne de totaux
+    updateTotalRow(week);
+}
+
+// Fonction pour mettre à jour la ligne de totaux
+function updateTotalRow(week) {
+    const tbodyId = week === "thisWeek" ? "tbody-this-week" : "tbody-last-week";
+    const tbody = document.getElementById(tbodyId);
+    const totalRow = tbody.querySelector(".total-row");
+
+    if (!totalRow) return;
+
+    let totalHours = 0;
+    let totalBasePay = 0;
+    let totalHourlySalary = 0;
+    let totalPrimeEssence = 0;
+    let grandTotal = 0;
+
+    // Parcourir toutes les lignes sauf la ligne de totaux
+    const rows = tbody.querySelectorAll("tr:not(.total-row)");
+    rows.forEach((row) => {
+        const index = parseInt(row.dataset.index);
+        const agent = comptabiliteData[index];
+
+        const hours = parseFloat(agent[week].hours) || 0;
+        const basePay = parseFloat(agent[week].basePay) || 0;
+        const hourlySalary = parseFloat(agent[week].hourlySalary) || 0;
+        const primeEssence = parseFloat(agent[week].primeEssence) || 0;
+
+        const primeRisqueCheckbox = row.querySelector(".prime-risque-checkbox");
+        const remboursementCheckbox = row.querySelector(".remboursement-checkbox");
+
+        const primeRisque = primeRisqueCheckbox ? primeRisqueCheckbox.checked : false;
+        const remboursementVehicule = remboursementCheckbox ? remboursementCheckbox.checked : false;
+
+        const rowTotal = calculateTotal(agent, week, primeRisque, remboursementVehicule);
+
+        totalHours += hours;
+        totalBasePay += basePay;
+        totalHourlySalary += hourlySalary;
+        totalPrimeEssence += primeEssence;
+        grandTotal += rowTotal;
+    });
+
+    // Mettre à jour la ligne de totaux
+    totalRow.innerHTML = `
+        <td colspan="2" style="text-align: right; font-weight: bold;">TOTAL</td>
+        <td style="font-weight: bold;">${totalHours.toFixed(2)} h</td>
+        <td class="amount" style="font-weight: bold;">${formatMoney(totalBasePay)}</td>
+        <td class="amount" style="font-weight: bold;">${formatMoney(totalHourlySalary)}</td>
+        <td></td>
+        <td></td>
+        <td class="amount" style="font-weight: bold;">${formatMoney(totalPrimeEssence)}</td>
+        <td class="total-value amount" style="font-weight: bold;">${formatMoney(grandTotal)}</td>
+    `;
 }
 
 function exportToExcel() {
@@ -216,6 +300,14 @@ function createWeekDataForExcel(week, weekTitle) {
         "Total"
     ]);
 
+    let totalHours = 0;
+    let totalBasePay = 0;
+    let totalHourlySalary = 0;
+    let totalPrimeRisque = 0;
+    let totalRemboursement = 0;
+    let totalPrimeEssence = 0;
+    let grandTotal = 0;
+
     comptabiliteData.forEach((agent, index) => {
         const hours = parseFloat(agent[week].hours) || 0;
         const basePay = parseFloat(agent[week].basePay) || 0;
@@ -249,7 +341,30 @@ function createWeekDataForExcel(week, weekTitle) {
             parseFloat(primeEssence.toFixed(2)),
             parseFloat(total.toFixed(2))
         ]);
+
+        // Accumuler les totaux
+        totalHours += hours;
+        totalBasePay += basePay;
+        totalHourlySalary += hourlySalary;
+        totalPrimeRisque += primeRisque;
+        totalRemboursement += remboursementVehicule;
+        totalPrimeEssence += primeEssence;
+        grandTotal += total;
     });
+
+    // Ajouter la ligne de totaux
+    data.push([]);
+    data.push([
+        "TOTAL",
+        "",
+        parseFloat(totalHours.toFixed(2)),
+        parseFloat(totalBasePay.toFixed(2)),
+        parseFloat(totalHourlySalary.toFixed(2)),
+        parseFloat(totalPrimeRisque.toFixed(2)),
+        parseFloat(totalRemboursement.toFixed(2)),
+        parseFloat(totalPrimeEssence.toFixed(2)),
+        parseFloat(grandTotal.toFixed(2))
+    ]);
 
     return data;
 }

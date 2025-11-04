@@ -209,6 +209,22 @@ td.checkbox-cell {
     font-weight: 500;
 }
 
+/* Ligne de totaux */
+.total-row {
+    background-color: rgba(40, 167, 69, 0.3) !important;
+    border-top: 3px solid #28a745 !important;
+    font-size: 16px;
+}
+
+.total-row td {
+    color: #ffffff !important;
+    padding: 15px !important;
+}
+
+.total-row:hover {
+    background-color: rgba(40, 167, 69, 0.35) !important;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
     .main-container {
