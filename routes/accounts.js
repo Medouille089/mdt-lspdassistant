@@ -21,7 +21,6 @@ async function safeFetchChannel(bot, channelId) {
 async function checkSuperAdmin(req, res, next) {
   try {
     if (!req.isAuthenticated()) {
-      console.log("[Accounts] Utilisateur non authentifié");
       return res.status(401).json({ error: "Non authentifié" });
     }
 
@@ -29,7 +28,6 @@ async function checkSuperAdmin(req, res, next) {
     const SUPER_ADMIN_ROLE = conf.id_superadmin ? String(conf.id_superadmin).trim() : null;
 
     if (!SUPER_ADMIN_ROLE) {
-      console.log("[Accounts] Rôle super admin non configuré dans la config");
       return res.status(500).json({ error: "Rôle super admin non configuré" });
     }
 
@@ -38,7 +36,6 @@ async function checkSuperAdmin(req, res, next) {
     const roleIds = member.roles.cache.map(role => role.id);
 
     if (!roleIds.includes(SUPER_ADMIN_ROLE)) {
-      console.log(`[Accounts] Accès refusé pour ${req.user.username} - Super admin requis`);
       return res.status(403).json({ error: "Accès refusé. Seuls les super administrateurs peuvent accéder à cette page." });
     }
 
@@ -54,30 +51,35 @@ router.get("/api/accounts", checkAuth, checkSuperAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT 
-        id,
-        discord_id,
-        username,
-        email,
-        created_at,
-        updated_at,
-        last_login,
-        is_active
-      FROM user_accounts
-      ORDER BY created_at DESC
+        ua.id,
+        ua.discord_id,
+        ua.username,
+        ua.email,
+        ua.created_at,
+        ua.updated_at,
+        ua.last_login,
+        ua.is_active,
+        lap.photo_url
+      FROM user_accounts ua
+      LEFT JOIN lspd_agent_profiles lap ON ua.discord_id = lap.discord_id
+      ORDER BY ua.created_at DESC
     `);
 
-    // Enrichir avec les avatars Discord
+    // Enrichir avec les informations Discord (display name)
     const guild = await bot.guilds.fetch(GUILD_ID);
     
     for (const account of rows) {
       try {
         const member = await guild.members.fetch(account.discord_id).catch(() => null);
-        if (member && member.user) {
-          account.avatar = member.user.avatar;
+        if (member) {
+          account.displayName = member.displayName || member.user.username;
+        } else {
+          account.displayName = account.username;
         }
       } catch (error) {
         // Si on ne peut pas récupérer le membre, on continue
-        console.warn(`Impossible de récupérer l'avatar pour ${account.discord_id}`);
+        console.warn(`Impossible de récupérer les infos Discord pour ${account.discord_id}`);
+        account.displayName = account.username;
       }
     }
 
@@ -122,7 +124,6 @@ router.delete("/api/accounts/:id", checkAuth, checkSuperAdmin, async (req, res) 
     // Supprimer le compte
     await pool.query("DELETE FROM user_accounts WHERE id = $1", [accountId]);
 
-    console.log(`Compte supprimé: ${account.username} (${account.discord_id}) par ${req.user.username} (${req.user.id})`);
 
     // Envoi du log dans logs_config
     try {

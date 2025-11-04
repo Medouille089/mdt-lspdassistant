@@ -139,6 +139,17 @@ router.get('/callback',
         return res.redirect('/register.html');
       }
 
+      // Mettre à jour le last_login pour l'utilisateur qui se connecte via Discord
+      try {
+        await pool.query(
+          'UPDATE user_accounts SET last_login = NOW() WHERE discord_id = $1',
+          [req.user.id]
+        );
+      } catch (updateError) {
+        console.error('[Auth] Erreur lors de la mise à jour de last_login:', updateError);
+        // Ne pas bloquer la connexion si la mise à jour échoue
+      }
+
       // Récupérer l'URL de redirection depuis la session
       let redirectTo = '/protected';
       if (req.session.returnTo) {
