@@ -18,7 +18,7 @@ async function loadAgents() {
         agents = await res.json();
         applyFilters();
     } catch (e) {
-        tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#f66;">Erreur de chargement.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#f66;">Erreur de chargement.</td></tr>`;
         console.error(e);
     } finally {
         loader.style.display = 'none';
@@ -44,7 +44,7 @@ function applyFilters() {
 function renderTable() {
     tableBody.innerHTML = '';
     if (filteredAgents.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Aucun officer trouvé.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Aucun officer trouvé.</td></tr>`;
         return;
     }
 
@@ -54,7 +54,11 @@ function renderTable() {
 
     pageItems.forEach(item => {
         const tr = document.createElement('tr');
+        const defaultAvatar = 'https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc=';
+        const avatarUrl = item.photo_url || defaultAvatar;
+        
         tr.innerHTML = `
+        <td><img src="${avatarUrl}" alt="Avatar" class="avatar-img" onerror="this.src='https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc='"></td>
         <td>${item.id}</td>
         <td>${item.displayName}</td>
         <td>${item.grade}</td>

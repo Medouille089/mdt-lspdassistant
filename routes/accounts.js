@@ -121,6 +121,13 @@ router.delete("/api/accounts/:id", checkAuth, checkSuperAdmin, async (req, res) 
     const actorMember = await guild.members.fetch(req.user.id).catch(() => null);
     const targetMember = await guild.members.fetch(account.discord_id).catch(() => null);
 
+    // Récupérer la photo de profil depuis la base de données
+    const photoResult = await pool.query(
+      "SELECT photo_url FROM lspd_agent_profiles WHERE discord_id = $1",
+      [account.discord_id]
+    );
+    const photoUrl = photoResult.rows[0]?.photo_url || null;
+
     // Supprimer le compte
     await pool.query("DELETE FROM user_accounts WHERE id = $1", [accountId]);
 
@@ -134,11 +141,8 @@ router.delete("/api/accounts/:id", checkAuth, checkSuperAdmin, async (req, res) 
         const actorDisplayName = actorMember?.displayName || req.user.username;
         const targetDisplayName = targetMember?.displayName || account.username;
 
-        // Construire l'URL de la photo de profil
-        let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png'; // Avatar par défaut
-        if (targetMember && targetMember.user.avatar) {
-          avatarUrl = `https://cdn.discordapp.com/avatars/${account.discord_id}/${targetMember.user.avatar}.png?size=256`;
-        }
+        // Utiliser la photo_url de la base de données ou l'image par défaut
+        const avatarUrl = photoUrl || 'https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc=';
 
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)

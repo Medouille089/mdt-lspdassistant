@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.14.3](https://github.com/Medouille089/lspdassistant/compare/v1.14.2...v1.14.3) (2025-11-04)
+
+
+### Bug Fixes
+
+* add pp in liste agents + default pp if there is none ([111d22a](https://github.com/Medouille089/lspdassistant/commit/111d22a709945dee89862b0ab350cf3e4006229a))
+
 ### [1.14.2](https://github.com/Medouille089/lspdassistant/compare/v1.14.1...v1.14.2) (2025-11-04)
 
 
