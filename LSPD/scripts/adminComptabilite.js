@@ -181,7 +181,7 @@ function updateTotalRow(week) {
     const tbodyId = week === "thisWeek" ? "tbody-this-week" : "tbody-last-week";
     const tbody = document.getElementById(tbodyId);
     const totalRow = tbody.querySelector(".total-row");
-    
+
     if (!totalRow) return;
 
     let totalHours = 0;
@@ -195,7 +195,7 @@ function updateTotalRow(week) {
     rows.forEach((row) => {
         const index = parseInt(row.dataset.index);
         const agent = comptabiliteData[index];
-        
+
         const hours = parseFloat(agent[week].hours) || 0;
         const basePay = parseFloat(agent[week].basePay) || 0;
         const hourlySalary = parseFloat(agent[week].hourlySalary) || 0;
@@ -203,7 +203,7 @@ function updateTotalRow(week) {
 
         const primeRisqueCheckbox = row.querySelector(".prime-risque-checkbox");
         const remboursementCheckbox = row.querySelector(".remboursement-checkbox");
-        
+
         const primeRisque = primeRisqueCheckbox ? primeRisqueCheckbox.checked : false;
         const remboursementVehicule = remboursementCheckbox ? remboursementCheckbox.checked : false;
 
