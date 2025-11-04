@@ -73,11 +73,31 @@ router.get("/api/officers", checkAuth, async (req, res) => {
       });
     });
 
+    // Récupérer les photos de profil depuis lspd_agent_profiles
+    const discordIds = agents.map(a => a.id);
+    let photosMap = {};
+    
+    if (discordIds.length > 0) {
+      const photosRes = await pool.query(
+        'SELECT discord_id, photo_url FROM lspd_agent_profiles WHERE discord_id = ANY($1)',
+        [discordIds]
+      );
+      photosMap = photosRes.rows.reduce((acc, row) => {
+        acc[row.discord_id] = row.photo_url;
+        return acc;
+      }, {});
+    }
+
+    // Ajouter photo_url à chaque agent
+    agents.forEach(agent => {
+      agent.photo_url = photosMap[agent.id] || null;
+    });
+
     // Trier par gradeIndex descendant (plus haut grade en premier)
     agents.sort((a, b) => b.gradeIndex - a.gradeIndex);
 
     // Retirer gradeIndex avant d'envoyer
-    const finalAgents = agents.map(({ id, displayName, grade }) => ({ id, displayName, grade }));
+    const finalAgents = agents.map(({ id, displayName, grade, photo_url }) => ({ id, displayName, grade, photo_url }));
 
     cache.set(cacheKey, finalAgents, CACHE_DURATIONS.GUILD_MEMBERS);
 

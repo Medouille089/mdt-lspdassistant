@@ -211,7 +211,8 @@
 
             tbody.innerHTML = pageAccounts.map(account => {
                 // Utiliser la photo_url de la table lspd_agent_profiles
-                const avatarUrl = account.photo_url || 'data/images/default-avatar.png';
+                const defaultAvatar = 'https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc=';
+                const avatarUrl = account.photo_url || defaultAvatar;
                 
                 const createdDate = new Date(account.created_at).toLocaleDateString('fr-FR', {
                     year: 'numeric',
@@ -239,7 +240,7 @@
 
                 return `
                     <tr data-account-id="${account.id}" data-discord-id="${account.discord_id}" onclick="goToAgentProfile(event, '${account.discord_id}')">
-                        <td><img src="${avatarUrl}" alt="Avatar" class="avatar-img" onerror="this.src='data/images/default-avatar.png'"></td>
+                        <td><img src="${avatarUrl}" alt="Avatar" class="avatar-img" onerror="this.src='https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc='"></td>
                         <td><strong>${escapeHtml(account.username)}</strong></td>
                         <td>${escapeHtml(account.displayName || account.username)}</td>
                         <td>${escapeHtml(account.discord_id)}</td>
