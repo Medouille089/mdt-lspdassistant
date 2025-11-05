@@ -553,7 +553,7 @@ function showNotification(message, type) {
   if (existing) existing.remove();
 
   const notification = document.createElement("div");
-  notification.className = `notification ${type}`;
+  notification.className = otification ${type}`;
   notification.textContent = message;
 
   Object.assign(notification.style, {

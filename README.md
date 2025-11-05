@@ -153,7 +153,7 @@ Assure-toi d'avoir `DATABASE_URL` pour la persistance Trello.
 - Parsing JSON sécurisé (try/catch) pour champs dynamiques (armes / véhicules).
 
 ## 🧪 Tests
-Actuellement aucun test auto (script `npm test` placeholder). Recommandations:
+Actuellement aucun test auto (script pm test` placeholder). Recommandations:
 - Ajouter Jest + supertest pour routes critiques.
 - Tests unitaires sur `OperationsManager` pour intégrité des diffs.
 

@@ -21,6 +21,10 @@ body::before {
   background-size: cover;
 }
 
+.main-container {
+  padding: 2rem!important;
+}
+
 form label {
   display: block;
   font-weight: 600;

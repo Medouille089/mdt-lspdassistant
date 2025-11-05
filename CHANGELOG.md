@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.16.0](https://github.com/Medouille089/lspdassistant/compare/v1.15.3...v1.16.0) (2025-11-05)
+
+
+### Features
+
+* major optimisation on sidebar + add active page in it ([7965f94](https://github.com/Medouille089/lspdassistant/commit/7965f944418415107c4a7f116ae7d5cdab43d652))
+
+
+### Bug Fixes
+
+* title in connect + fix margin in dashboard ([9d7e6c7](https://github.com/Medouille089/lspdassistant/commit/9d7e6c74ccbf6300142212f98a60d22cd935b371))
+
 ### [1.15.3](https://github.com/Medouille089/lspdassistant/compare/v1.15.2...v1.15.3) (2025-11-05)
 
 
