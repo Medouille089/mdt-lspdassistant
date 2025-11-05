@@ -23,16 +23,20 @@
         }
     </style>
     <style>
-        /* Hide sidebar and main content briefly until JS applies the stored sidebar state to avoid flash */
-        .no-js-sidebar-hide .sidebar,
-        .no-js-sidebar-hide .main-container {
-            visibility: hidden !important;
-            transition: none !important;
+        /* La sidebar est toujours visible, pas de flash */
+        .sidebar {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Pré-cache les éléments pendant le chargement initial pour éviter le FOUC */
+        .sidebar-nav .primary-nav {
+            min-height: 200px; /* Réserver l'espace pour éviter le saut */
         }
     </style>
 </head>
 
-<body class="no-js-sidebar-hide">
+<body>
     <!-- Apply persisted sidebar state as early as possible to avoid visual flash when navigating pages -->
     <script>
         try {
@@ -43,12 +47,89 @@
                 // Mark that initial state was applied early so later scripts can be aware
                 window.__sidebarStateApplied = true;
             }
+            
+            // Pré-charger les permissions depuis le cache pour afficher immédiatement les boutons
+            var _perms = localStorage.getItem('lspd_cache_user-permissions');
+            if (_perms) {
+                try {
+                    var permsData = JSON.parse(_perms);
+                    if (permsData && permsData.value && Date.now() <= permsData.expiry) {
+                        var perms = permsData.value;
+                        // Attendre que le DOM soit chargé
+                        document.addEventListener('DOMContentLoaded', function() {
+                            if (perms.isSupervisor || perms.isCommandStaff || perms.isSuperAdmin) {
+                                document.querySelectorAll('.onlySupervisor').forEach(function(el) {
+                                    el.style.display = 'block';
+                                });
+                            }
+                            if (perms.isCommandStaff || perms.isSuperAdmin) {
+                                document.querySelectorAll('.onlyCommandStaff').forEach(function(el) {
+                                    el.style.display = 'block';
+                                });
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('permissions cache parse error:', e);
+                }
+            }
+            
+            // Pré-charger le profil utilisateur depuis le cache
+            var _user = localStorage.getItem('lspd_cache_user');
+            if (_user) {
+                try {
+                    var userData = JSON.parse(_user);
+                    if (userData && userData.value && Date.now() <= userData.expiry) {
+                        var user = userData.value;
+                        
+                        // Pré-charger le profil agent pour l'avatar
+                        var _profile = localStorage.getItem('lspd_cache_agent-profile-' + user.id);
+                        var avatarUrl;
+                        
+                        if (_profile) {
+                            try {
+                                var profileData = JSON.parse(_profile);
+                                if (profileData && profileData.value && Date.now() <= profileData.expiry) {
+                                    var profile = profileData.value;
+                                    if (profile.photo_url && String(profile.photo_url).trim() !== '') {
+                                        avatarUrl = profile.photo_url.trim();
+                                    }
+                                }
+                            } catch (e) {}
+                        }
+                        
+                        if (!avatarUrl) {
+                            avatarUrl = user.avatar
+                                ? 'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png?size=64'
+                                : 'https://cdn.discordapp.com/embed/avatars/' + (parseInt(user.discriminator) % 5) + '.png';
+                        }
+                        
+                        // Calculer la taille de police
+                        var fontSize = '16px';
+                        var length = user.username.length;
+                        if (length > 15) fontSize = '13px';
+                        if (length > 20) fontSize = '11px';
+                        
+                        // Afficher le profil immédiatement
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var container = document.getElementById('userProfile');
+                            if (container) {
+                                container.innerHTML = '<span class="profile-inline" style="display:flex;align-items:center;gap:10px;">' +
+                                    '<img class="profile-avatar" src="' + avatarUrl + '" alt="Avatar" data-user-id="' + user.id + '" style="width:40px;height:40px;border-radius:50%;border:1px solid #FFFFFF;transition:border-color .18s;flex-shrink:0;object-fit:cover;">' +
+                                    '<span class="profile-texts" style="display:flex;flex-direction:column;line-height:1.15;">' +
+                                    '<span class="profile-username" style="font-weight:700;font-size:' + fontSize + ';color:#FFFFFF;transition:color .18s;">' + user.username + '</span>' +
+                                    '<span class="profile-grade" style="font-weight:500;font-size:0.8rem;color:#CCCCCC;transition:color .18s;">' + user.grade + '</span>' +
+                                    '</span></span>';
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('user cache parse error:', e);
+                }
+            }
         } catch (e) {
             // ignore localStorage errors
             console.warn('sidebar state not applied early:', e);
-        } finally {
-            // Reveal UI now that initial state (if any) has been applied
-            try { document.body.classList.remove('no-js-sidebar-hide'); } catch (e) { }
         }
     </script>
     <script src="scripts/annonce-popup.js"></script>

@@ -27,6 +27,13 @@ body {
   height: 100vh;
   background: var(--sidebar-bg);
   transition: all 0.4s ease;
+  /* Effet glow Apple-style */
+  box-shadow: 
+    0 0 40px rgba(255, 255, 255, 0.03),
+    0 0 80px rgba(255, 255, 255, 0.02),
+    inset 0 0 60px rgba(255, 255, 255, 0.02);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
 }
 
 body,
@@ -116,8 +123,11 @@ body.collapsed .main-content {
   background: var(--main-header-bg);
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 12px;
   transition: 0.4s ease;
+  box-shadow: 
+    0 2px 8px rgba(11, 27, 90, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* Hide desktop collapse toggler button: keep mobile .sidebar-menu-button intact */
@@ -141,6 +151,10 @@ body.collapsed .main-content {
 
 .sidebar-header .sidebar-toggler:hover {
   background: var(--sidebar-bg-hover);
+  box-shadow: 
+    0 4px 12px rgba(11, 27, 90, 0.3),
+    0 0 15px rgba(11, 27, 90, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-nav .nav-list {
@@ -175,7 +189,7 @@ body.collapsed .main-content {
   display: flex;
   gap: 12px;
   white-space: nowrap;
-  border-radius: 8px;
+  border-radius: 14px;
   padding: 11px 15px;
   align-items: center;
   text-decoration: none;
@@ -186,6 +200,44 @@ body.collapsed .main-content {
 .sidebar-nav .nav-item:is(:hover, .open) > .nav-link:not(.dropdown-title) {
   color: var(--sidebar-text);
   background: var(--main-header-bg);
+  box-shadow: 
+    0 4px 12px rgba(11, 27, 90, 0.3),
+    0 0 20px rgba(11, 27, 90, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Style pour la page active - même apparence que le hover */
+.sidebar-nav .nav-item > .nav-link.active:not(.dropdown-title) {
+  color: var(--sidebar-text);
+  background: var(--main-header-bg);
+  box-shadow: 
+    0 4px 12px rgba(11, 27, 90, 0.3),
+    0 0 20px rgba(11, 27, 90, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Style pour les dropdown-toggle actifs (quand une sous-page est active) */
+.sidebar-nav .nav-item.dropdown-container > .nav-link.dropdown-toggle.active {
+  color: var(--sidebar-text);
+  background: var(--main-header-bg);
+  box-shadow: 
+    0 4px 12px rgba(11, 27, 90, 0.3),
+    0 0 20px rgba(11, 27, 90, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Style pour les liens actifs dans les dropdown menus */
+.dropdown-menu .nav-item .nav-link.active {
+  color: var(--sidebar-text);
+  background: rgba(11, 27, 90, 0.3);
+  font-weight: 600;
+  border-radius: 12px;
+  box-shadow: 
+    0 2px 8px rgba(11, 27, 90, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .sidebar .nav-link .nav-label {
@@ -239,9 +291,13 @@ body.collapsed .main-content {
   padding-right: 10px;
   overflow-y: unset;
   pointer-events: none;
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 14px 14px 0;
   background: var(--dropdown-bg);
   transition: 0s;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.15),
+    0 0 40px rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sidebar.collapsed .dropdown-menu:has(.dropdown-link) {
@@ -264,6 +320,7 @@ body.collapsed .main-content {
 .dropdown-menu .nav-item .nav-link {
   color: var(--dropdown-link);
   padding: 9px 15px;
+  border-radius: 10px;
 }
 
 .sidebar.collapsed .dropdown-menu .nav-link {
@@ -323,11 +380,15 @@ body.collapsed .main-content {
   background: var(--watermark-gradient);
   color: var(--white);
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 600;
   user-select: none;
   z-index: 9999;
   pointer-events: none;
   font-family: "Poppins", sans-serif;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 0 20px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
 }
