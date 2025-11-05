@@ -6,8 +6,9 @@ const {
   Events,
   REST,
   Routes,
+  EmbedBuilder,
 } = require("discord.js");
-const { loadConfig, setBot } = require("./config");
+const { loadConfig, setBot, getConfig } = require("./config");
 const db = require("./db");
 const fs = require("fs");
 const path = require("path");
@@ -137,7 +138,7 @@ bot.on(Events.InteractionCreate, async (interaction) => {
       }
 
       // Vérifier existence et ownership
-      const { rows } = await db.query('SELECT id, user_id FROM lspd_reminders WHERE id=$1', [reminderId]);
+      const { rows } = await db.query('SELECT id, user_id, channel_id, remind_at, reason, dm_only FROM lspd_reminders WHERE id=$1', [reminderId]);
       if (!rows.length) {
         return interaction.reply({ content: '⚠️ Rappel déjà annulé ou inexistant.', flags: 64 });
       }
@@ -145,7 +146,12 @@ bot.on(Events.InteractionCreate, async (interaction) => {
         return interaction.reply({ content: '❌ Vous ne pouvez pas annuler ce rappel.', flags: 64 });
       }
 
+      const reminderData = rows[0];
+
       await db.query('DELETE FROM lspd_reminders WHERE id=$1', [reminderId]);
+
+      // Répondre immédiatement à l'interaction
+      await interaction.reply({ content: '✅ Rappel annulé.', flags: 64 });
 
       // Désactiver le bouton sur le message original si possible
       try {
@@ -157,7 +163,63 @@ bot.on(Events.InteractionCreate, async (interaction) => {
         await msg.edit({ components });
       } catch (_) { /* ignore */ }
 
-      return interaction.reply({ content: '✅ Rappel annulé.', flags: 64 });
+      // Envoi du log dans logs_calendrier
+      try {
+        const conf = await getConfig();
+        if (conf.logs_calendrier) {
+          const logsChannel = await bot.channels.fetch(conf.logs_calendrier);
+          if (logsChannel?.isTextBased()) {
+            // Récupérer le membre du serveur pour avoir le nickname
+            let displayName = interaction.user.username;
+            try {
+              const guild = logsChannel.guild;
+              if (guild) {
+                const member = await guild.members.fetch(interaction.user.id);
+                displayName = member?.displayName || interaction.user.username;
+              }
+            } catch (_) { /* ignore */ }
+
+            const remindAtMoment = moment(reminderData.remind_at).tz('Europe/Paris');
+
+            const logEmbed = new EmbedBuilder()
+              .setTitle('Rappel annulé')
+              .setColor('#0b1b5a')
+              .setDescription(`${displayName} a annulé son rappel`)
+              .addFields(
+                { name: 'Date', value: `> \`${remindAtMoment.format('DD/MM/YYYY')}\``, inline: true },
+                { name: 'Heure', value: `> \`${remindAtMoment.format('HH:mm')}\``, inline: true }
+              )
+              .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
+              .setTimestamp();
+
+            if (reminderData.reason) {
+              logEmbed.addFields({ name: 'Raison', value: `> ${reminderData.reason}`, inline: false });
+            }
+
+            // Ajout des ID's
+            if (reminderData.dm_only || reminderData.channel_id === 'dm') {
+              logEmbed.addFields({ 
+                name: 'ID\'s', 
+                value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)`, 
+                inline: false 
+              });
+            } else {
+              logEmbed.addFields({ 
+                name: 'ID\'s', 
+                value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)\n> <#${reminderData.channel_id}> (\`${reminderData.channel_id}\`)`, 
+                inline: false 
+              });
+            }
+
+            await logsChannel.send({ embeds: [logEmbed] });
+          }
+        }
+      } catch (logErr) {
+        console.error('Erreur envoi log annulation rappel:', logErr);
+        // On ne fait pas échouer la commande si le log échoue
+      }
+
+      return;
     }
   } catch (btnErr) {
     console.error('Erreur interaction bouton rappel:', btnErr);

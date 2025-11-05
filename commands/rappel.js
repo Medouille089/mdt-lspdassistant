@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const moment = require('moment-timezone');
 const db = require('../config/db');
+const { getConfig } = require('../config/config');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -106,6 +107,57 @@ module.exports = {
           await interaction.user.send({ embeds: [embed], components: [cancelRow] });
         } catch (_) { /* ignore */ }
       }
+
+      // Envoi du log dans logs_calendrier
+      try {
+        const conf = await getConfig();
+        if (conf.logs_calendrier) {
+          const logsChannel = await interaction.client.channels.fetch(conf.logs_calendrier);
+          if (logsChannel?.isTextBased()) {
+            const displayName = interaction.member?.displayName || interaction.user.displayName || interaction.user.username;
+            
+            let locationText = isDM 
+              ? 'en MP' 
+              : `dans le salon <#${interaction.channel.id}>`;
+
+            const logEmbed = new EmbedBuilder()
+              .setTitle('Nouveau rappel')
+              .setColor('#0b1b5a')
+              .setDescription(`${displayName} a ajouté un nouveau rappel ${locationText}`)
+              .addFields(
+                { name: 'Date', value: `> \`${targetMoment.format('DD/MM/YYYY')}\``, inline: true },
+                { name: 'Heure', value: `> \`${targetMoment.format('HH:mm')}\``, inline: true }
+              )
+              .setFooter({ text: 'LSPD Assistant', iconURL: botUser.displayAvatarURL({ extension: 'png', size: 256 }) })
+              .setTimestamp();
+
+            if (reason && reason.trim().length) {
+              logEmbed.addFields({ name: 'Raison', value: `> ${reason}`, inline: false });
+            }
+
+            // Ajout des ID's
+            if (isDM) {
+              logEmbed.addFields({ 
+                name: 'ID\'s', 
+                value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)`, 
+                inline: false 
+              });
+            } else {
+              logEmbed.addFields({ 
+                name: 'ID\'s', 
+                value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)\n> <#${interaction.channel.id}> (\`${interaction.channel.id}\`)`, 
+                inline: false 
+              });
+            }
+
+            await logsChannel.send({ embeds: [logEmbed] });
+          }
+        }
+      } catch (logErr) {
+        console.error('Erreur envoi log rappel:', logErr);
+        // On ne fait pas échouer la commande si le log échoue
+      }
+
       return;
     } catch (err) {
       console.error('Erreur création rappel:', err);
