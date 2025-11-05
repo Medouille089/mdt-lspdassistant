@@ -6,18 +6,18 @@ const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = req
 
 module.exports = async function handleTicket(interaction, bot) {
     // --- Gestion du bouton Fermer ---
-        if (interaction.isButton && interaction.isButton() && interaction.customId === 'fermer_ticket_btn') {
-            // Déléguer la fermeture au handler /fermer en lui passant l'interaction réelle.
-            // Cela garantit le même comportement que l'exécution via la commande slash
-            try {
-                const fermerCmd = require('../commands/fermer.js');
-                await fermerCmd.execute(interaction);
-            } catch (err) {
-                console.error('Erreur en déléguant la fermeture à la commande /fermer :', err);
-                try { await interaction.reply({ content: '❌ Erreur lors de la fermeture du ticket.', flags: 64 }); } catch {};
-            }
+    if (interaction.isButton && interaction.isButton() && interaction.customId === 'fermer_ticket_btn') {
+        // Déléguer la fermeture au handler /fermer en lui passant l'interaction réelle.
+        // Cela garantit le même comportement que l'exécution via la commande slash
+        try {
+            const fermerCmd = require('../commands/fermer.js');
+            await fermerCmd.execute(interaction);
+        } catch (err) {
+            console.error('Erreur en déléguant la fermeture à la commande /fermer :', err);
+            try { await interaction.reply({ content: '❌ Erreur lors de la fermeture du ticket.', flags: 64 }); } catch { };
+        }
 
-            return;
+        return;
     }
     // --- Sélecteur de catégorie ---
     if (interaction.isStringSelectMenu() && interaction.customId === "select_ticket_category") {
@@ -49,7 +49,7 @@ module.exports = async function handleTicket(interaction, bot) {
     }
 
     // --- Soumission de la modal ---
-    if (interaction.isModalSubmit && interaction.customId.startsWith('ticket_userinfo_modal:')) {
+    if (interaction.isModalSubmit && interaction.customId && interaction.customId.startsWith('ticket_userinfo_modal:')) {
         try {
             await interaction.deferReply({ flags: 64 });
 

@@ -27,23 +27,40 @@ const bot = new Client({
   ],
 });
 
+// Gestionnaires d'erreurs
+bot.on('error', error => {
+  console.error('❌ Erreur Discord.js:', error);
+});
+
+bot.on('warn', info => {
+  console.warn('⚠️  Warning Discord.js:', info);
+});
+
+process.on('unhandledRejection', error => {
+  console.error('❌ Unhandled promise rejection:', error);
+});
+
 bot.commands = new Collection();
 const commandFiles = fs
   .readdirSync(path.join(__dirname, "../commands"))
   .filter((file) => file.endsWith(".js"));
 
 for (const file of commandFiles) {
-  const moduleExports = require(path.join(__dirname, "../commands", file));
+  try {
+    const moduleExports = require(path.join(__dirname, "../commands", file));
 
-  if (moduleExports?.data && moduleExports?.execute) {
-    bot.commands.set(moduleExports.data.name, moduleExports);
-  } else {
-    for (const key in moduleExports) {
-      const cmd = moduleExports[key];
-      if (cmd?.data && cmd?.execute) {
-        bot.commands.set(cmd.data.name, cmd);
+    if (moduleExports?.data && moduleExports?.execute) {
+      bot.commands.set(moduleExports.data.name, moduleExports);
+    } else {
+      for (const key in moduleExports) {
+        const cmd = moduleExports[key];
+        if (cmd?.data && cmd?.execute) {
+          bot.commands.set(cmd.data.name, cmd);
+        }
       }
     }
+  } catch (error) {
+    console.error(`❌ Erreur lors du chargement de ${file}:`, error.message);
   }
 }
 
@@ -60,7 +77,18 @@ async function registerCommands() {
   const isLocal = (process.env.IS_LOCAL || '').toLowerCase() === 'true';
 
   try {
-    
+    // D'abord supprimer toutes les commandes
+    await rest.put(
+      Routes.applicationGuildCommands(
+        process.env.CLIENT_ID,
+        process.env.GUILD_ID
+      ),
+      { body: [] }
+    );
+
+    // Attendre un peu pour que Discord traite la suppression
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     // Toujours enregistrer les guild commands (MAJ instantanée)
     await rest.put(
       Routes.applicationGuildCommands(
@@ -76,10 +104,9 @@ async function registerCommands() {
         Routes.applicationCommands(process.env.CLIENT_ID),
         { body: globalCommands }
       );
-    } else {
     }
   } catch (err) {
-    console.error('❌ Erreur en enregistrant les commandes :', err);
+    console.error('❌ Erreur lors de l\'enregistrement des commandes:', err.message);
   }
 }
 
@@ -135,7 +162,7 @@ bot.on(Events.InteractionCreate, async (interaction) => {
   } catch (btnErr) {
     console.error('Erreur interaction bouton rappel:', btnErr);
     if (!interaction.replied) {
-      try { await interaction.reply({ content: '❌ Erreur annulation.', flags: 64 }); } catch (_) {}
+      try { await interaction.reply({ content: '❌ Erreur annulation.', flags: 64 }); } catch (_) { }
     }
   }
 
@@ -155,7 +182,7 @@ bot.on(Events.MessageCreate, async (message) => {
     if (content === '!bonjour') {
       // Supprime le message d'origine si possible
       if (message.deletable) {
-        message.delete().catch(() => {});
+        message.delete().catch(() => { });
       }
 
       const avatar = bot.user.displayAvatarURL({ extension: 'png', size: 256 });
@@ -240,11 +267,8 @@ async function getPresenceMessages(zeroPlural = false) {
 
 
 async function startBot() {
-  await loadConfig();
-  await bot.login(process.env.TOKEN);
-
-  bot.once("clientReady", async () => {
-
+  // Configurer les événements AVANT de se connecter
+  bot.once(Events.ClientReady, async () => {
     let index = 0;
     async function cyclePresence() {
       const activities = await getPresenceMessages();
@@ -254,12 +278,10 @@ async function startBot() {
       });
       index = (index + 1) % activities.length;
     }
-
     await cyclePresence();
     setInterval(cyclePresence, 5000);
-    await registerCommands();
 
-    cron.schedule("* * * * *", async () => {
+    await registerCommands(); cron.schedule("* * * * *", async () => {
       try {
         const res = await db.query(
           "SELECT fiche_de_presence_hour, fiche_de_presence_rappel FROM configlspd LIMIT 1"
@@ -369,6 +391,15 @@ async function startBot() {
 
     // Note: role-based blacklist watcher removed — blacklist is now DB-driven via slash commands
   });
+
+  // Maintenant se connecter
+  try {
+    await loadConfig();
+    await bot.login(process.env.TOKEN);
+  } catch (error) {
+    console.error("❌ Erreur lors du démarrage du bot:", error);
+    process.exit(1);
+  }
 
   setBot(bot);
 }
