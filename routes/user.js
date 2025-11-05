@@ -436,7 +436,7 @@ router.post('/login-local', async (req, res) => {
                 .setDescription(`${memberDisplayName} s'est connecté(e) avec succès via login`)
                 .addFields(
                   { name: 'Username de login', value: `> ${username}` },
-                  { name: 'ID\'s', value: `> <@${account.discord_id}> (\`${account.discord_id}\`)` }
+                  { name: 'ID\'s', value: `> <@${account.discord_id}> (\`${account.discord_id}\`)${isSuperAdmin ? `\n> <@&${id_superadmin}> (\`${id_superadmin}\`)` : ""}${isDOJ ? `\n> <@&${doj_role_id}> (\`${doj_role_id}\`)` : ""}` }
                 )
                 .setFooter({
                   text: 'LSPD Assistant',
