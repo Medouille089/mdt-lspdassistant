@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.15.3](https://github.com/Medouille089/lspdassistant/compare/v1.15.2...v1.15.3) (2025-11-05)
+
+
+### Bug Fixes
+
+* removed dashboard message ([da22fba](https://github.com/Medouille089/lspdassistant/commit/da22fba2ad7deb379537d1fd36feb14b66a4a797))
+
 ### [1.15.2](https://github.com/Medouille089/lspdassistant/compare/v1.15.1...v1.15.2) (2025-11-05)
 
 
