@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.14.4](https://github.com/Medouille089/lspdassistant/compare/v1.14.3...v1.14.4) (2025-11-05)
+
+
+### Bug Fixes
+
+* delete profile agent when account is deleted ([27b6e0c](https://github.com/Medouille089/lspdassistant/commit/27b6e0cbba3170ec35642507f1811b5d1dfbd397))
+
 ### [1.14.3](https://github.com/Medouille089/lspdassistant/compare/v1.14.2...v1.14.3) (2025-11-04)
 
 
