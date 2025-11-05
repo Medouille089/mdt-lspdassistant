@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.15.0](https://github.com/Medouille089/lspdassistant/compare/v1.14.4...v1.15.0) (2025-11-05)
+
+
+### Features
+
+* Add "payée" column ([bf26e68](https://github.com/Medouille089/lspdassistant/commit/bf26e684deb5ed7a4cc0fd0d2263cccf0da1150c))
+* add /setrookie (ajout de role automatique) ([6b5ba55](https://github.com/Medouille089/lspdassistant/commit/6b5ba5581d0fc832194b52bec3d44ead1358ff8e))
+* Add calculated hourly salary to weekly accounting data + UI text improvements ([742ecf8](https://github.com/Medouille089/lspdassistant/commit/742ecf82a34deff5686fb8a544b9dcfac7972d98))
+* add total lign ([1c89b40](https://github.com/Medouille089/lspdassistant/commit/1c89b4071550bb313e54a1f51814a3422141331b))
+
+
+### Bug Fixes
+
+* add default image in liveusers ([d58386c](https://github.com/Medouille089/lspdassistant/commit/d58386c687f200ee1ef0a8793b6882d841f7b418))
+* add role to basic login log ([9d8eb76](https://github.com/Medouille089/lspdassistant/commit/9d8eb768373f2f706ec358491f03a13b5fc5ba53))
+* jsp frr ([73792b7](https://github.com/Medouille089/lspdassistant/commit/73792b76b0ace1ca0b4d95bee1d159f60204f668))
+
 ### [1.14.4](https://github.com/Medouille089/lspdassistant/compare/v1.14.3...v1.14.4) (2025-11-05)
 
 
