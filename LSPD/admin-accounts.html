@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/warning.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
     <link rel="stylesheet" href="styles/popup.css" />
     <style>
@@ -87,7 +88,20 @@
     <div class="main-container">
 
         <div id="sidebar-container"></div>
-        <h1>Gestion des comptes utilisateurs</h1>
+        <h1>Account manager - LSPD Assistant</h1>
+
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
+
+        <div class="warning-modern">
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern" />
+            <span>Le compte passe inactif si la dernière connexion date de plus d'une semaine!</span>
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern" />
+        </div>
+
         <div class="container">
             <div class="filters">
                 <input type="text" id="searchInput" placeholder="Rechercher par nom ou Discord ID" autocomplete="off" />
@@ -158,7 +172,7 @@
 
             try {
                 const response = await fetch('/api/accounts');
-                
+
                 if (response.status === 403) {
                     const error = await response.json();
                     const tbody = document.querySelector('#accountsTable tbody');
@@ -180,7 +194,7 @@
                 if (!response.ok) {
                     throw new Error('Erreur lors du chargement des comptes');
                 }
-                
+
                 allAccounts = await response.json();
                 filteredAccounts = [...allAccounts];
                 currentPage = 1;
@@ -196,7 +210,7 @@
 
         function displayAccounts() {
             const tbody = document.querySelector('#accountsTable tbody');
-            
+
             if (filteredAccounts.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">Aucun compte trouvé</td></tr>';
                 updatePagination();
@@ -213,7 +227,7 @@
                 // Utiliser la photo_url de la table lspd_agent_profiles
                 const defaultAvatar = 'https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc=';
                 const avatarUrl = account.photo_url || defaultAvatar;
-                
+
                 const createdDate = new Date(account.created_at).toLocaleDateString('fr-FR', {
                     year: 'numeric',
                     month: 'short',
@@ -223,7 +237,7 @@
                 });
 
                 const lastLoginDate = account.last_login ? new Date(account.last_login) : null;
-                const lastLogin = lastLoginDate 
+                const lastLogin = lastLoginDate
                     ? lastLoginDate.toLocaleDateString('fr-FR', {
                         year: 'numeric',
                         month: 'short',
@@ -311,17 +325,17 @@
         function showNotification(title, message, isSuccess = true) {
             document.getElementById('notificationTitle').textContent = title;
             document.getElementById('notificationMessage').textContent = message;
-            
+
             // Changer la couleur du titre selon le type
             const titleEl = document.getElementById('notificationTitle');
             titleEl.style.color = isSuccess ? '#28a745' : '#dc3545';
-            
+
             document.getElementById('notificationPopup').style.display = 'flex';
         }
 
         function confirmDelete(accountId, username) {
             accountToDelete = accountId;
-            document.getElementById('confirmMessage').textContent = 
+            document.getElementById('confirmMessage').textContent =
                 `Êtes-vous sûr de vouloir supprimer le compte de "${username}" ?`;
             document.getElementById('confirmPopup').style.display = 'flex';
         }
@@ -343,7 +357,7 @@
                 if (!response.ok) {
                     // Fermer le popup de confirmation
                     document.getElementById('confirmPopup').style.display = 'none';
-                    
+
                     // Afficher l'erreur dans un popup
                     showNotification('Erreur', data.error || 'Erreur lors de la suppression', false);
                     return;
@@ -358,16 +372,16 @@
 
                 // Fermer le popup de confirmation
                 document.getElementById('confirmPopup').style.display = 'none';
-                
+
                 // Afficher le succès
                 showNotification('Succès', 'Compte supprimé avec succès', true);
 
             } catch (error) {
                 console.error('Erreur:', error);
-                
+
                 // Fermer le popup de confirmation
                 document.getElementById('confirmPopup').style.display = 'none';
-                
+
                 // Afficher l'erreur
                 showNotification('Erreur', error.message || 'Une erreur est survenue', false);
             } finally {
@@ -389,17 +403,17 @@
         // Recherche
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const search = e.target.value.toLowerCase().trim();
-            
+
             if (!search) {
                 filteredAccounts = [...allAccounts];
             } else {
-                filteredAccounts = allAccounts.filter(account => 
+                filteredAccounts = allAccounts.filter(account =>
                     account.username.toLowerCase().includes(search) ||
                     account.discord_id.toLowerCase().includes(search) ||
                     (account.email && account.email.toLowerCase().includes(search))
                 );
             }
-            
+
             currentPage = 1;
             displayAccounts();
         });
