@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.15.1](https://github.com/Medouille089/lspdassistant/compare/v1.15.0...v1.15.1) (2025-11-05)
+
+
+### Bug Fixes
+
+* update /setrokkie command + add logs ([25d4adb](https://github.com/Medouille089/lspdassistant/commit/25d4adbda60796049bcead79052e477a13f21309))
+
 ## [1.15.0](https://github.com/Medouille089/lspdassistant/compare/v1.14.4...v1.15.0) (2025-11-05)
 
 
