@@ -147,6 +147,16 @@ tbody tr:hover {
     background-color: rgba(50, 80, 130, 0.6);
 }
 
+/* Ligne payée */
+tbody tr.paid-row {
+    background-color: rgba(40, 167, 69, 0.3) !important;
+    border-left: 4px solid #28a745;
+}
+
+tbody tr.paid-row:hover {
+    background-color: rgba(40, 167, 69, 0.4) !important;
+}
+
 tbody tr:last-child {
     border-bottom: none;
 }
