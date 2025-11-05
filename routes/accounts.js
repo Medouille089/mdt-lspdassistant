@@ -128,9 +128,19 @@ router.delete("/api/accounts/:id", checkAuth, checkSuperAdmin, async (req, res) 
     );
     const photoUrl = photoResult.rows[0]?.photo_url || null;
 
+    // Supprimer le profil agent associé s'il existe
+    const deleteProfileResult = await pool.query(
+      "DELETE FROM lspd_agent_profiles WHERE discord_id = $1 RETURNING id",
+      [account.discord_id]
+    );
+
     // Supprimer le compte
     await pool.query("DELETE FROM user_accounts WHERE id = $1", [accountId]);
 
+    console.log(`Compte supprimé: ${account.username} (${account.discord_id}) par ${req.user.username} (${req.user.id})`);
+    if (deleteProfileResult.rows.length > 0) {
+      console.log(`Profil agent supprimé pour ${account.discord_id}`);
+    }
 
     // Envoi du log dans logs_config
     try {
@@ -144,13 +154,16 @@ router.delete("/api/accounts/:id", checkAuth, checkSuperAdmin, async (req, res) 
         // Utiliser la photo_url de la base de données ou l'image par défaut
         const avatarUrl = photoUrl || 'https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc=';
 
+        const profileDeleted = deleteProfileResult.rows.length > 0;
+        const detailsValue = `> **Username:** ${account.username}\n> **Photo de profil:** [Voir l'avatar](${avatarUrl})${profileDeleted ? '\n> **Profil agent:** Supprimé' : '\n> **Profil agent:** Aucun profil trouvé'}`;
+
         const embed = new EmbedBuilder()
           .setColor(0xFF0000)
           .setTitle("⚠️ Suppression de compte")
           .setDescription(`${actorDisplayName} a supprimé le compte de ${targetDisplayName}`)
           .addFields({
             name: "Détails",
-            value: `> **Username:** ${account.username}\n> **Photo de profil:** [Voir l'avatar](${avatarUrl})`,
+            value: detailsValue,
             inline: false,
           })
           .addFields({
