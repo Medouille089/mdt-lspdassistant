@@ -11,6 +11,7 @@ module.exports = {
         ),
     async execute(interaction) {
         const { EmbedBuilder } = require('discord.js');
+        const { getConfig } = require('../config/config');
         const user = interaction.options.getUser('user');
         const member = interaction.guild.members.cache.get(user.id);
 
@@ -21,9 +22,12 @@ module.exports = {
             '1096965866303787090',
         ];
 
+        const config = getConfig();
+        const superAdminRoleId = config.id_superadmin?.toString();
+
         const hasAuthorizedRole = authorizedRoles.some(roleId =>
             interaction.member.roles.cache.has(roleId)
-        );
+        ) || (superAdminRoleId && interaction.member.roles.cache.has(superAdminRoleId));
 
         if (!hasAuthorizedRole) {
             return interaction.reply({ content: '❌ Vous n\'avez pas les permissions nécessaires pour utiliser cette commande.', flags: 64 });
@@ -70,9 +74,9 @@ module.exports = {
 
                 if (member.roles.cache.has(roleId)) {
                     await member.roles.remove(roleId);
-                    results.removed.push(role.name);
+                    results.removed.push(`> <@&${roleId}> (\`${roleId}\`)`);
                 } else {
-                    results.notHad.push(role.name);
+                    results.notHad.push(`> <@&${roleId}> (\`${roleId}\`)`);
                 }
             } catch (error) {
                 results.failed.push(`Erreur lors du retrait du rôle ID: ${roleId}`);
@@ -89,21 +93,25 @@ module.exports = {
                 }
 
                 if (member.roles.cache.has(roleId)) {
-                    results.alreadyHas.push(role.name);
+                    results.alreadyHas.push(`> <@&${roleId}> (\`${roleId}\`)`);
                     continue;
                 }
 
                 await member.roles.add(roleId);
-                results.added.push(role.name);
+                results.added.push(`> <@&${roleId}> (\`${roleId}\`)`);
             } catch (error) {
                 results.failed.push(`Erreur avec le rôle ID: ${roleId}`);
             }
         }
 
         const embed = new EmbedBuilder()
-            .setTitle('🎭 Attribution des rôles')
-            .setDescription(`Attribution des rôles pour ${user.tag}`)
-            .setColor('#00ff00')
+            .setTitle('Attribution des rôles')
+            .setDescription(`Attribution des rôles pour <@${user.id}>`)
+            .setColor(0x0b1b5a)
+            .setFooter({
+                text: 'LSPD Assistant',
+                iconURL: interaction.client.user.displayAvatarURL({ extension: 'png', size: 256 })
+            })
             .setTimestamp();
 
         if (results.removed.length > 0) {
@@ -132,7 +140,7 @@ module.exports = {
 
         if (results.notHad.length > 0) {
             embed.addFields({
-                name: 'ℹ️ Rôles non possédés (pas retirés)',
+                name: 'ℹ️ Rôles non possédés',
                 value: results.notHad.join('\n'),
                 inline: false
             });
@@ -153,5 +161,42 @@ module.exports = {
         }
 
         await interaction.editReply({ embeds: [embed] });
+
+        // Log to logs_config if configured (only if roles were actually added or removed)
+        if (results.added.length > 0 || results.removed.length > 0) {
+            try {
+                const pool = require('../config/db');
+                const cfgRes = await pool.query('SELECT logs_config FROM configlspd LIMIT 1');
+                const logsChannelId = cfgRes.rows[0] ? cfgRes.rows[0].logs_config : null;
+                if (logsChannelId) {
+                    const bot = require('../config/bot');
+                    const logsChannel = await bot.channels.fetch(logsChannelId).catch(() => null);
+                    if (logsChannel?.isTextBased()) {
+                        const executorMember = await interaction.guild.members.fetch(interaction.user.id).catch(() => null);
+                        const targetMember = await interaction.guild.members.fetch(user.id).catch(() => null);
+                        const executorDisplayName = executorMember ? executorMember.displayName : interaction.user.username;
+                        const targetDisplayName = targetMember ? targetMember.displayName : user.username;
+
+                        const logEmbed = new EmbedBuilder()
+                            .setTitle('Attribution des rôles Rookie')
+                            .setColor(0x0b1b5a)
+                            .setDescription(`${executorDisplayName} a attribué les rôles Rookie à ${targetDisplayName}`)
+                            .addFields({
+                                name: "ID's",
+                                value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)\n> <@${user.id}> (\`${user.id}\`)`,
+                                inline: false
+                            })
+                            .setFooter({
+                                text: 'LSPD Assistant',
+                                iconURL: interaction.client.user.displayAvatarURL({ extension: 'png', size: 256 })
+                            })
+                            .setTimestamp();
+                        await logsChannel.send({ embeds: [logEmbed] });
+                    }
+                }
+            } catch (e) {
+                console.error('Erreur log addroles cmd:', e);
+            }
+        }
     }
 };
