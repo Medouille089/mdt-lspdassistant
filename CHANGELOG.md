@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.16.2](https://github.com/Medouille089/lspdassistant/compare/v1.16.1...v1.16.2) (2025-11-06)
+
+
+### Bug Fixes
+
+* change title in account manager ([e3519ad](https://github.com/Medouille089/lspdassistant/commit/e3519ad5f8594b7335c26ea84ff3f0fe19262487))
+* opti sidebar ([c56b267](https://github.com/Medouille089/lspdassistant/commit/c56b2671ce88ad7d93b5cb46ce8bead7a67d918f))
+* removed DOJ users from liveUsers ([bb78492](https://github.com/Medouille089/lspdassistant/commit/bb78492731f4bc14f89ce717eaab33cc6c12f385))
+
 ### [1.16.1](https://github.com/Medouille089/lspdassistant/compare/v1.16.0...v1.16.1) (2025-11-06)
 
 
