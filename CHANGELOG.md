@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.16.1](https://github.com/Medouille089/lspdassistant/compare/v1.16.0...v1.16.1) (2025-11-06)
+
+
+### Bug Fixes
+
+* add secure pool ([ef08afb](https://github.com/Medouille089/lspdassistant/commit/ef08afb15e6e77c9e57326a1c84d2937ef8bab2c))
+
 ## [1.16.0](https://github.com/Medouille089/lspdassistant/compare/v1.15.3...v1.16.0) (2025-11-05)
 
 
