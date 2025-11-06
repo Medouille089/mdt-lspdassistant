@@ -1,7 +1,7 @@
 // LSPD/trello/trelloSocket.js
 const { saveBoardData } = require("./trelloDatabase");
 const { OperationsManager } = require("../scripts/OperationsManager");
-const { logCreateList, logCreateCard, logDeleteCard, logDeleteList, logUpdateCard, logUpdateList, logMoveCard } = require("../utils/trelloLogs");
+const { logCreateList, logCreateCard, logDeleteCard, logDeleteList, logUpdateCard, logUpdateList, logMoveCard } = require("../utils/trelloLogsDB");
 const operationsManager = new OperationsManager();
 
 let boardData = { lists: [], tags: [] };

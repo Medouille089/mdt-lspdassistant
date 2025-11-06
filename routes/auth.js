@@ -248,12 +248,12 @@ const protectedPagesSupervisor = [
   'getOfficerSanction.html',
   'liste-convocations-agent.html',
   'liste-officiers.html',
-  'menu-convocation-agent'
+  'menu-convocation-agent.html',
+  'trello-logs.html'
 ];
 
 const blockedForRookies = [
-  'rapport-rookie.html',
-  'rapport-rookie'
+  'rapport-rookie.html'
 ];
 
 const whiteListedPagesDOJ = [

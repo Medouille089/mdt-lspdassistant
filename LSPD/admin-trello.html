@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs Trello - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css" />
+    <link rel="stylesheet" href="styles/warning.css" />
+    <link rel="stylesheet" href="styles/popup.css" />
+    <link rel="stylesheet" href="styles/admin/adminPointeuse.css" />
+    <link rel="stylesheet" href="styles/context-menu.css">
+    <link rel="stylesheet" href="styles/annonce-popup.css">
+    <link rel="stylesheet" href="styles/admin/admin-trello.css">
+</head>
+
+<body>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <script src="scripts/instant-sidebar.js"></script>
+        <h1>Logs Trello</h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
+        <div class="logs-container">
+            <div class="logs-header">
+                <div class="logs-filters">
+                    <select id="memberFilter">
+                        <option value="">Tous les membres</option>
+                    </select>
+                    <select id="typeFilter">
+                        <option value="">Tous les types</option>
+                        <option value="CREATE_CARD">Création Card</option>
+                        <option value="CREATE_LIST">Création Liste</option>
+                        <option value="UPDATE_CARD">Modification Card</option>
+                        <option value="UPDATE_LIST">Modification Liste</option>
+                        <option value="DELETE_CARD">Suppression Card</option>
+                        <option value="DELETE_LIST">Suppression Liste</option>
+                        <option value="MOVE_CARD">Déplacement Card</option>
+                        <option value="RESET">Réinitialisation</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="logsContent">
+                <div class="loading">Chargement des logs...</div>
+            </div>
+
+            <div class="pagination" id="pagination" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/context-menu.js"></script>
+    <script src="scripts/trelloLogs.js"></script>
+    <script src="scripts/liveUserHeartbeat.js"></script>
+    <script src="scripts/annonce-popup.js"></script>
+    <script src="scripts/liveUserHeartbeat.js"></script>
+</body>
+
+</html>
