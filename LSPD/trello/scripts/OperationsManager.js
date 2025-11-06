@@ -233,6 +233,15 @@ class OperationsManager {
 
     applyUpdateList(data) {
         const list = this.findList(data.listId);
+        const oldValues = {};
+        
+        // Capturer les anciennes valeurs
+        Object.keys(data.updates || {}).forEach(key => {
+            if (key !== 'id' && key !== 'cards') {
+                oldValues[key] = list[key];
+            }
+        });
+        
         Object.entries(data.updates || {}).forEach(([key, value]) => {
             if (key === 'id' || key === 'cards') return;
             if (value === null) delete list[key];
@@ -243,15 +252,30 @@ class OperationsManager {
             success: true,
             diff: {
                 type: 'UPDATE_LIST',
-                data: { list: this.cloneList(list), updates: data.updates }
+                data: { 
+                    listId: data.listId,
+                    list: this.cloneList(list), 
+                    updates: data.updates,
+                    oldValues: oldValues
+                }
             }
         };
     }
 
     applyDeleteList(data) {
         const index = this.boardState.lists.findIndex(l => l.id === data.listId);
-        if (index !== -1) this.boardState.lists.splice(index, 1);
-        return { success: true, diff: { type: 'DELETE_LIST', data: { listId: data.listId } } };
+        let deletedList = null;
+        if (index !== -1) {
+            deletedList = this.cloneList(this.boardState.lists[index]);
+            this.boardState.lists.splice(index, 1);
+        }
+        return { 
+            success: true, 
+            diff: { 
+                type: 'DELETE_LIST', 
+                data: { listId: data.listId, list: deletedList } 
+            } 
+        };
     }
 
     applyCreateCard(data) {
@@ -275,13 +299,26 @@ class OperationsManager {
 
     applyUpdateCard(data) {
         const { list, card } = this.findCardInList(data.listId, data.cardId);
+        
+        // Capturer les anciennes valeurs
+        const oldValues = {};
+        Object.keys(data.updates || {}).forEach(key => {
+            oldValues[key] = card[key];
+        });
+        
         this.updateCardProperties(card, data.updates);
 
         return {
             success: true,
             diff: {
                 type: 'UPDATE_CARD',
-                data: { listId: list.id, card: this.cloneCard(card) }
+                data: { 
+                    listId: list.id, 
+                    card: this.cloneCard(card),
+                    updates: data.updates,
+                    oldValues: oldValues,
+                    listName: list.title || list.name
+                }
             }
         };
     }
@@ -289,13 +326,17 @@ class OperationsManager {
     applyDeleteCard(data) {
         const list = this.findList(data.listId);
         const index = list.cards.findIndex(c => c.id === data.cardId);
-        if (index !== -1) list.cards.splice(index, 1);
+        let deletedCard = null;
+        if (index !== -1) {
+            deletedCard = this.cloneCard(list.cards[index]);
+            list.cards.splice(index, 1);
+        }
 
         return {
             success: true,
             diff: {
                 type: 'DELETE_CARD',
-                data: { listId: data.listId, cardId: data.cardId }
+                data: { listId: data.listId, cardId: data.cardId, card: deletedCard, listName: list.title || list.name }
             }
         };
     }
@@ -348,8 +389,12 @@ class OperationsManager {
                     cardId: data.cardId,
                     fromListId: sourceList.id,
                     toListId: toList.id,
+                    fromIndex: fromIndex,
                     targetIndex,
-                    card: this.cloneCard(card)
+                    card: this.cloneCard(card),
+                    fromListName: sourceList.title || sourceList.name,
+                    toListName: toList.title || toList.name,
+                    sameList: sourceList.id === toList.id
                 }
             }
         };
