@@ -396,8 +396,7 @@ async function sendCardUpdateLog(cardId) {
         
         let detailsLines = [
             `> Card: ${latestCard.text || "Sans nom"}`,
-            `> Liste: ${listName || "Inconnue"}`,
-            `>`
+            `> Liste: ${listName || "Inconnue"}`
         ];
         
         // Comparer les valeurs initiales avec les valeurs finales
@@ -434,7 +433,6 @@ async function sendCardUpdateLog(cardId) {
             return; // Pas de changements à logger
         }
         
-        detailsLines.push(`>`);
         detailsLines.push(`> Date: \`${dateStr}\``);
         
         const embed = new EmbedBuilder()
@@ -521,7 +519,6 @@ async function sendListUpdateLog(listId) {
             return; // Pas de changements à logger
         }
         
-        detailsLines.push(`>`);
         detailsLines.push(`> Date: \`${dateStr}\``);
         
         const embed = new EmbedBuilder()
