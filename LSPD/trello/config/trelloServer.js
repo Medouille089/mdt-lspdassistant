@@ -5,8 +5,15 @@ const { initTrelloSocket, operationsManager } = require("./trelloSocket");
 const { startNightlyResetScheduler } = require("./trelloResetScheduler");
 
 let boardData = { lists: [], tags: [] };
+let ioInstance = null; // Stocker l'instance Socket.IO
+
+// Fonction pour récupérer l'instance Socket.IO
+function getIO() {
+    return ioInstance;
+}
 
 async function initTrello(app, io) {
+    ioInstance = io; // Stocker l'instance
     // Init DB
     await initDatabase();
 
@@ -35,4 +42,4 @@ async function initTrello(app, io) {
     });
 }
 
-module.exports = { initTrello };
+module.exports = { initTrello, getIO };

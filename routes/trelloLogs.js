@@ -14,6 +14,7 @@ router.get('/api/trello/logs', checkAuth, async (req, res) => {
         const offset = (page - 1) * limit;
         const logType = req.query.type; // Filtrer par type si fourni
         const userId = req.query.user_id; // Filtrer par utilisateur si fourni
+        const search = req.query.search; // Recherche globale
         
         let query = `
             SELECT 
@@ -29,7 +30,7 @@ router.get('/api/trello/logs', checkAuth, async (req, res) => {
             FROM trello_logs tl
             LEFT JOIN lspd_agent_profiles lap ON tl.user_id = lap.discord_id
         `;
-        let countQuery = `SELECT COUNT(*) FROM trello_logs`;
+        let countQuery = `SELECT COUNT(*) FROM trello_logs tl`;
         const params = [];
         const conditions = [];
         
@@ -45,11 +46,23 @@ router.get('/api/trello/logs', checkAuth, async (req, res) => {
             params.push(userId);
         }
         
+        // Recherche globale dans tous les champs
+        if (search && search.trim()) {
+            const searchParam = `%${search.trim()}%`;
+            conditions.push(`(
+                tl.user_name ILIKE $${params.length + 1} OR 
+                tl.action_description ILIKE $${params.length + 1} OR 
+                tl.details::text ILIKE $${params.length + 1} OR
+                tl.log_type ILIKE $${params.length + 1}
+            )`);
+            params.push(searchParam);
+        }
+        
         // Ajouter les conditions WHERE
         if (conditions.length > 0) {
             const whereClause = ` WHERE ${conditions.join(' AND ')}`;
             query += whereClause;
-            countQuery += whereClause.replace(/tl\./g, '');
+            countQuery += whereClause;
         }
         
         query += ` ORDER BY tl.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
@@ -114,17 +127,20 @@ router.get('/api/trello/logs/members', checkAuth, async (req, res) => {
             return res.json({ members: [] });
         }
         
-        const guild = await bot.guilds.fetch(GUILD_ID);
+        const guild = bot.guilds.cache.get(GUILD_ID);
         
-        await guild.members.fetch();
+        if (!guild) {
+            return res.json({ members: [] });
+        }
         
         const role = guild.roles.cache.get(requiredRoleId);
-
         
         if (!role) {
             return res.json({ members: [] });
         }
         
+        // Utiliser uniquement le cache existant (pas de fetch qui timeout)
+        // Le cache est maintenu à jour par les événements Discord du bot
         const members = role.members.map(member => ({
             id: member.id,
             displayName: member.displayName || member.user.username
@@ -132,6 +148,8 @@ router.get('/api/trello/logs/members', checkAuth, async (req, res) => {
         
         // Trier par nom
         members.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        
+        console.log(`✅ ${members.length} membres récupérés depuis le cache`);
         
         res.json({ members });
     } catch (error) {

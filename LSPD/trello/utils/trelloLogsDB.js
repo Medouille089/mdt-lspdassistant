@@ -35,7 +35,7 @@ async function getUserInfo(userId) {
 }
 
 /**
- * Enregistre un log dans la base de données
+ * Enregistre un log dans la base de données et l'émet via WebSocket
  * @param {string} logType - Type de log (CREATE_CARD, UPDATE_CARD, etc.)
  * @param {string} userId - ID Discord de l'utilisateur
  * @param {string} userName - Nom d'affichage de l'utilisateur
@@ -45,11 +45,32 @@ async function getUserInfo(userId) {
  */
 async function saveLog(logType, userId, userName, actionDescription, details, color = '0x0b1b5a') {
     try {
-        await pool.query(
-            `INSERT INTO trello_logs (log_type, user_id, user_name, action_description, details, color)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
+        const result = await pool.query(
+            `INSERT INTO trello_logs (log_type, user_id, user_name, action_description, details, color, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, NOW())
+             RETURNING *`,
             [logType, userId, userName, actionDescription, JSON.stringify(details), color]
         );
+        
+        // Émettre le nouveau log via WebSocket
+        const newLog = result.rows[0];
+        const { getIO } = require("../config/trelloServer");
+        const io = getIO();
+        
+        if (io) {
+            // Récupérer la photo de profil si disponible
+            try {
+                const photoResult = await pool.query(
+                    'SELECT photo_url FROM lspd_agent_profiles WHERE discord_id = $1',
+                    [userId]
+                );
+                newLog.photo_url = photoResult.rows[0]?.photo_url || null;
+            } catch (err) {
+                console.warn("⚠️  Erreur récupération photo profil:", err.message);
+            }
+            
+            io.emit('trelloLog', newLog);
+        }
     } catch (error) {
         console.error("❌ Erreur lors de l'enregistrement du log Trello:", error);
     }

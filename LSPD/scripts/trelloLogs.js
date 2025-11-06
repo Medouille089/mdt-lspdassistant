@@ -1,22 +1,84 @@
 let currentPage = 1;
 let currentTypeFilter = '';
 let currentMemberFilter = '';
+let currentSearch = '';
+let searchTimeout = null;
+let socket = null;
+let preloadedPages = new Map(); // Cache pour les pages préchargées
+
+// Initialiser Socket.IO pour les mises à jour en temps réel
+function initSocket() {
+    socket = io();
+    
+    socket.on('connect', () => {
+        console.log('✅ WebSocket connecté');
+    });
+    
+    socket.on('trelloLog', (newLog) => {
+        console.log('📡 Nouveau log reçu:', newLog);
+        // Si on est sur la page 1 et sans filtre, ajouter le log en haut
+        if (currentPage === 1 && !currentTypeFilter && !currentMemberFilter && !currentSearch) {
+            prependNewLog(newLog);
+        }
+    });
+    
+    socket.on('disconnect', () => {
+        console.warn('⚠️  WebSocket déconnecté');
+    });
+}
+
+// Ajouter un nouveau log en haut de la liste
+function prependNewLog(log) {
+    const logsContent = document.getElementById('logsContent');
+    const firstLog = logsContent.querySelector('.log-entry');
+    
+    const newLogElement = document.createElement('div');
+    newLogElement.innerHTML = renderLogEntry(log);
+    newLogElement.classList.add('log-entry-new'); // Pour animation
+    
+    if (firstLog) {
+        logsContent.insertBefore(newLogElement.firstElementChild, firstLog);
+    } else {
+        logsContent.innerHTML = newLogElement.innerHTML;
+    }
+    
+    // Animation d'apparition
+    setTimeout(() => {
+        const element = logsContent.querySelector('.log-entry-new');
+        if (element) element.classList.remove('log-entry-new');
+    }, 1000);
+}
 
 // Charger les logs au démarrage
 document.addEventListener('DOMContentLoaded', () => {
+    initSocket();
     loadMembers();
     loadLogs();
+    
+    // Barre de recherche avec debounce
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentSearch = e.target.value;
+            currentPage = 1;
+            preloadedPages.clear(); // Vider le cache
+            loadLogs();
+        }, 500); // Attendre 500ms après la dernière frappe
+    });
     
     // Filtres
     document.getElementById('memberFilter').addEventListener('change', (e) => {
         currentMemberFilter = e.target.value;
         currentPage = 1;
+        preloadedPages.clear();
         loadLogs();
     });
     
     document.getElementById('typeFilter').addEventListener('change', (e) => {
         currentTypeFilter = e.target.value;
         currentPage = 1;
+        preloadedPages.clear();
         loadLogs();
     });
 });
@@ -51,16 +113,26 @@ async function loadMembers() {
     }
 }
 
-async function loadLogs() {
+async function loadLogs(page = currentPage, useCache = true) {
+    // Vérifier si la page est en cache
+    if (useCache && preloadedPages.has(page)) {
+        const cachedData = preloadedPages.get(page);
+        displayLogs(cachedData);
+        return;
+    }
+    
     const logsContent = document.getElementById('logsContent');
     const pagination = document.getElementById('pagination');
     
-    logsContent.innerHTML = '<div class="loading">Chargement des logs...</div>';
+    // Afficher le loader seulement pour la page courante
+    if (page === currentPage) {
+        logsContent.innerHTML = '<div class="loading">Chargement des logs...</div>';
+    }
     
     try {
         const params = new URLSearchParams({
-            page: currentPage,
-            limit: 10
+            page: page,
+            limit: 50
         });
         
         if (currentTypeFilter) {
@@ -71,37 +143,84 @@ async function loadLogs() {
             params.append('user_id', currentMemberFilter);
         }
         
+        if (currentSearch) {
+            params.append('search', currentSearch);
+        }
+        
         const response = await fetch(`/api/trello/logs?${params}`);
         if (!response.ok) throw new Error('Erreur chargement logs');
         
         const data = await response.json();
         
-        if (data.logs.length === 0) {
-            logsContent.innerHTML = `
-                <div class="empty-state">
-                    <h3>Aucun log trouvé</h3>
-                    <p>Aucune action n'a encore été enregistrée sur le Trello.</p>
-                </div>
-            `;
-            pagination.style.display = 'none';
-            return;
+        // Mettre en cache
+        preloadedPages.set(page, data);
+        
+        // Afficher seulement si c'est la page courante
+        if (page === currentPage) {
+            displayLogs(data);
         }
         
-        // Afficher les logs
-        logsContent.innerHTML = data.logs.map(log => renderLogEntry(log)).join('');
-        
-        // Mettre à jour la pagination
-        updatePagination(data.pagination);
-        pagination.style.display = 'flex';
+        // Précharger les pages suivantes en arrière-plan
+        if (page === currentPage) {
+            preloadNextPages(data.pagination);
+        }
         
     } catch (error) {
         console.error('Erreur:', error);
+        if (page === currentPage) {
+            logsContent.innerHTML = `
+                <div class="empty-state">
+                    <h3>Erreur</h3>
+                    <p>Impossible de charger les logs. Veuillez réessayer.</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// Afficher les logs à l'écran
+function displayLogs(data) {
+    const logsContent = document.getElementById('logsContent');
+    const pagination = document.getElementById('pagination');
+    
+    if (data.logs.length === 0) {
         logsContent.innerHTML = `
             <div class="empty-state">
-                <h3>Erreur</h3>
-                <p>Impossible de charger les logs. Veuillez réessayer.</p>
+                <h3>Aucun log trouvé</h3>
+                <p>Aucune action n'a encore été enregistrée sur le Trello${currentSearch ? ' avec ce critère de recherche' : ''}.</p>
             </div>
         `;
+        pagination.style.display = 'none';
+        return;
+    }
+    
+    // Afficher les logs
+    logsContent.innerHTML = data.logs.map(log => renderLogEntry(log)).join('');
+    
+    // Mettre à jour la pagination
+    updatePagination(data.pagination);
+    pagination.style.display = 'flex';
+}
+
+// Précharger les 2-3 pages suivantes en arrière-plan
+async function preloadNextPages(paginationInfo) {
+    const pagesToPreload = [];
+    
+    // Précharger page suivante et +2
+    if (currentPage < paginationInfo.totalPages) {
+        pagesToPreload.push(currentPage + 1);
+    }
+    if (currentPage + 1 < paginationInfo.totalPages) {
+        pagesToPreload.push(currentPage + 2);
+    }
+    
+    // Charger en parallèle sans attendre
+    for (const page of pagesToPreload) {
+        if (!preloadedPages.has(page)) {
+            loadLogs(page, false).catch(err => {
+                console.warn(`Échec préchargement page ${page}:`, err);
+            });
+        }
     }
 }
 
