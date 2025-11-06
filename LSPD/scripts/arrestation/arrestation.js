@@ -130,7 +130,7 @@ document.getElementById('searchRapportConvoc').addEventListener('input', async f
     }
     let heurePart = '';
     if (heureStr && heureStr.length >= 5) {
-      heurePart = heureStr.slice(0,5);
+      heurePart = heureStr.slice(0, 5);
     }
     return `Date : ${datePart}${heurePart ? ' à ' + heurePart : ''}`;
   }
@@ -181,7 +181,7 @@ document.getElementById('searchRapportConvoc').addEventListener('input', async f
       date: conv.date,
       heure: conv.heure,
       title: `CONVOC${conv.id} - ${conv.prenom || ''} ${conv.nom || ''}`.trim(),
-        infos: `${formatDateTime(conv.date, conv.heure)} Par: ${conv.officer}`
+      infos: `${formatDateTime(conv.date, conv.heure)} Par: ${conv.officer}`
     }))
   ];
 
@@ -721,8 +721,27 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     const formData = new FormData();
     formData.append("date", document.getElementById("date").value);
     formData.append("name", document.getElementById("name").value);
-    formData.append("fileInput1", document.getElementById("fileInput1").files[0]);
-    formData.append("fileInput2", document.getElementById("fileInput2").files[0]);
+    // Joindre fileInput1 (ou image par défaut si vide) et fileInput2 si présent
+    const file1El = document.getElementById("fileInput1");
+    if (file1El && file1El.files && file1El.files[0]) {
+      formData.append("fileInput1", file1El.files[0]);
+    } else {
+      try {
+        const defaultUrl = "https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc=";
+        const resp = await fetch(defaultUrl);
+        const blob = await resp.blob();
+        const ext = (blob.type && blob.type.split('/')[1]) ? blob.type.split('/')[1] : 'jpg';
+        const defaultFile = new File([blob], `default-profile.${ext}`, { type: blob.type || 'image/jpeg' });
+        formData.append("fileInput1", defaultFile);
+      } catch (err) {
+        console.error("Impossible de récupérer l'image par défaut :", err);
+      }
+    }
+
+    const file2El = document.getElementById("fileInput2");
+    if (file2El && file2El.files && file2El.files[0]) {
+      formData.append("fileInput2", file2El.files[0]);
+    }
     formData.append("profession", document.getElementById("profession").value);
     formData.append("DDN", document.getElementById("DDN").value);
     formData.append("address", document.getElementById("address").value);
