@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.17.3](https://github.com/Medouille089/lspdassistant/compare/v1.17.2...v1.17.3) (2025-11-06)
+
+
+### Bug Fixes
+
+* add websocket + search bar ([764b2e5](https://github.com/Medouille089/lspdassistant/commit/764b2e5e8156eb80012856aa981be094d5390ece))
+* Photo Un-Masqué correcte ([aa4fe48](https://github.com/Medouille089/lspdassistant/commit/aa4fe485dfe5f936609a9d85974bdd88e46d171a))
+
 ### [1.17.2](https://github.com/Medouille089/lspdassistant/compare/v1.17.1...v1.17.2) (2025-11-06)
 
 
