@@ -13,7 +13,34 @@ const { checkAuthOrDOJ } = require("../config/middleware"); // ✅ nouveau middl
 router.get("/login", passport.authenticate("discord"));
 
 router.get('/callback',
-  passport.authenticate('discord', { failureRedirect: '/connect.html' }),
+  (req, res, next) => {
+    passport.authenticate('discord', (err, user, info) => {
+      // Gérer les erreurs d'authentification
+      if (err) {
+        console.error('❌ Erreur lors de l\'authentification Discord:', err.message);
+        // Si c'est une erreur de code invalide (réutilisation ou expiration)
+        if (err.message?.includes('Invalid "code"') || err.name === 'TokenError') {
+          return res.redirect('/connect.html?error=auth_expired');
+        }
+        return res.redirect('/connect.html?error=auth_failed');
+      }
+      
+      // Si pas d'utilisateur (authentification échouée)
+      if (!user) {
+        console.warn('⚠️  Authentification échouée, pas d\'utilisateur');
+        return res.redirect('/connect.html?error=no_user');
+      }
+      
+      // Connexion réussie
+      req.logIn(user, (err) => {
+        if (err) {
+          console.error('❌ Erreur lors de la connexion:', err);
+          return res.redirect('/connect.html?error=login_failed');
+        }
+        next();
+      });
+    })(req, res, next);
+  },
   async (req, res) => {
     try {
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");

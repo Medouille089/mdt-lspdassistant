@@ -11,6 +11,18 @@ const { SESSION_SECRET } = require("./config/env");
 const { startOvertimeScheduler } = require("./utils/rappelPointeuse");
 const bot = require("./config/bot");
 
+// Gestionnaires d'erreurs globaux pour éviter les crashs
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled promise rejection:', reason);
+  // Ne pas crasher l'application, juste logger
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught exception:', error);
+  // Pour les exceptions non gérées, on pourrait vouloir redémarrer
+  // mais pour l'instant on log seulement
+});
+
 // Utilitaires et scripts internes
 require("./utils/liveUsersCleaner");
 require("./utils/cleanSanctions");
