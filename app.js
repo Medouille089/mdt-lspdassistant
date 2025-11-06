@@ -240,6 +240,7 @@ const discordUploader = require("./routes/discordUploader");
 const setupLogsRoutes = require("./config/setupLogs");
 const officerConvocations = require('./routes/officerConvocations');
 const accountsRoutes = require('./routes/accounts');
+const trelloLogs = require('./routes/trelloLogs');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -275,6 +276,7 @@ app.use(rapportRookie);
 app.use(discordUploader);
 app.use(officerConvocations);
 app.use(accountsRoutes);
+app.use(trelloLogs);
 
 // Middleware: canonicalize .html URLs -> redirect to extensionless, and
 // serve *.html when users request /page (without extension).

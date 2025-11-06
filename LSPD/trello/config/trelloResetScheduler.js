@@ -4,7 +4,7 @@ const {
     applyServerOperation,
     createServerOperation
 } = require('./trelloSocket');
-const { logTrelloReset } = require('../utils/trelloLogs');
+const { logTrelloReset } = require('../utils/trelloLogsDB');
 
 const RESET_ENABLED = 'true';
 const RESET_TIME = '04:00';
