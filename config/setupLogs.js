@@ -35,7 +35,8 @@ router.get("/api/logs-config", async (req, res) => {
       logs_rapport_rookie: conf.logs_rapport_rookie,
       logs_sanctions: conf.logs_sanctions,
       logs_tickets: conf.logs_tickets,
-      logs_calendrier: conf.logs_calendrier
+      logs_calendrier: conf.logs_calendrier,
+      logs_trello: conf.logs_trello
     });
   } catch (err) {
     console.error("Erreur get logs config:", err);
@@ -58,7 +59,8 @@ router.put("/api/logs-config", async (req, res) => {
     logs_rapport_rookie,
     logs_sanctions,
     logs_tickets,
-    logs_calendrier
+    logs_calendrier,
+    logs_trello
   } = req.body;
 
   try {
@@ -78,7 +80,8 @@ router.put("/api/logs-config", async (req, res) => {
         logs_rapport_rookie = $10,
         logs_sanctions = $11,
         logs_tickets = $12,
-        logs_calendrier = $13
+        logs_calendrier = $13,
+        logs_trello = $14
        WHERE id = 1 RETURNING *`,
       [
         logs_pointeuse,
@@ -93,7 +96,8 @@ router.put("/api/logs-config", async (req, res) => {
         logs_rapport_rookie,
         logs_sanctions,
         logs_tickets,
-        logs_calendrier
+        logs_calendrier,
+        logs_trello
       ]
     );
     await loadConfig();

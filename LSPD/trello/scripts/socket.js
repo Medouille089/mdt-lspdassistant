@@ -1,4 +1,4 @@
-import { setBoardData, setIsLocalUpdate, boardData, isLocalUpdate, activeCardCreations, currentCard, currentListId, scrollState, boardVersion, setBoardVersion, setCurrentCard, setCurrentListId } from './state.js';
+import { setBoardData, setIsLocalUpdate, boardData, isLocalUpdate, activeCardCreations, currentCard, currentListId, scrollState, boardVersion, setBoardVersion, setCurrentCard, setCurrentListId, currentUser } from './state.js';
 import { renderBoard, updateSingleCardDOM } from './board.js';
 import { syncTagsFromBoardData } from './tags.js';
 import { captureScrollState, generateId } from './utils.js';
@@ -246,7 +246,8 @@ export function submitOperation(type, data = {}, options = {}) {
         type,
         data,
         baseVersion: boardVersion,
-        meta: options.meta ?? null
+        meta: options.meta ?? null,
+        userId: currentUser?.id || null
     };
 
     setIsLocalUpdate(true);

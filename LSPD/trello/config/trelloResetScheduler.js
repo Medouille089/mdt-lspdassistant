@@ -4,6 +4,7 @@ const {
     applyServerOperation,
     createServerOperation
 } = require('./trelloSocket');
+const { logTrelloReset } = require('../utils/trelloLogs');
 
 const RESET_ENABLED = 'true';
 const RESET_TIME = '04:00';
@@ -179,6 +180,9 @@ async function runNightlyReset() {
     console.info(`[TRELLO RESET] Exécution de ${operations.length} opérations automatiques.`);
     await executeOperations(operations);
     console.info('[TRELLO RESET] Reset terminé.');
+    
+    // Envoyer le log Discord
+    await logTrelloReset();
 }
 
 function shouldRunReset(now, schedule) {
