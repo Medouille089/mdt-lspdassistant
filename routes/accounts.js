@@ -65,25 +65,42 @@ router.get("/api/accounts", checkAuth, checkSuperAdmin, async (req, res) => {
       ORDER BY ua.created_at DESC
     `);
 
-    // Enrichir avec les informations Discord (display name)
+    // Récupérer les rôles de la config
+    const config = await getConfig();
+    const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+    const DOJ_ROLE = config.id_doj ? String(config.id_doj).trim() : null;
+
+    // Enrichir avec les informations Discord (display name) et filtrer
     const guild = await bot.guilds.fetch(GUILD_ID);
+    const filteredAccounts = [];
     
     for (const account of rows) {
       try {
         const member = await guild.members.fetch(account.discord_id).catch(() => null);
         if (member) {
+          // Vérifier si l'utilisateur est superadmin ou DOJ
+          const isSuperAdmin = SUPER_ADMIN_ROLE ? member.roles.cache.has(SUPER_ADMIN_ROLE) : false;
+          const isDOJ = DOJ_ROLE ? member.roles.cache.has(DOJ_ROLE) : false;
+
+          // Ne pas inclure les superadmins et DOJ
+          if (isSuperAdmin || isDOJ) {
+            continue;
+          }
+
           account.displayName = member.displayName || member.user.username;
         } else {
           account.displayName = account.username;
         }
+        filteredAccounts.push(account);
       } catch (error) {
         // Si on ne peut pas récupérer le membre, on continue
         console.warn(`Impossible de récupérer les infos Discord pour ${account.discord_id}`);
         account.displayName = account.username;
+        filteredAccounts.push(account);
       }
     }
 
-    res.json(rows);
+    res.json(filteredAccounts);
   } catch (error) {
     console.error("Erreur lors de la récupération des comptes:", error);
     res.status(500).json({ error: "Erreur lors de la récupération des comptes" });
