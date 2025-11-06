@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.17.1](https://github.com/Medouille089/lspdassistant/compare/v1.17.0...v1.17.1) (2025-11-06)
+
+
+### Bug Fixes
+
+* add liveUser in incident ([ecbe91e](https://github.com/Medouille089/lspdassistant/commit/ecbe91e4f5e8730a0d4878e017995185aed1cbae))
+
 ## [1.17.0](https://github.com/Medouille089/lspdassistant/compare/v1.16.2...v1.17.0) (2025-11-06)
 
 
