@@ -29,6 +29,7 @@
         <div class="logs-container">
             <div class="logs-header">
                 <div class="logs-filters">
+                    <input type="text" id="searchInput" placeholder="Rechercher dans les logs..." />
                     <select id="memberFilter">
                         <option value="">Tous les membres</option>
                     </select>
@@ -56,10 +57,10 @@
 
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/context-menu.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script src="scripts/trelloLogs.js"></script>
     <script src="scripts/liveUserHeartbeat.js"></script>
     <script src="scripts/annonce-popup.js"></script>
-    <script src="scripts/liveUserHeartbeat.js"></script>
 </body>
 
 </html>

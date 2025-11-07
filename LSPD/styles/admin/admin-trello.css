@@ -29,6 +29,27 @@ body {
     gap: 1rem;
 }
 
+.logs-filters input[type="text"] {
+    padding: 0.65rem 1.2rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    min-width: 300px;
+}
+
+.logs-filters input[type="text"]:focus {
+    outline: none;
+    border-color: #0b1b5a;
+    box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
+}
+
+.logs-filters input[type="text"]::placeholder {
+    color: #9ca3af;
+}
+
 .logs-filters select {
     padding: 0.65rem 1.2rem;
     border: 1px solid #d1d5db;
@@ -299,4 +320,41 @@ body {
     color: #1f2937;
     margin-bottom: 0.5rem;
     font-weight: 600;
+}
+
+/* Animation pour les nouveaux logs */
+.log-entry-new {
+    animation: slideInAndHighlight 1s ease-out;
+}
+
+@keyframes slideInAndHighlight {
+    0% {
+        transform: translateY(-20px);
+        opacity: 0;
+        background: #fef3c7;
+    }
+    50% {
+        transform: translateY(0);
+        opacity: 1;
+        background: #fef3c7;
+    }
+    100% {
+        background: white;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .logs-filters {
+        flex-direction: column;
+    }
+    
+    .logs-filters input[type="text"] {
+        min-width: 100%;
+    }
+    
+    .log-entry {
+        max-width: 100%;
+        width: 100%;
+    }
 }
