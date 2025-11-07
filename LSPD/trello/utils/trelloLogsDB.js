@@ -45,18 +45,25 @@ async function getUserInfo(userId) {
  */
 async function saveLog(logType, userId, userName, actionDescription, details, color = '0x0b1b5a') {
     try {
+
+        // Date Paris pour la base, format PostgreSQL
+        const nowParis = new Date().toLocaleString("sv-SE", {
+            timeZone: "Europe/Paris"
+        }); // sv-SE = 'YYYY-MM-DD HH:mm:ss'
+        const createdAt = nowParis.replace('T', ' ');
+
         const result = await pool.query(
             `INSERT INTO trello_logs (log_type, user_id, user_name, action_description, details, color, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, NOW())
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
-            [logType, userId, userName, actionDescription, JSON.stringify(details), color]
+            [logType, userId, userName, actionDescription, JSON.stringify(details), color, createdAt]
         );
-        
+
         // Émettre le nouveau log via WebSocket
         const newLog = result.rows[0];
         const { getIO } = require("../config/trelloServer");
         const io = getIO();
-        
+
         if (io) {
             // Récupérer la photo de profil si disponible
             try {

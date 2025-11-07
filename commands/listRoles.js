@@ -33,7 +33,12 @@ module.exports = {
             if (!role) return interaction.reply({ content: "Rôle introuvable.", flags: 64 });
 
             // Fetch tous les membres pour que le cache soit complet
-            await interaction.guild.members.fetch();
+            try {
+                await interaction.guild.members.fetch({ time: 5000 }); // Timeout de 5 secondes
+            } catch (fetchErr) {
+                console.warn('Timeout lors du fetch des membres, utilisation du cache:', fetchErr.message);
+                // Continue avec le cache existant
+            }
 
             // Filtrer les bots et map les membres pour avoir <@id> | displayName
             const membersWithRole = role.members
