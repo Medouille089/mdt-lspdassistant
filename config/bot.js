@@ -333,19 +333,6 @@ async function startBot() {
   bot.once(Events.ClientReady, async () => {
     console.log(`🤖 Bot connecté en tant que ${bot.user.tag}`);
     
-    // Fetch les membres au démarrage pour remplir le cache
-    try {
-      const guild = bot.guilds.cache.get(process.env.GUILD_ID);
-      if (guild) {
-        console.log('🔄 Chargement des membres du serveur...');
-        await guild.members.fetch({ force: false, time: 60000 }); // 60 secondes de timeout
-        console.log(`✅ ${guild.members.cache.size} membres chargés dans le cache`);
-      }
-    } catch (error) {
-      console.error('⚠️  Erreur lors du chargement initial des membres:', error.message);
-      console.log('Le cache se remplira progressivement via les événements Discord');
-    }
-    
     let index = 0;
     async function cyclePresence() {
       const activities = await getPresenceMessages();

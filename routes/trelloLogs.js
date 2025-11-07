@@ -114,42 +114,26 @@ router.get('/api/trello/logs/stats', checkAuth, async (req, res) => {
     }
 });
 
+/**
+ * GET /api/trello/logs/members
+ * Récupère la liste des membres qui ont des logs (depuis la DB uniquement)
+ */
 router.get('/api/trello/logs/members', checkAuth, async (req, res) => {
     try {
-        const bot = require('../config/bot');
-        const { GUILD_ID } = require('../config/env');
+        // Récupérer uniquement les membres qui ont fait des actions (présents dans les logs)
+        const result = await pool.query(`
+            SELECT DISTINCT user_id, user_name
+            FROM trello_logs
+            WHERE user_id IS NOT NULL AND user_id != 'N/A'
+            ORDER BY user_name
+        `);
         
-        // Récupérer le required_role_id depuis la config
-        const configResult = await pool.query('SELECT required_role_id FROM configlspd LIMIT 1');
-        const requiredRoleId = configResult.rows[0]?.required_role_id;
-        
-        if (!requiredRoleId || !bot || !bot.isReady()) {
-            return res.json({ members: [] });
-        }
-        
-        const guild = bot.guilds.cache.get(GUILD_ID);
-        
-        if (!guild) {
-            return res.json({ members: [] });
-        }
-        
-        const role = guild.roles.cache.get(requiredRoleId);
-        
-        if (!role) {
-            return res.json({ members: [] });
-        }
-        
-        // Utiliser uniquement le cache existant (pas de fetch qui timeout)
-        // Le cache est maintenu à jour par les événements Discord du bot
-        const members = role.members.map(member => ({
-            id: member.id,
-            displayName: member.displayName || member.user.username
+        const members = result.rows.map(row => ({
+            id: row.user_id,
+            displayName: row.user_name
         }));
         
-        // Trier par nom
-        members.sort((a, b) => a.displayName.localeCompare(b.displayName));
-        
-        console.log(`✅ ${members.length} membres récupérés depuis le cache`);
+        console.log(`✅ ${members.length} membres récupérés depuis les logs`);
         
         res.json({ members });
     } catch (error) {
