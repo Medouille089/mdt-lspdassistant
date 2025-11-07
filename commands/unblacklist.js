@@ -9,15 +9,22 @@ module.exports = {
 
   async execute(interaction) {
     try {
-      const config = require('../config/config').getConfig();
-  const commandstaff = config.commandstaff_id ? String(config.commandstaff_id).trim() : null;
-  const supervisor = config.supervisor_role_id ? String(config.supervisor_role_id).trim() : null;
-  const id_superadmin = config.id_superadmin ? String(config.id_superadmin).trim() : null;
-  const memberRoles = interaction.member.roles.cache.map(r => r.id);
+      // Vérifier d'abord si l'utilisateur est dans allowed_users (bypass complet)
+      const allowedUserCheck = await pool.query('SELECT discord_id FROM allowed_users WHERE discord_id = $1', [interaction.user.id]);
+      const isBypassUser = allowedUserCheck.rows.length > 0;
 
-  // Vérifier permissions (commandstaff, supervisor ou superadmin)
-  const allowed = (commandstaff && memberRoles.includes(commandstaff)) || (supervisor && memberRoles.includes(supervisor)) || (id_superadmin && memberRoles.includes(id_superadmin));
-  if (!allowed) return interaction.reply({ content: 'Permission refusée.', flags: 64 });
+      // Si l'utilisateur n'est pas dans allowed_users, vérifier les rôles normaux
+      if (!isBypassUser) {
+        const config = require('../config/config').getConfig();
+        const commandstaff = config.commandstaff_id ? String(config.commandstaff_id).trim() : null;
+        const supervisor = config.supervisor_role_id ? String(config.supervisor_role_id).trim() : null;
+        const id_superadmin = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+        const memberRoles = interaction.member.roles.cache.map(r => r.id);
+
+        // Vérifier permissions (commandstaff, supervisor ou superadmin)
+        const allowed = (commandstaff && memberRoles.includes(commandstaff)) || (supervisor && memberRoles.includes(supervisor)) || (id_superadmin && memberRoles.includes(id_superadmin));
+        if (!allowed) return interaction.reply({ content: 'Permission refusée.', flags: 64 });
+      }
 
       const target = interaction.options.getUser('user');
 
@@ -56,7 +63,11 @@ module.exports = {
               .setColor(0x00FF00)
               .setDescription(`<@${interaction.user.id}> a un-blacklisté <@${target.id}>`)
               .addFields({ name: "ID's", value: `> <@${interaction.user.id}>\n> (\`${interaction.user.id}\`)\n> <@${target.id}> (\`${target.id}\`)${blacklist_role_id ? `\n> <@&${blacklist_role_id}>\n> (\`${blacklist_role_id}\`)` : ''}` , inline: false })
-              .setTimestamp();
+              .setTimestamp()
+              .setFooter({ 
+                text: 'LSPD Assistant', 
+                iconURL: bot.user.displayAvatarURL() 
+              });
             await logsChannel.send({ embeds: [embed] });
           }
         }
