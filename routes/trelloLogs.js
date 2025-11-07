@@ -133,8 +133,6 @@ router.get('/api/trello/logs/members', checkAuth, async (req, res) => {
             displayName: row.user_name
         }));
         
-        console.log(`✅ ${members.length} membres récupérés depuis les logs`);
-        
         res.json({ members });
     } catch (error) {
         console.error('❌ Erreur récupération membres:', error);
