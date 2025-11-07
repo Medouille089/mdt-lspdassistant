@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.17.5](https://github.com/Medouille089/lspdassistant/compare/v1.17.4...v1.17.5) (2025-11-07)
+
+
+### Bug Fixes
+
+* add allowed users ([f412e5b](https://github.com/Medouille089/lspdassistant/commit/f412e5bb467f463f6e66ef3ceae1c9f8aadf78d9))
+* removed console log ([c8926b8](https://github.com/Medouille089/lspdassistant/commit/c8926b88a87efdcdcfde4bf598bae7faf339b25b))
+
 ### [1.17.4](https://github.com/Medouille089/lspdassistant/compare/v1.17.3...v1.17.4) (2025-11-07)
 
 
