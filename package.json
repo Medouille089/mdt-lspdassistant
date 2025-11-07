@@ -1,6 +1,6 @@
 {
   "name": "lspdassistant",
-  "version": "1.17.5",
+  "version": "1.17.6",
   "description": "LSPD Assistant",
   "homepage": "https://github.com/Medouille089/lspdassistant#readme",
   "bugs": {
@@ -27,6 +27,7 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "connect": "^3.7.0",
+    "dayjs": "^1.11.19",
     "discord.js": "^14.21.0",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",

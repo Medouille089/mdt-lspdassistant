@@ -27,7 +27,14 @@ router.get('/api/agents', async (req, res) => {
         const role = guild.roles.cache.get(requiredRoleId);
         if (!role) return res.status(500).json({ error: "Rôle Discord introuvable" });
 
-        await guild.members.fetch();
+        // Fetch les membres avec un timeout plus court pour éviter les blocages
+        try {
+            await guild.members.fetch({ time: 5000 }); // Timeout de 5 secondes
+        } catch (fetchErr) {
+            console.warn('Timeout lors du fetch des membres, utilisation du cache:', fetchErr.message);
+            // Continue avec le cache existant
+        }
+        
         const membersWithRole = role.members
             .map(m => ({
                 discord_id: m.user.id,
