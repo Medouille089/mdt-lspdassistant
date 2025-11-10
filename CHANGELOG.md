@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.17.7](https://github.com/Medouille089/lspdassistant/compare/v1.17.6...v1.17.7) (2025-11-10)
+
+
+### Bug Fixes
+
+* sort liveUsers by name instead of date ([728c923](https://github.com/Medouille089/lspdassistant/commit/728c923d08f40718fdc9d53766a74d34d9f32c0d))
+
 ### [1.17.6](https://github.com/Medouille089/lspdassistant/compare/v1.17.5...v1.17.6) (2025-11-07)
 
 
