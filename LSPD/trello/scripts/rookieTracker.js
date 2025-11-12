@@ -133,7 +133,12 @@ function shouldDisplayPatrol(patrol) {
 
 function renderPatrolCard(patrol) {
     const timestamp = patrol.timestamp 
-        ? new Date(patrol.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+        ? new Date(patrol.timestamp).toLocaleString('fr-FR', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        })
         : '';
     
     // Vérifier si la carte existe encore dans le board
