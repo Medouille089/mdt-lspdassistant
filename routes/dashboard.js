@@ -96,7 +96,7 @@ router.get('/api/connected-agents', async (req, res) => {
       FROM lspd_live_users l
       LEFT JOIN lspd_agent_profiles p ON l.user_id = p.discord_id
       WHERE l.last_seen > NOW() - INTERVAL '10 minutes'
-      ORDER BY l.last_seen DESC
+      ORDER BY l.display_name ASC
     `;
 
     const { rows } = await pool.query(query);
