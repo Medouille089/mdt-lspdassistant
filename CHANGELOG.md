@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.17.8](https://github.com/Medouille089/lspdassistant/compare/v1.17.7...v1.17.8) (2025-11-12)
+
+
+### Features
+
+* add date on patrol card history ([c0483ac](https://github.com/Medouille089/lspdassistant/commit/c0483ac035921f14eab07742c5d1ba2eb8b94a05))
+
+
+### Bug Fixes
+
+* delete car copy ([c5734e8](https://github.com/Medouille089/lspdassistant/commit/c5734e8b62bcd3cd7b6cdbaa025709143c49b6de))
+* news cars ([a3490bf](https://github.com/Medouille089/lspdassistant/commit/a3490bf87c10406063828ab698e1fd568d8a764d))
+
 ### [1.17.7](https://github.com/Medouille089/lspdassistant/compare/v1.17.6...v1.17.7) (2025-11-10)
 
 
