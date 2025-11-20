@@ -36,15 +36,19 @@ const io = new Server(httpServer);
 const port = process.env.PORT || 3001;
 
 // 🧠 Middleware de session
+// Détection auto HTTPS : si NODE_ENV=production ou HTTPS=true, activer secure
+const isProduction = process.env.NODE_ENV === 'production' || process.env.HTTPS === 'true';
+
 app.use(
   session({
     secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // false pour HTTP en développement
+      secure: isProduction, // true en prod HTTPS (requis pour SameSite=None)
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24, // 24 heures
+      sameSite: isProduction ? 'none' : 'lax', // none en prod (iframe), lax en dev
     },
   })
 );
@@ -72,6 +76,12 @@ try {
 // Body parser
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+
+// CSP pour autoriser l'affichage en iframe (NUI FiveM / tablettes)
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', "frame-ancestors *");
+  next();
+});
 
 // Passport
 app.use(passport.initialize());
@@ -180,7 +190,9 @@ app.use((req, res, next) => {
     "/login-local",
     "/forgot-password",
     "/reset-password",
-    "/api/user/discord-info",
+     "/recrutement",
+      "/forms/recruitment",
+     "/api/user/discord-info",
   ];
 
   // Autoriser uniquement les assets front (pas les .html)
@@ -232,6 +244,7 @@ const adminOfficer = require("./routes/officers");
 const rapportRookie = require("./routes/rapport-rookie");
 const convocAgent = require("./routes/convocAgent");
 const annonce = require("./routes/annonce");
+const recruitmentRoute = require("./routes/recruitment");
 const faq = require("./routes/faq");
 const calendarRoutes = require("./routes/calendar");
 const calculPeinesRoutes = require("./routes/calculPeines");
@@ -267,6 +280,7 @@ app.use(rapportRookie);
 app.use(convocAgent);
 app.use(setupLogsRoutes);
 app.use(annonce);
+app.use(recruitmentRoute);
 app.use(faq);
 app.use(calendarRoutes);
 app.use("/api", calculPeinesRoutes);
