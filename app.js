@@ -85,8 +85,15 @@ app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
 // CSP pour autoriser l'affichage en iframe (NUI FiveM / tablettes)
+// Note: FiveM NUI utilise le schéma nui:// qui n'est pas un "network scheme" standard
+// On doit donc autoriser toutes les origines avec * (wildcard)
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', "frame-ancestors *");
+  // Supprimer toute CSP existante qui pourrait bloquer
+  res.removeHeader('Content-Security-Policy');
+  res.removeHeader('X-Frame-Options');
+  
+  // Autoriser l'affichage en iframe depuis n'importe quelle origine
+  res.setHeader('Content-Security-Policy', "frame-ancestors * 'self' https: http: data: nui:");
   next();
 });
 
