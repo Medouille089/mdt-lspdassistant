@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.17.11](https://github.com/Medouille089/lspdassistant/compare/v1.17.10...v1.17.11) (2025-11-20)
+
+
+### Bug Fixes
+
+* iframe css bug ([bb04cfe](https://github.com/Medouille089/lspdassistant/commit/bb04cfe004a773916f5e5600c97ae04035a87c1a))
+* iframe css bug ([47cc34c](https://github.com/Medouille089/lspdassistant/commit/47cc34c3babbebcc3cf0be55ec4d087a83e525e9))
+* update ([42f2d40](https://github.com/Medouille089/lspdassistant/commit/42f2d40d77db075aee7b2a10843c903e08d4e720))
+
 ### [1.17.10](https://github.com/Medouille089/lspdassistant/compare/v1.17.9...v1.17.10) (2025-11-20)
 
 
