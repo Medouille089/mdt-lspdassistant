@@ -5,6 +5,7 @@ import { renderBoard, updateSingleCardDOM } from './board.js';
 import { openCardModal } from './modal.js';
 import { renderCardTags } from './tags.js';
 import { checkPatrolForRookies, handleRookiePatrolDeletion } from './rookieTracker.js';
+import { showAlert, showConfirm } from './customModals.js';
 
 function editCompactCardTitle(cardId, listId, cardElement) {
     const list = boardData.lists.find(l => l.id === listId);
@@ -237,7 +238,7 @@ export function setupCardCreator(cardCreator, listId, button) {
     async function handleImageSelection(file) {
         try {
             if (file.size > 5 * 1024 * 1024) {
-                alert('Image trop volumineuse (max 5MB)');
+                await showAlert('Image trop volumineuse (max 5MB)', 'Erreur');
                 return;
             }
 
@@ -256,16 +257,16 @@ export function setupCardCreator(cardCreator, listId, button) {
 
         } catch (error) {
             console.error('Erreur image:', error);
-            alert('Erreur lors du traitement de l\'image');
+            await showAlert('Erreur lors du traitement de l\'image', 'Erreur');
         }
     }
 
-    function handleImageUrl(url) {
+    async function handleImageUrl(url) {
         const trimmedUrl = url.trim();
         
         // Validation basique de l'URL
         if (!trimmedUrl || !trimmedUrl.startsWith('http')) {
-            alert('URL invalide. Utilisez une URL complète (https://...)');
+            await showAlert('URL invalide. Utilisez une URL complète (https://...)', 'Erreur');
             return;
         }
 
@@ -274,8 +275,8 @@ export function setupCardCreator(cardCreator, listId, button) {
                              trimmedUrl.includes('media.discordapp.net');
         
         if (!isDiscordCdn) {
-            const confirm = window.confirm('Cette URL ne semble pas être une URL Discord. Voulez-vous continuer ?');
-            if (!confirm) return;
+            const confirmed = await showConfirm('Cette URL ne semble pas être une URL Discord. Voulez-vous continuer ?', 'Attention', { confirmText: 'Continuer', cancelText: 'Annuler' });
+            if (!confirmed) return;
         }
 
         selectedImage = {
@@ -291,14 +292,14 @@ export function setupCardCreator(cardCreator, listId, button) {
         urlInput.value = '';
     }
 
-    function createCard() {
+    async function createCard() {
         if (processed) return;
         processed = true;
 
         const text = textarea.value.trim();
         if (!text && !selectedImage) {
             processed = false;
-            alert('Ajoutez du texte ou une image');
+            await showAlert('Ajoutez du texte ou une image', 'Information');
             return;
         }
 
@@ -739,14 +740,15 @@ function closeCardContextMenu() {
     }
 }
 
-function deleteCard(cardId, listId) {
+async function deleteCard(cardId, listId) {
     const list = boardData.lists.find(l => l.id === listId);
     if (!list) return;
 
     const card = list.cards.find(c => c.id === cardId);
     if (!card) return;
 
-    if (confirm(`Êtes-vous sûr de vouloir supprimer la carte "${card.text}" ?`)) {
+    const confirmed = await showConfirm(`Êtes-vous sûr de vouloir supprimer la carte "${card.text}" ?`, 'Confirmation de suppression', { confirmText: 'Supprimer', cancelText: 'Annuler', danger: true });
+    if (confirmed) {
         handleRookiePatrolDeletion(cardId, { force: Boolean(card.text?.includes('+')) });
         list.cards = list.cards.filter(c => c.id !== cardId);
         submitOperation('DELETE_CARD', { listId, cardId });
