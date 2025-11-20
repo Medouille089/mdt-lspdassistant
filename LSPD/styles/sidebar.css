@@ -357,6 +357,7 @@ body.collapsed .main-content {
     display: flex;
     color: var(--dropdown-link);
     background: var(--dropdown-bg);
+    z-index: 9998; /* En-dessous de la sidebar */
   }
 
   .sidebar.collapsed {
@@ -384,7 +385,7 @@ body.collapsed .main-content {
   font-size: 0.85rem;
   font-weight: 600;
   user-select: none;
-  z-index: 9999;
+  z-index: 1; /* En-dessous de tout */
   pointer-events: none;
   font-family: "Poppins", sans-serif;
   box-shadow: 
