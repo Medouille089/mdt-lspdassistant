@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <meta charset="UTF-8" />
+  <title>Nouvelle candidature - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/popup.css">
+  <link rel="stylesheet" href="styles/recrutement.css">
+  <link rel="stylesheet" href="styles/context-menu.css" />
+</head>
+
+<body>
+  <script src="scripts/annonce-popup.js"></script>
+  <script src="scripts/context-menu.js"></script>
+  <div id="loaderOverlay" class="loader-overlay">
+    <div class="loader-spinner"></div>
+  </div>
+  <div class="main-container">
+    <div id="sidebar-container"></div>
+    <h1>Nouvelle candidature</h1>
+    <div class="sanction-container">
+      <div class="header">
+        <img src="data/images/lspd.png" alt="Logo LSPD">
+        <div class="header-title">
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3>NOUVELLE CANDIDATURE</h3>
+        </div>
+        <div style="width: 70px;"></div>
+      </div>
+
+      <form id="recruitmentForm">
+        <!-- Step 1: Informations personnelles (B-D) -->
+        <div class="form-step" data-step="0">
+          <h4>👤 Informations de connexion</h4>
+          <label for="discordId">ID Discord</label>
+          <input id="discordId" name="discordId" type="text" required>
+
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" required>
+        </div>
+
+        <!-- Step 1 (index 1): Nom & Prénom, DOB, Nationalité, qualités/défauts -->
+        <div class="form-step" data-step="1">
+          <h4>👤 Nom & Informations</h4>
+          <label for="fullname">Nom & Prénom</label>
+          <input id="fullname" name="fullname" type="text" required>
+
+          <label for="dob">🎂 Date de Naissance</label>
+          <input id="dob" name="dob" type="date" required>
+
+          <label for="nationality">🌍 Nationalité</label>
+          <input id="nationality" name="nationality" type="text" required>
+
+          <label>🌟 Pouvez-vous nous citer 3 de vos qualités ?</label>
+          <input id="quality1" name="quality1" type="text" placeholder="Qualité 1" required>
+          <input id="quality2" name="quality2" type="text" placeholder="Qualité 2" required>
+          <input id="quality3" name="quality3" type="text" placeholder="Qualité 3" required>
+
+          <label>❌ Pouvez-vous nous citer 3 de vos défauts ?</label>
+          <input id="defect1" name="defect1" type="text" placeholder="Défaut 1" required>
+          <input id="defect2" name="defect2" type="text" placeholder="Défaut 2" required>
+          <input id="defect3" name="defect3" type="text" placeholder="Défaut 3" required>
+        </div>
+
+        <!-- Step 2 (index 2): Identité, motivations, dispo, grade souhaité, qu'est-ce qu'un bon policier -->
+        <div class="form-step" data-step="2">
+          <h4>👮‍♂️ Identité & Motivations</h4>
+          <label>Êtes-vous la même personne sans l'uniforme ?</label>
+          <div class="radio-group">
+            <label class="radio-pill"><input type="radio" name="same_without_uniform" value="oui" required><span>Oui</span></label>
+            <label class="radio-pill"><input type="radio" name="same_without_uniform" value="non"><span>Non</span></label>
+          </div>
+
+          <label for="motivations">🎯 Quelles sont vos motivations ?</label>
+          <textarea id="motivations" name="motivations" required></textarea>
+
+          <label for="availabilities">📅 Quelles sont vos disponibilités ?</label>
+          <textarea id="availabilities" name="availabilities" required></textarea>
+
+          <label for="desired_rank">🔝 Quel grade souhaitez-vous atteindre ?</label>
+          <input id="desired_rank" name="desired_rank" type="text" required>
+
+          <label for="good_police">💼 Qu'est-ce qu'un bon policier ?</label>
+          <textarea id="good_police" name="good_police" required></textarea>
+        </div>
+
+        <!-- Step 3 (index 3): Missions, bon poste, classement grades, arme principale -->
+        <div class="form-step" data-step="3">
+          <h4>🛡️ Connaissances & Tactique</h4>
+          <label for="missions">Quelles sont les missions principales du LSPD ?</label>
+          <textarea id="missions" name="missions" required></textarea>
+
+          <label for="good_station">🏢 Qu'est-ce qu'un bon poste de police ?</label>
+          <textarea id="good_station" name="good_station" required></textarea>
+
+          <label for="rank_order">📝 Pouvez-vous classer les grades suivants dans l’ordre ?</label>
+          <textarea id="rank_order" name="rank_order" placeholder="SLO - Officier 1 - ..." required></textarea>
+
+          <label for="main_weapon">🔫 Quelle est l’arme principale d’un bon agent du LSPD ?</label>
+          <input id="main_weapon" name="main_weapon" type="text" required>
+        </div>
+
+        <!-- Step 4 (index 4): Etat-Major, codes radio, infériorité, entrée, divisions, supervision -->
+        <div class="form-step" data-step="4">
+          <h4>⚖️ Procédures & Organisation</h4>
+          <label for="etat_major">⚖️ Quel est le rôle de l’État-Major ?</label>
+          <textarea id="etat_major" name="etat_major" required></textarea>
+
+          <label for="radio_codes">🚨 Quelle est l’utilité des codes radio ? Pouvez-vous citer un ou plusieurs codes radio ?</label>
+          <textarea id="radio_codes" name="radio_codes" required></textarea>
+
+          <label for="inferiority">⚖️ À quoi correspond l’infériorité numérique ?</label>
+          <textarea id="inferiority" name="inferiority" required></textarea>
+
+          <label for="entry_plans">🏃‍♂️ Que pensez-vous faire à votre entrée au LSPD ?</label>
+          <textarea id="entry_plans" name="entry_plans" required></textarea>
+
+          <label>🏅 Dans quelles divisions souhaitez-vous vous engager en priorité dans le LSPD ? (choix unique)</label>
+          <div class="radio-group">
+            <label class="radio-pill"><input type="radio" name="division_choice" value="Traffic Division" required><span>Traffic Division</span></label>
+            <label class="radio-pill"><input type="radio" name="division_choice" value="Police Academy"><span>Police Academy</span></label>
+            <label class="radio-pill"><input type="radio" name="division_choice" value="Media Relative Division"><span>Media Relative Division</span></label>
+            <label class="radio-pill"><input type="radio" name="division_choice" value="Métropolitain Division"><span>Métropolitain Division</span></label>
+          </div>
+
+          <label for="supervision_role">🧑‍💼 Connaissez-vous le rôle de la supervision au sein du LSPD ?</label>
+          <textarea id="supervision_role" name="supervision_role" required></textarea>
+        </div>
+        <!-- Step 5 (index 5): Feedback final -->
+        <div class="form-step" data-step="5">
+          <h4>⚜️ Avis final</h4>
+          <label for="avis">Avant de terminer, pouvez-vous nous donner votre avis sur ce formulaire ?</label>
+          <textarea id="avis" name="avis" required></textarea>
+        </div>
+
+        <!-- Navigation buttons common to all steps -->
+        <div class="form-nav">
+          <button type="button" id="btnBack" class="btn btn-outline">Retour</button>
+          <button type="button" id="btnNext" class="btn btn-primary">Suivant</button>
+          <button type="submit" id="btnSubmit" class="btn btn-primary" style="display:none;">Envoyer la candidature</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    LSPD Assistant - Dev by Medouille &amp; Porka &nbsp;© <span id="copyrightYear"></span>
+  </footer>
+
+  <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+  <script src="scripts/recrutement.js"></script>
+</body>
+
+</html>

@@ -450,8 +450,13 @@ router.post('/login-local', async (req, res) => {
         }
 
         // Récupérer l'URL de redirection depuis la session
-        const redirectTo = req.session.returnTo || '/protected';
+        let redirectTo = req.session.returnTo || '/protected';
         delete req.session.returnTo;
+
+        // Si la redirection pointe vers connect.html (boucle), forcer /protected
+        if (redirectTo.includes('connect.html') || redirectTo.includes('/login')) {
+          redirectTo = '/protected';
+        }
 
         res.json({ success: true, redirect: redirectTo });
       });
