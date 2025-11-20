@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.17.9](https://github.com/Medouille089/lspdassistant/compare/v1.17.8...v1.17.9) (2025-11-20)
+
+
+### Bug Fixes
+
+* test in-game implementation ([ed8243b](https://github.com/Medouille089/lspdassistant/commit/ed8243b3806913424e4c9087d8e3d40414487d07))
+
 ### [1.17.8](https://github.com/Medouille089/lspdassistant/compare/v1.17.7...v1.17.8) (2025-11-12)
 
 
