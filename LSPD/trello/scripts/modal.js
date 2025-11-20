@@ -5,6 +5,7 @@ import { renderBoard } from './board.js';
 import { renderCardTags, hideTagSelector, showTagSelector } from './tags.js';
 import { submitOperation } from './socket.js';
 import { handleRookiePatrolDeletion } from './rookieTracker.js';
+import { showConfirm } from './customModals.js';
 
 export function openCardModal(cardId, listId) {
     const list = boardData.lists.find(l => l.id == listId);
@@ -241,16 +242,19 @@ export function initializeModalEvents() {
     // Note: La gestion de la description est maintenant faite via les fonctions globales
 
     if (deleteCardBtn) {
-        deleteCardBtn.addEventListener('click', function () {
-            if (currentCard && confirm('Êtes-vous sûr de vouloir supprimer cette carte ?')) {
-                const targetList = boardData.lists.find(l => l.id === currentListId);
-                if (targetList) {
-                    handleRookiePatrolDeletion(currentCard.id, { force: Boolean(currentCard.text?.includes('+')) });
-                    targetList.cards = targetList.cards.filter(c => c.id !== currentCard.id);
+        deleteCardBtn.addEventListener('click', async function () {
+            if (currentCard) {
+                const confirmed = await showConfirm('Êtes-vous sûr de vouloir supprimer cette carte ?', 'Confirmation de suppression', { confirmText: 'Supprimer', cancelText: 'Annuler', danger: true });
+                if (confirmed) {
+                    const targetList = boardData.lists.find(l => l.id === currentListId);
+                    if (targetList) {
+                        handleRookiePatrolDeletion(currentCard.id, { force: Boolean(currentCard.text?.includes('+')) });
+                        targetList.cards = targetList.cards.filter(c => c.id !== currentCard.id);
+                    }
+                    closeCardModal();
+                    submitOperation('DELETE_CARD', { listId: currentListId, cardId: currentCard.id });
+                    renderBoard();
                 }
-                closeCardModal();
-                submitOperation('DELETE_CARD', { listId: currentListId, cardId: currentCard.id });
-                renderBoard();
             }
         });
     }
