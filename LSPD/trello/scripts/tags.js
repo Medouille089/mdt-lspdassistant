@@ -3,6 +3,7 @@ import { submitOperation } from './socket.js';
 import { getCardTags, extractAutoTags } from './utils.js';
 import { saveCardChanges } from './card.js';
 import { renderBoard } from './board.js';
+import { showAlert, showConfirm } from './customModals.js';
 
 export function syncTagsFromBoardData() {
     if (Array.isArray(boardData.tags)) {
@@ -90,14 +91,14 @@ export function hideTagSelector() {
     if (selector) selector.remove();
 }
 
-export function toggleTagFromCheckbox(tagId, isChecked) {
+export async function toggleTagFromCheckbox(tagId, isChecked) {
     if (!currentCard.tags) currentCard.tags = [];
 
     const autoTags = extractAutoTags(currentCard.text);
     if (autoTags.includes(tagId)) {
         const checkbox = document.querySelector(`input[onchange*="${tagId}"]`);
         if (checkbox) checkbox.checked = true;
-        alert('Ce tag est automatiquement détecté dans le texte et ne peut pas être supprimé.');
+        await showAlert('Ce tag est automatiquement détecté dans le texte et ne peut pas être supprimé.', 'Information');
         return;
     }
 
@@ -114,10 +115,10 @@ export function toggleTagFromCheckbox(tagId, isChecked) {
     renderBoard();
 }
 
-export function removeTag(tagId) {
+export async function removeTag(tagId) {
     const autoTags = extractAutoTags(currentCard.text);
     if (autoTags.includes(tagId)) {
-        alert('Ce tag est automatiquement détecté dans le texte et ne peut pas être supprimé.');
+        await showAlert('Ce tag est automatiquement détecté dans le texte et ne peut pas être supprimé.', 'Information');
         return;
     }
 
@@ -160,12 +161,12 @@ export function editTag(tagId) {
 
     document.body.appendChild(dialog);
 
-    document.getElementById('confirmEditTag').onclick = function() {
+    document.getElementById('confirmEditTag').onclick = async function() {
         const label = document.getElementById('editTagLabel').value.trim();
         const color = document.getElementById('editTagBg').value;
         const textColor = document.getElementById('editTagText').value;
         if (!label) {
-            alert('Veuillez entrer un nom pour l\'étiquette.');
+            await showAlert('Veuillez entrer un nom pour l\'\u00e9tiquette.', 'Erreur');
             return;
         }
         tag.label = label;
@@ -179,8 +180,9 @@ export function editTag(tagId) {
     };
 }
 
-export function deleteTag(tagId) {
-    if (!confirm('Supprimer cette étiquette ?')) return;
+export async function deleteTag(tagId) {
+    const confirmed = await showConfirm('Supprimer cette \u00e9tiquette ?', 'Confirmation de suppression', { confirmText: 'Supprimer', cancelText: 'Annuler', danger: true });
+    if (!confirmed) return;
     
     // Retirer le tag de toutes les cartes
     boardData.lists.forEach(list => {
@@ -227,12 +229,12 @@ export function showCreateTagDialog() {
 
     document.body.appendChild(dialog);
 
-    document.getElementById('confirmCreateTag').onclick = function() {
+    document.getElementById('confirmCreateTag').onclick = async function() {
         const label = document.getElementById('newTagLabel').value.trim();
         const color = document.getElementById('newTagBg').value;
         const textColor = document.getElementById('newTagText').value;
         if (!label) {
-            alert('Veuillez entrer un nom pour l\'étiquette.');
+            await showAlert('Veuillez entrer un nom pour l\'\u00e9tiquette.', 'Erreur');
             return;
         }
         const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 20) + '-' + Date.now();

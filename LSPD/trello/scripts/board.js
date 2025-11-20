@@ -5,6 +5,7 @@ import { attachCardEvents } from './card.js';
 import { attachDragDropEvents } from './dragdrop.js';
 import { initializeModalEvents, openCardModal } from './modal.js';
 import { scanAllPatrolsForRookies } from './rookieTracker.js';
+import { showConfirm } from './customModals.js';
 
 async function fetchCurrentUser() {
     try {
@@ -400,7 +401,7 @@ function editListTitle(listElement, listId) {
     input.addEventListener('blur', saveTitle);
 }
 
-function deleteList(listId) {
+async function deleteList(listId) {
     const list = boardData.lists.find(l => l.id == listId);
     if (!list) return;
 
@@ -409,7 +410,8 @@ function deleteList(listId) {
         ? `Êtes-vous sûr de vouloir supprimer la liste "${list.title}" et ses ${cardCount} carte(s) ?`
         : `Êtes-vous sûr de vouloir supprimer la liste "${list.title}" ?`;
 
-    if (!confirm(confirmMessage)) return;
+    const confirmed = await showConfirm(confirmMessage, 'Confirmation de suppression', { confirmText: 'Supprimer', cancelText: 'Annuler', danger: true });
+    if (!confirmed) return;
 
     // Supprimer la liste du boardData
     const listIndex = boardData.lists.findIndex(l => l.id == listId);

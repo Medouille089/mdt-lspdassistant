@@ -1,6 +1,7 @@
 import { boardData, availableTags, addRookiePatrol, getRookiePatrols, setRookiePatrols, updateRookiePatrolDeletion, removeRookiePatrol, canCleanRookiePatrols, updateRookiePatrolReportStatus } from './state.js';
 import { getCardTags } from './utils.js';
 import { saveRookiePatrol, cleanDeletedPatrols as cleanDeletedPatrolsAPI, markPatrolAsDeleted, setPatrolReportCompleted } from '../routes/rookiePatrolsAPI.js';
+import { showAlert, showConfirm } from './customModals.js';
 
 const MIN_ACTIVE_DURATION_SECONDS = 10 * 60; // 10 minutes
 
@@ -454,11 +455,12 @@ export function showRookiePatrolsModal() {
             e.stopPropagation();
             const deletable = deletedPatrols.filter(p => Boolean(p.reportCompleted));
             if (deletable.length === 0) {
-                alert('Aucune patrouille supprimée n\'a encore un rapport marqué comme effectué.');
+                await showAlert('Aucune patrouille supprimée n\'a encore un rapport marqué comme effectué.', 'Information');
                 return;
             }
 
-            if (confirm(`Voulez-vous supprimer définitivement les ${deletable.length} patrouille(s) supprimée(s) dont le rapport est effectué ?`)) {
+            const confirmed = await showConfirm(`Voulez-vous supprimer définitivement les ${deletable.length} patrouille(s) supprimée(s) dont le rapport est effectué ?`, 'Confirmation de suppression', { confirmText: 'Supprimer', cancelText: 'Annuler', danger: true });
+            if (confirmed) {
                 try {
                     const deletedCardIds = deletable.map(p => p.cardId);
                     await cleanDeletedPatrolsAPI(deletedCardIds);
@@ -471,7 +473,7 @@ export function showRookiePatrolsModal() {
                     // Rouvrir le menu pour voir les changements
                     setTimeout(() => showRookiePatrolsModal(), 100);
                 } catch (error) {
-                    alert('Erreur lors du nettoyage des patrouilles');
+                    await showAlert('Erreur lors du nettoyage des patrouilles', 'Erreur');
                 }
             }
         });
@@ -509,7 +511,7 @@ export function showRookiePatrolsModal() {
                 }
             } catch (error) {
                 console.error('Erreur lors de la mise à jour du rapport:', error);
-                alert('Impossible de mettre à jour le statut du rapport.');
+                await showAlert('Impossible de mettre à jour le statut du rapport.', 'Erreur');
             } finally {
                 button.disabled = false;
             }
