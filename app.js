@@ -35,9 +35,16 @@ const httpServer = createServer(app);
 const io = new Server(httpServer);
 const port = process.env.PORT || 3001;
 
+// Trust proxy headers (important si derrière nginx/Caddy/Apache en HTTPS)
+app.set('trust proxy', 1);
+
 // 🧠 Middleware de session
-// Détection auto HTTPS : si NODE_ENV=production ou HTTPS=true, activer secure
-const isProduction = process.env.NODE_ENV === 'production' || process.env.HTTPS === 'true';
+// Détection auto HTTPS : si IS_LOCAL=true, forcer dev (HTTP), sinon prod (HTTPS)
+const IS_LOCAL = process.env.IS_LOCAL === 'true';
+const isProduction = !IS_LOCAL && (process.env.NODE_ENV === 'production' || process.env.HTTPS === 'true');
+
+console.log(`[Session] Mode: ${isProduction ? 'PRODUCTION (HTTPS)' : 'DEVELOPMENT (HTTP)'}`);
+console.log(`[Session] Cookie secure: ${isProduction}, sameSite: ${isProduction ? 'none' : 'lax'}`);
 
 app.use(
   session({
