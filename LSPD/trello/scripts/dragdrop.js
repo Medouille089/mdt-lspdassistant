@@ -16,6 +16,9 @@ let pointerOffsetY = 0;
 let dragClone = null;
 let dropIndicator = null;
 let isDraggingWithPointer = false;
+let pointerDownPos = { x: 0, y: 0 };
+let dragStarted = false;
+const DRAG_THRESHOLD = 5; // pixels de mouvement avant de démarrer le drag
 
 document.addEventListener('dragover', e => {
     if (isDraggingCard || isDraggingList) {
@@ -60,45 +63,63 @@ export function attachDragDropEvents() {
             // Ne pas démarrer le drag si on clique sur un bouton ou input
             if (e.target.closest('button, input, select, textarea, .modal')) return;
             
-            e.preventDefault();
+            // NE PAS preventDefault ici pour permettre les clics normaux
             
             const rect = this.getBoundingClientRect();
             pointerOffsetX = e.clientX - rect.left;
             pointerOffsetY = e.clientY - rect.top;
+            pointerDownPos = { x: e.clientX, y: e.clientY };
             
             pointerDraggedCard = this;
             pointerDraggedFromList = this.closest('.list').dataset.listId;
-            
-            // Créer un clone pour le drag
-            dragClone = this.cloneNode(true);
-            dragClone.style.position = 'fixed';
-            dragClone.style.width = rect.width + 'px';
-            dragClone.style.height = rect.height + 'px';
-            dragClone.style.left = rect.left + 'px';
-            dragClone.style.top = rect.top + 'px';
-            dragClone.style.opacity = '0.8';
-            dragClone.style.pointerEvents = 'none';
-            dragClone.style.zIndex = '10000';
-            dragClone.style.transform = 'rotate(3deg)';
-            dragClone.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
-            dragClone.classList.add('dragging-clone');
-            document.body.appendChild(dragClone);
-            
-            // Rendre la carte originale semi-transparente
-            this.style.opacity = '0.3';
-            
-            isDraggingWithPointer = true;
-            dragPointer.x = e.clientX;
-            dragPointer.y = e.clientY;
-            
-            if (!dragAutoScroll.rafId) dragAutoScroll.rafId = requestAnimationFrame(autoScrollLoop);
+            dragStarted = false;
             
             // Capture du pointer pour continuer à recevoir les événements
             this.setPointerCapture(e.pointerId);
         });
         
         card.addEventListener('pointermove', function (e) {
-            if (!isDraggingWithPointer || !pointerDraggedCard) return;
+            if (!pointerDraggedCard) return;
+            
+            // Vérifier si on a bougé assez pour commencer le drag
+            const dx = e.clientX - pointerDownPos.x;
+            const dy = e.clientY - pointerDownPos.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Si on n'a pas encore démarré le drag et qu'on n'a pas bougé assez, on ne fait rien
+            if (!dragStarted && distance < DRAG_THRESHOLD) return;
+            
+            // Premier mouvement > seuil : démarrer le drag
+            if (!dragStarted) {
+                e.preventDefault();
+                dragStarted = true;
+                
+                const rect = pointerDraggedCard.getBoundingClientRect();
+                
+                // Créer un clone pour le drag
+                dragClone = pointerDraggedCard.cloneNode(true);
+                dragClone.style.position = 'fixed';
+                dragClone.style.width = rect.width + 'px';
+                dragClone.style.height = rect.height + 'px';
+                dragClone.style.left = rect.left + 'px';
+                dragClone.style.top = rect.top + 'px';
+                dragClone.style.opacity = '0.8';
+                dragClone.style.pointerEvents = 'none';
+                dragClone.style.zIndex = '10000';
+                dragClone.style.transform = 'rotate(3deg)';
+                dragClone.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+                dragClone.classList.add('dragging-clone');
+                document.body.appendChild(dragClone);
+                
+                // Rendre la carte originale semi-transparente
+                pointerDraggedCard.style.opacity = '0.3';
+                
+                isDraggingWithPointer = true;
+                
+                if (!dragAutoScroll.rafId) dragAutoScroll.rafId = requestAnimationFrame(autoScrollLoop);
+            }
+            
+            if (!isDraggingWithPointer) return;
             
             e.preventDefault();
             
@@ -144,7 +165,16 @@ export function attachDragDropEvents() {
         });
         
         card.addEventListener('pointerup', function (e) {
-            if (!isDraggingWithPointer || !pointerDraggedCard) return;
+            if (!pointerDraggedCard) return;
+            
+            // Si on n'a jamais démarré le drag (mouvement < seuil), c'est un simple clic
+            // On laisse l'événement click se propager normalement
+            if (!dragStarted) {
+                pointerDraggedCard = null;
+                pointerDraggedFromList = null;
+                this.releasePointerCapture(e.pointerId);
+                return;
+            }
             
             e.preventDefault();
             
@@ -182,6 +212,7 @@ export function attachDragDropEvents() {
             pointerDraggedCard = null;
             pointerDraggedFromList = null;
             isDraggingWithPointer = false;
+            dragStarted = false;
             
             if (dragAutoScroll.rafId) {
                 cancelAnimationFrame(dragAutoScroll.rafId);
@@ -210,6 +241,7 @@ export function attachDragDropEvents() {
             pointerDraggedCard = null;
             pointerDraggedFromList = null;
             isDraggingWithPointer = false;
+            dragStarted = false;
             
             if (dragAutoScroll.rafId) {
                 cancelAnimationFrame(dragAutoScroll.rafId);

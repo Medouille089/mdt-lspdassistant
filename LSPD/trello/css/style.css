@@ -318,7 +318,7 @@ h1 {
     padding: 10px;
     margin-bottom: 10px;
     box-shadow: var(--shadow-light);
-    cursor: grab;
+    cursor: pointer;
     position: relative;
     user-select: none;
     -webkit-user-select: none;
