@@ -42,6 +42,40 @@
   --placeholder-text: #aaa;
 }
 
+/* Scrollbar personnalisée globale */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--main-color) rgba(11, 27, 90, 0.1);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(11, 27, 90, 0.05);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--main-color);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--main-color-dark);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: var(--main-color-normal);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* :root {
     --background-gradient: linear-gradient(#fde5e9, #f9c7cb);
     --main-color: #F9A2AC;
