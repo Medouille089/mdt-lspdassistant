@@ -45,6 +45,9 @@ export function attachDragDropEvents() {
             setDraggedFromList(this.closest('.list').dataset.listId);
             this.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+            // Pour FiveM/CEF, ajouter aussi un type text/plain
+            e.dataTransfer.setData('text/plain', this.dataset.cardId);
             isDraggingCard = true;
             if (!dragAutoScroll.rafId) dragAutoScroll.rafId = requestAnimationFrame(autoScrollLoop);
         });

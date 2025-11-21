@@ -318,11 +318,14 @@ h1 {
     padding: 10px;
     margin-bottom: 10px;
     box-shadow: var(--shadow-light);
-    cursor: pointer;
+    cursor: grab;
     position: relative;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: element;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     color: var(--text-primary);
+    touch-action: none;
 }
 
 .card:hover {

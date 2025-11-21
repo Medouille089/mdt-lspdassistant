@@ -101,7 +101,7 @@ function renderCard(card, listId) {
         const colorClass = card.compactColor ? `color-${card.compactColor}` : 'color-gray';
 
         return `
-            <div class="card compact-card ${colorClass}" data-card-id="${card.id}" draggable="true" title="${card.text}">
+            <div class="card compact-card ${colorClass}" data-card-id="${card.id}" draggable="true" ondragstart="event.dataTransfer.effectAllowed='move';" title="${card.text}">
                 <div class="compact-card-content">
                     <span class="compact-card-text">${shortId}</span>
                 </div>
@@ -124,7 +124,7 @@ function renderCard(card, listId) {
     }
 
     return `
-        <div class="card ${card.type === 'image' ? 'image-card' : ''}" data-card-id="${card.id}" draggable="true">
+        <div class="card ${card.type === 'image' ? 'image-card' : ''}" data-card-id="${card.id}" draggable="true" ondragstart="event.dataTransfer.effectAllowed='move';">
             ${timestamp}
             <div class="card-content">
                 ${cardContentHtml}
