@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.17.13](https://github.com/Medouille089/lspdassistant/compare/v1.17.12...v1.17.13) (2025-11-21)
+
+
+### Bug Fixes
+
+* drag & drop in fivem nui ([2ad0170](https://github.com/Medouille089/lspdassistant/commit/2ad0170cebec8cec783482975c7a79b3d0fe9214))
+* trello in fivem ([3ad2b54](https://github.com/Medouille089/lspdassistant/commit/3ad2b5444afba734386c638a7216c309b18c6766))
+* update scroll bar ([ba428c1](https://github.com/Medouille089/lspdassistant/commit/ba428c1ebdb91f87bb27ed240ad06cd946ace9d7))
+
 ### [1.17.12](https://github.com/Medouille089/lspdassistant/compare/v1.17.11...v1.17.12) (2025-11-20)
 
 ### [1.17.11](https://github.com/Medouille089/lspdassistant/compare/v1.17.10...v1.17.11) (2025-11-20)
