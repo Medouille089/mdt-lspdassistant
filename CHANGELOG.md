@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.17.14](https://github.com/Medouille089/lspdassistant/compare/v1.17.13...v1.17.14) (2025-11-21)
+
+
+### Bug Fixes
+
+* modif de carte + drag & drop ([2347385](https://github.com/Medouille089/lspdassistant/commit/234738513b95dd264fc6c231d838eaab18fbbf10))
+
 ### [1.17.13](https://github.com/Medouille089/lspdassistant/compare/v1.17.12...v1.17.13) (2025-11-21)
 
 
