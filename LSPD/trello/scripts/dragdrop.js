@@ -8,6 +8,15 @@ let draggedList = null;
 let dragPointer = { x: 0, y: 0 };
 let dragAutoScroll = { rafId: null };
 
+// Variables pour Pointer Events (FiveM compatible)
+let pointerDraggedCard = null;
+let pointerDraggedFromList = null;
+let pointerOffsetX = 0;
+let pointerOffsetY = 0;
+let dragClone = null;
+let dropIndicator = null;
+let isDraggingWithPointer = false;
+
 document.addEventListener('dragover', e => {
     if (isDraggingCard || isDraggingList) {
         dragPointer.x = e.clientX;
@@ -16,7 +25,7 @@ document.addEventListener('dragover', e => {
 });
 
 function autoScrollLoop() {
-    if (!isDraggingCard) return;
+    if (!isDraggingCard && !isDraggingWithPointer) return;
 
     const boardContainer = document.querySelector('.board-container');
     if (boardContainer) {
@@ -39,31 +48,173 @@ function autoScrollLoop() {
 }
 
 export function attachDragDropEvents() {
+    // NOUVEAU: Utiliser Pointer Events pour FiveM (CEF compatible)
     document.querySelectorAll('.card').forEach(card => {
-        card.addEventListener('dragstart', function (e) {
-            setDraggedCard(this);
-            setDraggedFromList(this.closest('.list').dataset.listId);
-            this.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', this.innerHTML);
-            // Pour FiveM/CEF, ajouter aussi un type text/plain
-            e.dataTransfer.setData('text/plain', this.dataset.cardId);
-            isDraggingCard = true;
+        // Désactiver le drag HTML5 natif qui ne fonctionne pas dans FiveM
+        card.setAttribute('draggable', 'false');
+        
+        card.addEventListener('pointerdown', function (e) {
+            // Ignorer clic droit et clic du milieu
+            if (e.button !== 0) return;
+            
+            // Ne pas démarrer le drag si on clique sur un bouton ou input
+            if (e.target.closest('button, input, select, textarea, .modal')) return;
+            
+            e.preventDefault();
+            
+            const rect = this.getBoundingClientRect();
+            pointerOffsetX = e.clientX - rect.left;
+            pointerOffsetY = e.clientY - rect.top;
+            
+            pointerDraggedCard = this;
+            pointerDraggedFromList = this.closest('.list').dataset.listId;
+            
+            // Créer un clone pour le drag
+            dragClone = this.cloneNode(true);
+            dragClone.style.position = 'fixed';
+            dragClone.style.width = rect.width + 'px';
+            dragClone.style.height = rect.height + 'px';
+            dragClone.style.left = rect.left + 'px';
+            dragClone.style.top = rect.top + 'px';
+            dragClone.style.opacity = '0.8';
+            dragClone.style.pointerEvents = 'none';
+            dragClone.style.zIndex = '10000';
+            dragClone.style.transform = 'rotate(3deg)';
+            dragClone.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+            dragClone.classList.add('dragging-clone');
+            document.body.appendChild(dragClone);
+            
+            // Rendre la carte originale semi-transparente
+            this.style.opacity = '0.3';
+            
+            isDraggingWithPointer = true;
+            dragPointer.x = e.clientX;
+            dragPointer.y = e.clientY;
+            
             if (!dragAutoScroll.rafId) dragAutoScroll.rafId = requestAnimationFrame(autoScrollLoop);
+            
+            // Capture du pointer pour continuer à recevoir les événements
+            this.setPointerCapture(e.pointerId);
         });
-
-        card.addEventListener('dragend', function (e) {
-            this.classList.remove('dragging');
-            setDraggedCard(null);
-            setDraggedFromList(null);
-            isDraggingCard = false;
+        
+        card.addEventListener('pointermove', function (e) {
+            if (!isDraggingWithPointer || !pointerDraggedCard) return;
+            
+            e.preventDefault();
+            
+            dragPointer.x = e.clientX;
+            dragPointer.y = e.clientY;
+            
+            // Déplacer le clone
+            if (dragClone) {
+                dragClone.style.left = (e.clientX - pointerOffsetX) + 'px';
+                dragClone.style.top = (e.clientY - pointerOffsetY) + 'px';
+            }
+            
+            // Trouver la liste sous le curseur
+            const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+            const targetList = elementBelow?.closest('.list');
+            
+            if (targetList) {
+                const listContent = targetList.querySelector('.list-content');
+                const afterElement = getPointerDragAfterElement(listContent, e.clientY);
+                
+                // Créer ou déplacer l'indicateur de drop
+                if (!dropIndicator) {
+                    dropIndicator = document.createElement('div');
+                    dropIndicator.className = 'drop-indicator active';
+                    dropIndicator.style.height = '8px';
+                    dropIndicator.style.background = 'linear-gradient(90deg, #0079bf, #00a8ff)';
+                    dropIndicator.style.borderRadius = '4px';
+                    dropIndicator.style.margin = '4px 0';
+                    dropIndicator.style.pointerEvents = 'none';
+                }
+                
+                if (afterElement) {
+                    listContent.insertBefore(dropIndicator, afterElement);
+                } else {
+                    const addBtn = listContent.querySelector('.add-card-btn');
+                    if (addBtn) {
+                        listContent.insertBefore(dropIndicator, addBtn);
+                    } else {
+                        listContent.appendChild(dropIndicator);
+                    }
+                }
+            }
+        });
+        
+        card.addEventListener('pointerup', function (e) {
+            if (!isDraggingWithPointer || !pointerDraggedCard) return;
+            
+            e.preventDefault();
+            
+            // Trouver la liste cible
+            const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+            const targetList = elementBelow?.closest('.list');
+            
+            if (targetList && pointerDraggedCard) {
+                const toListId = targetList.dataset.listId;
+                const listContent = targetList.querySelector('.list-content');
+                const afterElement = getPointerDragAfterElement(listContent, e.clientY);
+                
+                const cardId = pointerDraggedCard.dataset.cardId;
+                const fromListId = pointerDraggedFromList;
+                
+                // Effectuer le déplacement
+                moveCardToPosition(cardId, fromListId, toListId, afterElement);
+            }
+            
+            // Nettoyer
+            if (dragClone) {
+                dragClone.remove();
+                dragClone = null;
+            }
+            
+            if (dropIndicator) {
+                dropIndicator.remove();
+                dropIndicator = null;
+            }
+            
+            if (pointerDraggedCard) {
+                pointerDraggedCard.style.opacity = '';
+            }
+            
+            pointerDraggedCard = null;
+            pointerDraggedFromList = null;
+            isDraggingWithPointer = false;
+            
             if (dragAutoScroll.rafId) {
                 cancelAnimationFrame(dragAutoScroll.rafId);
                 dragAutoScroll.rafId = null;
             }
-            document.querySelectorAll('.list').forEach(list => {
-                list.classList.remove('drag-over');
-            });
+            
+            this.releasePointerCapture(e.pointerId);
+        });
+        
+        card.addEventListener('pointercancel', function (e) {
+            // Même nettoyage qu'au pointerup
+            if (dragClone) {
+                dragClone.remove();
+                dragClone = null;
+            }
+            
+            if (dropIndicator) {
+                dropIndicator.remove();
+                dropIndicator = null;
+            }
+            
+            if (pointerDraggedCard) {
+                pointerDraggedCard.style.opacity = '';
+            }
+            
+            pointerDraggedCard = null;
+            pointerDraggedFromList = null;
+            isDraggingWithPointer = false;
+            
+            if (dragAutoScroll.rafId) {
+                cancelAnimationFrame(dragAutoScroll.rafId);
+                dragAutoScroll.rafId = null;
+            }
         });
     });
 
@@ -263,6 +414,22 @@ function moveListToPosition(listId, afterElement) {
 
 function getDragAfterElement(container, y) {
     const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+// Fonction similaire pour les pointer events (ignore le clone)
+function getPointerDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.card:not(.dragging-clone)')].filter(el => el !== pointerDraggedCard);
     
     return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
