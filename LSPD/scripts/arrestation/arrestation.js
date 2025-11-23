@@ -23,10 +23,10 @@ document.querySelector('form').addEventListener('submit', async function (e) {
   formData.append('rapports_lies', hiddenInput.value || '[]');
   // Log pour vérifier la valeur dans le FormData
 
-  // DEBUG: log FormData content
-  for (let pair of formData.entries()) {
-    window.alert(pair[0] + ': ' + pair[1]);
-  }
+  // DEBUG: log FormData content (commenté car causait des crashs dans FiveM)
+  // for (let pair of formData.entries()) {
+  //   console.log(pair[0] + ': ' + pair[1]);
+  // }
 
   // Envoi AJAX
   const res = await fetch('/api/arrestation', {
@@ -46,12 +46,12 @@ window.ajouterLienRapportConvoc = function () {
   let label = input.value;
   // Log pour debug : affiche l'id, le type et le label sélectionné
   if (!id || !type || !label) {
-    alert('Sélectionnez un rapport ou une convocation dans la recherche.');
+    showNotification('Sélectionnez un rapport ou une convocation dans la recherche.', 'warning');
     return;
   }
   // Empêcher doublon
   if ([...ul.children].some(li => li.dataset && li.dataset.id === id && li.dataset.type === type)) {
-    alert('Déjà ajouté !');
+    showNotification('Déjà ajouté !', 'warning');
     return;
   }
 
@@ -336,7 +336,7 @@ function ajouterElement() {
       return li.accusation;
     });
     if (existingItems.includes(select.selectedOptions[0].accusation)) {
-      alert("Cette accusation est déjà dans la liste !");
+      showNotification("Cette accusation est déjà dans la liste !", 'warning');
       return;
     }
     const li = document.createElement('li');
@@ -350,7 +350,7 @@ function ajouterElement() {
     select.value = "";
     select.focus();
   } else {
-    alert("Veuillez sélectionner une accusation !");
+    showNotification("Veuillez sélectionner une accusation !", 'warning');
   }
 };
 
@@ -567,9 +567,14 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
   const loader = document.getElementById("loaderOverlay");
 
   const originalContainer = document.querySelector(".incident-container");
-  if (!originalContainer) return alert("Erreur : div .incident-container introuvable.");
-  if (originalContainer.offsetWidth === 0 || originalContainer.offsetHeight === 0)
-    return alert("Erreur : la div .incident-container est invisible ou a une taille nulle.");
+  if (!originalContainer) {
+    showNotification("Erreur : div .incident-container introuvable.", 'error');
+    return;
+  }
+  if (originalContainer.offsetWidth === 0 || originalContainer.offsetHeight === 0) {
+    showNotification("Erreur : la div .incident-container est invisible ou a une taille nulle.", 'error');
+    return;
+  }
 
   // check if all required fields are filled
   const requiredFields = [
@@ -580,7 +585,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
   for (const field of requiredFields) {
     const el = document.getElementById(field);
     if (!el || !el.value.trim()) {
-      alert("Veuillez remplir tous les champs obligatoires: " + field);
+      showNotification("Veuillez remplir tous les champs obligatoires: " + field, 'warning');
       el.scrollIntoView({ behavior: 'smooth' });
       setTimeout(() => {
         el.focus();
@@ -790,7 +795,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     hasError = true;
     loader.style.display = 'none';
     await showAnimation('error');
-    alert("Erreur : " + err.message);
+    showNotification("Erreur : " + err.message, 'error');
   } finally {
     if (!hasError) {
       loader.style.display = 'none';

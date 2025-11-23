@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             hasError = true;
             if (loader) loader.style.display = 'none';
             await showAnimation('error');
-            alert("Erreur : " + err.message);
+            showNotification("Erreur : " + err.message, 'error');
         } finally {
             if (!hasError) {
                 if (loader) loader.style.display = 'none';

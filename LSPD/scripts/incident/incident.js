@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
             textarea.value = corrected;
           }
         } catch (e) {
-          alert('Erreur lors de la correction : ' + e.message);
+          showNotification('Erreur lors de la correction : ' + e.message, 'error');
         } finally {
           btn.disabled = false;
           btn.textContent = 'Corriger l’orthographe';
@@ -263,9 +263,14 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
   const loader = document.getElementById("loaderOverlay");
 
   const originalContainer = document.querySelector(".incident-container");
-  if (!originalContainer) return alert("Erreur : div .incident-container introuvable.");
-  if (originalContainer.offsetWidth === 0 || originalContainer.offsetHeight === 0)
-    return alert("Erreur : la div .incident-container est invisible ou a une taille nulle.");
+  if (!originalContainer) {
+    showNotification("Erreur : div .incident-container introuvable.", 'error');
+    return;
+  }
+  if (originalContainer.offsetWidth === 0 || originalContainer.offsetHeight === 0) {
+    showNotification("Erreur : la div .incident-container est invisible ou a une taille nulle.", 'error');
+    return;
+  }
 
   try {
     loader.style.display = "flex";
@@ -352,7 +357,7 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     hasError = true;
     loader.style.display = 'none';
     await showAnimation('error');
-    alert("Erreur : " + err.message);
+    showNotification("Erreur : " + err.message, 'error');
   } finally {
     if (!hasError) {
       loader.style.display = 'none';

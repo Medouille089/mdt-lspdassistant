@@ -99,11 +99,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     const resetBtn = document.getElementById('resetBtn');
     if (resetBtn) {
         resetBtn.addEventListener('click', function () {
-            if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les délits ?')) {
-                delitsAjoutes = [];
-                afficherDelits();
-                calculerTotaux();
-            }
+            showConfirm('Êtes-vous sûr de vouloir réinitialiser tous les délits ?', function(confirmed) {
+                if (confirmed) {
+                    delitsAjoutes = [];
+                    afficherDelits();
+                    calculerTotaux();
+                }
+            });
         });
     }
 
@@ -157,7 +159,7 @@ async function loadDelitsFromDatabase() {
 
     } catch (error) {
         console.error('Erreur chargement délits:', error);
-        alert('Erreur lors du chargement des délits depuis la base de données');
+        showNotification('Erreur lors du chargement des délits depuis la base de données', 'error');
     }
 }
 
@@ -221,7 +223,7 @@ function clearDelitSelection() {
 
 function ajouterDelit() {
     if (!selectedDelit) {
-        alert('Veuillez rechercher et sélectionner un chef d\'accusation');
+        showNotification('Veuillez rechercher et sélectionner un chef d\'accusation', 'warning');
         return;
     }
 
@@ -385,7 +387,7 @@ function setupPeineClickHandlers() {
 
 function applySelectedPeine(type, multiplier) {
     if (delitsAjoutes.length === 0) {
-        alert('Aucun délit ajouté pour calculer les peines');
+        showNotification('Aucun délit ajouté pour calculer les peines', 'warning');
         return;
     }
 
@@ -455,7 +457,7 @@ function updatePeinesCardColor(type) {
 
 async function exporterCalcul() {
     if (delitsAjoutes.length === 0) {
-        alert('Aucun délit à exporter. Veuillez d\'abord ajouter des délits.');
+        showNotification('Aucun délit à exporter. Veuillez d\'abord ajouter des délits.', 'warning');
         return;
     }
 
@@ -564,7 +566,7 @@ async function exporterCalcul() {
 
     } catch (error) {
         console.error('Erreur lors de l\'exportation:', error);
-        alert('Erreur lors de l\'exportation: ' + error.message);
+        showNotification('Erreur lors de l\'exportation: ' + error.message, 'error');
 
         const exportBtn = document.getElementById('exportBtn');
         exportBtn.textContent = 'Exporter';

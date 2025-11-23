@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votre Titre - LSPD Assistant</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    
+    <!-- Vos autres CSS -->
+    <link rel="stylesheet" href="styles/colors.css">
+    
+    <!-- ⭐ Custom Notifications (obligatoire pour FiveM) -->
+    <link rel="stylesheet" href="styles/custom-notifications.css">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #0b1b5a;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: #0b1b5a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background: #0a1649;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(11, 27, 90, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Template - Custom Notifications</h1>
+        <p>Ce fichier est prêt à utiliser les notifications personnalisées compatibles FiveM.</p>
+        
+        <h2>Exemples d'utilisation :</h2>
+        
+        <button onclick="showNotification('Notification d\'information', 'info')">
+            Test Info
+        </button>
+        
+        <button onclick="showNotification('Opération réussie !', 'success')">
+            Test Success
+        </button>
+        
+        <button onclick="showNotification('Attention !', 'warning')">
+            Test Warning
+        </button>
+        
+        <button onclick="showNotification('Erreur détectée', 'error')">
+            Test Error
+        </button>
+        
+        <br><br>
+        
+        <button onclick="demoConfirm()">
+            Test Confirm
+        </button>
+        
+        <button onclick="demoPrompt()">
+            Test Prompt
+        </button>
+    </div>
+    
+    <!-- ⭐ Custom Notifications JS (charger AVANT vos scripts) -->
+    <script src="scripts/custom-notifications.js"></script>
+    
+    <!-- Votre script personnalisé -->
+    <script>
+        // Exemple de fonction avec notification
+        function saveData() {
+            // Simuler une sauvegarde
+            setTimeout(() => {
+                showNotification('Données sauvegardées avec succès !', 'success');
+            }, 500);
+        }
+        
+        // Exemple de confirmation
+        function demoConfirm() {
+            showConfirm('Voulez-vous vraiment effectuer cette action ?', function(confirmed) {
+                if (confirmed) {
+                    showNotification('Action confirmée', 'success');
+                } else {
+                    showNotification('Action annulée', 'info');
+                }
+            });
+        }
+        
+        // Exemple de prompt
+        function demoPrompt() {
+            showPrompt('Entrez votre nom', '', function(nom) {
+                if (nom !== null && nom.trim() !== '') {
+                    showNotification('Bonjour ' + nom + ' !', 'success');
+                } else if (nom === null) {
+                    showNotification('Saisie annulée', 'info');
+                } else {
+                    showNotification('Le nom ne peut pas être vide', 'warning');
+                }
+            });
+        }
+        
+        // Exemple de validation de formulaire
+        function validateForm() {
+            const input = document.getElementById('myInput');
+            
+            if (!input || input.value.trim() === '') {
+                showNotification('Veuillez remplir tous les champs obligatoires', 'warning');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Exemple de gestion d'erreur
+        async function loadData() {
+            try {
+                const response = await fetch('/api/data');
+                
+                if (!response.ok) {
+                    throw new Error('Erreur ' + response.status);
+                }
+                
+                const data = await response.json();
+                showNotification('Données chargées avec succès', 'success');
+                return data;
+                
+            } catch (error) {
+                showNotification('Erreur lors du chargement : ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+        
+        // Exemple de confirm avant suppression
+        function deleteItem(itemId) {
+            showConfirm('Êtes-vous sûr de vouloir supprimer cet élément ?', function(confirmed) {
+                if (confirmed) {
+                    // Effectuer la suppression
+                    performDelete(itemId);
+                }
+            }, {
+                yesText: 'Supprimer',
+                noText: 'Annuler'
+            });
+        }
+        
+        function performDelete(itemId) {
+            // Simuler une suppression
+            setTimeout(() => {
+                showNotification('Élément supprimé avec succès', 'success');
+            }, 300);
+        }
+        
+        // Message de bienvenue au chargement
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                showNotification('Page chargée avec succès', 'info');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

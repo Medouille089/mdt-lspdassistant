@@ -30,7 +30,7 @@ async function acquireEditLock() {
         } else if (res.status === 409) {
             const body = await res.json();
             faqEditLock = body.current;
-            alert('Le mode modification est déjà activé par ' + (faqEditLock?.ownerName || 'quelqu\'un'));
+            showNotification('Le mode modification est déjà activé par ' + (faqEditLock?.ownerName || 'quelqu\'un'), 'warning');
             return false;
         }
     } catch (e) {}
@@ -985,11 +985,11 @@ function showEditFAQForm(entry, card, header, categoryId) {
             } else {
                 try { enableSortables(); } catch (e) {}
                 // if patch failed, optionally show an error (simple alert for now)
-                alert('Erreur lors de la modification');
+                showNotification('Erreur lors de la modification', 'error');
             }
         } catch (err) {
             try { enableSortables(); } catch (e) {}
-            alert('Erreur réseau');
+            showNotification('Erreur réseau', 'error');
         }
     };
 
