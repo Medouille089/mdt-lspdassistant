@@ -91,14 +91,14 @@
         let ok = false;
         radios.forEach(r => { if (r.checked) ok = true; });
         if (!ok) {
-          alert('Veuillez répondre à la question requise.');
+          showNotification('Veuillez répondre à la question requise.', 'warning');
           radios[0].focus();
           return false;
         }
       } else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
         const v = (el.value || '').toString().trim();
         if (!v) {
-          alert('Veuillez remplir tous les champs obligatoires avant de continuer.');
+          showNotification('Veuillez remplir tous les champs obligatoires avant de continuer.', 'warning');
           el.focus();
           return false;
         }
@@ -144,15 +144,15 @@
         const res = await postSubmission(payload);
         if (!res.ok) {
           const txt = await res.text();
-          alert('Erreur envoi: ' + res.status + '\n' + txt);
+          showNotification('Erreur envoi: ' + res.status + '\n' + txt, 'error');
           return;
         }
-        alert('Candidature envoyée.');
+        showNotification('Candidature envoyée avec succès!', 'success');
         form.reset();
         showStep(0);
       } catch (err) {
         console.error(err);
-        alert('Erreur réseau lors de l envoi');
+        showNotification('Erreur réseau lors de l\'envoi', 'error');
       } finally {
         btnSubmit.disabled = false;
         btnSubmit.textContent = 'Envoyer la candidature';

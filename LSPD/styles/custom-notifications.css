@@ -1,0 +1,346 @@
+/* ============================================
+   Custom Notifications System - Compatible FiveM
+   ============================================ */
+
+/* Animation pour les notifications */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* Container des notifications */
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+/* Notification individuelle */
+.custom-notification {
+    background: white;
+    border-left: 4px solid #0b1b5a;
+    padding: 15px 20px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 300px;
+    max-width: 400px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #333;
+    animation: slideInRight 0.3s ease;
+    pointer-events: auto;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.custom-notification.closing {
+    animation: slideOutRight 0.3s ease forwards;
+}
+
+/* Types de notifications */
+.custom-notification.notification-info {
+    border-left-color: #0b1b5a;
+}
+
+.custom-notification.notification-success {
+    border-left-color: #28a745;
+}
+
+.custom-notification.notification-warning {
+    border-left-color: #ffc107;
+}
+
+.custom-notification.notification-error {
+    border-left-color: #dc3545;
+}
+
+/* Icône de fermeture */
+.notification-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    transition: color 0.2s;
+}
+
+.notification-close:hover {
+    color: #333;
+}
+
+/* Contenu de la notification */
+.notification-content {
+    padding-right: 20px;
+}
+
+/* ============================================
+   Custom Confirm Dialog
+   ============================================ */
+
+.custom-confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    animation: fadeIn 0.2s ease;
+}
+
+.custom-confirm-overlay.show {
+    display: flex;
+}
+
+.custom-confirm-overlay.closing {
+    animation: fadeOut 0.2s ease forwards;
+}
+
+.custom-confirm-box {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.3s ease;
+}
+
+.custom-confirm-message {
+    margin-bottom: 25px;
+    font-size: 16px;
+    color: #333;
+    line-height: 1.5;
+}
+
+.custom-confirm-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.custom-confirm-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    min-width: 100px;
+}
+
+.custom-confirm-btn-yes {
+    background: #0b1b5a;
+    color: white;
+}
+
+.custom-confirm-btn-yes:hover {
+    background: #0a1649;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(11, 27, 90, 0.3);
+}
+
+.custom-confirm-btn-no {
+    background: #dc3545;
+    color: white;
+}
+
+.custom-confirm-btn-no:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.custom-confirm-btn:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   Custom Prompt Dialog
+   ============================================ */
+
+.custom-prompt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    animation: fadeIn 0.2s ease;
+}
+
+.custom-prompt-overlay.show {
+    display: flex;
+}
+
+.custom-prompt-overlay.closing {
+    animation: fadeOut 0.2s ease forwards;
+}
+
+.custom-prompt-box {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.3s ease;
+}
+
+.custom-prompt-message {
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #333;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.custom-prompt-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.custom-prompt-input:focus {
+    outline: none;
+    border-color: #0b1b5a;
+    box-shadow: 0 0 0 2px rgba(11, 27, 90, 0.1);
+}
+
+.custom-prompt-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.custom-prompt-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    min-width: 100px;
+}
+
+.custom-prompt-btn-ok {
+    background: #0b1b5a;
+    color: white;
+}
+
+.custom-prompt-btn-ok:hover {
+    background: #0a1649;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(11, 27, 90, 0.3);
+}
+
+.custom-prompt-btn-cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.custom-prompt-btn-cancel:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+}
+
+.custom-prompt-btn:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+    .notification-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+    }
+
+    .custom-notification {
+        min-width: auto;
+        max-width: 100%;
+    }
+
+    .custom-confirm-box,
+    .custom-prompt-box {
+        padding: 20px;
+        width: 85%;
+    }
+
+    .custom-confirm-buttons,
+    .custom-prompt-buttons {
+        flex-direction: column;
+    }
+
+    .custom-confirm-btn,
+    .custom-prompt-btn {
+        width: 100%;
+    }
+}

@@ -172,9 +172,14 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     loader.style.display = 'flex';
 
     const originalContainer = document.querySelector(".incident-container");
-    if (!originalContainer) return alert("Erreur : div .incident-container introuvable.");
-    if (originalContainer.offsetWidth === 0 || originalContainer.offsetHeight === 0)
-        return alert("Erreur : la div .incident-container est invisible ou a une taille nulle.");
+    if (!originalContainer) {
+        showNotification("Erreur : div .incident-container introuvable.", 'error');
+        return;
+    }
+    if (originalContainer.offsetWidth === 0 || originalContainer.offsetHeight === 0) {
+        showNotification("Erreur : la div .incident-container est invisible ou a une taille nulle.", 'error');
+        return;
+    }
 
     try {
         const clone = originalContainer.cloneNode(true);

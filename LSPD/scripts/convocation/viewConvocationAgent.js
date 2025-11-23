@@ -36,7 +36,7 @@ function formatDate(dateStr) {
 // Charger les détails de la convocation
 async function loadConvocationDetails() {
     if (!convocationId) {
-        alert('ID de convocation manquant');
+        showNotification('ID de convocation manquant', 'error');
         window.location.href = '/liste-convocations-agent';
         return;
     }
@@ -53,7 +53,7 @@ async function loadConvocationDetails() {
         const convocation = convocations.find(c => c.id == convocationId);
 
         if (!convocation) {
-            alert('Convocation introuvable');
+            showNotification('Convocation introuvable', 'error');
             window.location.href = '/liste-convocations-agent';
             return;
         }
@@ -106,14 +106,14 @@ async function loadConvocationDetails() {
                         }, { once: true });
                     }, 1200);
                 } catch (e) {
-                    alert('Erreur lors de la sauvegarde du commentaire');
+                    showNotification('Erreur lors de la sauvegarde du commentaire', 'error');
                 }
             });
         }
 
     } catch (error) {
         console.error('Erreur:', error);
-        alert('Erreur lors du chargement des détails');
+        showNotification('Erreur lors du chargement des détails', 'error');
         window.location.href = '/liste-convocations-agent';
     } finally {
         loader.style.display = 'none';

@@ -110,7 +110,7 @@ function renderTable() {
                 } catch (e) {
                     btn.disabled = false;
                     console.error(e);
-                    alert('Impossible de révoquer la sanction');
+                    showNotification('Impossible de révoquer la sanction', 'error');
                 }
             });
         }
