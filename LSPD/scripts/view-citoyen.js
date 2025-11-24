@@ -65,7 +65,7 @@ async function loadUserInfo() {
         // Vérifier si on a déjà les infos en cache (session storage)
         const cachedUser = sessionStorage.getItem('currentUser');
         const cacheTime = sessionStorage.getItem('currentUserTime');
-        
+
         // Cache valide pendant 5 minutes
         if (cachedUser && cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
             currentUserInfo = JSON.parse(cachedUser);
@@ -76,11 +76,11 @@ async function loadUserInfo() {
         if (!res.ok) throw new Error('Erreur récupération utilisateur');
 
         currentUserInfo = await res.json();
-        
+
         // Mettre en cache
         sessionStorage.setItem('currentUser', JSON.stringify(currentUserInfo));
         sessionStorage.setItem('currentUserTime', Date.now().toString());
-        
+
         return currentUserInfo;
     } catch (err) {
         console.error('Erreur chargement utilisateur:', err);
@@ -110,7 +110,7 @@ async function loadCitoyenProfile() {
 
         citoyenProfile = await res.json();
         await displayProfile(citoyenProfile);
-        
+
         // Charger les véhicules en parallèle (ne pas attendre)
         loadVehicules().catch(err => console.error('Erreur chargement véhicules:', err));
 

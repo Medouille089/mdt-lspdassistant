@@ -5,11 +5,11 @@ const bot = require("../config/bot");
 const config = require("../config/config");
 const { checkAuth } = require("../config/middleware");
 const { EmbedBuilder } = require("discord.js");
-const { 
-    cacheCitoyens, 
-    cacheCitoyenDetail, 
-    invalidateCitoyensCache, 
-    invalidateCitoyenCache 
+const {
+    cacheCitoyens,
+    cacheCitoyenDetail,
+    invalidateCitoyensCache,
+    invalidateCitoyenCache
 } = require("../config/cacheMiddleware");
 
 // GET /api/citoyens - Liste de tous les citoyens

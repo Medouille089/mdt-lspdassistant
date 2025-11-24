@@ -5,11 +5,11 @@ const bot = require("../config/bot");
 const config = require("../config/config");
 const { checkAuth } = require("../config/middleware");
 const { EmbedBuilder } = require("discord.js");
-const { 
-    cacheVehicules, 
-    cacheVehiculeDetail, 
-    invalidateVehiculesCache, 
-    invalidateVehiculeCache 
+const {
+    cacheVehicules,
+    cacheVehiculeDetail,
+    invalidateVehiculesCache,
+    invalidateVehiculeCache
 } = require("../config/cacheMiddleware");
 
 // GET /api/vehicules - Liste de tous les véhicules
