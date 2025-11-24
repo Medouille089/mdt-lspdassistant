@@ -166,7 +166,7 @@ async function loadLogs(page = currentPage, useCache = true) {
         }
         
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('❌ Erreur:', error);
         if (page === currentPage) {
             logsContent.innerHTML = `
                 <div class="empty-state">
@@ -183,6 +183,11 @@ function displayLogs(data) {
     const logsContent = document.getElementById('logsContent');
     const pagination = document.getElementById('pagination');
     
+    if (!data || !data.logs) {
+        console.error('❌ Données invalides:', data);
+        return;
+    }
+    
     if (data.logs.length === 0) {
         logsContent.innerHTML = `
             <div class="empty-state">
@@ -190,7 +195,7 @@ function displayLogs(data) {
                 <p>Aucune action n'a encore été enregistrée sur le Trello${currentSearch ? ' avec ce critère de recherche' : ''}.</p>
             </div>
         `;
-        pagination.style.display = 'none';
+        pagination.innerHTML = '';
         return;
     }
     
@@ -198,8 +203,7 @@ function displayLogs(data) {
     logsContent.innerHTML = data.logs.map(log => renderLogEntry(log)).join('');
     
     // Mettre à jour la pagination
-    updatePagination(data.pagination);
-    pagination.style.display = 'flex';
+    renderPagination(data.pagination);
 }
 
 // Précharger les 2-3 pages suivantes en arrière-plan
@@ -349,57 +353,160 @@ function renderLogDetails(logType, details) {
     return html;
 }
 
-function updatePagination(pagination) {
+// Nouvelle fonction de pagination simplifiée
+function renderPagination(paginationData) {
     const paginationDiv = document.getElementById('pagination');
-    paginationDiv.innerHTML = '';
-    
-    const { currentPage: page, totalPages } = pagination;
-    
-    if (totalPages <= 1) {
-        paginationDiv.style.display = 'none';
+    if (!paginationDiv) {
+        console.error('Élément pagination introuvable');
         return;
     }
     
-    paginationDiv.style.display = 'flex';
+    paginationDiv.innerHTML = '';
     
-    // Bouton Précédent
-    const prevBtn = document.createElement('button');
-    prevBtn.textContent = '‹ Précédent';
-    prevBtn.disabled = page === 1;
-    prevBtn.addEventListener('click', () => {
-        if (page > 1) {
-            currentPage--;
+    const { currentPage: page, totalPages, totalLogs } = paginationData;
+    
+    if (totalPages <= 1) {
+        // Afficher quand même un message avec le nombre total de logs
+        const info = document.createElement('div');
+        info.style.textAlign = 'center';
+        info.style.padding = '1rem';
+        info.style.color = '#6b7280';
+        info.style.fontSize = '0.9rem';
+        info.textContent = `${totalLogs} log${totalLogs > 1 ? 's' : ''} au total`;
+        paginationDiv.appendChild(info);
+        return;
+    }
+    
+    // Container flex
+    const container = document.createElement('div');
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.alignItems = 'center';
+    container.style.gap = '0'; // Coller tous les boutons
+    // Séparer Précédent
+    const prevWrapper = document.createElement('div');
+    prevWrapper.style.marginRight = '1.5rem';
+    const prevBtn = createPaginationButton('‹ Précédent', page === 1, () => {
+        currentPage--;
+        loadLogs();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    prevWrapper.appendChild(prevBtn);
+    container.appendChild(prevWrapper);
+    
+    // Calcul des pages à afficher
+    const maxPages = 5;
+    let startPage = Math.max(1, page - Math.floor(maxPages / 2));
+    let endPage = Math.min(totalPages, startPage + maxPages - 1);
+    
+    if (endPage - startPage < maxPages - 1) {
+        startPage = Math.max(1, endPage - maxPages + 1);
+    }
+    
+    // Première page + "..."
+    if (startPage > 1) {
+        // Si on affiche "1 ...", le bouton 1 est arrondi à gauche
+        container.appendChild(createPaginationButton('1', false, () => {
+            currentPage = 1;
             loadLogs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, false, '8px 0 0 8px'));
+        if (startPage > 2) {
+            const dotsBtn = createPaginationButton('...', false, null, false, '0');
+            dotsBtn.style.background = '#0b1b5a';
+            dotsBtn.style.color = 'white';
+            dotsBtn.style.cursor = 'default';
+            container.appendChild(dotsBtn);
         }
-    });
-    paginationDiv.appendChild(prevBtn);
+    }
     
-    // Boutons de pages
-    for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement('button');
-        btn.textContent = i;
-        if (i === page) btn.disabled = true;
-        btn.addEventListener('click', () => {
+    // Pages numérotées
+    for (let i = startPage; i <= endPage; i++) {
+        const isActive = i === page;
+        let radius = '0';
+        // Si c'est le premier bouton visible ET il n'y a pas de "1 ..." avant
+        if (i === startPage && startPage === 1) radius = '8px 0 0 8px';
+        // Si c'est le dernier bouton visible ET il n'y a pas de "... 27" après
+        if (i === endPage && endPage === totalPages) radius = '0 8px 8px 0';
+        const btn = createPaginationButton(String(i), isActive, () => {
             currentPage = i;
             loadLogs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-        paginationDiv.appendChild(btn);
+        }, isActive, radius);
+        container.appendChild(btn);
     }
     
-    // Bouton Suivant
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = 'Suivant ›';
-    nextBtn.disabled = page === totalPages;
-    nextBtn.addEventListener('click', () => {
-        if (page < totalPages) {
-            currentPage++;
+    // "..." + dernière page
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const dotsBtn = createPaginationButton('...', false, null, false, '0');
+            dotsBtn.style.background = '#0b1b5a';
+            dotsBtn.style.color = 'white';
+            dotsBtn.style.cursor = 'default';
+            container.appendChild(dotsBtn);
+        }
+        // Si on affiche "... 27", le bouton 27 est arrondi à droite
+        container.appendChild(createPaginationButton(String(totalPages), false, () => {
+            currentPage = totalPages;
             loadLogs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        }, false, '0 8px 8px 0'));
+    }
+    
+    // Séparer Suivant
+    const nextWrapper = document.createElement('div');
+    nextWrapper.style.marginLeft = '1.5rem';
+    const nextBtn = createPaginationButton('Suivant ›', page === totalPages, () => {
+        currentPage++;
+        loadLogs();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-    paginationDiv.appendChild(nextBtn);
+    nextWrapper.appendChild(nextBtn);
+    container.appendChild(nextWrapper);
+    
+    paginationDiv.appendChild(container);
+}
+
+// Fonction helper pour créer un bouton de pagination
+function createPaginationButton(text, disabled, onClick, isActive = false) {
+    const btn = document.createElement('button');
+    btn.textContent = text;
+    btn.disabled = disabled;
+    // Styles de base
+    btn.style.padding = '0.7rem 1.2rem';
+    btn.style.border = 'none';
+    // borderRadius param
+    let borderRadius = arguments[4] || '0';
+    // Même radius sur les 4 coins pour Précédent/Suivant
+    if (text === '‹ Précédent' || text === 'Suivant ›') borderRadius = '8px';
+    btn.style.borderRadius = borderRadius;
+    btn.style.fontWeight = '600';
+    btn.style.fontSize = '0.95rem';
+    btn.style.transition = 'all 0.2s';
+    btn.style.fontFamily = '"Segoe UI", sans-serif';
+    if (disabled || isActive) {
+        btn.style.background = isActive ? '#344863' : '#d1d5db';
+        btn.style.color = 'white';
+        btn.style.cursor = 'not-allowed';
+        btn.style.opacity = isActive ? '1' : '0.6';
+    } else {
+        btn.style.background = '#0b1b5a';
+        btn.style.color = 'white';
+        btn.style.cursor = 'pointer';
+        btn.style.boxShadow = '0 2px 4px rgba(11, 27, 90, 0.2)';
+        btn.addEventListener('click', onClick);
+        btn.addEventListener('mouseenter', () => {
+            btn.style.background = '#091442';
+            btn.style.transform = 'scale(1.08)';
+            btn.style.boxShadow = '0 4px 8px rgba(11, 27, 90, 0.3)';
+        });
+        btn.addEventListener('mouseleave', () => {
+            btn.style.background = '#0b1b5a';
+            btn.style.transform = 'scale(1)';
+            btn.style.boxShadow = '0 2px 4px rgba(11, 27, 90, 0.2)';
+        });
+    }
+    return btn;
 }
 
 (function () {

@@ -9,6 +9,9 @@ const { checkAuth } = require('../config/middleware');
  */
 router.get('/api/trello/logs', checkAuth, async (req, res) => {
     try {
+        // Supprimer les logs de plus de 2 semaines (14 jours)
+        await pool.query(`DELETE FROM trello_logs WHERE created_at < NOW() - INTERVAL '14 days'`);
+        
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 50;
         const offset = (page - 1) * limit;

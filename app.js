@@ -270,6 +270,8 @@ const accountsRoutes = require('./routes/accounts');
 const trelloLogs = require('./routes/trelloLogs');
 const citoyensRoutes = require('./routes/citoyens');
 
+const githubPushRoute = require('./routes/githubPush');
+
 app.use(configRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
@@ -307,6 +309,9 @@ app.use(discordUploader);
 app.use(officerConvocations);
 app.use(accountsRoutes);
 app.use(trelloLogs);
+
+// Route pour recevoir les pushs GitHub
+app.use(githubPushRoute);
 
 // Middleware: canonicalize .html URLs -> redirect to extensionless, and
 // serve *.html when users request /page (without extension).
