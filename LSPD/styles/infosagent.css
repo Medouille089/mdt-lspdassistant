@@ -773,6 +773,49 @@ body:not(.edit-mode) .agent-profile-container .form-group select {
   border-bottom: 1px solid var(--border-input) !important;
 }
 
+/* Styles pour affichage en grille des véhicules */
+.equipment-list.vehicules-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.equipment-list.vehicules-grid .equipment-item {
+  margin-bottom: 0;
+  border: 1px solid var(--border-input) !important;
+  border-radius: 8px !important;
+}
+
+.equipment-list.vehicules-grid .equipment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.equipment-list.vehicules-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.equipment-list.vehicules-grid-compact .equipment-item {
+  margin-bottom: 0;
+  border: 1px solid var(--border-input) !important;
+  border-radius: 8px !important;
+}
+
+.equipment-list.vehicules-grid-compact .equipment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive : passer à 1 colonne sur petits écrans */
+@media (max-width: 768px) {
+  .equipment-list.vehicules-grid,
+  .equipment-list.vehicules-grid-compact {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* keep default list behavior (no glued rows) */
 
 /* Styles pour les formulaires d'ajout d'équipement */

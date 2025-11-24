@@ -665,51 +665,247 @@ async function loadVehicules() {
             return;
         }
 
+        // Déterminer le mode d'affichage selon le nombre de véhicules
+        const count = vehicules.length;
+        let displayMode = 'list'; // Par défaut : liste
+        let maxDisplay = count;
+
+        if (count >= 7) {
+            displayMode = 'grid-compact';
+            maxDisplay = 6; // Afficher 6, puis "Voir tous"
+        } else if (count >= 4) {
+            displayMode = 'grid';
+        }
+
+        // Appliquer le style selon le mode
+        vehiculesListEl.className = `equipment-list vehicules-${displayMode}`;
         vehiculesListEl.innerHTML = '';
-        vehicules.forEach(vehicule => {
-            const item = document.createElement('div');
-            item.className = 'equipment-item';
-            item.style.cursor = 'pointer';
-            item.style.transition = 'all 0.3s ease';
 
-            const mandatBadge = vehicule.mandat_actif
-                ? '<span style="color: #e74c3c; font-weight: 600; margin-left: 8px;">⚠️ MANDAT</span>'
-                : '';
-
-            item.innerHTML = `
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
-                        ${vehicule.modele || 'Modèle inconnu'}${mandatBadge}
-                    </div>
-                    <div style="font-size: 13px; color: #7f8c8d;">
-                        Plaque: ${vehicule.plaque || 'N/A'}
-                    </div>
-                </div>
-                <span class="material-symbols-rounded" style="color: var(--lspd-gold); font-size: 20px;">
-                    chevron_right
-                </span>
-            `;
-
-            item.addEventListener('click', () => {
-                window.location.href = `/view-vehicule.html?id=${vehicule.id}`;
-            });
-
-            item.addEventListener('mouseenter', () => {
-                item.style.background = 'rgba(255, 255, 255, 0.08)';
-                item.style.borderColor = 'var(--lspd-gold)';
-            });
-
-            item.addEventListener('mouseleave', () => {
-                item.style.background = 'rgba(255, 255, 255, 0.03)';
-                item.style.borderColor = 'var(--border-color)';
-            });
-
+        // Afficher les véhicules (limité si beaucoup)
+        const displayVehicules = vehicules.slice(0, maxDisplay);
+        
+        displayVehicules.forEach(vehicule => {
+            const item = createVehiculeItem(vehicule, displayMode);
             vehiculesListEl.appendChild(item);
         });
+
+        // Si plus de véhicules que la limite, ajouter un bouton "Voir tous"
+        if (count > maxDisplay) {
+            const seeAllBtn = document.createElement('div');
+            seeAllBtn.className = 'see-all-vehicles-btn';
+            seeAllBtn.innerHTML = `
+                <span class="material-symbols-rounded">expand_more</span>
+                Voir les ${count - maxDisplay} autres véhicules
+            `;
+            seeAllBtn.style.cssText = `
+                grid-column: 1 / -1;
+                padding: 12px;
+                background: rgba(11, 27, 90, 0.1);
+                border: 1px dashed var(--lspd-blue);
+                border-radius: 8px;
+                text-align: center;
+                cursor: pointer;
+                color: var(--lspd-blue);
+                font-weight: 600;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            `;
+            
+            seeAllBtn.addEventListener('mouseenter', () => {
+                seeAllBtn.style.background = 'rgba(11, 27, 90, 0.15)';
+                seeAllBtn.style.borderColor = 'var(--lspd-gold)';
+            });
+            
+            seeAllBtn.addEventListener('mouseleave', () => {
+                seeAllBtn.style.background = 'rgba(11, 27, 90, 0.1)';
+                seeAllBtn.style.borderColor = 'var(--lspd-blue)';
+            });
+
+            seeAllBtn.addEventListener('click', () => {
+                showAllVehiclesModal(vehicules);
+            });
+
+            vehiculesListEl.appendChild(seeAllBtn);
+        }
 
     } catch (error) {
         console.error('Erreur chargement véhicules:', error);
         vehiculesListEl.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur de chargement</p>';
+    }
+}
+
+// Fonction pour créer un élément véhicule selon le mode d'affichage
+function createVehiculeItem(vehicule, displayMode = 'list') {
+    const item = document.createElement('div');
+    item.className = 'equipment-item';
+    item.style.cursor = 'pointer';
+    item.style.transition = 'all 0.3s ease';
+
+    const mandatBadge = vehicule.mandat_actif
+        ? '<span style="color: #e74c3c; font-weight: 600; margin-left: 8px; font-size: 12px;">⚠️</span>'
+        : '';
+
+    // Mode compact pour grille
+    if (displayMode === 'grid' || displayMode === 'grid-compact') {
+        item.style.padding = '10px 12px';
+        item.innerHTML = `
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 2px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${vehicule.modele || 'Modèle inconnu'}${mandatBadge}
+                </div>
+                <div style="font-size: 12px; color: #7f8c8d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${vehicule.plaque || 'N/A'}
+                </div>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--lspd-gold); font-size: 18px; flex-shrink: 0;">
+                chevron_right
+            </span>
+        `;
+    } else {
+        // Mode liste normal (original)
+        item.innerHTML = `
+            <div style="flex: 1;">
+                <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
+                    ${vehicule.modele || 'Modèle inconnu'}${mandatBadge}
+                </div>
+                <div style="font-size: 13px; color: #7f8c8d;">
+                    Plaque: ${vehicule.plaque || 'N/A'}
+                </div>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--lspd-gold); font-size: 20px;">
+                chevron_right
+            </span>
+        `;
+    }
+
+    item.addEventListener('click', () => {
+        window.location.href = `/view-vehicule.html?id=${vehicule.id}`;
+    });
+
+    item.addEventListener('mouseenter', () => {
+        item.style.background = 'rgba(255, 255, 255, 0.08)';
+        item.style.borderColor = 'var(--lspd-gold)';
+    });
+
+    item.addEventListener('mouseleave', () => {
+        item.style.background = 'rgba(255, 255, 255, 0.03)';
+        item.style.borderColor = 'var(--border-color)';
+    });
+
+    return item;
+}
+
+// Fonction pour afficher la modale avec tous les véhicules
+function showAllVehiclesModal(vehicules) {
+    // Créer la modale
+    const modal = document.createElement('div');
+    modal.className = 'vehicles-modal-overlay';
+    modal.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: fadeIn 0.2s ease;
+    `;
+
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        max-width: 800px;
+        width: 90%;
+        max-height: 80vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    `;
+
+    const modalHeader = document.createElement('div');
+    modalHeader.style.cssText = `
+        padding: 20px 24px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    `;
+    modalHeader.innerHTML = `
+        <h3 style="margin: 0; color: var(--lspd-blue); display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-rounded">garage</span>
+            Tous les véhicules (${vehicules.length})
+        </h3>
+        <button class="modal-close-btn" style="background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.2s;">
+            <span class="material-symbols-rounded" style="font-size: 24px; color: #666;">close</span>
+        </button>
+    `;
+
+    const modalBody = document.createElement('div');
+    modalBody.style.cssText = `
+        padding: 16px 24px;
+        overflow-y: auto;
+        flex: 1;
+    `;
+
+    const vehiculesGrid = document.createElement('div');
+    vehiculesGrid.className = 'equipment-list vehicules-grid';
+    vehiculesGrid.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 12px;
+    `;
+
+    vehicules.forEach(vehicule => {
+        const item = createVehiculeItem(vehicule, 'grid');
+        vehiculesGrid.appendChild(item);
+    });
+
+    modalBody.appendChild(vehiculesGrid);
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    // Fermer la modale
+    const closeBtn = modalHeader.querySelector('.modal-close-btn');
+    const closeModal = () => {
+        modal.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => modal.remove(), 200);
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    closeBtn.addEventListener('mouseenter', () => {
+        closeBtn.style.background = 'rgba(0, 0, 0, 0.05)';
+    });
+    closeBtn.addEventListener('mouseleave', () => {
+        closeBtn.style.background = 'none';
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Animations CSS
+    if (!document.getElementById('vehicles-modal-animations')) {
+        const style = document.createElement('style');
+        style.id = 'vehicles-modal-animations';
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
     }
 }
 
