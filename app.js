@@ -91,7 +91,7 @@ app.use((req, res, next) => {
   // Supprimer toute CSP existante qui pourrait bloquer
   res.removeHeader('Content-Security-Policy');
   res.removeHeader('X-Frame-Options');
-  
+
   // Autoriser l'affichage en iframe depuis n'importe quelle origine
   res.setHeader('Content-Security-Policy', "frame-ancestors * 'self' https: http: data: nui:");
   next();
@@ -204,9 +204,9 @@ app.use((req, res, next) => {
     "/login-local",
     "/forgot-password",
     "/reset-password",
-     "/recrutement",
-      "/forms/recruitment",
-     "/api/user/discord-info",
+    "/recrutement",
+    "/forms/recruitment",
+    "/api/user/discord-info",
   ];
 
   // Autoriser uniquement les assets front (pas les .html)
@@ -269,6 +269,7 @@ const officerConvocations = require('./routes/officerConvocations');
 const accountsRoutes = require('./routes/accounts');
 const trelloLogs = require('./routes/trelloLogs');
 const citoyensRoutes = require('./routes/citoyens');
+const vehiculesRoutes = require('./routes/vehicules');
 
 const githubPushRoute = require('./routes/githubPush');
 
@@ -277,6 +278,7 @@ app.use(authRoutes);
 app.use(userRoutes);
 app.use(braceletRoutes);
 app.use(citoyensRoutes);
+app.use(vehiculesRoutes);
 app.use(arrestationRoute);
 app.use(convocationRoute);
 app.use(convocationsRoute);

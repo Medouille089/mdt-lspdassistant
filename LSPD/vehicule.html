@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <title>Enregistrer un véhicule - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css">
+    <link rel="stylesheet" href="styles/warning.css">
+    <link rel="stylesheet" href="styles/sanction/sanctions.css" />
+    <link rel="stylesheet" href="styles/context-menu.css" />
+    <link rel="stylesheet" href="styles/custom-notifications.css" />
+    <link rel="stylesheet" href="styles/citoyen-selector.css" />
+    <style>
+        .proprietaire-selector {
+            position: relative;
+            width: 100%;
+            display: flex;
+        }
+
+        .proprietaire-selector input[type="text"] {
+            width: 100%;
+            padding: 10px 130px 10px 10px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            box-sizing: border-box;
+            margin-bottom: 0;
+        }
+
+        .proprietaire-selector input[type="text"]:focus {
+            background-color: white;
+        }
+
+        .proprietaire-selector button {
+            background-color: #002147;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 0;
+            transition: all 0.2s ease;
+            width: 25%;
+        }
+
+        .proprietaire-selector button:hover {
+            background-color: #003366;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <script src="scripts/context-menu.js"></script>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <script src="scripts/instant-sidebar.js"></script>
+        <h1>Enregistrer un véhicule</h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
+
+        <div class="warning-modern">
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern">
+            <span>Les informations enregistrées permettront de lier le véhicule à son propriétaire</span>
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern">
+        </div>
+
+        <div class="sanction-container">
+            <div class="header">
+                <img src="data/images/lspd.png" alt="Logo LSPD">
+                <div class="header-title">
+                    <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+                    <h3>ENREGISTREMENT VÉHICULE</h3>
+                </div>
+                <div style="width: 70px;"></div>
+            </div>
+            <form id="vehiculeForm">
+                <div class="inline-fields">
+                    <div>
+                        <label for="modele">Modèle du véhicule :</label>
+                        <input type="text" id="modele" name="modele" required placeholder="Tesla Model S">
+                    </div>
+                    <div>
+                        <label for="plaque">Plaque d'immatriculation :</label>
+                        <input type="text" id="plaque" name="plaque" required placeholder="ABC-1234"
+                            style="text-transform: uppercase;">
+                    </div>
+                </div>
+
+                <label for="couleur">Couleur :</label>
+                <input type="text" id="couleur" name="couleur" placeholder="Noir métallisé">
+
+                <label for="proprietaire">Propriétaire :</label>
+                <div class="proprietaire-selector">
+                    <input type="text" id="proprietaire" name="proprietaire" readonly
+                        placeholder="Aucun propriétaire sélectionné">
+                    <input type="hidden" id="proprietaire_id" name="proprietaire_id">
+                    <button type="button" id="selectProprietaireBtn">Choisir</button>
+                </div>
+
+                <label for="mandat_actif">Mandat actif contre le véhicule :</label>
+                <select id="mandat_actif" name="mandat_actif">
+                    <option value="false">Non</option>
+                    <option value="true">Oui</option>
+                </select>
+
+                <label for="photo">Photo du véhicule (URL) :</label>
+                <input type="url" id="photo" name="photo" placeholder="https://cdn.discordapp.com/attachments/...">
+
+                <div class="button-container">
+                    <button type="submit" id="submitBtn">Enregistrer le véhicule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="scripts/custom-notifications.js"></script>
+    <script src="scripts/citoyen-selector.js"></script>
+    <script src="scripts/vehicule.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+    <script>
+        document.getElementById('backlinkBtn').addEventListener('click', () => {
+            window.history.back();
+        });
+    </script>
+</body>
+
+</html>
