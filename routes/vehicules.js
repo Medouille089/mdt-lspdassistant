@@ -309,6 +309,20 @@ router.put('/api/vehicules/:id', checkAuth, async (req, res) => {
 
         const updatedVehicule = rows[0];
 
+        // Récupérer les données complètes avec les infos du propriétaire
+        const { rows: fullDataRows } = await pool.query(`
+            SELECT v.*, 
+                   c.nom as proprietaire_nom, 
+                   c.prenom as proprietaire_prenom,
+                   c.telephone as proprietaire_telephone,
+                   c.date_naissance as proprietaire_date_naissance
+            FROM vehicules v
+            LEFT JOIN citoyens c ON v.proprietaire_id = c.id
+            WHERE v.id = $1
+        `, [id]);
+
+        const fullVehiculeData = fullDataRows[0] || updatedVehicule;
+
         // Logs Discord
         const conf = await config.getConfig();
         if (conf.logs_more_tables) {
@@ -349,7 +363,7 @@ router.put('/api/vehicules/:id', checkAuth, async (req, res) => {
         // Invalider le cache de ce véhicule et des listes
         invalidateVehiculeCache(id);
 
-        res.json(updatedVehicule);
+        res.json(fullVehiculeData);
     } catch (error) {
         console.error('Erreur lors de la mise à jour du véhicule:', error);
         res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du véhicule' });
