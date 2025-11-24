@@ -9,7 +9,7 @@ const { EmbedBuilder } = require("discord.js");
 // GET /api/vehicules - Liste de tous les véhicules
 router.get('/api/vehicules', checkAuth, async (req, res) => {
     try {
-        const { search, mandat_actif, limit = 50, offset = 0 } = req.query;
+        const { search, mandat_actif, proprietaire_id, limit = 50, offset = 0 } = req.query;
 
         let query = `
             SELECT v.*, 
@@ -36,6 +36,13 @@ router.get('/api/vehicules', checkAuth, async (req, res) => {
             paramIndex++;
         }
 
+        // Filtre par propriétaire
+        if (proprietaire_id) {
+            query += ` AND v.proprietaire_id = $${paramIndex}`;
+            params.push(parseInt(proprietaire_id));
+            paramIndex++;
+        }
+
         // Order by
         query += ' ORDER BY v.created_at DESC';
 
@@ -59,6 +66,12 @@ router.get('/api/vehicules', checkAuth, async (req, res) => {
         if (mandat_actif !== undefined) {
             countQuery += ` AND v.mandat_actif = $${countParamIndex}`;
             countParams.push(mandat_actif === 'true');
+            countParamIndex++;
+        }
+
+        if (proprietaire_id) {
+            countQuery += ` AND v.proprietaire_id = $${countParamIndex}`;
+            countParams.push(parseInt(proprietaire_id));
         }
 
         const { rows: countRows } = await pool.query(countQuery, countParams);
