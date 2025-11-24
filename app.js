@@ -268,11 +268,13 @@ const setupLogsRoutes = require("./config/setupLogs");
 const officerConvocations = require('./routes/officerConvocations');
 const accountsRoutes = require('./routes/accounts');
 const trelloLogs = require('./routes/trelloLogs');
+const citoyensRoutes = require('./routes/citoyens');
 
 app.use(configRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(braceletRoutes);
+app.use(citoyensRoutes);
 app.use(arrestationRoute);
 app.use(convocationRoute);
 app.use(convocationsRoute);

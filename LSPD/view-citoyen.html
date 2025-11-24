@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <meta charset="UTF-8" />
+  <title>Profil Citoyen - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/colors.css">
+  <link rel="stylesheet" href="styles/loader.css">
+  <link rel="stylesheet" href="styles/sidebar.css">
+  <link rel="stylesheet" href="styles/infosagent.css">
+  <link rel="stylesheet" href="styles/context-menu.css" />
+  <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
+</head>
+
+<body>
+  <script src="scripts/annonce-popup.js"></script>
+  <script src="scripts/context-menu.js"></script>
+  <div id="sidebar-container"></div>
+  <script src="scripts/instant-sidebar.js"></script>
+
+  <div class="main-container">
+    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+      ← Retour
+    </button>
+    <div class="agent-profile-container">
+      <!-- Header avec photo et nom -->
+      <div class="agent-header">
+        <div class="photo-section">
+          <div class="photo-container" id="photo-container">
+            <img id="photo_preview" src="" alt="Photo Citoyen" class="agent-photo">
+            <div class="photo-overlay" id="photo-overlay">
+              <span class="material-symbols-rounded">edit</span>
+            </div>
+          </div>
+        </div>
+        <div class="agent-info">
+          <h1 id="citoyen-name" class="agent-title">Citoyen</h1>
+          <div class="agent-meta">
+            <span class="badge" id="citoyen-badge">CITOYEN</span>
+            <span class="agent-id" id="citoyen_id">ID: Loading...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulaire principal -->
+      <form id="profileForm" class="profile-form">
+        <!-- Section Informations personnelles -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="material-symbols-rounded">person</span>
+            Informations personnelles
+          </h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nom">Nom</label>
+              <input type="text" id="nom" placeholder="Nom" required>
+            </div>
+            <div class="form-group">
+              <label for="prenom">Prénom</label>
+              <input type="text" id="prenom" placeholder="Prénom" required>
+            </div>
+            <div class="form-group">
+              <label for="date_naissance">Date de naissance</label>
+              <input type="date" id="date_naissance" required>
+            </div>
+            <div class="form-group">
+              <label for="nationalite">Nationalité</label>
+              <input type="text" id="nationalite" placeholder="Nationalité" required>
+            </div>
+            <div class="form-group">
+              <label for="genre">Genre</label>
+              <select id="genre" required>
+                <option value="">-- Sélectionner --</option>
+                <option value="Homme">Homme</option>
+                <option value="Femme">Femme</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="telephone">Téléphone</label>
+              <input type="tel" id="telephone" placeholder="(000) 000-0000" maxlength="14">
+            </div>
+            <div class="form-group">
+              <label for="emploi">Emploi</label>
+              <input type="text" id="emploi" placeholder="Profession">
+            </div>
+            <div class="form-group">
+              <label for="mandat_actif">Mandat d'arrêt</label>
+              <select id="mandat_actif">
+                <option value="false">Non</option>
+                <option value="true">Oui</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Liens futurs -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="material-symbols-rounded">link</span>
+            Liens associés
+          </h3>
+          <div class="equipment-grid">
+            <!-- Véhicules -->
+            <div class="equipment-category">
+              <h4>Véhicules</h4>
+              <p style="color: #7f8c8d; font-size: 14px; margin-top: 10px;">
+                Section disponible prochainement
+              </p>
+            </div>
+
+            <!-- Armes -->
+            <div class="equipment-category">
+              <h4>Armes</h4>
+              <p style="color: #7f8c8d; font-size: 14px; margin-top: 10px;">
+                Section disponible prochainement
+              </p>
+            </div>
+
+            <!-- Propriétés -->
+            <div class="equipment-category">
+              <h4>Propriétés</h4>
+              <p style="color: #7f8c8d; font-size: 14px; margin-top: 10px;">
+                Section disponible prochainement
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Informations système -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="material-symbols-rounded">info</span>
+            Informations système
+          </h3>
+          <div class="form-row" style="grid-template-columns: 1fr;">
+            <div class="form-group">
+              <label>Dernière modification</label>
+              <div id="date_modification" style="color: #000000; font-size: 15px; padding: 12px 0;">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="action-buttons">
+          <button type="button" id="edit-mode-btn" class="btn btn-warning" style="display: none;">
+            <span class="material-symbols-rounded">edit</span>
+            Modifier le profil
+          </button>
+          <button type="button" id="cancel-edit-btn" class="btn btn-secondary" style="display: none;">
+            <span class="material-symbols-rounded">close</span>
+            Annuler
+          </button>
+          <button type="submit" id="save-btn" class="btn btn-primary" style="display: none;">
+            <span class="material-symbols-rounded">save</span>
+            Enregistrer
+          </button>
+          <button type="button" id="delete-btn" class="btn btn-danger" style="display: none;">
+            <span class="material-symbols-rounded">delete</span>
+            Supprimer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="loaderOverlay" class="loader-overlay">
+    <div class="loader-spinner"></div>
+  </div>
+
+  <!-- Modal pour modifier la photo -->
+  <div id="photoModal" class="photo-modal" style="display: none;">
+    <div class="photo-modal-content">
+      <h3>Modifier la photo</h3>
+      <input type="url" id="photoUrlInput" placeholder="https://cdn.discordapp.com/attachments/...">
+      <div class="photo-preview-container" style="margin: 15px 0;">
+        <img id="photoPreviewModal" src="" alt="Aperçu" style="max-width: 100%; max-height: 300px; display: none; border-radius: 8px;">
+      </div>
+      <div class="photo-modal-actions">
+        <button type="button" class="btn-cancel" id="cancelPhotoBtn">Annuler</button>
+        <button type="button" class="btn-confirm" id="savePhotoBtn">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="scripts/custom-notifications.js"></script>
+  <script src="scripts/view-citoyen.js"></script>
+  <script src="scripts/loadSidebar.js"></script>
+  <script>
+    document.getElementById('backlinkBtn').addEventListener('click', () => {
+      window.location.href = '/liste-citoyens.html';
+    });
+  </script>
+</body>
+
+</html>

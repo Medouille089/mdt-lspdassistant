@@ -319,10 +319,40 @@ body::before {
   letter-spacing: 1px;
 }
 
+.badge.mandat-actif {
+  background: #e74c3c;
+  color: white;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.badge.pas-de-mandat {
+  background: #27ae60;
+  color: white;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 .agent-id {
   color: var(--text-muted);
   font-family: "Courier New", monospace;
   font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.agent-id:hover {
+  color: var(--lspd-gold);
+}
+
+.agent-id.copied {
+  color: #27ae60;
 }
 
 /* Formulaire */
@@ -374,6 +404,7 @@ body::before {
 }
 
 .form-group input,
+.form-group select,
 .form-group textarea {
   width: 100%;
   padding: 12px 16px;
@@ -385,7 +416,27 @@ body::before {
   transition: all 0.3s ease;
 }
 
+/* Override pour les selects dans le conteneur agent-profile */
+.agent-profile-container .form-group select {
+  background: var(--input-bg) !important;
+  border: 1px solid var(--border-input) !important;
+  color: var(--input-text) !important;
+}
+
+.agent-profile-container .form-group select:focus {
+  border-color: var(--border-color) !important;
+  background: var(--input-bg-focus) !important;
+}
+
+body:not(.edit-mode) .agent-profile-container .form-group select {
+  pointer-events: none;
+  background: var(--input-bg) !important;
+  border: 1px solid var(--border-input) !important;
+  color: var(--input-text) !important;
+}
+
 .form-group input:focus,
+.form-group select:focus,
 .form-group textarea:focus {
   border-color: var(--lspd-gold);
   background: rgba(255, 255, 255, 0.08);
@@ -395,6 +446,7 @@ body::before {
 
 /* Styles pour les champs en lecture seule (non edit mode) */
 body:not(.edit-mode) .form-group input,
+body:not(.edit-mode) .form-group select,
 body:not(.edit-mode) .form-group textarea {
   background: rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.1);
@@ -404,10 +456,55 @@ body:not(.edit-mode) .form-group textarea {
 }
 
 body:not(.edit-mode) .form-group input:focus,
+body:not(.edit-mode) .form-group select:focus,
 body:not(.edit-mode) .form-group textarea:focus {
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: none;
   background: rgba(255, 255, 255, 0.03);
+}
+
+/* Style pour les select */
+.form-group select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,215,0,0.8)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+  cursor: pointer;
+  height: 48px;
+}
+
+/* Flèche du select pour agent-profile-container (couleur sombre) */
+.agent-profile-container .form-group select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(11,27,90,0.8)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 20px !important;
+}
+
+.form-group select option {
+  background: #1a252f;
+  color: var(--text-light);
+  padding: 10px;
+}
+
+/* Options pour agent-profile-container */
+.agent-profile-container .form-group select option {
+  background: #ffffff !important;
+  color: #1a252f !important;
+}
+
+body:not(.edit-mode) .form-group select {
+  cursor: default;
+  background-image: none !important;
+  pointer-events: none;
+}
+
+body:not(.edit-mode) .agent-profile-container .form-group select {
+  background-image: none !important;
 }
 
 /* Section équipement */
@@ -808,6 +905,17 @@ body:not(.edit-mode) .form-group textarea:focus {
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: var(--text-light);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
 }
 
 .btn:disabled {

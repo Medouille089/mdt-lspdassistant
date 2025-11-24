@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <meta charset="UTF-8" />
+  <title>Enregistrer un citoyen - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/sanction/sanctions.css" />
+  <link rel="stylesheet" href="styles/context-menu.css" />
+  <link rel="stylesheet" href="styles/custom-notifications.css" />
+</head>
+
+<body>
+  <script src="scripts/annonce-popup.js"></script>
+  <script src="scripts/context-menu.js"></script>
+  <div class="main-container">
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
+    <h1>Enregistrer un citoyen</h1>
+    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+      ← Retour
+    </button>
+
+    <div class="warning-modern">
+      <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+        class="warning-icon-modern">
+      <span>Les informations enregistrées pourront être liées aux véhicules, armes et propriétés</span>
+      <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+        class="warning-icon-modern">
+    </div>
+
+    <div class="sanction-container">
+      <div class="header">
+        <img src="data/images/lspd.png" alt="Logo LSPD">
+        <div class="header-title">
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3>ENREGISTREMENT CITOYEN</h3>
+        </div>
+        <div style="width: 70px;"></div>
+      </div>
+      <form id="citoyenForm">
+        <div class="inline-fields">
+          <div>
+            <label for="nom">Nom :</label>
+            <input type="text" id="nom" name="nom" required placeholder="Doe">
+          </div>
+          <div>
+            <label for="prenom">Prénom :</label>
+            <input type="text" id="prenom" name="prenom" required placeholder="John">
+          </div>
+        </div>
+
+        <div class="inline-fields">
+          <div>
+            <label for="date_naissance">Date de naissance :</label>
+            <input type="date" id="date_naissance" name="date_naissance" required>
+          </div>
+          <div>
+            <label for="nationalite">Nationalité :</label>
+            <input type="text" id="nationalite" name="nationalite" required placeholder="Américaine">
+          </div>
+        </div>
+
+        <div class="inline-fields">
+          <div>
+            <label for="genre">Genre :</label>
+            <select id="genre" name="genre" required>
+              <option value="">-- Sélectionner --</option>
+              <option value="Homme">Homme</option>
+              <option value="Femme">Femme</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div>
+            <label for="telephone">Téléphone :</label>
+            <input type="tel" id="telephone" name="telephone" placeholder="(555) 555-5555">
+          </div>
+        </div>
+
+        <label for="emploi">Emploi :</label>
+        <input type="text" id="emploi" name="emploi" placeholder="Profession du citoyen">
+
+        <label for="mandat_actif">Mandat d'arrêt actif :</label>
+        <select id="mandat_actif" name="mandat_actif">
+          <option value="false">Non</option>
+          <option value="true">Oui</option>
+        </select>
+
+        <label for="photo">Photo (URL) :</label>
+        <input type="url" id="photo" name="photo" placeholder="https://cdn.discordapp.com/attachments/...">
+
+        <div class="button-container">
+          <button type="submit" id="submitBtn">Enregistrer le citoyen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="scripts/custom-notifications.js"></script>
+  <script src="scripts/citoyen.js"></script>
+  <script src="scripts/loadSidebar.js"></script>
+  <script>
+    document.getElementById('backlinkBtn').addEventListener('click', () => {
+      window.history.back();
+    });
+  </script>
+</body>
+
+</html>
