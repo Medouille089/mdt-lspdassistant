@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Enregistrer une arme - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/incident/incident.css" />
+  <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <link rel="stylesheet" href="styles/context-menu.css" />
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  <script src="scripts/instant-sidebar.js"></script>
+
+  <div class="main-container">
+    <h1>Enregistrer une arme</h1>
+    <button id="backlinkBtn" class="backlink-btn">← Retour</button>
+
+    <div class="incident-container">
+      <div class="header">
+        <img src="data/images/lspd.png" alt="Logo LSPD" />
+        <div class="header-title">
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3 class="title">ENREGISTREMENT ARME</h3>
+        </div>
+      </div>
+
+      <form id="weaponForm">
+        <label for="model_select">Modèle d'arme</label>
+        <select id="model_select" required>
+          <option value="">-- Sélectionner un modèle --</option>
+        </select>
+
+        <label for="serial_number">Numéro de série</label>
+        <input type="text" id="serial_number" placeholder="S/N" required />
+
+        <label for="owner_search">Propriétaire (recherche)</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" id="owner_search" placeholder="Rechercher un citoyen par nom/prénom/telephone" />
+          <button id="create_citizen_btn" type="button" class="add-btn">+</button>
+        </div>
+        <div id="owner_results" style="margin-top:8px;"></div>
+
+        <input type="hidden" id="owner_id" />
+
+      </form>
+    </div>
+
+    <div class="button-container">
+      <button id="submitWeapon" class="send-button">Enregistrer l'arme</button>
+    </div>
+  </div>
+
+  <div id="loaderOverlay" class="loader-overlay" style="display:none;"><div class="loader-spinner"></div></div>
+  <div id="feedbackAnimation" style="display:none"></div>
+
+  <script src="scripts/loadSidebar.js"></script>
+  <script src="scripts/custom-notifications.js"></script>
+  <script src="scripts/arme.js"></script>
+</body>
+</html>

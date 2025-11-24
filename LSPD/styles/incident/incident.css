@@ -124,6 +124,7 @@ form label {
 }
 
 form input[type="text"],
+form input[type="url"],
 form input[type="date"],
 form input[type="time"],
 form textarea {
