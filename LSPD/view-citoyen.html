@@ -108,9 +108,9 @@
             <!-- Véhicules -->
             <div class="equipment-category">
               <h4>Véhicules</h4>
-              <p style="color: #7f8c8d; font-size: 14px; margin-top: 10px;">
-                Section disponible prochainement
-              </p>
+              <div id="vehicules-list" class="equipment-list">
+                <p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>
+              </div>
             </div>
 
             <!-- Armes -->
@@ -178,7 +178,8 @@
       <h3>Modifier la photo</h3>
       <input type="url" id="photoUrlInput" placeholder="https://cdn.discordapp.com/attachments/...">
       <div class="photo-preview-container" style="margin: 15px 0;">
-        <img id="photoPreviewModal" src="" alt="Aperçu" style="max-width: 100%; max-height: 300px; display: none; border-radius: 8px;">
+        <img id="photoPreviewModal" src="" alt="Aperçu"
+          style="max-width: 100%; max-height: 300px; display: none; border-radius: 8px;">
       </div>
       <div class="photo-modal-actions">
         <button type="button" class="btn-cancel" id="cancelPhotoBtn">Annuler</button>
@@ -192,7 +193,7 @@
   <script src="scripts/loadSidebar.js"></script>
   <script>
     document.getElementById('backlinkBtn').addEventListener('click', () => {
-      window.location.href = '/liste-citoyens.html';
+      window.history.back();
     });
   </script>
 </body>
