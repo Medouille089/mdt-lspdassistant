@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.19.0](https://github.com/Medouille089/lspdassistant/compare/v1.18.0...v1.19.0) (2025-11-24)
+
+
+### Features
+
+* add weapons ([68115d5](https://github.com/Medouille089/lspdassistant/commit/68115d510080829335d2037e6234788da70d3d54))
+
+
+### Bug Fixes
+
+* hided button ([542924b](https://github.com/Medouille089/lspdassistant/commit/542924b7f7023b8770c8f30d4039d35139eace80))
+* pagination in trello logs + test github ([2d5099d](https://github.com/Medouille089/lspdassistant/commit/2d5099db9e86eea44e866b21f6249c5e22a4f851))
+* test ([10750e2](https://github.com/Medouille089/lspdassistant/commit/10750e229ffdc7819665bb8a75868468a61f8745))
+
 ## [1.18.0](https://github.com/Medouille089/lspdassistant/compare/v1.17.15...v1.18.0) (2025-11-24)
 
 

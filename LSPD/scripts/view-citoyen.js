@@ -3,6 +3,8 @@ let citoyenProfile = null;
 let currentUserInfo = null;
 let isEditMode = false;
 let originalData = {};
+// Weapons marked for deletion during edit session (actual DELETE occurs on Save)
+let pendingWeaponDeletions = new Set();
 
 // Fonction pour afficher les animations de feedback
 function showAnimation(type = 'success', message = '') {
@@ -59,6 +61,73 @@ function calculateAge(dateStr) {
     return age;
 }
 
+// Affiche une confirmation non-bloquante en overlay et retourne une Promise<boolean>
+function showConfirmModal(message, confirmText = 'Confirmer', cancelText = 'Annuler') {
+    return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.left = '0';
+        overlay.style.top = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.background = 'rgba(0,0,0,0.35)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '4000';
+
+        const box = document.createElement('div');
+        box.style.background = 'var(--white, #fff)';
+        box.style.padding = '18px';
+        box.style.borderRadius = '10px';
+        box.style.maxWidth = '420px';
+        box.style.width = '90%';
+        box.style.boxShadow = '0 8px 30px rgba(0,0,0,0.18)';
+
+        const p = document.createElement('div');
+        p.style.marginBottom = '12px';
+        p.style.color = 'var(--text-color, #222)';
+        p.textContent = message;
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.justifyContent = 'flex-end';
+        actions.style.gap = '8px';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn btn-secondary';
+        cancelBtn.textContent = cancelText;
+        cancelBtn.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve(false);
+        });
+
+        const okBtn = document.createElement('button');
+        okBtn.className = 'btn btn-danger';
+        okBtn.textContent = confirmText;
+        okBtn.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve(true);
+        });
+
+        actions.appendChild(cancelBtn);
+        actions.appendChild(okBtn);
+        box.appendChild(p);
+        box.appendChild(actions);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        // allow ESC to cancel
+        function onKey(e) {
+            if (e.key === 'Escape') {
+                document.body.removeChild(overlay);
+                window.removeEventListener('keydown', onKey);
+                resolve(false);
+            }
+        }
+        window.addEventListener('keydown', onKey);
+    });
+}
 // Fonction pour charger les informations utilisateur (avec cache)
 async function loadUserInfo() {
     try {
@@ -178,6 +247,13 @@ async function displayProfile(profile) {
         photo: profile.photo || ''
     };
 
+    // Charger et afficher les armes associées
+    try {
+        await loadWeaponsForCitizen(profile.id);
+    } catch (e) {
+        console.warn('Impossible de charger les armes:', e);
+    }
+
     // Désactiver les champs par défaut (mode consultation)
     disableFormFields();
 
@@ -187,6 +263,118 @@ async function displayProfile(profile) {
     // Seuls les superadmins peuvent supprimer
     if (currentUserInfo && currentUserInfo.isSupervisor) {
         // Le bouton delete sera affiché en mode édition
+    }
+}
+
+// Charger les armes associées à un citoyen et les afficher
+async function loadWeaponsForCitizen(citizenId) {
+    const container = document.getElementById('weapons-list');
+    if (!container) return;
+    container.innerHTML = '<div style="color:#7f8c8d">Chargement...</div>';
+
+    try {
+        const res = await fetch(`/api/weapons?owner_id=${encodeURIComponent(citizenId)}`);
+        if (!res.ok) throw new Error('Erreur récupération armes');
+        const data = await res.json();
+        const weapons = data.weapons || [];
+
+        if (weapons.length === 0) {
+            container.innerHTML = '<div style="color:#7f8c8d">Aucune arme enregistrée.</div>';
+            return;
+        }
+
+        // Render as a grouped list (border-radius on wrapper, items touching in the middle)
+        const list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        list.style.border = '1px solid #e0e0e0';
+        list.style.borderRadius = '8px';
+        list.style.overflow = 'hidden';
+        list.style.background = '#fff';
+
+        weapons.forEach((w, idx) => {
+            const item = document.createElement('div');
+            item.style.display = 'flex';
+            item.style.alignItems = 'center';
+            item.style.gap = '10px';
+            item.style.padding = '10px 12px';
+            item.style.background = '#fff';
+            // separator between items
+            if (idx !== 0) {
+                item.style.borderTop = '1px solid #e0e0e0';
+            }
+
+            const img = document.createElement('img');
+            img.src = w.model_image_url || '/data/images/weapon-placeholder.png';
+            img.alt = w.model_name || 'Arme';
+            img.style.width = '48px';
+            img.style.height = '32px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '4px';
+
+            const info = document.createElement('div');
+            info.style.flex = '1';
+            info.innerHTML = `<strong>${w.model_name || 'Modèle inconnu'}</strong><div style="color:#7f8c8d; font-size:13px">S/N: ${w.serial_number || '-'}</div>`;
+
+            const actions = document.createElement('div');
+
+            // In edit mode, show a delete button; otherwise no action button (remove 'Voir')
+            if (isEditMode && currentUserInfo && currentUserInfo.isSupervisor) {
+                const delBtn = document.createElement('button');
+                delBtn.setAttribute('type', 'button');
+                // default state: action to mark for deletion
+                delBtn.className = 'btn btn-danger';
+                delBtn.textContent = 'Supprimer';
+
+                // helper to visually mark/unmark the item
+                function markItemForDeletion(mark) {
+                    if (mark) {
+                        pendingWeaponDeletions.add(w.id);
+                        item.style.opacity = '0.55';
+                        info.style.textDecoration = 'line-through';
+                        delBtn.className = 'btn btn-secondary';
+                        delBtn.textContent = 'Annuler';
+                    } else {
+                        pendingWeaponDeletions.delete(w.id);
+                        item.style.opacity = '1';
+                        info.style.textDecoration = 'none';
+                        delBtn.className = 'btn btn-danger';
+                        delBtn.textContent = 'Supprimer';
+                    }
+                }
+
+                // initialize if already marked (e.g., re-render)
+                if (pendingWeaponDeletions.has(w.id)) markItemForDeletion(true);
+
+                delBtn.addEventListener('click', () => {
+                    // toggle mark state; ask for confirmation when marking
+                    if (!pendingWeaponDeletions.has(w.id)) {
+                        // use custom non-blocking popup instead of native confirm
+                        showConfirmModal('Marquer cette arme pour suppression ? La suppression sera effectuée lors de l\'enregistrement.', 'Marquer', 'Annuler')
+                            .then(confirmed => {
+                                if (confirmed) markItemForDeletion(true);
+                            });
+                    } else {
+                        // unmark
+                        markItemForDeletion(false);
+                    }
+                });
+
+                actions.appendChild(delBtn);
+            }
+
+            item.appendChild(img);
+            item.appendChild(info);
+            item.appendChild(actions);
+
+            list.appendChild(item);
+        });
+
+        container.innerHTML = '';
+        container.appendChild(list);
+    } catch (err) {
+        console.error('Erreur chargement armes:', err);
+        container.innerHTML = '<div style="color:#e74c3c">Erreur lors du chargement des armes</div>';
     }
 }
 
@@ -244,6 +432,9 @@ function activateEditMode() {
 
     // Activer les champs
     enableFormFields();
+    
+    // Refresh weapons list so delete buttons appear when in edit mode
+    try { loadWeaponsForCitizen(citoyenId); } catch(e) { /* ignore */ }
 
     showAnimation('success', 'Mode édition activé');
 }
@@ -261,6 +452,8 @@ function deactivateEditMode() {
 
     // Désactiver les champs
     disableFormFields();
+    // Refresh weapons list to hide delete buttons
+    try { loadWeaponsForCitizen(citoyenId); } catch(e) { /* ignore */ }
 }
 
 // Fonction pour annuler les modifications
@@ -276,6 +469,10 @@ function cancelEdit() {
     document.getElementById('mandat_actif').value = originalData.mandat_actif ? 'true' : 'false';
 
     updatePhotoPreview(originalData.photo);
+    
+    // Clear any pending weapon deletions and refresh list
+    pendingWeaponDeletions.clear();
+    try { loadWeaponsForCitizen(citoyenId); } catch(e) { /* ignore */ }
 
     deactivateEditMode();
     showAnimation('success', 'Modifications annulées');
@@ -302,6 +499,30 @@ async function saveProfile(event) {
         if (!formData.nom || !formData.prenom || !formData.date_naissance || !formData.nationalite || !formData.genre) {
             showAnimation('error', 'Veuillez remplir tous les champs obligatoires');
             return;
+        }
+
+        // If there are weapons marked for deletion, perform those deletions now
+        if (pendingWeaponDeletions.size > 0) {
+            const loader = document.getElementById('loaderOverlay');
+            if (loader) loader.style.display = 'flex';
+            try {
+                const ids = Array.from(pendingWeaponDeletions);
+                await Promise.all(ids.map(id => fetch(`/api/weapons/${id}`, { method: 'DELETE' }).then(async res => {
+                    if (!res.ok) {
+                        const err = await res.json().catch(()=>({ error: 'Erreur' }));
+                        throw new Error(err.error || 'Erreur suppression arme');
+                    }
+                })));
+                // clear pending deletions after successful server deletes
+                pendingWeaponDeletions.clear();
+                showAnimation('success', 'Suppressions enregistrées');
+            } catch (err) {
+                console.error('Erreur lors des suppressions:', err);
+                showAnimation('error', err.message || 'Erreur lors des suppressions');
+                if (loader) loader.style.display = 'none';
+                return; // abort saving profile
+            }
+            if (loader) loader.style.display = 'none';
         }
 
         const res = await fetch(`/api/citoyens/${citoyenId}`, {
@@ -551,6 +772,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('backlinkBtn').addEventListener('click', () => {
             window.history.back();
         });
+
+        // "Ajouter une arme" button removed from UI — no handler needed.
 
         // Click-to-copy ID
         const idEl = document.getElementById('citoyen_id');
