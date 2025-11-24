@@ -127,7 +127,14 @@ const CACHE_DURATIONS = {
     OFFICERS_LIST: 300,       // 5 minutes - Liste des officiers
     FAQ_DATA: 3600,           // 1 heure - Documentation
     ABSENCES: 120,            // 2 minutes - Absences
-    STATS: 180                // 3 minutes - Statistiques
+    STATS: 180,               // 3 minutes - Statistiques
+    CITOYENS_LIST: 60,        // 1 minute - Liste des citoyens
+    CITOYEN_DETAIL: 120,      // 2 minutes - Détail d'un citoyen
+    VEHICULES_LIST: 60,       // 1 minute - Liste des véhicules
+    VEHICULE_DETAIL: 120,     // 2 minutes - Détail d'un véhicule
+    ARRESTATIONS_LIST: 60,    // 1 minute - Liste des arrestations
+    INCIDENTS_LIST: 60,       // 1 minute - Liste des incidents
+    BRACELETS_LIST: 60        // 1 minute - Liste des bracelets
 };
 
 module.exports = {

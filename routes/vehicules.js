@@ -5,9 +5,15 @@ const bot = require("../config/bot");
 const config = require("../config/config");
 const { checkAuth } = require("../config/middleware");
 const { EmbedBuilder } = require("discord.js");
+const { 
+    cacheVehicules, 
+    cacheVehiculeDetail, 
+    invalidateVehiculesCache, 
+    invalidateVehiculeCache 
+} = require("../config/cacheMiddleware");
 
 // GET /api/vehicules - Liste de tous les véhicules
-router.get('/api/vehicules', checkAuth, async (req, res) => {
+router.get('/api/vehicules', checkAuth, cacheVehicules(), async (req, res) => {
     try {
         const { search, mandat_actif, proprietaire_id, limit = 50, offset = 0 } = req.query;
 
@@ -90,7 +96,7 @@ router.get('/api/vehicules', checkAuth, async (req, res) => {
 });
 
 // GET /api/vehicules/:id - Détails d'un véhicule
-router.get('/api/vehicules/:id', checkAuth, async (req, res) => {
+router.get('/api/vehicules/:id', checkAuth, cacheVehiculeDetail(), async (req, res) => {
     try {
         const { id } = req.params;
         const { rows } = await pool.query(`
@@ -223,6 +229,9 @@ router.post('/api/vehicules', checkAuth, async (req, res) => {
             }
         }
 
+        // Invalider le cache
+        invalidateVehiculesCache();
+
         res.status(201).json(newVehicule);
     } catch (error) {
         console.error('Erreur lors de la création du véhicule:', error);
@@ -337,6 +346,9 @@ router.put('/api/vehicules/:id', checkAuth, async (req, res) => {
             }
         }
 
+        // Invalider le cache de ce véhicule et des listes
+        invalidateVehiculeCache(id);
+
         res.json(updatedVehicule);
     } catch (error) {
         console.error('Erreur lors de la mise à jour du véhicule:', error);
@@ -366,6 +378,9 @@ router.put('/api/vehicules/:id/notes', checkAuth, async (req, res) => {
             RETURNING *`,
             [notes || null, updatedBy, id]
         );
+
+        // Invalider le cache de ce véhicule
+        invalidateVehiculeCache(id);
 
         res.json(rows[0]);
     } catch (error) {
@@ -428,6 +443,9 @@ router.delete('/api/vehicules/:id', checkAuth, async (req, res) => {
                 console.error('Erreur lors de l\'envoi du log Discord:', logError);
             }
         }
+
+        // Invalider le cache
+        invalidateVehiculesCache();
 
         res.json({ message: 'Véhicule supprimé avec succès' });
     } catch (error) {

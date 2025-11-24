@@ -59,13 +59,28 @@ function calculateAge(dateStr) {
     return age;
 }
 
-// Fonction pour charger les informations utilisateur
+// Fonction pour charger les informations utilisateur (avec cache)
 async function loadUserInfo() {
     try {
+        // Vérifier si on a déjà les infos en cache (session storage)
+        const cachedUser = sessionStorage.getItem('currentUser');
+        const cacheTime = sessionStorage.getItem('currentUserTime');
+        
+        // Cache valide pendant 5 minutes
+        if (cachedUser && cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
+            currentUserInfo = JSON.parse(cachedUser);
+            return currentUserInfo;
+        }
+
         const res = await fetch('/api/user');
         if (!res.ok) throw new Error('Erreur récupération utilisateur');
 
         currentUserInfo = await res.json();
+        
+        // Mettre en cache
+        sessionStorage.setItem('currentUser', JSON.stringify(currentUserInfo));
+        sessionStorage.setItem('currentUserTime', Date.now().toString());
+        
         return currentUserInfo;
     } catch (err) {
         console.error('Erreur chargement utilisateur:', err);
@@ -95,7 +110,9 @@ async function loadCitoyenProfile() {
 
         citoyenProfile = await res.json();
         await displayProfile(citoyenProfile);
-        await loadVehicules();
+        
+        // Charger les véhicules en parallèle (ne pas attendre)
+        loadVehicules().catch(err => console.error('Erreur chargement véhicules:', err));
 
     } catch (err) {
         console.error('Erreur chargement profil:', err);
@@ -412,6 +429,9 @@ async function loadVehicules() {
     const vehiculesListEl = document.getElementById('vehicules-list');
     if (!vehiculesListEl) return;
 
+    // Afficher un loader pendant le chargement
+    vehiculesListEl.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;"><i>Chargement des véhicules...</i></p>';
+
     try {
         const res = await fetch(`/api/vehicules?proprietaire_id=${citoyenId}&limit=100`);
         if (!res.ok) throw new Error('Erreur chargement véhicules');
@@ -514,8 +534,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     loader.style.display = 'flex';
 
     try {
-        await loadUserInfo();
-        await loadCitoyenProfile();
+        // Charger l'utilisateur et le citoyen en parallèle
+        const [userInfo] = await Promise.all([
+            loadUserInfo(),
+            loadCitoyenProfile()
+        ]);
 
         setupPhotoModal();
         setupPhoneFormatting();
@@ -549,6 +572,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err) {
         console.error('Erreur initialisation page:', err);
     } finally {
+        // Cacher le loader dès que le profil est affiché
+        // Les véhicules continueront de charger en arrière-plan
         loader.style.display = 'none';
     }
 });

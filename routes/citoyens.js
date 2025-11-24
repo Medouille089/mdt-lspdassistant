@@ -5,9 +5,15 @@ const bot = require("../config/bot");
 const config = require("../config/config");
 const { checkAuth } = require("../config/middleware");
 const { EmbedBuilder } = require("discord.js");
+const { 
+    cacheCitoyens, 
+    cacheCitoyenDetail, 
+    invalidateCitoyensCache, 
+    invalidateCitoyenCache 
+} = require("../config/cacheMiddleware");
 
 // GET /api/citoyens - Liste de tous les citoyens
-router.get('/api/citoyens', checkAuth, async (req, res) => {
+router.get('/api/citoyens', checkAuth, cacheCitoyens(), async (req, res) => {
     try {
         const { search, mandat_actif, limit = 50, offset = 0 } = req.query;
 
@@ -70,7 +76,7 @@ router.get('/api/citoyens', checkAuth, async (req, res) => {
 });
 
 // GET /api/citoyens/:id - Détails d'un citoyen
-router.get('/api/citoyens/:id', checkAuth, async (req, res) => {
+router.get('/api/citoyens/:id', checkAuth, cacheCitoyenDetail(), async (req, res) => {
     try {
         const { id } = req.params;
         const { rows } = await pool.query('SELECT * FROM citoyens WHERE id = $1', [id]);
@@ -167,6 +173,9 @@ router.post('/api/citoyens', checkAuth, async (req, res) => {
                 console.error('Erreur lors de l\'envoi du log Discord:', logError);
             }
         }
+
+        // Invalider le cache
+        invalidateCitoyensCache();
 
         res.status(201).json(newCitoyen);
     } catch (error) {
@@ -268,6 +277,9 @@ router.put('/api/citoyens/:id', checkAuth, async (req, res) => {
             }
         }
 
+        // Invalider le cache de ce citoyen et des listes
+        invalidateCitoyenCache(id);
+
         res.json(updatedCitoyen);
     } catch (error) {
         console.error('Erreur lors de la mise à jour du citoyen:', error);
@@ -317,6 +329,9 @@ router.delete('/api/citoyens/:id', checkAuth, async (req, res) => {
                 console.error('Erreur lors de l\'envoi du log Discord:', logError);
             }
         }
+
+        // Invalider le cache
+        invalidateCitoyensCache();
 
         res.json({ message: 'Citoyen supprimé avec succès' });
     } catch (error) {
