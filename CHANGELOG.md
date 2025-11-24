@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.18.0](https://github.com/Medouille089/lspdassistant/compare/v1.17.15...v1.18.0) (2025-11-24)
+
+
+### Features
+
+* add cit registration ([1431d43](https://github.com/Medouille089/lspdassistant/commit/1431d434315694c7d0376eb62ec36fc5b4714802))
+
 ### [1.17.15](https://github.com/Medouille089/lspdassistant/compare/v1.17.14...v1.17.15) (2025-11-23)
 
 
