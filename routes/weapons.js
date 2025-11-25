@@ -56,15 +56,15 @@ router.get('/api/weapon_models/:id', checkAuth, async (req, res) => {
 router.put('/api/weapon_models/:id', checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { model_name, image_url } = req.body;
+        const { model_name, image_url, calibre } = req.body;
         if (!model_name) return res.status(400).json({ error: 'model_name requis' });
 
         const user = req.user;
         const updatedBy = user.guild_member?.nick || user.displayName || user.username;
 
         const { rows } = await pool.query(
-            `UPDATE weapon_models SET model_name = $1, image_url = $2, updated_by = $3, updated_at = NOW() WHERE id = $4 RETURNING *`,
-            [model_name, image_url || null, updatedBy, id]
+            `UPDATE weapon_models SET model_name = $1, image_url = $2, calibre = $3, updated_by = $4, updated_at = NOW() WHERE id = $5 RETURNING *`,
+            [model_name, image_url || null, calibre || null, updatedBy, id]
         );
 
         if (rows.length === 0) return res.status(404).json({ error: 'Modèle introuvable' });

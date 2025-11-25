@@ -82,6 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
             modelInner.appendChild(nameSpan);
             modelTd.appendChild(modelInner);
 
+            // Calibre cell
+            const calibreTd = document.createElement('td');
+            const calibreInner = document.createElement('div');
+            calibreInner.className = 'cell-inner';
+            calibreInner.textContent = m.calibre || '';
+            calibreTd.appendChild(calibreInner);
+
             // Actions cell
             const actionsTd = document.createElement('td');
             const actionsInner = document.createElement('div');
@@ -133,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.appendChild(idTd);
             tr.appendChild(photoTd);
             tr.appendChild(modelTd);
+            tr.appendChild(calibreTd);
             tr.appendChild(actionsTd);
 
             // Clic sur la ligne = modifier
@@ -142,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 modelIdInput.value = m.id;
                 modelNameInput.value = m.model_name || '';
                 imageUrlInput.value = m.image_url || '';
+                document.getElementById('calibre_modal').value = m.calibre || '';
                 modalTitle.textContent = 'Modifier le modèle';
                 modal.style.display = 'flex';
             });
@@ -203,15 +212,16 @@ document.addEventListener('DOMContentLoaded', () => {
         saveModelBtn.addEventListener('click', async () => {
         const name = modelNameInput.value.trim();
         const url = imageUrlInput.value.trim();
+        const calibre = document.getElementById('calibre_modal').value.trim();
         const id = modelIdInput.value;
-        if (!name) { showNotification('Nom requis', 'error'); return; }
+        if (!name || !calibre) { showNotification('Nom et calibre requis', 'error'); return; }
         try {
             loader.style.display = 'flex';
             if (!id) {
                 const res = await fetch('/api/weapon_models', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model_name: name, image_url: url })
+                    body: JSON.stringify({ model_name: name, image_url: url, calibre })
                 });
                 if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Erreur'); }
                 showNotification('Modèle ajouté', 'success');
@@ -219,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch(`/api/weapon_models/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model_name: name, image_url: url })
+                    body: JSON.stringify({ model_name: name, image_url: url, calibre })
                 });
                 if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Erreur'); }
                 showNotification('Modèle mis à jour', 'success');
