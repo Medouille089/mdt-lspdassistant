@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.20.2](https://github.com/Medouille089/lspdassistant/compare/v1.20.1...v1.20.2) (2025-11-25)
+
+
+### Bug Fixes
+
+* major todo on weapons finished ([f126d08](https://github.com/Medouille089/lspdassistant/commit/f126d08e8d1e313bc487a32c5628f9e51188f3f9))
+
 ### [1.20.1](https://github.com/Medouille089/lspdassistant/compare/v1.20.0...v1.20.1) (2025-11-25)
 
 
