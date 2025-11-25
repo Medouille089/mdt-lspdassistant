@@ -9,68 +9,109 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveModelBtn = document.getElementById('saveModelBtn');
     const cancelModelBtn = document.getElementById('cancelModelBtn');
     const modelsList = document.getElementById('modelsList');
+    const tableBody = document.querySelector('#armesTable tbody');
+    const searchInput = document.getElementById('searchInput');
+    let modelsCache = [];
     const loader = document.getElementById('loaderOverlay');
 
     async function loadModels(){
-        modelsList.innerHTML = '<div style="color:#7f8c8d">Chargement...</div>';
+        // show loading in table body
+        if(tableBody) tableBody.innerHTML = '<tr><td colspan="3" style="color:#7f8c8d">Chargement...</td></tr>';
         try{
             const res = await fetch('/api/weapon_models');
             if(!res.ok) throw new Error('Erreur');
             const data = await res.json();
             const models = data.models || [];
+            modelsCache = models;
             if(models.length === 0){
-                modelsList.innerHTML = '<div style="color:#7f8c8d">Aucun modèle</div>';
+                if(tableBody) tableBody.innerHTML = '<tr><td colspan="3" style="color:#7f8c8d">Aucun modèle</td></tr>';
                 return;
             }
-            modelsList.innerHTML = '';
-            models.forEach(m => {
-                const item = document.createElement('div');
-                item.style.display = 'flex';
-                item.style.alignItems = 'center';
-                item.style.justifyContent = 'space-between';
-                item.style.border = '1px solid #eee';
-                item.style.padding = '8px';
-                item.style.borderRadius = '6px';
+            renderModels(models);
+        }catch(err){
+            console.error('Erreur chargement modèles', err);
+            if(tableBody) tableBody.innerHTML = '<tr><td colspan="3" style="color:#e74c3c">Erreur chargement</td></tr>';
+        }
+    }
 
-                const left = document.createElement('div');
-                left.style.display = 'flex';
-                left.style.alignItems = 'center';
-                left.style.gap = '10px';
+    function renderModels(list){
+        if(!tableBody) return;
+        tableBody.innerHTML = '';
+        list.forEach(m => {
+            const tr = document.createElement('tr');
 
+            // ID cell
+            const idTd = document.createElement('td');
+            const idInner = document.createElement('div');
+            idInner.className = 'cell-inner';
+            idInner.textContent = m.id;
+            idTd.appendChild(idInner);
+            idTd.style.textAlign = 'center';
+
+            // Photo cell
+            const photoTd = document.createElement('td');
+            photoTd.className = 'photo-cell';
+            const photoInner = document.createElement('div');
+            photoInner.className = 'cell-inner';
+            if (m.image_url) {
                 const img = document.createElement('img');
-                img.src = m.image_url || '/data/images/weapon-placeholder.png';
-                img.style.width = '64px';
-                img.style.height = '40px';
-                img.style.objectFit = 'cover';
+                img.src = m.image_url;
+                img.alt = m.model_name;
+                img.style.width = '72px';
+                img.style.height = '54px';
+                img.style.objectFit = 'contain';
                 img.style.borderRadius = '6px';
+                img.style.background = '#f7fafb';
+                img.style.padding = '6px';
+                img.style.boxSizing = 'border-box';
+                img.style.border = '1px solid #ecf0f1';
+                photoInner.appendChild(img);
+            } else {
+                photoInner.textContent = '🔫';
+            }
+            photoTd.appendChild(photoInner);
 
-                const title = document.createElement('div');
-                title.innerHTML = `<strong>${m.model_name}</strong><div style="color:#7f8c8d; font-size:12px;">ID: ${m.id}</div>`;
+            // Model cell
+            const modelTd = document.createElement('td');
+            const modelInner = document.createElement('div');
+            modelInner.className = 'cell-inner';
+            modelInner.style.gap = '12px';
+            const nameSpan = document.createElement('span');
+            nameSpan.style.fontWeight = 'bold';
+            nameSpan.textContent = m.model_name;
+            modelInner.appendChild(nameSpan);
+            modelTd.appendChild(modelInner);
 
-                left.appendChild(img);
-                left.appendChild(title);
+            // Actions cell
+            const actionsTd = document.createElement('td');
+            const actionsInner = document.createElement('div');
+            actionsInner.className = 'cell-inner';
+            actionsInner.style.gap = '12px';
+            actionsInner.style.justifyContent = 'flex-end';
 
-                const actions = document.createElement('div');
-                actions.style.display = 'flex';
-                actions.style.gap = '8px';
+            const delBtn = document.createElement('button');
+            delBtn.className = 'btn btn-danger';
+            delBtn.textContent = 'Supprimer';
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Ouvre la modale de confirmation suppression
+                const deleteModal = document.getElementById('deleteConfirmModal');
+                const deleteText = document.getElementById('deleteConfirmText');
+                deleteText.textContent = `Voulez-vous vraiment supprimer le modèle "${m.model_name}" ?`;
+                deleteModal.style.display = 'flex';
 
-                const editBtn = document.createElement('button');
-                editBtn.className = 'btn btn-warning';
-                editBtn.textContent = 'Modifier';
-                editBtn.addEventListener('click', () => {
-                    // open modal in edit mode
-                    modelIdInput.value = m.id;
-                    modelNameInput.value = m.model_name || '';
-                    imageUrlInput.value = m.image_url || '';
-                    modalTitle.textContent = 'Modifier le modèle';
-                    modal.style.display = 'flex';
-                });
+                // Nettoyage des anciens listeners
+                const confirmBtn = document.getElementById('confirmDeleteBtn');
+                const cancelBtn = document.getElementById('cancelDeleteBtn');
+                const closeBtn = document.getElementById('deleteModalClose');
 
-                const del = document.createElement('button');
-                del.className = 'btn btn-danger';
-                del.textContent = 'Supprimer';
-                del.addEventListener('click', async () => {
-                    if(!confirm(`Supprimer le modèle "${m.model_name}" ?`)) return;
+                // Remove previous listeners
+                confirmBtn.onclick = null;
+                cancelBtn.onclick = null;
+                closeBtn.onclick = null;
+
+                confirmBtn.onclick = async () => {
+                    deleteModal.style.display = 'none';
                     try{
                         loader.style.display = 'flex';
                         const r = await fetch(`/api/weapon_models/${m.id}`, { method: 'DELETE' });
@@ -81,49 +122,85 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error(err);
                         showNotification(err.message || 'Erreur suppression', 'error');
                     }finally{ loader.style.display = 'none'; }
-                });
-
-                actions.appendChild(editBtn);
-                actions.appendChild(del);
-
-                item.appendChild(left);
-                item.appendChild(actions);
-
-                modelsList.appendChild(item);
+                };
+                cancelBtn.onclick = () => { deleteModal.style.display = 'none'; };
+                closeBtn.onclick = () => { deleteModal.style.display = 'none'; };
             });
-        }catch(err){
-            console.error('Erreur chargement modèles', err);
-            modelsList.innerHTML = '<div style="color:#e74c3c">Erreur chargement</div>';
-        }
+
+            actionsInner.appendChild(delBtn);
+            actionsTd.appendChild(actionsInner);
+
+            tr.appendChild(idTd);
+            tr.appendChild(photoTd);
+            tr.appendChild(modelTd);
+            tr.appendChild(actionsTd);
+
+            // Clic sur la ligne = modifier
+            tr.addEventListener('click', (e) => {
+                // Ignore si clic sur le bouton supprimer
+                if (e.target === delBtn) return;
+                modelIdInput.value = m.id;
+                modelNameInput.value = m.model_name || '';
+                imageUrlInput.value = m.image_url || '';
+                modalTitle.textContent = 'Modifier le modèle';
+                modal.style.display = 'flex';
+            });
+
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function escapeHtml(text){
+        if(!text) return '';
+        return text.replace(/[&<>\"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":"&#39;"}[m]; });
     }
 
     // open add modal
-    openAddBtn.addEventListener('click', () => {
-        modelIdInput.value = '';
-        modelNameInput.value = '';
-        imageUrlInput.value = '';
-        modalTitle.textContent = 'Ajouter un modèle';
-        modal.style.display = 'flex';
-    });
+    if (openAddBtn && modal) {
+        openAddBtn.addEventListener('click', () => {
+            modelIdInput.value = '';
+            modelNameInput.value = '';
+            imageUrlInput.value = '';
+            modalTitle.textContent = 'Ajouter un modèle';
+            modal.style.display = 'flex';
+        });
+    }
+
+    // search filter
+    if(searchInput){
+        searchInput.addEventListener('input', () => {
+            const q = searchInput.value.trim().toLowerCase();
+            if(!q) return renderModels(modelsCache);
+            const filtered = modelsCache.filter(m => {
+                return (m.model_name && m.model_name.toLowerCase().includes(q)) || (String(m.id).includes(q));
+            });
+            renderModels(filtered);
+        });
+    }
 
     // cancel modal
-    cancelModelBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
+    if (cancelModelBtn && modal) {
+        cancelModelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
 
     // close icon
     const modalClose = document.getElementById('modalClose');
-    if (modalClose) {
+    if (modalClose && modal) {
         modalClose.addEventListener('click', () => { modal.style.display = 'none'; });
     }
 
     // clicking on overlay closes modal
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-    });
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
 
     // save (create or update)
-    saveModelBtn.addEventListener('click', async () => {
+    if (saveModelBtn) {
+        saveModelBtn.addEventListener('click', async () => {
         const name = modelNameInput.value.trim();
         const url = imageUrlInput.value.trim();
         const id = modelIdInput.value;
@@ -155,9 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             loader.style.display = 'none';
         }
-    });
+        });
+    }
 
-    document.getElementById('backlinkBtn').addEventListener('click', () => { window.history.back(); });
+    const backlinkBtn = document.getElementById('backlinkBtn');
+    if (backlinkBtn) {
+        backlinkBtn.addEventListener('click', () => { window.history.back(); });
+    }
 
     loadModels();
 });

@@ -1,10 +1,7 @@
 // Client-side script for arme.html
 document.addEventListener('DOMContentLoaded', async () => {
     const modelSelect = document.getElementById('model_select');
-    const ownerSearch = document.getElementById('owner_search');
-    const ownerResults = document.getElementById('owner_results');
-    const ownerIdInput = document.getElementById('owner_id');
-    const createCitizenBtn = document.getElementById('create_citizen_btn');
+    // Ancienne recherche propriétaire supprimée
     const submitBtn = document.getElementById('submitWeapon');
     const serialInput = document.getElementById('serial_number');
     const loader = document.getElementById('loaderOverlay');
@@ -25,60 +22,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Erreur chargement modèles armes', e);
     }
 
-    // Debounced search
-    let timeout = null;
-    ownerSearch.addEventListener('input', () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => searchOwners(ownerSearch.value.trim()), 300);
-    });
+    // Ancienne recherche propriétaire supprimée
 
-    async function searchOwners(q) {
-        ownerResults.innerHTML = '';
-        ownerIdInput.value = '';
-        if (!q) return;
-        try {
-            const res = await fetch(`/api/citoyens?search=${encodeURIComponent(q)}&limit=10`);
-            if (!res.ok) return;
-            const data = await res.json();
-            const list = data.citoyens || [];
-            if (list.length === 0) {
-                ownerResults.innerHTML = '<div style="color:#7f8c8d">Aucun citoyen trouvé</div>';
-                return;
-            }
-            const ul = document.createElement('div');
-            ul.style.display = 'flex';
-            ul.style.flexDirection = 'column';
-            ul.style.gap = '6px';
-            list.forEach(c => {
-                const el = document.createElement('div');
-                el.className = 'search-result-item';
-                el.style.padding = '6px';
-                el.style.border = '1px solid #eee';
-                el.style.borderRadius = '6px';
-                el.style.cursor = 'pointer';
-                el.textContent = `${c.prenom || ''} ${c.nom || ''} (${c.telephone || '-'})`;
-                el.addEventListener('click', () => {
-                    ownerIdInput.value = c.id;
-                    ownerSearch.value = `${c.prenom || ''} ${c.nom || ''}`.trim();
-                    ownerResults.innerHTML = '';
-                });
-                ul.appendChild(el);
-            });
-            ownerResults.appendChild(ul);
-        } catch (e) {
-            console.error('Erreur recherche citoyens', e);
-        }
-    }
-
-    createCitizenBtn.addEventListener('click', () => {
-        // Open citizen creation page in new tab
-        window.open('/citoyen.html', '_blank');
-    });
-
-    submitBtn.addEventListener('click', async () => {
+    document.getElementById('armeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
         const modelId = modelSelect.value;
         const serial = serialInput.value.trim();
-        const ownerId = ownerIdInput.value || null;
+        const ownerId = proprietaireIdInput.value || null;
 
         if (!modelId || !serial) {
             showNotification('Veuillez choisir un modèle et saisir le numéro de série', 'error');
@@ -111,4 +61,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('backlinkBtn').addEventListener('click', () => {
         window.history.back();
     });
+
+    // Ajout du popup citoyen
+    const selectProprietaireBtn = document.getElementById('selectProprietaireBtn');
+    const proprietaireInput = document.getElementById('proprietaire');
+    const proprietaireIdInput = document.getElementById('proprietaire_id');
+
+    let citoyenSelector = null;
+
+    if (selectProprietaireBtn) {
+        selectProprietaireBtn.addEventListener('click', async () => {
+            if (!citoyenSelector) {
+                citoyenSelector = new CitoyenSelectorModal();
+                await citoyenSelector.init();
+            }
+            citoyenSelector.onSelectCallback = (id, name) => {
+                proprietaireInput.value = name || '';
+                proprietaireIdInput.value = id || '';
+            };
+            citoyenSelector.modal.style.display = 'flex';
+        });
+    }
 });

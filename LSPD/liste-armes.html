@@ -1,138 +1,87 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <title>Catalogue modèles d'armes - LSPD Assistant</title>
-  <link rel="icon" href="data/images/favicon.png" type="image/png">
-  <link rel="stylesheet" href="styles/sidebar.css" />
-  <link rel="stylesheet" href="styles/colors.css" />
-  <link rel="stylesheet" href="styles/loader.css" />
-  <link rel="stylesheet" href="styles/incident/incident.css" />
-  <link rel="stylesheet" href="styles/custom-notifications.css" />
-  <link rel="stylesheet" href="styles/context-menu.css" />
-  <style>
-    /* Modal styling matching incident form look (local override) */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 3000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.45);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .modal-content {
-      background: var(--white);
-      border-radius: 12px;
-      width: 100%;
-      max-width: 720px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.12);
-      border: 4px solid var(--border-color);
-      overflow: hidden;
-    }
-    .modal-header { display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:3px solid var(--border-color); }
-    .modal-header h3 { margin:0; font-size:18px; }
-    .modal-body { padding:18px 20px; }
-    .modal-footer { padding:16px 20px; border-top:1px solid var(--border-input); display:flex; gap:8px; justify-content:flex-end; }
-
-    /* Button styles for edit/delete similar to infos citizens */
-    .btn.btn-warning {
-      background: linear-gradient(45deg, #ffb84d, #ff9800);
-      color: #fff;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .btn.btn-warning:hover { transform: translateY(-2px); }
-
-    .btn.btn-danger {
-      background: linear-gradient(45deg, #ff6b6b, #e74c3c);
-      color: #fff;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .btn.btn-danger:hover { transform: translateY(-2px); }
-
-    /* Make the secondary (Annuler) button match modal action styling */
-    .btn.btn-secondary {
-      background: transparent;
-      color: var(--text-color, #222);
-      border: 1px solid var(--border-input, #d0d0d0);
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.12s ease-in-out;
-      box-shadow: none;
-    }
-    .btn.btn-secondary:hover {
-      transform: translateY(-2px);
-      background: linear-gradient(180deg, rgba(0,0,0,0.03), rgba(0,0,0,0.02));
-      border-color: var(--border-color);
-    }
-  </style>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <title>Liste des armes - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/context-menu.css" />
+    <link rel="stylesheet" href="styles/custom-notifications.css" />
+    <style>
+        .stats { display: flex; gap: 20px; margin-bottom: 20px; }
+        .stat-card { flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .stat-card h3 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 14px; font-weight: 600; text-transform: uppercase; }
+        .stat-card .value { font-size: 32px; font-weight: 700; color: #2c3e50; }
+        .filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .filters input[type="text"] { padding: 12px 15px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; background: white; height: 44px; box-sizing: border-box; }
+        .filters input[type="text"]:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+        .add-btn { padding: 12px 24px; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; height: 44px; box-sizing: border-box; font-size: 14px; }
+        .add-btn:hover { background: #229954; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(39,174,96,0.3); }
+        .filters select { padding: 12px 15px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; background: white; cursor: pointer; transition: all 0.3s ease; height: 44px; box-sizing: border-box; }
+        .filters select:hover { border-color: #3498db; }
+        .filters select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+        .photo-cell { width: 80px; text-align: center; }
+        .photo-cell img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; border: 2px solid #ecf0f1; }
+        .photo-cell.no-photo { font-size: 28px; color: #bdc3c7; }
+        #armeTable tbody tr { height: 60px; }
+        #armeTable tbody td { padding: 8px 12px; }
+        .serial-cell { font-family: 'Courier New', monospace; font-weight: 700; font-size: 14px; background: #2c3e50; color: white; padding: 4px 12px; border-radius: 4px; display: inline-block; }
+    </style>
 </head>
 <body>
-  <div id="sidebar-container"></div>
-  <script src="scripts/instant-sidebar.js"></script>
-
-  <div class="main-container">
-    <h1>Catalogue : Modèles d'armes</h1>
-    <button id="backlinkBtn" class="backlink-btn">← Retour</button>
-
-    <div class="incident-container">
-      <div class="header">
-        <img src="data/images/lspd.png" alt="Logo LSPD" />
-        <div class="header-title">
-          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
-          <h3 class="title">CATALOGUE MODÈLES D'ARMES</h3>
+    <script src="scripts/annonce-popup.js"></script>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <script src="scripts/instant-sidebar.js"></script>
+        <h1>Liste des armes</h1>
+        <div class="container">
+            <!-- Statistiques -->
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Total armes</h3>
+                    <div class="value" id="totalArmes">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Modèles différents</h3>
+                    <div class="value" id="totalModeles" style="color: #2980b9;">-</div>
+                </div>
+            </div>
+            <div class="filters">
+                <input type="text" id="searchInput" placeholder="Rechercher (modèle, S/N)" autocomplete="off" />
+                <select id="modeleFilter">
+                    <option value="">Tous les modèles</option>
+                </select>
+                <button class="add-btn" id="addArmeBtn">Ajouter une arme</button>
+            </div>
+            <table id="armeTable" aria-label="Liste des armes">
+                <thead>
+                    <tr>
+                        <th class="photo-cell">Photo</th>
+                        <th>Modèle</th>
+                        <th>S/N</th>
+                        <th>Propriétaire</th>
+                        <th>Date d'ajout</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamique -->
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination">
+                <!-- Pagination buttons -->
+            </div>
         </div>
-        <div style="width:120px; text-align:right;">
-          <button id="openAddModel" class="send-button">+</button>
-        </div>
-      </div>
-
-      <div id="modelsList" style="margin-top:12px;"></div>
     </div>
-
-    <!-- Modal for add/edit model (uses generic modal classes) -->
-    <div id="weaponModelModal" class="modal" style="display:none;">
-      <div class="modal-content" style="max-width:720px; width:100%;">
-        <div class="modal-header">
-          <h3 id="modalTitle">Ajouter un modèle</h3>
-          <span class="close" id="modalClose">&times;</span>
-        </div>
-        <div class="modal-body">
-          <form id="modalForm">
-            <label for="model_name_modal">Nom du modèle</label>
-            <input type="text" id="model_name_modal" required />
-
-            <label for="image_url_modal">URL de l'image (optionnel)</label>
-            <input type="url" id="image_url_modal" placeholder="https://..." />
-
-            <input type="hidden" id="model_id_modal" />
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" id="cancelModelBtn" class="btn btn-secondary">Annuler</button>
-          <button type="button" id="saveModelBtn" class="send-button">Enregistrer</button>
-        </div>
-      </div>
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
     </div>
-  </div>
-
-  <div id="loaderOverlay" class="loader-overlay" style="display:none;"><div class="loader-spinner"></div></div>
-  <div id="feedbackAnimation" style="display:none"></div>
-
-  <script src="scripts/loadSidebar.js"></script>
-  <script src="scripts/custom-notifications.js"></script>
-  <script src="scripts/weapon-models.js"></script>
+    <script src="scripts/custom-notifications.js"></script>
+    <script src="scripts/liste-armes.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/context-menu.js"></script>
 </body>
 </html>
