@@ -432,9 +432,9 @@ function activateEditMode() {
 
     // Activer les champs
     enableFormFields();
-    
+
     // Refresh weapons list so delete buttons appear when in edit mode
-    try { loadWeaponsForCitizen(citoyenId); } catch(e) { /* ignore */ }
+    try { loadWeaponsForCitizen(citoyenId); } catch (e) { /* ignore */ }
 
     showAnimation('success', 'Mode édition activé');
 }
@@ -453,7 +453,7 @@ function deactivateEditMode() {
     // Désactiver les champs
     disableFormFields();
     // Refresh weapons list to hide delete buttons
-    try { loadWeaponsForCitizen(citoyenId); } catch(e) { /* ignore */ }
+    try { loadWeaponsForCitizen(citoyenId); } catch (e) { /* ignore */ }
 }
 
 // Fonction pour annuler les modifications
@@ -469,10 +469,10 @@ function cancelEdit() {
     document.getElementById('mandat_actif').value = originalData.mandat_actif ? 'true' : 'false';
 
     updatePhotoPreview(originalData.photo);
-    
+
     // Clear any pending weapon deletions and refresh list
     pendingWeaponDeletions.clear();
-    try { loadWeaponsForCitizen(citoyenId); } catch(e) { /* ignore */ }
+    try { loadWeaponsForCitizen(citoyenId); } catch (e) { /* ignore */ }
 
     deactivateEditMode();
     showAnimation('success', 'Modifications annulées');
@@ -509,7 +509,7 @@ async function saveProfile(event) {
                 const ids = Array.from(pendingWeaponDeletions);
                 await Promise.all(ids.map(id => fetch(`/api/weapons/${id}`, { method: 'DELETE' }).then(async res => {
                     if (!res.ok) {
-                        const err = await res.json().catch(()=>({ error: 'Erreur' }));
+                        const err = await res.json().catch(() => ({ error: 'Erreur' }));
                         throw new Error(err.error || 'Erreur suppression arme');
                     }
                 })));
@@ -683,7 +683,7 @@ async function loadVehicules() {
 
         // Afficher les véhicules (limité si beaucoup)
         const displayVehicules = vehicules.slice(0, maxDisplay);
-        
+
         displayVehicules.forEach(vehicule => {
             const item = createVehiculeItem(vehicule, displayMode);
             vehiculesListEl.appendChild(item);
@@ -713,12 +713,12 @@ async function loadVehicules() {
                 justify-content: center;
                 gap: 8px;
             `;
-            
+
             seeAllBtn.addEventListener('mouseenter', () => {
                 seeAllBtn.style.background = 'rgba(11, 27, 90, 0.15)';
                 seeAllBtn.style.borderColor = 'var(--lspd-gold)';
             });
-            
+
             seeAllBtn.addEventListener('mouseleave', () => {
                 seeAllBtn.style.background = 'rgba(11, 27, 90, 0.1)';
                 seeAllBtn.style.borderColor = 'var(--lspd-blue)';
