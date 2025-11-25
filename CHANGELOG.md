@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.20.1](https://github.com/Medouille089/lspdassistant/compare/v1.20.0...v1.20.1) (2025-11-25)
+
+
+### Bug Fixes
+
+* error in incidents from count script ([e94d70b](https://github.com/Medouille089/lspdassistant/commit/e94d70b4935c7fc32c3c417b283005093be9ac6b))
+* update right clic on weapons ([d6d7d23](https://github.com/Medouille089/lspdassistant/commit/d6d7d238781beb2ae8328779bec41a04e77edad0))
+
 ## [1.20.0](https://github.com/Medouille089/lspdassistant/compare/v1.19.0...v1.20.0) (2025-11-25)
 
 
