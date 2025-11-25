@@ -217,7 +217,7 @@ router.post('/register', async (req, res) => {
             const guild = logsChannel.guild;
             const memberObj = await guild.members.fetch(req.user.id);
             if (memberObj && memberObj.displayName) memberDisplayName = memberObj.displayName;
-          } catch {}
+          } catch { }
           const embed = new EmbedBuilder()
             .setTitle('⚠️ Nouveau compte créé')
             .setColor(0x00ff00)
@@ -316,40 +316,40 @@ router.post('/login-local', async (req, res) => {
         guild_member: guildMember
       };
 
-        // CHECK: si l'utilisateur est blacklisté en BDD -> log tentative et blocage immédiat
-        try {
-          const blCheck = await require('../config/db').query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = ?', [account.discord_id]);
-          if (blCheck.rows.length) {
-            // Envoyer log de tentative dans logs_connexion si configuré
-            try {
-              const cfg = await getConfig();
-              if (cfg.logs_connexion) {
-                const logsChannel = await bot.channels.fetch(cfg.logs_connexion).catch(() => null);
-                if (logsChannel?.isTextBased()) {
-                  const { EmbedBuilder } = require('discord.js');
-                  const roleId = cfg.blacklist_role_id ? String(cfg.blacklist_role_id).trim() : null;
-                  const desc = roleId
-                    ? `${account.username} a tenté(e) de se connecter via login mais est blacklisté (rôle <@&${roleId}>)`
-                    : `${account.username} a tenté(e) de se connecter via login mais est blacklisté`;
+      // CHECK: si l'utilisateur est blacklisté en BDD -> log tentative et blocage immédiat
+      try {
+        const blCheck = await require('../config/db').query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = ?', [account.discord_id]);
+        if (blCheck.rows.length) {
+          // Envoyer log de tentative dans logs_connexion si configuré
+          try {
+            const cfg = await getConfig();
+            if (cfg.logs_connexion) {
+              const logsChannel = await bot.channels.fetch(cfg.logs_connexion).catch(() => null);
+              if (logsChannel?.isTextBased()) {
+                const { EmbedBuilder } = require('discord.js');
+                const roleId = cfg.blacklist_role_id ? String(cfg.blacklist_role_id).trim() : null;
+                const desc = roleId
+                  ? `${account.username} a tenté(e) de se connecter via login mais est blacklisté (rôle <@&${roleId}>)`
+                  : `${account.username} a tenté(e) de se connecter via login mais est blacklisté`;
 
-                  const embed = new EmbedBuilder()
-                    .setTitle('⚠️ Tentative de connexion - Blacklist')
-                    .setColor(0xff0000)
-                    .setDescription(desc)
-                    .addFields({ name: "ID's", value: `> <@${account.discord_id}> (\`${account.discord_id}\`)${roleId ? `\n> <@&${roleId}> (\`${roleId}\`)` : ''}`, inline: false })
-                    .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
-                    .setTimestamp();
+                const embed = new EmbedBuilder()
+                  .setTitle('⚠️ Tentative de connexion - Blacklist')
+                  .setColor(0xff0000)
+                  .setDescription(desc)
+                  .addFields({ name: "ID's", value: `> <@${account.discord_id}> (\`${account.discord_id}\`)${roleId ? `\n> <@&${roleId}> (\`${roleId}\`)` : ''}`, inline: false })
+                  .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
+                  .setTimestamp();
 
-                  await logsChannel.send({ embeds: [embed] }).catch(() => {});
-                }
+                await logsChannel.send({ embeds: [embed] }).catch(() => { });
               }
-            } catch (e) { console.error('Erreur envoi log blacklist (login-local early):', e); }
+            }
+          } catch (e) { console.error('Erreur envoi log blacklist (login-local early):', e); }
 
-            return res.status(403).json({ error: 'Compte blacklisté' });
-          }
-        } catch (e) {
-          console.error('Erreur vérif blacklist login-local:', e);
+          return res.status(403).json({ error: 'Compte blacklisté' });
         }
+      } catch (e) {
+        console.error('Erreur vérif blacklist login-local:', e);
+      }
 
       // Récupérer la config pour les rôles
       const config = await getConfig();
@@ -429,7 +429,7 @@ router.post('/login-local', async (req, res) => {
                 const guild = logsChannel.guild;
                 const memberObj = await guild.members.fetch(account.discord_id);
                 if (memberObj && memberObj.displayName) memberDisplayName = memberObj.displayName;
-              } catch {}
+              } catch { }
               const embed = new EmbedBuilder()
                 .setTitle('⚠️  Connexion login')
                 .setColor(0x0b1b5a)
@@ -586,7 +586,7 @@ router.post('/reset-password', async (req, res) => {
             const guild = logsChannel.guild;
             const memberObj = await guild.members.fetch(account.discord_id);
             if (memberObj && memberObj.displayName) memberDisplayName = memberObj.displayName;
-          } catch {}
+          } catch { }
           const embed = new EmbedBuilder()
             .setTitle('⚠️ Mot de passe réinitialisé')
             .setColor(0xff0000)

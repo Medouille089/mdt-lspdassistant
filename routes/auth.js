@@ -24,13 +24,13 @@ router.get('/callback',
         }
         return res.redirect('/connect.html?error=auth_failed');
       }
-      
+
       // Si pas d'utilisateur (authentification échouée)
       if (!user) {
         console.warn('⚠️  Authentification échouée, pas d\'utilisateur');
         return res.redirect('/connect.html?error=no_user');
       }
-      
+
       // Connexion réussie
       req.logIn(user, (err) => {
         if (err) {
@@ -45,8 +45,8 @@ router.get('/callback',
     try {
       if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
-    const config = await getConfig();
-    const { required_role_id, logs_connexion, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id } = config;
+      const config = await getConfig();
+      const { required_role_id, logs_connexion, commandstaff_id, supervisor_role_id, id_superadmin, doj_role_id } = config;
 
       const guild = await bot.guilds.fetch(GUILD_ID);
       guild.members.cache.delete(req.user.id);
@@ -111,7 +111,7 @@ router.get('/callback',
         : `a tenté(e) de se connecter sans le rôle <@&${required_role_id}> ou sans être <@&${doj_role_id}>`;
 
       // Variables de session
-  req.user.roles = roleIds;
+      req.user.roles = roleIds;
       req.user.isCommandStaff = commandstaff_id ? roleIds.includes(commandstaff_id.trim()) : false;
       req.user.isSupervisor = supervisor_role_id ? roleIds.includes(supervisor_role_id.trim()) : false;
       req.user.isSuperAdmin = isSuperAdmin;
@@ -321,9 +321,9 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
       return res.redirect('/error.html');
     }
 
-  const requested = req.path.replace(/^\//, '');
-  const fileName = requested.endsWith('.html') ? requested : `${requested}.html`;
-  res.sendFile(path.join(__dirname, `../LSPD/${fileName}`));
+    const requested = req.path.replace(/^\//, '');
+    const fileName = requested.endsWith('.html') ? requested : `${requested}.html`;
+    res.sendFile(path.join(__dirname, `../LSPD/${fileName}`));
   } catch (err) {
     console.error(`Erreur ${req.path}:`, err);
     res.status(500).send('Erreur serveur');

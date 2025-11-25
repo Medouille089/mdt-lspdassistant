@@ -24,10 +24,10 @@ module.exports = {
 
   async execute(interaction) {
     try {
-    const dateStr = interaction.options.getString('date');
-    const heureStr = interaction.options.getString('heure');
-    const reason = interaction.options.getString('raison');
-    const isDM = !interaction.guildId; // commande utilisée en MP
+      const dateStr = interaction.options.getString('date');
+      const heureStr = interaction.options.getString('heure');
+      const reason = interaction.options.getString('raison');
+      const isDM = !interaction.guildId; // commande utilisée en MP
 
       // Validation heure
       if (!/^\d{2}:\d{2}$/.test(heureStr)) {
@@ -114,9 +114,9 @@ module.exports = {
           const logsChannel = await interaction.client.channels.fetch(conf.logs_calendrier);
           if (logsChannel?.isTextBased()) {
             const displayName = interaction.member?.displayName || interaction.user.displayName || interaction.user.username;
-            
-            let locationText = isDM 
-              ? 'en MP' 
+
+            let locationText = isDM
+              ? 'en MP'
               : `dans le salon <#${interaction.channel.id}>`;
 
             const logEmbed = new EmbedBuilder()
@@ -136,16 +136,16 @@ module.exports = {
 
             // Ajout des ID's
             if (isDM) {
-              logEmbed.addFields({ 
-                name: 'ID\'s', 
-                value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)`, 
-                inline: false 
+              logEmbed.addFields({
+                name: 'ID\'s',
+                value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)`,
+                inline: false
               });
             } else {
-              logEmbed.addFields({ 
-                name: 'ID\'s', 
-                value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)\n> <#${interaction.channel.id}> (\`${interaction.channel.id}\`)`, 
-                inline: false 
+              logEmbed.addFields({
+                name: 'ID\'s',
+                value: `> <@${interaction.user.id}> (\`${interaction.user.id}\`)\n> <#${interaction.channel.id}> (\`${interaction.channel.id}\`)`,
+                inline: false
               });
             }
 

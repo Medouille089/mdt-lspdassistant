@@ -111,7 +111,7 @@ router.put("/api/logs-config", async (req, res) => {
       }
       // For each field, log if changed
       const fields = [
-        "logs_pointeuse","logs_config","logs_connexion","logs_bracelets","logs_arrestations","logs_incidents","logs_convocations","logs_convocations_agent","logs_documentation","logs_rapport_rookie","logs_sanctions","logs_tickets","logs_calendrier"
+        "logs_pointeuse", "logs_config", "logs_connexion", "logs_bracelets", "logs_arrestations", "logs_incidents", "logs_convocations", "logs_convocations_agent", "logs_documentation", "logs_rapport_rookie", "logs_sanctions", "logs_tickets", "logs_calendrier"
       ];
       for (const key of fields) {
         if (oldConfig[key] !== req.body[key] && logsChannel) {

@@ -341,7 +341,7 @@ router.delete('/api/absence/:id', async (req, res) => {
 
         // Récupérer l'absence avant de la supprimer (MySQL n'a pas RETURNING)
         const selectResult = await db.query('SELECT * FROM absences WHERE id = ?', [id]);
-        
+
         if (selectResult.rows.length === 0) {
             return res.status(404).json({
                 error: 'Absence non trouvée',

@@ -128,7 +128,7 @@ router.post('/api/citoyens', checkAuth, async (req, res) => {
                 createdBy
             ]
         );
-        
+
         console.log('insertResult:', insertResult);
         console.log('Recherche du citoyen avec id:', insertResult.rows.insertId);
         const selectResult = await pool.query('SELECT * FROM citoyens WHERE id = ?', [insertResult.rows.insertId]);
@@ -235,7 +235,7 @@ router.put('/api/citoyens/:id', checkAuth, async (req, res) => {
                 id
             ]
         );
-        
+
         const selectResult = await pool.query('SELECT * FROM citoyens WHERE id = ?', [id]);
         const updatedCitoyen = selectResult.rows[0];
 

@@ -53,31 +53,31 @@ router.post('/api/annonce', checkAuth, async (req, res) => {
       const bot = getBot();
       const conf = getConfig();
       const logsChannelId = conf.logs_config;
-          if (logsChannelId) {
-            const logsChannel = await bot.channels.fetch(logsChannelId);
-            if (logsChannel?.isTextBased()) {
-              // Cherche le displayName brut (pas username)
-              let displayName = req.user?.displayName;
-              if (!displayName && bot && bot.guilds && req.user?.id) {
-                try {
-                  const guild = bot.guilds.cache.first() || (await bot.guilds.fetch());
-                  const member = await guild.members.fetch(req.user.id);
-                  displayName = member.displayName;
-                } catch {}
-              }
-              const embed = new EmbedBuilder()
-                .setColor(0xffc107)
-                .setTitle('Nouvelle annonce')
-                .setDescription(`${displayName || req.user?.username || 'Utilisateur inconnu'} a posté une annonce.`)
-                .addFields(
-                  { name: 'Contenu', value: '> ' + (texte.length > 200 ? texte.slice(0, 197) + '...' : texte), inline: false },
-                  { name: "ID's", value: `> <@${req.user.id}> (\`${req.user.id}\`)`, inline: false }
-                )
-                .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
-                .setTimestamp();
-              await logsChannel.send({ embeds: [embed] });
-            }
+      if (logsChannelId) {
+        const logsChannel = await bot.channels.fetch(logsChannelId);
+        if (logsChannel?.isTextBased()) {
+          // Cherche le displayName brut (pas username)
+          let displayName = req.user?.displayName;
+          if (!displayName && bot && bot.guilds && req.user?.id) {
+            try {
+              const guild = bot.guilds.cache.first() || (await bot.guilds.fetch());
+              const member = await guild.members.fetch(req.user.id);
+              displayName = member.displayName;
+            } catch { }
           }
+          const embed = new EmbedBuilder()
+            .setColor(0xffc107)
+            .setTitle('Nouvelle annonce')
+            .setDescription(`${displayName || req.user?.username || 'Utilisateur inconnu'} a posté une annonce.`)
+            .addFields(
+              { name: 'Contenu', value: '> ' + (texte.length > 200 ? texte.slice(0, 197) + '...' : texte), inline: false },
+              { name: "ID's", value: `> <@${req.user.id}> (\`${req.user.id}\`)`, inline: false }
+            )
+            .setFooter({ text: 'LSPD Assistant', iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 }) })
+            .setTimestamp();
+          await logsChannel.send({ embeds: [embed] });
+        }
+      }
     } catch (discordError) {
       console.error('Erreur lors de la notification Discord (annonce):', discordError);
     }

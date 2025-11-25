@@ -163,7 +163,7 @@ router.post('/api/delits', async (req, res) => {
             INSERT INTO lspd_delit (chef_accusation, code_article, type, amende, peine, commentaire)
             VALUES (?, ?, ?, ?, ?, ?)
         `, [chef_accusation, code_article, type, amende || '$0', peine || '00:00', commentaire || '']);
-        
+
         const selectResult = await pool.query('SELECT * FROM lspd_delit WHERE id = ?', [insertResult.insertId]);
         res.status(201).json(selectResult.rows[0]);
     } catch (err) {
@@ -202,7 +202,7 @@ router.delete('/api/delits/:id', async (req, res) => {
         const { id } = req.params;
 
         const selectResult = await pool.query('SELECT * FROM lspd_delit WHERE id = ?', [id]);
-        
+
         if (selectResult.rows.length === 0) {
             return res.status(404).json({ error: 'Délit non trouvé' });
         }

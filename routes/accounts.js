@@ -73,7 +73,7 @@ router.get("/api/accounts", checkAuth, checkSuperAdmin, async (req, res) => {
     // Enrichir avec les informations Discord (display name) et filtrer
     const guild = await bot.guilds.fetch(GUILD_ID);
     const filteredAccounts = [];
-    
+
     for (const account of rows) {
       try {
         const member = await guild.members.fetch(account.discord_id).catch(() => null);
@@ -170,7 +170,7 @@ router.delete("/api/accounts/:id", checkAuth, checkSuperAdmin, async (req, res) 
     try {
       const conf = await getConfig();
       const logsChannel = await safeFetchChannel(bot, conf.logs_config);
-      
+
       if (logsChannel) {
         const actorDisplayName = actorMember?.displayName || req.user.username;
         const targetDisplayName = targetMember?.displayName || account.username;
@@ -208,8 +208,8 @@ router.delete("/api/accounts/:id", checkAuth, checkSuperAdmin, async (req, res) 
       // Ne pas faire échouer la suppression si le log échoue
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: "Compte supprimé avec succès",
       deletedAccount: {
         username: account.username,

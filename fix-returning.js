@@ -67,15 +67,15 @@ console.log('🔧 Correction des RETURNING restants...\n');
 
 Object.entries(fixes).forEach(([filePath, corrections]) => {
     const fullPath = path.join(__dirname, filePath);
-    
+
     if (!fs.existsSync(fullPath)) {
         console.log(`⏭️  ${filePath} (fichier non trouvé)`);
         return;
     }
-    
+
     let content = fs.readFileSync(fullPath, 'utf8');
     let modified = false;
-    
+
     corrections.forEach(fix => {
         const before = content;
         if (typeof fix.replace === 'function') {
@@ -83,16 +83,16 @@ Object.entries(fixes).forEach(([filePath, corrections]) => {
         } else {
             content = content.replace(fix.search, fix.replace);
         }
-        
+
         if (fix.postFix) {
             content = fix.postFix(content);
         }
-        
+
         if (before !== content) {
             modified = true;
         }
     });
-    
+
     if (modified) {
         fs.writeFileSync(fullPath, content, 'utf8');
         console.log(`✅ ${filePath}`);
@@ -117,14 +117,14 @@ console.log('\n📝 Ajout de gestions insertId et SELECT...\n');
 filesToCheckInsertId.forEach(file => {
     const fullPath = path.join(__dirname, file);
     if (!fs.existsSync(fullPath)) return;
-    
+
     let content = fs.readFileSync(fullPath, 'utf8');
     const before = content;
-    
+
     // Remplacer result.rows[0] par un pattern avec insertId après INSERT
     // Pattern: const x = result.rows[0]; après INSERT -> const selectResult = await pool.query('SELECT...', [result.insertId]);
     // C'est trop complexe, on laisse les développeurs le faire manuellement
-    
+
     console.log(`ℹ️  ${file} - Vérifiez manuellement les insertId et SELECT`);
 });
 

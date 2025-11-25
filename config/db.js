@@ -39,10 +39,10 @@ const originalQuery = pool.query.bind(pool);
 
 // Wrapper pour compatibilité avec l'ancien code PostgreSQL
 // MySQL2 retourne [rows, fields] au lieu de { rows, ... }
-pool.query = async function(sql, params) {
+pool.query = async function (sql, params) {
   const maxRetries = 3;
   let lastError;
-  
+
   for (let i = 0; i < maxRetries; i++) {
     try {
       const [rows, fields] = await originalQuery(sql, params);
@@ -50,9 +50,9 @@ pool.query = async function(sql, params) {
       return { rows, fields };
     } catch (err) {
       lastError = err;
-      
+
       // Vérifier si c'est une erreur de connexion
-      const isConnectionError = 
+      const isConnectionError =
         err.message?.includes('Connection terminated') ||
         err.message?.includes('ECONNRESET') ||
         err.message?.includes('ETIMEDOUT') ||
@@ -60,18 +60,18 @@ pool.query = async function(sql, params) {
         err.code === 'PROTOCOL_CONNECTION_LOST' ||
         err.errno === 2013 || // Lost connection to MySQL server
         err.errno === 2006; // MySQL server has gone away
-      
+
       if (isConnectionError && i < maxRetries - 1) {
         console.log(`⚠️  Erreur de connexion DB (tentative ${i + 1}/${maxRetries}), retry dans ${(i + 1) * 500}ms...`);
         await new Promise(resolve => setTimeout(resolve, (i + 1) * 500));
         continue;
       }
-      
+
       // Si ce n'est pas une erreur de connexion ou dernière tentative, throw
       throw err;
     }
   }
-  
+
   throw lastError;
 };
 

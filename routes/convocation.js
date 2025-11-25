@@ -32,10 +32,10 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
     const botUser = bot.user;
     const nomComplet = `${nom || "Inconnu"} ${prenom || ""}`.trim();
 
-      // Nom d'affichage de l'utilisateur (fallback si non fourni)
-      const displayName = user?.guild_member?.nick || user?.username || user?.displayName || 'Utilisateur inconnu';
-      // Nom court pour le thread (2 caractères)
-      const shortName = (user?.guild_member?.nick || user?.username || '').substring(0, 2) || '??';
+    // Nom d'affichage de l'utilisateur (fallback si non fourni)
+    const displayName = user?.guild_member?.nick || user?.username || user?.displayName || 'Utilisateur inconnu';
+    // Nom court pour le thread (2 caractères)
+    const shortName = (user?.guild_member?.nick || user?.username || '').substring(0, 2) || '??';
 
     // Si user vient d'un middleware d'auth, on peut fetch Member du serveur si besoin
     try {

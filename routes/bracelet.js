@@ -191,7 +191,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
             return res.status(404).json({ error: 'Bracelet non trouvé' });
         }
 
-    const { id_thread: threadId, id_brac, old_nom, old_prenom, old_date_debut, created_by } = rows[0];
+        const { id_thread: threadId, id_brac, old_nom, old_prenom, old_date_debut, created_by } = rows[0];
         const mentionThread = threadId ? `<#${threadId}>` : 'Thread inconnu';
 
         // Mettre à jour le bracelet

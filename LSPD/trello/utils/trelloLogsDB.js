@@ -17,7 +17,7 @@ async function getUserInfo(userId) {
                 const { GUILD_ID } = require("../../../config/env");
                 const guild = await bot.guilds.fetch(GUILD_ID);
                 const member = await guild.members.fetch(userId);
-                
+
                 return {
                     displayName: member.displayName || member.user.username,
                     userId: userId
@@ -74,7 +74,7 @@ async function saveLog(logType, userId, userName, actionDescription, details, co
             } catch (err) {
                 console.warn("⚠️  Erreur récupération photo profil:", err.message);
             }
-            
+
             io.emit('trelloLog', newLog);
         }
     } catch (error) {
@@ -250,7 +250,7 @@ const UPDATE_DEBOUNCE_MS = 10000;
 async function logUpdateCard(card, oldValues, updates, listName, userId) {
     try {
         const cardId = card.id;
-        
+
         if (!updateQueue.cards.has(cardId)) {
             updateQueue.cards.set(cardId, {
                 timer: null,
@@ -263,17 +263,17 @@ async function logUpdateCard(card, oldValues, updates, listName, userId) {
             const queueItem = updateQueue.cards.get(cardId);
             queueItem.latestCard = { ...card };
             queueItem.listName = listName;
-            
+
             if (queueItem.timer) {
                 clearTimeout(queueItem.timer);
             }
         }
-        
+
         const queueItem = updateQueue.cards.get(cardId);
         queueItem.timer = setTimeout(async () => {
             await sendCardUpdateLog(cardId);
         }, UPDATE_DEBOUNCE_MS);
-        
+
     } catch (error) {
         console.error("❌ Erreur log modification carte:", error);
     }
@@ -282,7 +282,7 @@ async function logUpdateCard(card, oldValues, updates, listName, userId) {
 async function sendCardUpdateLog(cardId) {
     const queueItem = updateQueue.cards.get(cardId);
     if (!queueItem) return;
-    
+
     try {
         const { oldValues, latestCard, listName, userId } = queueItem;
         const userInfo = await getUserInfo(userId);
@@ -295,7 +295,7 @@ async function sendCardUpdateLog(cardId) {
             hour: "2-digit",
             minute: "2-digit"
         });
-        
+
         const fieldNames = {
             text: 'Nom',
             description: 'Description',
@@ -308,15 +308,15 @@ async function sendCardUpdateLog(cardId) {
             convoi: 'Convoi',
             tags: 'Étiquettes'
         };
-        
+
         const changes = [];
         Object.keys(oldValues).forEach(key => {
             if (key === 'updated_at' || key === 'id') return;
-            
+
             const fieldName = fieldNames[key] || key;
             const oldValue = oldValues[key];
             const newValue = latestCard[key];
-            
+
             if (key === 'tags') {
                 const oldTags = Array.isArray(oldValue) ? oldValue.map(t => t.name || t).filter(Boolean).join(', ') : '';
                 const newTags = Array.isArray(newValue) ? newValue.map(t => t.name || t).filter(Boolean).join(', ') : '';
@@ -333,7 +333,7 @@ async function sendCardUpdateLog(cardId) {
                 }
             }
         });
-        
+
         if (changes.length > 0) {
             await saveLog(
                 'UPDATE_CARD',
@@ -362,7 +362,7 @@ async function sendCardUpdateLog(cardId) {
 async function logUpdateList(list, oldValues, updates, userId) {
     try {
         const listId = list.id;
-        
+
         if (!updateQueue.lists.has(listId)) {
             updateQueue.lists.set(listId, {
                 timer: null,
@@ -373,17 +373,17 @@ async function logUpdateList(list, oldValues, updates, userId) {
         } else {
             const queueItem = updateQueue.lists.get(listId);
             queueItem.latestList = { ...list };
-            
+
             if (queueItem.timer) {
                 clearTimeout(queueItem.timer);
             }
         }
-        
+
         const queueItem = updateQueue.lists.get(listId);
         queueItem.timer = setTimeout(async () => {
             await sendListUpdateLog(listId);
         }, UPDATE_DEBOUNCE_MS);
-        
+
     } catch (error) {
         console.error("❌ Erreur log modification liste:", error);
     }
@@ -392,7 +392,7 @@ async function logUpdateList(list, oldValues, updates, userId) {
 async function sendListUpdateLog(listId) {
     const queueItem = updateQueue.lists.get(listId);
     if (!queueItem) return;
-    
+
     try {
         const { oldValues, latestList, userId } = queueItem;
         const userInfo = await getUserInfo(userId);
@@ -405,22 +405,22 @@ async function sendListUpdateLog(listId) {
             hour: "2-digit",
             minute: "2-digit"
         });
-        
+
         const fieldNames = { title: 'Nom', name: 'Nom' };
         const changes = [];
-        
+
         Object.keys(oldValues).forEach(key => {
             if (key === 'id' || key === 'cards') return;
-            
+
             const fieldName = fieldNames[key] || key;
             const oldValue = oldValues[key] || '';
             const newValue = latestList[key] || '';
-            
+
             if (oldValue !== newValue) {
                 changes.push({ field: fieldName, oldValue: oldValue || '(vide)', newValue: newValue || '(vide)' });
             }
         });
-        
+
         if (changes.length > 0) {
             await saveLog(
                 'UPDATE_LIST',
@@ -448,7 +448,7 @@ async function logMoveCard(card, fromListName, toListName, sameList, fromIndex, 
     try {
         const userInfo = await getUserInfo(userId);
         const cardName = card.text || card.title || card.name || "Sans nom";
-        
+
         let description;
         if (sameList) {
             if (targetIndex < fromIndex) {
@@ -459,7 +459,7 @@ async function logMoveCard(card, fromListName, toListName, sameList, fromIndex, 
         } else {
             description = `${userInfo.displayName} a déplacé la card <strong>${cardName}</strong> de la liste <strong>${fromListName || "Inconnue"}</strong> à la liste <strong>${toListName || "Inconnue"}</strong>`;
         }
-        
+
         await saveLog(
             'MOVE_CARD',
             userInfo.userId,
@@ -493,7 +493,7 @@ async function logTrelloReset() {
             hour: "2-digit",
             minute: "2-digit"
         });
-        
+
         await saveLog(
             'RESET',
             'SYSTEM',

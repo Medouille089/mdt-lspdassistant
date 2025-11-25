@@ -117,7 +117,7 @@ router.patch('/api/faq/:id', checkAuth, async (req, res) => {
     if (old) {
       if (old.titre !== titre) extra += `Titre: \`${old.titre}\` -> \`${titre}\`\n`;
       if (old.description !== description) extra += `Description: modifiée (${old.description.length}→${description.length} chars)\n`;
-      if ((old.image || '') !== (image || '')) extra += `Image: ${(old.image||'—')} -> ${(image||'—')}\n`;
+      if ((old.image || '') !== (image || '')) extra += `Image: ${(old.image || '—')} -> ${(image || '—')}\n`;
     }
     logFaqAction({ actorId: req.user.id, type: 'update', targetType: 'entry', targetName: titre, targetId: id, extra: extra ? extra.trim() : null });
   } catch (e) {
@@ -136,8 +136,8 @@ router.patch('/api/faq/category/:id', checkAuth, async (req, res) => {
     await pool.query('UPDATE lspd_faq_categories SET nom = ? WHERE id = ?', [name, id]);
     res.json({ success: true });
     const old = oldRes.rows[0];
-  const extra = old && old.nom !== name ? `Nom: \`${old.nom}\` -> \`${name}\`` : null;
-  logFaqAction({ actorId: req.user.id, type: 'update', targetType: 'category', targetName: name, targetId: id, extra });
+    const extra = old && old.nom !== name ? `Nom: \`${old.nom}\` -> \`${name}\`` : null;
+    logFaqAction({ actorId: req.user.id, type: 'update', targetType: 'category', targetName: name, targetId: id, extra });
   } catch (e) {
     res.status(500).json({ error: 'Erreur modification catégorie' });
   }

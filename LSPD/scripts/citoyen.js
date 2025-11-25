@@ -14,10 +14,10 @@
   function formatPhoneNumber(value) {
     // Enlever tous les caractères non-numériques
     const numbers = value.replace(/\D/g, '');
-    
+
     // Limiter à 10 chiffres
     const limited = numbers.substring(0, 10);
-    
+
     // Formater selon le pattern (000) 000-0000
     if (limited.length <= 3) {
       return limited;
@@ -147,15 +147,15 @@
     form.addEventListener('submit', submitForm);
 
     // Formatage automatique du téléphone
-    telephoneInput.addEventListener('input', function(e) {
+    telephoneInput.addEventListener('input', function (e) {
       const cursorPosition = e.target.selectionStart;
       const oldLength = e.target.value.length;
-      
+
       e.target.value = formatPhoneNumber(e.target.value);
-      
+
       const newLength = e.target.value.length;
       const diff = newLength - oldLength;
-      
+
       // Ajuster la position du curseur si le formatage a ajouté des caractères
       if (diff > 0) {
         e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);

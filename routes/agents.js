@@ -12,7 +12,7 @@ async function sendAgentLog({ bot, logsChannelId, action, actorMember, targetMem
     if (!channel || !channel.isTextBased()) return;
     const actorName = actorMember?.displayName || actorId;
     const targetName = targetMember?.displayName || targetId;
-  const actionLabelMap = { CREATE: 'CRÉATION', UPDATE: 'MODIFICATION', EDIT_ON: 'MODE ÉDITION ON' };
+    const actionLabelMap = { CREATE: 'CRÉATION', UPDATE: 'MODIFICATION', EDIT_ON: 'MODE ÉDITION ON' };
     const baseLabel = actionLabelMap[action] || action;
     const self = actorId === targetId;
     let title;
@@ -28,14 +28,14 @@ async function sendAgentLog({ bot, logsChannelId, action, actorMember, targetMem
       title = `${actorName} action sur ${targetName}`;
     }
 
-  if (!lines.length) lines.push('Aucun détail');
-  const details = lines.map(l => l.startsWith('>') ? l : `> ${l}`).join('\n').slice(0, 3900);
+    if (!lines.length) lines.push('Aucun détail');
+    const details = lines.map(l => l.startsWith('>') ? l : `> ${l}`).join('\n').slice(0, 3900);
     const botAvatar = bot.user?.displayAvatarURL({ size: 128 });
     const embed = new EmbedBuilder()
       .setColor(0x0b1b5a)
       .setTitle(title)
-  .addFields({ name: 'Détails', value: details })
-  .addFields({ name: 'ID\'s', value: `> <@${actorId}> (\`${actorId}\`)` })
+      .addFields({ name: 'Détails', value: details })
+      .addFields({ name: 'ID\'s', value: `> <@${actorId}> (\`${actorId}\`)` })
       .setFooter({ text: 'LSPD Assistant', iconURL: botAvatar || undefined })
       .setTimestamp();
     await channel.send({ embeds: [embed] });
@@ -85,37 +85,37 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
         const canFetchTarget = user && (user.id === userId || user.isSupervisor || user.isCommandStaff || user.isSuperAdmin);
         if (canFetchTarget) {
           // Si on crée pour un autre user (staff), tenter de récupérer via API interne discord/member
-            if (user.id !== userId) {
-              try {
-                const { getBot } = require('../config/config');
-                const bot = getBot();
-                const guild = bot.guilds.cache.get(process.env.GUILD_ID);
-                if (guild) {
-                  const member = await guild.members.fetch(userId).catch(() => null);
-                  if (member) {
-                    if (member.user.avatar) {
-                      defaultPhoto = `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png?size=256`;
-                    } else {
-                      const hashIdx = member.user.discriminator && member.user.discriminator !== '0'
-                        ? parseInt(member.user.discriminator) % 5
-                        : (parseInt(member.user.id.slice(-3), 10) % 5);
-                      defaultPhoto = `https://cdn.discordapp.com/embed/avatars/${hashIdx}.png`;
-                    }
+          if (user.id !== userId) {
+            try {
+              const { getBot } = require('../config/config');
+              const bot = getBot();
+              const guild = bot.guilds.cache.get(process.env.GUILD_ID);
+              if (guild) {
+                const member = await guild.members.fetch(userId).catch(() => null);
+                if (member) {
+                  if (member.user.avatar) {
+                    defaultPhoto = `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png?size=256`;
+                  } else {
+                    const hashIdx = member.user.discriminator && member.user.discriminator !== '0'
+                      ? parseInt(member.user.discriminator) % 5
+                      : (parseInt(member.user.id.slice(-3), 10) % 5);
+                    defaultPhoto = `https://cdn.discordapp.com/embed/avatars/${hashIdx}.png`;
                   }
                 }
-              } catch(apiErr) {
-                console.warn('Fetch avatar membre cible (bot) échoué, fallback sur session si même user:', apiErr.message);
               }
+            } catch (apiErr) {
+              console.warn('Fetch avatar membre cible (bot) échoué, fallback sur session si même user:', apiErr.message);
             }
-            // Si toujours rien ou c'est soi-même
-            if (!defaultPhoto && user && user.id === userId) {
-              if (user.avatar) {
-                defaultPhoto = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256`;
-              } else if (user.discriminator) {
-                const discrimIndex = parseInt(user.discriminator) % 5;
-                defaultPhoto = `https://cdn.discordapp.com/embed/avatars/${discrimIndex}.png`;
-              }
+          }
+          // Si toujours rien ou c'est soi-même
+          if (!defaultPhoto && user && user.id === userId) {
+            if (user.avatar) {
+              defaultPhoto = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256`;
+            } else if (user.discriminator) {
+              const discrimIndex = parseInt(user.discriminator) % 5;
+              defaultPhoto = `https://cdn.discordapp.com/embed/avatars/${discrimIndex}.png`;
             }
+          }
         }
       } catch (e) {
         console.warn('Impossible de calculer avatar par défaut:', e);
@@ -161,7 +161,7 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
             ]
           });
         }
-      } catch(e) { console.warn('Log création profil échoué:', e.message); }
+      } catch (e) { console.warn('Log création profil échoué:', e.message); }
       return; // Already responded
     }
 
@@ -184,7 +184,7 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
   try {
     const { userId } = req.params; // cible
     const user = req.user; // acteur
-  let { photo_url, armes, vehicules, matricule, nom, prenom, telephone, numero_casier, specialites } = req.body;
+    let { photo_url, armes, vehicules, matricule, nom, prenom, telephone, numero_casier, specialites } = req.body;
 
     const parseArray = (val) => {
       if (!val) return [];
@@ -251,20 +251,20 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
         // Fetch display names
         const actorMember = await guild.members.fetch(user.id).catch(() => null);
         const targetMember = await guild.members.fetch(userId).catch(() => null);
-  const actorName = actorMember?.displayName || user.username || user.id;
-  const targetName = targetMember?.displayName || ((updated.prenom && updated.nom) ? `${updated.prenom} ${updated.nom}`.trim() : (updated.nom || updated.prenom || userId));
+        const actorName = actorMember?.displayName || user.username || user.id;
+        const targetName = targetMember?.displayName || ((updated.prenom && updated.nom) ? `${updated.prenom} ${updated.nom}`.trim() : (updated.nom || updated.prenom || userId));
         const selfEdit = user.id === userId;
 
-  // Les champs updated.armes / updated.vehicules ont été parsés juste avant (arrays)
-  // Utiliser directement les valeurs en fallback sur celles reçues dans la requête (armes/vehicules variables locales)
-  let newArmes = Array.isArray(updated.armes) ? updated.armes : (Array.isArray(armes) ? armes : []);
-  let newVehicules = Array.isArray(updated.vehicules) ? updated.vehicules : (Array.isArray(vehicules) ? vehicules : []);
-  // Filtrer entrées vides
-  newArmes = newArmes.filter(a => a && a.nom);
-  newVehicules = newVehicules.filter(v => v && v.nom);
+        // Les champs updated.armes / updated.vehicules ont été parsés juste avant (arrays)
+        // Utiliser directement les valeurs en fallback sur celles reçues dans la requête (armes/vehicules variables locales)
+        let newArmes = Array.isArray(updated.armes) ? updated.armes : (Array.isArray(armes) ? armes : []);
+        let newVehicules = Array.isArray(updated.vehicules) ? updated.vehicules : (Array.isArray(vehicules) ? vehicules : []);
+        // Filtrer entrées vides
+        newArmes = newArmes.filter(a => a && a.nom);
+        newVehicules = newVehicules.filter(v => v && v.nom);
 
         // Diff helper
-        const stringifyEquip = (list, type) => list.map(e => type === 'arme' ? `${e.nom}${e.numero_serie ? ' (#'+e.numero_serie+')' : ''}` : `${e.nom}${e.immatriculation ? ' [ '+e.immatriculation+' ]' : ''}`);
+        const stringifyEquip = (list, type) => list.map(e => type === 'arme' ? `${e.nom}${e.numero_serie ? ' (#' + e.numero_serie + ')' : ''}` : `${e.nom}${e.immatriculation ? ' [ ' + e.immatriculation + ' ]' : ''}`);
         const diffList = (oldList = [], newList = [], type) => {
           const oldS = new Set(stringifyEquip(oldList, type));
           const newS = new Set(stringifyEquip(newList, type));
@@ -294,10 +294,10 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
         }
         // Listes complètes old/new
         const formatList = (arr, prefix) => (arr && arr.length ? arr.map(a => prefix + a).join(', ') : '—');
-        const oldArmesList = (oldProfile?.armes || []).map(a => a && a.nom ? `${a.nom}${a.numero_serie ? ' (#'+a.numero_serie+')' : ''}` : null).filter(Boolean);
-        const newArmesList = newArmes.map(a => a && a.nom ? `${a.nom}${a.numero_serie ? ' (#'+a.numero_serie+')' : ''}` : null).filter(Boolean);
-        const oldVehList = (oldProfile?.vehicules || []).map(v => v && v.nom ? `${v.nom}${v.immatriculation ? ' [ '+v.immatriculation+' ]' : ''}` : null).filter(Boolean);
-        const newVehList = newVehicules.map(v => v && v.nom ? `${v.nom}${v.immatriculation ? ' [ '+v.immatriculation+' ]' : ''}` : null).filter(Boolean);
+        const oldArmesList = (oldProfile?.armes || []).map(a => a && a.nom ? `${a.nom}${a.numero_serie ? ' (#' + a.numero_serie + ')' : ''}` : null).filter(Boolean);
+        const newArmesList = newArmes.map(a => a && a.nom ? `${a.nom}${a.numero_serie ? ' (#' + a.numero_serie + ')' : ''}` : null).filter(Boolean);
+        const oldVehList = (oldProfile?.vehicules || []).map(v => v && v.nom ? `${v.nom}${v.immatriculation ? ' [ ' + v.immatriculation + ' ]' : ''}` : null).filter(Boolean);
+        const newVehList = newVehicules.map(v => v && v.nom ? `${v.nom}${v.immatriculation ? ' [ ' + v.immatriculation + ' ]' : ''}` : null).filter(Boolean);
         // Diff synthèse
         if (armesDiff.added.length) lines.push(`Armes ajoutées: ${armesDiff.added.join(', ')}`);
         if (armesDiff.removed.length) lines.push(`Armes retirées: ${armesDiff.removed.join(', ')}`);
@@ -342,14 +342,14 @@ router.post('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) 
       'SELECT is_editing, edited_by, edit_started_at FROM lspd_agent_profiles WHERE discord_id = ?',
       [userId]
     );
-    
+
     if (editCheck.rows.length > 0) {
       const { is_editing, edited_by, edit_started_at } = editCheck.rows[0];
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-      
-      if (is_editing && edited_by && edited_by !== user.id && 
-          edit_started_at && new Date(edit_started_at) > fiveMinutesAgo) {
-        return res.status(423).json({ 
+
+      if (is_editing && edited_by && edited_by !== user.id &&
+        edit_started_at && new Date(edit_started_at) > fiveMinutesAgo) {
+        return res.status(423).json({
           error: 'Ce profil est en cours de modification par un autre utilisateur',
           lockedBy: edited_by
         });
@@ -390,7 +390,7 @@ router.post('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) 
           ]
         });
       }
-    } catch(e) { console.warn('Log edit-mode on échoué:', e.message); }
+    } catch (e) { console.warn('Log edit-mode on échoué:', e.message); }
   } catch (err) {
     console.error('Erreur activation mode édition:', err);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -437,7 +437,7 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
     const formationsAvailables = [
       { nom: 'Négociateur', discord_role_id: config.negociateur_role_id },
       { nom: 'Lead Terrain', discord_role_id: config.lead_terrain_role_id },
-      { nom: 'Dispatcher', discord_role_id: config.dispatcher_role_id },  
+      { nom: 'Dispatcher', discord_role_id: config.dispatcher_role_id },
       { nom: 'Mary Unit', discord_role_id: config.mary_unit_role_id },
       { nom: 'Nautics Unit', discord_role_id: config.nautics_unit_role_id },
       { nom: 'VIR', discord_role_id: config.vir_role_id },
@@ -466,9 +466,9 @@ router.get('/api/agent-formations/:userId', checkAuth, async (req, res) => {
         targetUserRoles = user.roles || [];
       }
     }
-    
+
     // Filtrer les formations que l'utilisateur possède
-    const userFormations = formationsAvailables.filter(formation => 
+    const userFormations = formationsAvailables.filter(formation =>
       targetUserRoles.includes(formation.discord_role_id)
     );
 

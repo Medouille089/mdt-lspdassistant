@@ -9,15 +9,15 @@ let boardData = { lists: [], tags: [] };
 
 // Parse MySQL connection string
 function parseConnectionString(url) {
-  const match = url.match(/^mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)$/);
-  if (!match) throw new Error('Invalid MySQL connection string');
-  return {
-    host: match[3],
-    port: parseInt(match[4], 10),
-    user: match[1],
-    password: match[2],
-    database: match[5]
-  };
+    const match = url.match(/^mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)$/);
+    if (!match) throw new Error('Invalid MySQL connection string');
+    return {
+        host: match[3],
+        port: parseInt(match[4], 10),
+        user: match[1],
+        password: match[2],
+        database: match[5]
+    };
 }
 
 async function initDatabase() {
@@ -305,7 +305,7 @@ async function persistBoardToDatabase(data) {
 
             // Fusionner avec metadata existant
             const finalMetadata = { ...metadata, ...(card.metadata || {}) };
-            
+
             // Utiliser le updated_at de la carte, ou NOW() si absent
             const cardUpdatedAt = card.updated_at || new Date().toISOString();
 
