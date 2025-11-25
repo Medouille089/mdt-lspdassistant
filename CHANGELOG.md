@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.20.0](https://github.com/Medouille089/lspdassistant/compare/v1.19.0...v1.20.0) (2025-11-25)
+
+
+### Features
+
+* add cache more ([baf6580](https://github.com/Medouille089/lspdassistant/commit/baf6580701b5d2f0828ef89bfd0ddc5fd6730e87))
+* add cache ty to copilot ([bd4bf09](https://github.com/Medouille089/lspdassistant/commit/bd4bf091e0e6ebac59a6c8af4f512fae5b024006))
+* add vehics list in citoyen-view ([b7fe4a8](https://github.com/Medouille089/lspdassistant/commit/b7fe4a8db8f72a8c3868970c07052c990d904957))
+* add vehicule form ([118c3ab](https://github.com/Medouille089/lspdassistant/commit/118c3ab6bdc808d3e815b0de6a7611eed450cb3a))
+
+
+### Bug Fixes
+
+* add tempo mdt menu ([f6a4f0a](https://github.com/Medouille089/lspdassistant/commit/f6a4f0a6aa92060f0bb98bf0bccf72182f8213b5))
+* removed annoying files ([f95e426](https://github.com/Medouille089/lspdassistant/commit/f95e426e6df27fed738b6dea59a8544194d4dc3e))
+* undefined undefined name on proprio ([0d9a32d](https://github.com/Medouille089/lspdassistant/commit/0d9a32d5d89c3a62f9ab8ed35d518efb9cad76b0))
+* update weapons feature ([a5318b1](https://github.com/Medouille089/lspdassistant/commit/a5318b1a66f128d12a20c898dada6a244d05ee52))
+
 ## [1.19.0](https://github.com/Medouille089/lspdassistant/compare/v1.18.0...v1.19.0) (2025-11-24)
 
 
