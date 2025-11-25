@@ -24,7 +24,7 @@ body {
   left: 0;
   z-index: 10;
   width: 270px;
-  height: 100vh;
+  height: 100%;
   background: var(--sidebar-bg);
   transition: all 0.4s ease;
   /* Effet glow Apple-style */

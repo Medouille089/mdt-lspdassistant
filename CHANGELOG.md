@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.21.0](https://github.com/Medouille089/lspdassistant/compare/v1.20.3...v1.21.0) (2025-11-25)
+
+
+### Features
+
+* add different way to show vehicules ([8ae744a](https://github.com/Medouille089/lspdassistant/commit/8ae744afac9614d529a3559d5c3710f03eb3dadd))
+* Add vehicules in view citoyens, and etc ([1cd80f5](https://github.com/Medouille089/lspdassistant/commit/1cd80f5189bed36bd6fefd5ccbde913d5605de10))
+
+
+### Bug Fixes
+
+* add % ([dba20e7](https://github.com/Medouille089/lspdassistant/commit/dba20e7f96a913e2b1d0a2cff266857f8615cdf8))
+
 ### [1.20.3](https://github.com/Medouille089/lspdassistant/compare/v1.20.2...v1.20.3) (2025-11-25)
 
 
