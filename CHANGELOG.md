@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.21.2](https://github.com/Medouille089/lspdassistant/compare/v1.21.1...v1.21.2) (2025-11-25)
+
+
+### Bug Fixes
+
+* fix trello ([c25a41e](https://github.com/Medouille089/lspdassistant/commit/c25a41e4e75d8cdb8e816034a533127f28f87078))
+
 ### [1.21.1](https://github.com/Medouille089/lspdassistant/compare/v1.21.0...v1.21.1) (2025-11-25)
 
 
