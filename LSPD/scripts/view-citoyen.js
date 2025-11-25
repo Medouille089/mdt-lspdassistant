@@ -299,7 +299,6 @@ async function loadWeaponsForCitizen(citizenId) {
             item.style.gap = '10px';
             item.style.padding = '10px 12px';
             item.style.background = '#fff';
-            // separator between items
             if (idx !== 0) {
                 item.style.borderTop = '1px solid #e0e0e0';
             }
@@ -317,16 +316,13 @@ async function loadWeaponsForCitizen(citizenId) {
             info.innerHTML = `<strong>${w.model_name || 'Modèle inconnu'}</strong><div style="color:#7f8c8d; font-size:13px">S/N: ${w.serial_number || '-'}</div>`;
 
             const actions = document.createElement('div');
-
-            // In edit mode, show a delete button; otherwise no action button (remove 'Voir')
+            // In edit mode, show a delete button; otherwise no action button
             if (isEditMode && currentUserInfo && currentUserInfo.isSupervisor) {
                 const delBtn = document.createElement('button');
                 delBtn.setAttribute('type', 'button');
-                // default state: action to mark for deletion
                 delBtn.className = 'btn btn-danger';
                 delBtn.textContent = 'Supprimer';
 
-                // helper to visually mark/unmark the item
                 function markItemForDeletion(mark) {
                     if (mark) {
                         pendingWeaponDeletions.add(w.id);
@@ -343,23 +339,18 @@ async function loadWeaponsForCitizen(citizenId) {
                     }
                 }
 
-                // initialize if already marked (e.g., re-render)
                 if (pendingWeaponDeletions.has(w.id)) markItemForDeletion(true);
 
                 delBtn.addEventListener('click', () => {
-                    // toggle mark state; ask for confirmation when marking
                     if (!pendingWeaponDeletions.has(w.id)) {
-                        // use custom non-blocking popup instead of native confirm
                         showConfirmModal('Marquer cette arme pour suppression ? La suppression sera effectuée lors de l\'enregistrement.', 'Marquer', 'Annuler')
                             .then(confirmed => {
                                 if (confirmed) markItemForDeletion(true);
                             });
                     } else {
-                        // unmark
                         markItemForDeletion(false);
                     }
                 });
-
                 actions.appendChild(delBtn);
             }
 
@@ -665,47 +656,65 @@ async function loadVehicules() {
             return;
         }
 
-        vehiculesListEl.innerHTML = '';
-        vehicules.forEach(vehicule => {
+        // Render as a grouped list (border-radius on wrapper, items touching in the middle)
+        const list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        list.style.border = '1px solid #e0e0e0';
+        list.style.borderRadius = '8px';
+        list.style.overflow = 'hidden';
+        list.style.background = '#fff';
+
+        vehicules.forEach((v, idx) => {
             const item = document.createElement('div');
-            item.className = 'equipment-item';
+            item.style.display = 'flex';
+            item.style.alignItems = 'center';
+            item.style.gap = '10px';
+            item.style.padding = '10px 12px';
+            item.style.background = '#fff';
+            if (idx !== 0) {
+                item.style.borderTop = '1px solid #e0e0e0';
+            }
+
+            // Image style harmonisée avec armes
+            const img = document.createElement('img');
+            img.src = v.photo || '/data/images/vehicule-placeholder.png';
+            img.alt = v.modele || 'Véhicule';
+            img.style.width = '48px';
+            img.style.height = '32px';
+            img.style.objectFit = 'contain';
+            img.style.borderRadius = '4px';
+            img.style.transform = 'scale(0.9)';
+            img.style.margin = '0 4px';
+
+            // Infos style harmonisé
+            const info = document.createElement('div');
+            info.style.flex = '1';
+            info.innerHTML = `<strong style="font-size:15px; color:#222;">${v.modele || 'Modèle inconnu'}</strong><div style="color:#7f8c8d; font-size:13px">Plaque: ${v.plaque || '-'}${v.mandat_actif ? ' <span style=\"color:#e74c3c;font-weight:600\">⚠️ MANDAT</span>' : ''}</div>`;
+
+            // Chevron à droite
+            const chevron = document.createElement('span');
+            chevron.className = 'material-symbols-rounded';
+            chevron.textContent = 'chevron_right';
+            chevron.style.color = 'var(--lspd-gold)';
+            chevron.style.fontSize = '20px';
+            chevron.style.marginLeft = 'auto';
+
+            item.appendChild(img);
+            item.appendChild(info);
+            item.appendChild(chevron);
+
+            // Redirection sur tout l'item
             item.style.cursor = 'pointer';
-            item.style.transition = 'all 0.3s ease';
-
-            const mandatBadge = vehicule.mandat_actif
-                ? '<span style="color: #e74c3c; font-weight: 600; margin-left: 8px;">⚠️ MANDAT</span>'
-                : '';
-
-            item.innerHTML = `
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
-                        ${vehicule.modele || 'Modèle inconnu'}${mandatBadge}
-                    </div>
-                    <div style="font-size: 13px; color: #7f8c8d;">
-                        Plaque: ${vehicule.plaque || 'N/A'}
-                    </div>
-                </div>
-                <span class="material-symbols-rounded" style="color: var(--lspd-gold); font-size: 20px;">
-                    chevron_right
-                </span>
-            `;
-
             item.addEventListener('click', () => {
-                window.location.href = `/view-vehicule.html?id=${vehicule.id}`;
+                window.location.href = `/view-vehicule.html?id=${v.id}`;
             });
 
-            item.addEventListener('mouseenter', () => {
-                item.style.background = 'rgba(255, 255, 255, 0.08)';
-                item.style.borderColor = 'var(--lspd-gold)';
-            });
-
-            item.addEventListener('mouseleave', () => {
-                item.style.background = 'rgba(255, 255, 255, 0.03)';
-                item.style.borderColor = 'var(--border-color)';
-            });
-
-            vehiculesListEl.appendChild(item);
+            list.appendChild(item);
         });
+
+        vehiculesListEl.innerHTML = '';
+        vehiculesListEl.appendChild(list);
 
     } catch (error) {
         console.error('Erreur chargement véhicules:', error);

@@ -169,8 +169,9 @@ class CitoyenSelectorModal {
         // Confirmer la sélection
         confirmBtn.addEventListener('click', () => {
             if (this.selectedCitoyenId && this.onSelectCallback) {
-                console.log('Sélection confirmée:', this.selectedCitoyenId, this.selectedCitoyenName);
-                this.onSelectCallback(this.selectedCitoyenId, this.selectedCitoyenName);
+                const citoyen = this.citoyens.find(c => c.id === this.selectedCitoyenId);
+                console.log('Sélection confirmée:', citoyen);
+                this.onSelectCallback(citoyen);
             }
             this.close();
         });

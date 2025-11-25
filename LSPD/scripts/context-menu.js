@@ -13,8 +13,15 @@ const MENU_ITEMS = [
   { label: 'Imprimer...', shortcut: 'Ctrl+P', action: () => window.print() }
 ];
 
+
 let lastActiveInput = null;
 let is_active = true;
+let extraMenuItems = [];
+
+// Allow other scripts to inject menu items dynamically
+window.setExtraContextMenuItems = function(items) {
+  extraMenuItems = items || [];
+};
 
 function pasteHandler() {
   if (navigator.clipboard) {
@@ -71,7 +78,37 @@ function createContextMenu(x, y) {
   menu.style.top = y + 'px';
   menu.style.left = x + 'px';
 
-  MENU_ITEMS.forEach(item => {
+
+  // Insert extra menu items before the first separator (usually after navigation items)
+  let insertedExtra = false;
+  MENU_ITEMS.forEach((item, idx) => {
+    if (!insertedExtra && item.separator && extraMenuItems.length) {
+      extraMenuItems.forEach(extra => {
+        if (extra.separator) {
+          const sep = document.createElement('div');
+          sep.className = 'context-menu__separator';
+          menu.appendChild(sep);
+        } else {
+          const div = document.createElement('div');
+          div.className = 'context-menu__item';
+          div.textContent = extra.label;
+          if (extra.shortcut) {
+            const shortcut = document.createElement('span');
+            shortcut.className = 'context-menu__shortcut';
+            shortcut.textContent = extra.shortcut;
+            div.appendChild(shortcut);
+          }
+          if (extra.id) div.id = extra.id;
+          div.onclick = (e) => {
+            e.stopPropagation();
+            removeContextMenu();
+            if (!div.classList.contains('disabled')) extra.action && extra.action();
+          };
+          menu.appendChild(div);
+        }
+      });
+      insertedExtra = true;
+    }
     if (item.separator) {
       const sep = document.createElement('div');
       sep.className = 'context-menu__separator';
@@ -124,6 +161,10 @@ function removeContextMenu() {
 
 document.addEventListener('contextmenu', function (e) {
   if (!is_active) return;
+  // If not a table row in weapons list, clear extraMenuItems
+  if (!e.target.closest('tr') || !window.location.pathname.includes('liste-armes.html')) {
+    window.setExtraContextMenuItems([]);
+  }
   // Mémorise le champ actif si c'est un input ou textarea
   const active = document.activeElement;
   if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {

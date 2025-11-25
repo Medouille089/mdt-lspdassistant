@@ -56,15 +56,15 @@ router.get('/api/weapon_models/:id', checkAuth, async (req, res) => {
 router.put('/api/weapon_models/:id', checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { model_name, image_url } = req.body;
+        const { model_name, image_url, calibre } = req.body;
         if (!model_name) return res.status(400).json({ error: 'model_name requis' });
 
         const user = req.user;
         const updatedBy = user.guild_member?.nick || user.displayName || user.username;
 
         const { rows } = await pool.query(
-            `UPDATE weapon_models SET model_name = $1, image_url = $2, updated_by = $3, updated_at = NOW() WHERE id = $4 RETURNING *`,
-            [model_name, image_url || null, updatedBy, id]
+            `UPDATE weapon_models SET model_name = $1, image_url = $2, calibre = $3, updated_by = $4, updated_at = NOW() WHERE id = $5 RETURNING *`,
+            [model_name, image_url || null, calibre || null, updatedBy, id]
         );
 
         if (rows.length === 0) return res.status(404).json({ error: 'Modèle introuvable' });
@@ -94,7 +94,7 @@ router.delete('/api/weapon_models/:id', checkAuth, async (req, res) => {
 // GET /api/weapons?owner_id= - list weapons, filterable
 router.get('/api/weapons', checkAuth, async (req, res) => {
     try {
-        const { owner_id, limit = 100, offset = 0 } = req.query;
+        const { owner_id, model_id, search, limit = 20, offset = 0 } = req.query;
         let query = 'SELECT * FROM weapons WHERE 1=1';
         const params = [];
         let idx = 1;
@@ -104,12 +104,27 @@ router.get('/api/weapons', checkAuth, async (req, res) => {
             params.push(parseInt(owner_id));
             idx++;
         }
+        if (model_id) {
+            query += ` AND model_id = $${idx}`;
+            params.push(parseInt(model_id));
+            idx++;
+        }
+        if (search) {
+            query += ` AND (LOWER(model_name) LIKE $${idx} OR LOWER(serial_number) LIKE $${idx})`;
+            params.push(`%${search.toLowerCase()}%`);
+            idx++;
+        }
+
+        // Count total
+        const countQuery = query.replace('SELECT *', 'SELECT COUNT(*)');
+        const { rows: countRows } = await pool.query(countQuery, params);
+        const total = parseInt(countRows[0].count);
 
         query += ` ORDER BY created_at DESC LIMIT $${idx} OFFSET $${idx + 1}`;
         params.push(parseInt(limit), parseInt(offset));
 
         const { rows } = await pool.query(query, params);
-        res.json({ weapons: rows });
+        res.json({ weapons: rows, total, limit: parseInt(limit), offset: parseInt(offset) });
     } catch (err) {
         console.error('Erreur récupération weapons:', err);
         res.status(500).json({ error: 'Erreur serveur' });
