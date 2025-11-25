@@ -20,7 +20,7 @@ router.get('/api/convocations/received', async (req, res) => {
         const userId = req.user?.id;
         if (!userId) return res.status(401).json({ error: 'Non authentifié' });
         const result = await pool.query(
-            `SELECT * FROM lspd_convocations_agents WHERE agent_convoque_id = $1 ORDER BY created_at DESC`,
+            `SELECT * FROM lspd_convocations_agents WHERE agent_convoque_id = ? ORDER BY created_at DESC`,
             [userId]
         );
         res.json(result.rows);
@@ -67,7 +67,7 @@ router.post('/api/convocations', async (req, res) => {
             INSERT INTO lspd_convocations_agents (
                 agent_convoque_id, agent_convoque_nom, agent_convoquant_id, 
                 agent_convoquant_nom, agent_convoquant_grade, date, lieu, raison
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `, [agentId, agentName, req.user?.id || "inconnu", officier, grade, date, lieu, raison]);
 
 
@@ -87,7 +87,7 @@ router.post('/api/convocations', async (req, res) => {
                     auteur,
                     lieu,
                     personnes_concernees
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
                 `Convocation - ${agentName}`,
                 `${raison}`,
@@ -162,7 +162,7 @@ router.put('/api/convocationsAgents/:id/commentaire', async (req, res) => {
     const id = req.params.id;
     const { commentaire } = req.body;
     try {
-        await pool.query('UPDATE lspd_convocations_agents SET commentaire = $1 WHERE id = $2', [commentaire, id]);
+        await pool.query('UPDATE lspd_convocations_agents SET commentaire = ? WHERE id = ?', [commentaire, id]);
 
         // Log Discord formaté
         const config = getConfig();
@@ -170,7 +170,7 @@ router.put('/api/convocationsAgents/:id/commentaire', async (req, res) => {
         const logsChannelId = config.logs_convocations_agent;
         if (logsChannelId) {
             // Récupérer la convocation pour infos
-            const result = await pool.query('SELECT agent_convoque_nom FROM lspd_convocations_agents WHERE id = $1', [id]);
+            const result = await pool.query('SELECT agent_convoque_nom FROM lspd_convocations_agents WHERE id = ?', [id]);
             const convocation = result.rows[0];
             const sanctionne = convocation?.agent_convoque_nom || 'Inconnu';
             const displayName = req.user?.displayName || req.user?.username || req.user?.id || 'Utilisateur';

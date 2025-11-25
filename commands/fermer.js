@@ -8,7 +8,7 @@ async function createTranscriptMarkdown(channel) {
     const guild = channel.guild;
 
     // Récupérer le ticket depuis la BDD
-    const ticketRes = await db.query('SELECT * FROM lspd_tickets WHERE channel_id=$1', [channel.id]);
+    const ticketRes = await db.query('SELECT * FROM lspd_tickets WHERE channel_id=?', [channel.id]);
     const ticket = ticketRes.rows[0];
     if (!ticket) return Buffer.from('Aucune information sur ce ticket.', 'utf-8');
 
@@ -139,7 +139,7 @@ module.exports = {
             return interaction.editReply({ content: "❌ Le salon de logs n'existe pas.", flags: 64 });
 
         try {
-            const ticketRes = await db.query('SELECT user_id FROM lspd_tickets WHERE channel_id=$1', [ticketChannel.id]);
+            const ticketRes = await db.query('SELECT user_id FROM lspd_tickets WHERE channel_id=?', [ticketChannel.id]);
             const ticketData = ticketRes.rows[0];
             if (!ticketData) {
                 return interaction.editReply({ content: "❌ Ce salon n'est pas un ticket valide.", flags: 64 });
@@ -185,11 +185,11 @@ module.exports = {
             });
 
             await db.query(
-                'INSERT INTO lspd_count_tickets(user_id, closedby_id, channel_id) VALUES($1, $2, $3)',
+                'INSERT INTO lspd_count_tickets(user_id, closedby_id, channel_id) VALUES(?, ?, ?)',
                 [ticketData.user_id, interaction.user.id, ticketChannel.id]
             );
 
-            await db.query('DELETE FROM lspd_tickets WHERE channel_id=$1', [ticketChannel.id]);
+            await db.query('DELETE FROM lspd_tickets WHERE channel_id=?', [ticketChannel.id]);
 
             if (ticketChannel.deletable) {
                 await ticketChannel.delete('Ticket fermé');

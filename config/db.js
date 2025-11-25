@@ -1,34 +1,53 @@
-const { Pool } = require("pg");
+const mysql = require("mysql2/promise");
 const { DATABASE_URL } = require("./env");
 
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  // Configuration pour éviter les connexions perdues
-  max: 20, // Maximum de connexions dans le pool
-  idleTimeoutMillis: 30000, // Fermer les connexions inactives après 30s
-  connectionTimeoutMillis: 10000, // Timeout pour obtenir une connexion
-  keepAlive: true, // Garder les connexions actives
-  keepAliveInitialDelayMillis: 10000, // Délai avant le premier keepalive
+// Parse MySQL connection URL (mysql://user:pass@host:port/database)
+const parseConnectionString = (url) => {
+  const match = url.match(/mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
+  if (!match) {
+    throw new Error('Invalid MySQL connection string format');
+  }
+  return {
+    user: match[1],
+    password: match[2],
+    host: match[3],
+    port: parseInt(match[4]),
+    database: match[5]
+  };
+};
+
+const config = parseConnectionString(DATABASE_URL);
+
+const pool = mysql.createPool({
+  ...config,
+  waitForConnections: true,
+  connectionLimit: 20, // Maximum de connexions dans le pool
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000, // Délai avant le premier keepalive
+  connectTimeout: 10000, // Timeout pour obtenir une connexion
 });
 
 // Gérer les erreurs de connexion au niveau du pool
-pool.on('error', (err, client) => {
-  console.error('Erreur inattendue sur un client idle du pool PostgreSQL:', err);
+pool.on('error', (err) => {
+  console.error('Erreur inattendue sur un client idle du pool MySQL:', err);
   // Ne pas crasher l'application, le pool va gérer la reconnexion
 });
 
 // Sauvegarder la méthode query originale
 const originalQuery = pool.query.bind(pool);
 
-// Remplacer la méthode query par une version avec retry automatique
-pool.query = async function(text, params) {
+// Wrapper pour compatibilité avec l'ancien code PostgreSQL
+// MySQL2 retourne [rows, fields] au lieu de { rows, ... }
+pool.query = async function(sql, params) {
   const maxRetries = 3;
   let lastError;
   
   for (let i = 0; i < maxRetries; i++) {
     try {
-      return await originalQuery(text, params);
+      const [rows, fields] = await originalQuery(sql, params);
+      // Retourner un objet compatible avec l'ancien code PostgreSQL
+      return { rows, fields };
     } catch (err) {
       lastError = err;
       
@@ -39,7 +58,8 @@ pool.query = async function(text, params) {
         err.message?.includes('ETIMEDOUT') ||
         err.message?.includes('ECONNREFUSED') ||
         err.code === 'PROTOCOL_CONNECTION_LOST' ||
-        err.code === '57P01'; // PostgreSQL: terminating connection
+        err.errno === 2013 || // Lost connection to MySQL server
+        err.errno === 2006; // MySQL server has gone away
       
       if (isConnectionError && i < maxRetries - 1) {
         console.log(`⚠️  Erreur de connexion DB (tentative ${i + 1}/${maxRetries}), retry dans ${(i + 1) * 500}ms...`);

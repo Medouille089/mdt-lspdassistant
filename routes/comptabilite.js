@@ -84,8 +84,8 @@ router.get("/api/comptabilite", checkAuth, async (req, res) => {
         const query = `
       SELECT DISTINCT p.id_discord
       FROM lspd_pointage p
-      WHERE p.start_time BETWEEN $1 AND $2
-         OR p.start_time BETWEEN $3 AND $4
+      WHERE p.start_time BETWEEN ? AND ?
+         OR p.start_time BETWEEN ? AND ?
     `;
 
         const usersResult = await pool.query(query, [
@@ -116,18 +116,18 @@ router.get("/api/comptabilite", checkAuth, async (req, res) => {
             const thisWeekQuery = `
         SELECT 
           COALESCE(SUM(p.salary_earned), 0) AS salary_this_week,
-          COALESCE(SUM(EXTRACT(EPOCH FROM (COALESCE(p.end_time, NOW()) - p.start_time)) / 3600), 0) AS hours_this_week
+          COALESCE(SUM(TIMESTAMPDIFF(SECOND, p.start_time, COALESCE(p.end_time, NOW())) / 3600), 0) AS hours_this_week
         FROM lspd_pointage p
-        WHERE p.id_discord = $1 AND p.start_time BETWEEN $2 AND $3
+        WHERE p.id_discord = ? AND p.start_time BETWEEN ? AND ?
       `;
             const thisWeekResult = await pool.query(thisWeekQuery, [userId, startOfWeek.toISO(), endOfWeek.toISO()]);
 
             const lastWeekQuery = `
         SELECT 
           COALESCE(SUM(p.salary_earned), 0) AS salary_last_week,
-          COALESCE(SUM(EXTRACT(EPOCH FROM (COALESCE(p.end_time, NOW()) - p.start_time)) / 3600), 0) AS hours_last_week
+          COALESCE(SUM(TIMESTAMPDIFF(SECOND, p.start_time, COALESCE(p.end_time, NOW())) / 3600), 0) AS hours_last_week
         FROM lspd_pointage p
-        WHERE p.id_discord = $1 AND p.start_time BETWEEN $2 AND $3
+        WHERE p.id_discord = ? AND p.start_time BETWEEN ? AND ?
       `;
             const lastWeekResult = await pool.query(lastWeekQuery, [userId, startOfLastWeek.toISO(), endOfLastWeek.toISO()]);
 

@@ -23,12 +23,12 @@ router.get('/api/dashboard', async (req, res) => {
     // --- Rapports aujourd’hui ---
     const incidentsTodayRes = await pool.query(`
       SELECT COUNT(*) AS count FROM incidents
-      WHERE date_incident::date BETWEEN $1::date AND $2::date
+      WHERE DATE(date_incident) BETWEEN ? AND ?
     `, [todayStart, todayEnd]);
 
     const arrestationsTodayRes = await pool.query(`
       SELECT COUNT(*) AS count FROM lspd_arrestations
-      WHERE date_arrestation::date BETWEEN $1::date AND $2::date
+      WHERE DATE(date_arrestation) BETWEEN ? AND ?
     `, [todayStart, todayEnd]);
 
     const interventionsToday =
@@ -50,7 +50,7 @@ router.get('/api/dashboard', async (req, res) => {
       UNION ALL
       SELECT arrestation_id AS id, date_arrestation AS date, NULL AS heure, officer AS officier_name, 'Arrestation' AS type
       FROM lspd_arrestations
-      ORDER BY date DESC, heure DESC NULLS LAST
+      ORDER BY date DESC, CASE WHEN heure IS NULL THEN 1 ELSE 0 END, heure DESC
       LIMIT 5
     `);
 
@@ -95,7 +95,7 @@ router.get('/api/connected-agents', async (req, res) => {
       SELECT l.user_id, l.display_name, l.last_seen, p.photo_url
       FROM lspd_live_users l
       LEFT JOIN lspd_agent_profiles p ON l.user_id = p.discord_id
-      WHERE l.last_seen > NOW() - INTERVAL '10 minutes'
+      WHERE l.last_seen > NOW() - INTERVAL 10 MINUTE
       ORDER BY l.display_name ASC
     `;
 
@@ -124,33 +124,33 @@ router.get('/api/activity', async (req, res) => {
 
     const [incidentsRes, arrestationsRes, braceletsRes, convocationsRes] = await Promise.all([
       pool.query(`
-        SELECT date_incident::date AS date, COUNT(*) AS count
+        SELECT DATE(date_incident) AS date, COUNT(*) AS count
         FROM incidents
-        WHERE date_incident::date BETWEEN $1::date AND $2::date
+        WHERE DATE(date_incident) BETWEEN ? AND ?
         GROUP BY date
         ORDER BY date
       `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
 
       pool.query(`
-        SELECT date_arrestation::date AS date, COUNT(*) AS count
+        SELECT DATE(date_arrestation) AS date, COUNT(*) AS count
         FROM lspd_arrestations
-        WHERE date_arrestation::date BETWEEN $1::date AND $2::date
+        WHERE DATE(date_arrestation) BETWEEN ? AND ?
         GROUP BY date
         ORDER BY date
       `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
 
       pool.query(`
-        SELECT date_debut::date AS date, COUNT(*) AS count
+        SELECT DATE(date_debut) AS date, COUNT(*) AS count
         FROM bracelets
-        WHERE date_debut::date BETWEEN $1::date AND $2::date
+        WHERE DATE(date_debut) BETWEEN ? AND ?
         GROUP BY date
         ORDER BY date
       `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
 
       pool.query(`
-        SELECT date::date AS date, COUNT(*) AS count
+        SELECT DATE(date) AS date, COUNT(*) AS count
         FROM lspd_convocations
-        WHERE date::date BETWEEN $1::date AND $2::date
+        WHERE DATE(date) BETWEEN ? AND ?
         GROUP BY date
         ORDER BY date
       `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')])

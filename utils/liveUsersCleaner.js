@@ -3,7 +3,7 @@ const pool = require('../config/db');
 function cleanOldUsers() {
   pool.query(`
     DELETE FROM lspd_live_users
-    WHERE last_seen < NOW() - INTERVAL '5 minutes'
+    WHERE last_seen < NOW() - INTERVAL 5 MINUTE
   `).then(() => {
   }).catch(err => {
     console.error('[LiveUsersCleaner] Erreur nettoyage:', err);

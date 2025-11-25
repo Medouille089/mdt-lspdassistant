@@ -140,9 +140,9 @@ router.get('/api/calendar/events/periode/:debut/:fin', checkAuth, async (req, re
                 lieu,
                 date_creation
             FROM evenements_calendrier 
-            WHERE (date_debut BETWEEN $1 AND $2) 
-               OR (date_fin BETWEEN $1 AND $2)
-               OR (date_debut <= $1 AND date_fin >= $2)
+            WHERE (date_debut BETWEEN ? AND ?) 
+               OR (date_fin BETWEEN ? AND ?)
+               OR (date_debut <= ? AND date_fin >= ?)
             ORDER BY date_debut ASC
         `;
 
@@ -203,8 +203,8 @@ router.post('/api/calendar/events', checkAuth, async (req, res) => {
                 lieu,
                 grades_concernes,
                 personnes_concernees
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            RETURNING *
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            
         `;
 
         const values = [
@@ -274,16 +274,16 @@ router.put('/api/calendar/events/:id', checkAuth, async (req, res) => {
         const query = `
             UPDATE evenements_calendrier 
             SET 
-                titre = $1,
-                description = $2,
-                date_debut = $3,
-                date_fin = $4,
-                type_evenement = $5,
-                couleur = $6,
-                lieu = $7,
-                date_modification = CURRENT_TIMESTAMP
-            WHERE id = $8
-            RETURNING *
+                titre = ?,
+                description = ?,
+                date_debut = ?,
+                date_fin = ?,
+                type_evenement = ?,
+                couleur = ?,
+                lieu = ?,
+                date_modification = NOW()
+            WHERE id = ?
+            
         `;
 
         const values = [
@@ -342,7 +342,7 @@ router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
             });
         }
 
-        const selectQuery = 'SELECT * FROM evenements_calendrier WHERE id = $1';
+        const selectQuery = 'SELECT * FROM evenements_calendrier WHERE id = ?';
         const selectResult = await db.query(selectQuery, [id]);
 
         if (selectResult.rows.length === 0) {
@@ -353,7 +353,7 @@ router.delete('/api/calendar/events/:id', checkAuth, async (req, res) => {
 
         const deletedEvent = selectResult.rows[0];
 
-        const deleteQuery = 'DELETE FROM evenements_calendrier WHERE id = $1';
+        const deleteQuery = 'DELETE FROM evenements_calendrier WHERE id = ?';
         await db.query(deleteQuery, [id]);
 
         try {

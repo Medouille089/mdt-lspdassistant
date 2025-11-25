@@ -118,7 +118,7 @@ router.delete("/api/accounts/:id", checkAuth, checkSuperAdmin, async (req, res) 
   try {
     // Vérifier que le compte existe
     const { rows } = await pool.query(
-      "SELECT discord_id, username FROM user_accounts WHERE id = $1",
+      "SELECT discord_id, username FROM user_accounts WHERE id = ?",
       [accountId]
     );
 
@@ -140,19 +140,26 @@ router.delete("/api/accounts/:id", checkAuth, checkSuperAdmin, async (req, res) 
 
     // Récupérer la photo de profil depuis la base de données
     const photoResult = await pool.query(
-      "SELECT photo_url FROM lspd_agent_profiles WHERE discord_id = $1",
+      "SELECT photo_url FROM lspd_agent_profiles WHERE discord_id = ?",
       [account.discord_id]
     );
     const photoUrl = photoResult.rows[0]?.photo_url || null;
 
     // Supprimer le profil agent associé s'il existe
-    const deleteProfileResult = await pool.query(
-      "DELETE FROM lspd_agent_profiles WHERE discord_id = $1 RETURNING id",
+    const deleteProfileSelect = await pool.query(
+      "SELECT id FROM lspd_agent_profiles WHERE discord_id = ?",
       [account.discord_id]
     );
+    if (deleteProfileSelect.rows.length > 0) {
+      await pool.query(
+        "DELETE FROM lspd_agent_profiles WHERE discord_id = ?",
+        [account.discord_id]
+      );
+    }
+    const deleteProfileResult = { rows: deleteProfileSelect.rows };
 
     // Supprimer le compte
-    await pool.query("DELETE FROM user_accounts WHERE id = $1", [accountId]);
+    await pool.query("DELETE FROM user_accounts WHERE id = ?", [accountId]);
 
     console.log(`Compte supprimé: ${account.username} (${account.discord_id}) par ${req.user.username} (${req.user.id})`);
     if (deleteProfileResult.rows.length > 0) {

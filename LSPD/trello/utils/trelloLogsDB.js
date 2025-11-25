@@ -52,15 +52,14 @@ async function saveLog(logType, userId, userName, actionDescription, details, co
         }); // sv-SE = 'YYYY-MM-DD HH:mm:ss'
         const createdAt = nowParis.replace('T', ' ');
 
-        const result = await pool.query(
+        const insertResult = await pool.query(
             `INSERT INTO trello_logs (log_type, user_id, user_name, action_description, details, color, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
-             RETURNING *`,
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [logType, userId, userName, actionDescription, JSON.stringify(details), color, createdAt]
         );
 
-        // Émettre le nouveau log via WebSocket
-        const newLog = result.rows[0];
+        const selectResult = await pool.query('SELECT * FROM trello_logs WHERE id = ?', [insertResult.insertId]);
+        const newLog = selectResult.rows[0];
         const { getIO } = require("../config/trelloServer");
         const io = getIO();
 
@@ -68,7 +67,7 @@ async function saveLog(logType, userId, userName, actionDescription, details, co
             // Récupérer la photo de profil si disponible
             try {
                 const photoResult = await pool.query(
-                    'SELECT photo_url FROM lspd_agent_profiles WHERE discord_id = $1',
+                    'SELECT photo_url FROM lspd_agent_profiles WHERE discord_id = ?',
                     [userId]
                 );
                 newLog.photo_url = photoResult.rows[0]?.photo_url || null;

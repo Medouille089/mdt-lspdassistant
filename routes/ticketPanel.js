@@ -69,7 +69,7 @@ router.post('/api/ticket-categories', async (req, res) => {
         const result = await db.query(
             `INSERT INTO lspd_ticket_categories
             (title, emoji, description, roles, target_channel_id, prefix, welcome_message, embed_color, visible)
-            VALUES($1,$2,$3,$4::varchar[],$5,$6,$7,$8,$9) RETURNING *`,
+            VALUES(?,?,?,?,?,?,?,?,?) `,
             [title, emoji, description, roles, target_channel_id, prefix, welcome_message, embed_color, visible]
         );
 
@@ -109,11 +109,11 @@ router.post('/api/ticket-categories', async (req, res) => {
 router.delete('/api/ticket-categories/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id, 10);
-        const oldCategoryRes = await db.query('SELECT * FROM lspd_ticket_categories WHERE id=$1', [id]);
+        const oldCategoryRes = await db.query('SELECT * FROM lspd_ticket_categories WHERE id=?', [id]);
         if (!oldCategoryRes.rows[0]) return res.status(404).send('Catégorie introuvable');
         const oldCategory = oldCategoryRes.rows[0];
 
-        await db.query('DELETE FROM lspd_ticket_categories WHERE id = $1', [id]);
+        await db.query('DELETE FROM lspd_ticket_categories WHERE id = ?', [id]);
 
         const rolesPings = (oldCategory.roles || []).map(rid => ({
             mention: `> <@&${rid}>`,
@@ -149,7 +149,7 @@ router.delete('/api/ticket-categories/:id', async (req, res) => {
 router.put('/api/ticket-categories/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id, 10);
-        const oldCategoryRes = await db.query('SELECT * FROM lspd_ticket_categories WHERE id=$1', [id]);
+        const oldCategoryRes = await db.query('SELECT * FROM lspd_ticket_categories WHERE id=?', [id]);
         if (!oldCategoryRes.rows[0]) return res.status(404).send('Catégorie introuvable');
         const oldCategory = oldCategoryRes.rows[0];
 
@@ -160,17 +160,17 @@ router.put('/api/ticket-categories/:id', async (req, res) => {
 
         const result = await db.query(
             `UPDATE lspd_ticket_categories SET
-             title = COALESCE($1, title),
-             emoji = COALESCE($2, emoji),
-             description = COALESCE($3, description),
-             roles = COALESCE($4, roles)::varchar[],
-             target_channel_id = COALESCE($5, target_channel_id),
-             prefix = COALESCE($6, prefix),
-             welcome_message = COALESCE($7, welcome_message),
-             embed_color = COALESCE($8, embed_color),
-             visible = COALESCE($9, visible)
-             WHERE id = $10
-             RETURNING *`,
+             title = COALESCE(?, title),
+             emoji = COALESCE(?, emoji),
+             description = COALESCE(?, description),
+             roles = COALESCE(?, roles),
+             target_channel_id = COALESCE(?, target_channel_id),
+             prefix = COALESCE(?, prefix),
+             welcome_message = COALESCE(?, welcome_message),
+             embed_color = COALESCE(?, embed_color),
+             visible = COALESCE(?, visible)
+             WHERE id = ?
+             `,
             [title, emoji, description, roles, target_channel_id, prefix, welcome_message, embed_color, visible, id]
         );
 

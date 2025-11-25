@@ -50,7 +50,7 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
 
         await pool.query(
             `INSERT INTO bracelets (nom, prenom, tel, date_debut, id_brac, motif, created_by)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [nom, prenom, tel, dateDebut, id_brac, motif, user.guild_member?.nick || user.displayName || user.username]
         );
 
@@ -71,7 +71,7 @@ router.post('/api/formulaire', checkAuth, async (req, res) => {
         if (response.ok && data.threadId) {
             threadId = data.threadId;
             await pool.query(
-                'UPDATE bracelets SET id_thread = $1 WHERE id_brac = $2',
+                'UPDATE bracelets SET id_thread = ? WHERE id_brac = ?',
                 [threadId, id_brac]
             );
         }
@@ -183,7 +183,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
     try {
         // Récupérer les données actuelles
         const { rows } = await pool.query(
-            'SELECT id_thread, id_brac, nom AS old_nom, prenom AS old_prenom, date_debut AS old_date_debut, created_by FROM bracelets WHERE id = $1',
+            'SELECT id_thread, id_brac, nom AS old_nom, prenom AS old_prenom, date_debut AS old_date_debut, created_by FROM bracelets WHERE id = ?',
             [id]
         );
 
@@ -196,7 +196,7 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
 
         // Mettre à jour le bracelet
         await pool.query(
-            'UPDATE bracelets SET nom=$1, prenom=$2, tel=$3, date_debut=$4, motif=$5 WHERE id=$6',
+            'UPDATE bracelets SET nom=?, prenom=?, tel=?, date_debut=?, motif=? WHERE id=?',
             [nom, prenom, tel, dateDebut, motif, id]
         );
 
@@ -280,32 +280,27 @@ router.put('/api/formulaires/:id', checkAuth, async (req, res) => {
 router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
     const id = req.params.id;
 
-    // Récupérer client Discord ET connexion PG séparément
+    // Récupérer client Discord - Pas besoin de pool.connect() avec mysql2
     const clientDiscord = config.getBot();
-    const dbClient = await pool.connect();
 
     try {
-        await dbClient.query('BEGIN');
-
-        const { rows } = await dbClient.query("SELECT * FROM bracelets WHERE id = $1", [id]);
+        // MySQL2 auto-gère les transactions via pool, pas besoin de BEGIN/COMMIT explicite
+        const { rows } = await pool.query("SELECT * FROM bracelets WHERE id = ?", [id]);
         if (rows.length === 0) {
-            await dbClient.query('ROLLBACK');
             return res.status(404).json({ error: 'Non trouvé' });
         }
 
         const data = rows[0];
 
         // Insérer dans historique
-        await dbClient.query(
+        await pool.query(
             `INSERT INTO historiqueBracelets (nom, prenom, tel, date_debut, id_brac, motif, id_thread)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [data.nom, data.prenom, data.tel, data.date_debut, data.id_brac, data.motif, data.id_thread]
         );
 
         // Supprimer de bracelets
-        await dbClient.query("DELETE FROM bracelets WHERE id = $1", [id]);
-
-        await dbClient.query('COMMIT');
+        await pool.query("DELETE FROM bracelets WHERE id = ?", [id]);
 
         // Gestion thread Discord
         const conf = await config.getConfig();
@@ -388,11 +383,8 @@ router.delete('/api/formulaires/:id', checkAuth, async (req, res) => {
 
         res.sendStatus(200);
     } catch (e) {
-        await dbClient.query('ROLLBACK');
         console.error("Erreur DELETE /api/formulaires/:id:", e);
         res.status(500).json({ error: "Erreur serveur" });
-    } finally {
-        dbClient.release();
     }
 });
 
@@ -445,7 +437,7 @@ router.post('/api/formulaires/pointer/:id', async (req, res) => {
     try {
         const conf = await config.getConfig();
         const { rows } = await pool.query(
-            'SELECT id_thread, id_brac, nom, prenom FROM bracelets WHERE id = $1',
+            'SELECT id_thread, id_brac, nom, prenom FROM bracelets WHERE id = ?',
             [id]
         );
 

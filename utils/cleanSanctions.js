@@ -57,14 +57,14 @@ async function cleanSanctions() {
             if (hasRole) {
                 if (sanction.role_removed_at) {
                     await pool.query(
-                        `UPDATE lspd_sanctions SET role_removed_at = NULL WHERE id = $1`,
+                        `UPDATE lspd_sanctions SET role_removed_at = NULL WHERE id = ?`,
                         [sanction.id]
                     );
                 }
             } else {
                 if (!sanction.role_removed_at) {
                     await pool.query(
-                        `UPDATE lspd_sanctions SET role_removed_at = NOW() WHERE id = $1`,
+                        `UPDATE lspd_sanctions SET role_removed_at = NOW() WHERE id = ?`,
                         [sanction.id]
                     );
                 } else {
@@ -72,7 +72,7 @@ async function cleanSanctions() {
                     const diffMs = now - removedAt;
 
                     if (diffMs >= oneMonthMs) {
-                        await pool.query(`DELETE FROM lspd_sanctions WHERE id = $1`, [sanction.id]);
+                        await pool.query(`DELETE FROM lspd_sanctions WHERE id = ?`, [sanction.id]);
                         deletedSanctions.push(sanction);
 
                         // Retire tous les rôles de sanction

@@ -4,9 +4,10 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const bodyParser = require("body-parser");
 const session = require("express-session");
+const MySQLStore = require("express-mysql-session")(session);
 const sessionStoreHelper = require("./config/sessionStore");
 const passport = require("./config/passport");
-const { GUILD_ID } = require("./config/env");
+const { GUILD_ID, DATABASE_URL } = require("./config/env");
 const { SESSION_SECRET } = require("./config/env");
 const { startOvertimeScheduler } = require("./utils/rappelPointeuse");
 const bot = require("./config/bot");
@@ -46,9 +47,26 @@ const isProduction = !IS_LOCAL && (process.env.NODE_ENV === 'production' || proc
 console.log(`[Session] Mode: ${isProduction ? 'PRODUCTION (HTTPS)' : 'DEVELOPMENT (HTTP)'}`);
 console.log(`[Session] Cookie secure: ${isProduction}, sameSite: ${isProduction ? 'none' : 'lax'}`);
 
+// Parse DATABASE_URL for MySQL session store
+const parseConnectionString = (url) => {
+  const match = url.match(/^mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)$/);
+  if (!match) throw new Error('Invalid MySQL connection string');
+  return {
+    host: match[3],
+    port: parseInt(match[4], 10),
+    user: match[1],
+    password: match[2],
+    database: match[5]
+  };
+};
+
+const sessionStoreOptions = parseConnectionString(DATABASE_URL);
+const sessionStore = new MySQLStore(sessionStoreOptions);
+
 app.use(
   session({
     secret: SESSION_SECRET,
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -61,24 +79,7 @@ app.use(
 );
 
 // Expose the session store to the helper so other modules can destroy sessions
-try {
-  const store = app.get("trust proxy") ? null : undefined; // placeholder
-  // The express-session store instance is available as the return value of session() middleware only
-  // We can access it via the middleware's default MemoryStore by retrieving the session middleware
-  // from the stack. This is fragile but works for MemoryStore. Safer alternative: explicitly create store and pass it.
-  const sessMiddleware =
-    app._router &&
-    app._router.stack &&
-    app._router.stack.find((m) => m.name === "session");
-  if (sessMiddleware && sessMiddleware.handle && sessMiddleware.handle.store) {
-    sessionStoreHelper.setStore(sessMiddleware.handle.store);
-  }
-} catch (e) {
-  console.warn(
-    "Impossible de récupérer le store de sessions automatiquement:",
-    e && e.message ? e.message : e
-  );
-}
+sessionStoreHelper.setStore(sessionStore);
 
 // Body parser
 app.use(bodyParser.json({ limit: "50mb" }));
@@ -128,7 +129,7 @@ app.use(async (req, res, next) => {
     try {
       const pool = require("./config/db");
       const { rows } = await pool.query(
-        "SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1",
+        "SELECT discord_id FROM lspd_blacklist WHERE discord_id = ?",
         [req.user.id]
       );
       if (rows && rows.length) {

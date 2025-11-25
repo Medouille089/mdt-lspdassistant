@@ -16,7 +16,7 @@ router.get('/api/annonce-active', async (req, res) => {
     const annonce = rows[0];
     // Vérifie expiration
     if (new Date() > annonce.expires_at) {
-      await pool.query('UPDATE lspd_annonce SET active=FALSE WHERE id=$1', [annonce.id]);
+      await pool.query('UPDATE lspd_annonce SET active=FALSE WHERE id=?', [annonce.id]);
       return res.json(null);
     }
     res.json({
@@ -44,7 +44,7 @@ router.post('/api/annonce', checkAuth, async (req, res) => {
     const now = new Date();
     const expires = new Date(now.getTime() + Number(dureeSec) * 1000);
     await pool.query(
-      'INSERT INTO lspd_annonce (texte, auteur, duree_sec, created_at, expires_at, active) VALUES ($1,$2,$3,$4,$5,TRUE)',
+      'INSERT INTO lspd_annonce (texte, auteur, duree_sec, created_at, expires_at, active) VALUES (?,?,?,?,?,TRUE)',
       [texte, auteur, Number(dureeSec), now, expires]
     );
 
@@ -104,7 +104,7 @@ router.post('/api/annonce-dismiss', async (req, res) => {
   const { annonceId, userId } = req.body;
   if (!annonceId || !userId) return res.status(400).json({ error: 'Champs manquants' });
   try {
-    await pool.query('INSERT INTO lspd_annonce_dismiss (annonce_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [annonceId, userId]);
+    await pool.query('INSERT IGNORE INTO lspd_annonce_dismiss (annonce_id, user_id) VALUES (?, ?)', [annonceId, userId]);
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: 'Erreur dismiss annonce' });
@@ -115,7 +115,7 @@ router.post('/api/annonce-dismiss', async (req, res) => {
 router.get('/api/annonce-dismiss/:annonceId/:userId', async (req, res) => {
   const { annonceId, userId } = req.params;
   try {
-    const { rows } = await pool.query('SELECT 1 FROM lspd_annonce_dismiss WHERE annonce_id=$1 AND user_id=$2', [annonceId, userId]);
+    const { rows } = await pool.query('SELECT 1 FROM lspd_annonce_dismiss WHERE annonce_id=? AND user_id=?', [annonceId, userId]);
     res.json({ dismissed: rows.length > 0 });
   } catch (e) {
     res.status(500).json({ error: 'Erreur dismiss check' });

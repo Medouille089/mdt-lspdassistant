@@ -45,8 +45,7 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
       const safeHeure = heure && heure.trim() !== '' ? heure : null;
       const insertRes = await pool.query(`
         INSERT INTO lspd_convocations (nom, prenom, date, heure, lieu, motif, officer, grade)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING id
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `, [nom, prenom, safeDate, safeHeure, lieu, motif, officier, grade]);
 
       const convocationId = insertRes.rows[0]?.id;
@@ -88,7 +87,7 @@ router.post("/upload-convocation", upload.single("image"), async (req, res) => {
       // Persist the created thread id on the convocation record if possible.
       try {
         if (convocationId && convocationThread?.id) {
-          await pool.query('UPDATE lspd_convocations SET discord_thread_id = $1 WHERE id = $2', [convocationThread.id, convocationId]);
+          await pool.query('UPDATE lspd_convocations SET discord_thread_id = ? WHERE id = ?', [convocationThread.id, convocationId]);
         }
       } catch (err) {
         // Column may not exist in older DB schema; warn but continue.
@@ -169,9 +168,10 @@ router.put('/api/convocation/:id', async (req, res) => {
     if (fields.length === 0) return res.status(400).json({ error: 'Aucun champ à mettre à jour.' });
 
     values.push(id);
-    const q = `UPDATE lspd_convocations SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`;
-    const updateRes = await pool.query(q, values);
-    res.json({ success: true, convocation: updateRes.rows[0] });
+    const q = `UPDATE lspd_convocations SET ${fields.join(', ')} WHERE id = ?`;
+    await pool.query(q, values);
+    const selectRes = await pool.query('SELECT * FROM lspd_convocations WHERE id = ?', [id]);
+    res.json({ success: true, convocation: selectRes.rows[0] });
   } catch (err) {
     console.error('Erreur update convocation', err);
     res.status(500).json({ error: 'Erreur lors de la mise à jour de la convocation.' });
@@ -183,7 +183,7 @@ router.post('/api/convocation/:id/resend', upload.single('image'), async (req, r
   const id = req.params.id;
   const imageFile = req.file;
   try {
-    const rows = await pool.query('SELECT * FROM lspd_convocations WHERE id = $1', [id]);
+    const rows = await pool.query('SELECT * FROM lspd_convocations WHERE id = ?', [id]);
     const conv = rows.rows[0];
     if (!conv) return res.status(404).json({ error: 'Convocation introuvable' });
 

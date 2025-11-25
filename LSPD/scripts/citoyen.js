@@ -112,15 +112,21 @@
         body: JSON.stringify(formData)
       });
 
-      const result = await response.json();
-
       if (response.ok) {
+        const result = await response.json();
         showNotification('✓ Citoyen enregistré avec succès', 'success');
         setTimeout(() => {
           window.location.href = '/liste-citoyens.html';
         }, 1500);
       } else {
-        showNotification(result.error || 'Erreur lors de l\'enregistrement', 'error');
+        let errorMessage = 'Erreur lors de l\'enregistrement';
+        try {
+          const result = await response.json();
+          errorMessage = result.error || errorMessage;
+        } catch (e) {
+          // Si le JSON parsing échoue, utiliser le message par défaut
+        }
+        showNotification(errorMessage, 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Enregistrer le citoyen';
       }

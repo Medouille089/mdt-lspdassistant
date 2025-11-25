@@ -114,7 +114,7 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
             (arrestation_id, date_arrestation, profession, ddn, address, tel, droits,
              entree_cellule, sortie_cellule, bracelet, miranda, avocat, nourriture, ems,
              avocatname, officer, grade, lieu, motifarrestation, circonstances, arme, uof, accusations, discord_thread_id, name, rapports_lies)
-            VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             arrestationId, date, profession, DDN, address, tel, droits,
             entreecellule, sortiecellule, bracelet, miranda,

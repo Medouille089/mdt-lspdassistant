@@ -25,7 +25,7 @@ router.post("/pointeuse/start", async (req, res) => {
     if (!topRole) return res.status(403).json({ error: "Aucun rôle LSPD valide trouvé" });
 
     const ongoing = await pool.query(
-      "SELECT * FROM lspd_pointage WHERE id_discord = $1 AND end_time IS NULL",
+      "SELECT * FROM lspd_pointage WHERE id_discord = ? AND end_time IS NULL",
       [id]
     );
 
@@ -37,7 +37,7 @@ router.post("/pointeuse/start", async (req, res) => {
 
     await pool.query(`
       INSERT INTO lspd_pointage (id_discord, discord_role_id, start_time)
-      VALUES ($1, $2, $3)
+      VALUES (?, ?, ?)
     `, [id, topRole.discord_role_id, nowParis]);
     if (conf.logs_pointeuse) {
       try {
@@ -85,7 +85,7 @@ router.post("/pointeuse/stop", async (req, res) => {
   SELECT p.*, c.salary_rate 
   FROM lspd_pointage p
   JOIN lspd_config_pointage c ON p.discord_role_id = c.discord_role_id
-  WHERE p.id_discord = $1 AND p.end_time IS NULL
+  WHERE p.id_discord = ? AND p.end_time IS NULL
 `, [idDiscord]);
 
 
@@ -106,8 +106,8 @@ router.post("/pointeuse/stop", async (req, res) => {
     // Update avec la bonne ID (integer, pas de souci ici)
     await pool.query(`
       UPDATE lspd_pointage
-      SET end_time = $1, salary_earned = $2
-      WHERE id = $3
+      SET end_time = ?, salary_earned = ?
+      WHERE id = ?
     `, [nowParis, earned, row.id]);
 
     // Log Discord (si configuré)
@@ -163,7 +163,7 @@ router.get("/pointeuse/historique", async (req, res) => {
       `
       SELECT p.*, c.role_name FROM lspd_pointage p
       JOIN lspd_config_pointage c ON p.discord_role_id = c.discord_role_id
-      WHERE id_discord = $1 ORDER BY start_time DESC
+      WHERE id_discord = ? ORDER BY start_time DESC
       `,
       [id]
     );
@@ -199,8 +199,8 @@ router.get("/pointeuse/semaine", async (req, res) => {
       SELECT p.*, c.role_name, c.salary_rate
       FROM lspd_pointage p
       JOIN lspd_config_pointage c ON p.discord_role_id = c.discord_role_id
-      WHERE p.id_discord = $1
-      AND p.start_time BETWEEN $2 AND $3
+      WHERE p.id_discord = ?
+      AND p.start_time BETWEEN ? AND ?
       ORDER BY p.start_time DESC
       `,
       [id, startOfWeek.toISO(), endOfWeek.toISO()]
@@ -219,12 +219,12 @@ router.get("/pointeuse/semaine", async (req, res) => {
     const last3WeeksSalariesRes = await pool.query(
       `
       SELECT
-        date_trunc('week', start_time) AS week_start,
+        DATE(DATE_SUB(start_time, INTERVAL WEEKDAY(start_time) DAY)) AS week_start,
         SUM(salary_earned) AS total_salary
       FROM lspd_pointage
-      WHERE id_discord = $1
-        AND start_time >= $2
-        AND start_time < $3
+      WHERE id_discord = ?
+        AND start_time >= ?
+        AND start_time < ?
         AND salary_earned IS NOT NULL
       GROUP BY week_start
       ORDER BY week_start DESC
@@ -274,12 +274,12 @@ router.get("/pointeuse/monthly", async (req, res) => {
     const result = await pool.query(
       `
       SELECT 
-        DATE(start_time AT TIME ZONE 'Europe/Paris') as day,
-        SUM(EXTRACT(EPOCH FROM (COALESCE(end_time, NOW()) - start_time)) / 3600) as hours
+        DATE(start_time) as day,
+        SUM(TIMESTAMPDIFF(SECOND, start_time, COALESCE(end_time, NOW())) / 3600) as hours
       FROM lspd_pointage
-      WHERE id_discord = $1
-        AND start_time >= $2
-        AND start_time <= $3
+      WHERE id_discord = ?
+        AND start_time >= ?
+        AND start_time <= ?
       GROUP BY day
       ORDER BY day
       `,
@@ -322,13 +322,13 @@ router.get("/admin/users-salaries", async (req, res) => {
 
     const query = `
       SELECT p.id_discord,
-             COALESCE(SUM(CASE WHEN p.start_time BETWEEN $1 AND $2 THEN p.salary_earned ELSE 0 END), 0) AS salary_this_week,
-             COALESCE(SUM(CASE WHEN p.start_time BETWEEN $1 AND $2
-                        THEN EXTRACT(EPOCH FROM (COALESCE(p.end_time, NOW()) - p.start_time)) / 3600
+             COALESCE(SUM(CASE WHEN p.start_time BETWEEN ? AND ? THEN p.salary_earned ELSE 0 END), 0) AS salary_this_week,
+             COALESCE(SUM(CASE WHEN p.start_time BETWEEN ? AND ?
+                        THEN TIMESTAMPDIFF(SECOND, p.start_time, COALESCE(p.end_time, NOW())) / 3600
                         ELSE 0 END), 0) AS hours_this_week,
-             COALESCE(SUM(CASE WHEN p.start_time BETWEEN $3 AND $4 THEN p.salary_earned ELSE 0 END), 0) AS salary_last_week,
-             COALESCE(SUM(CASE WHEN p.start_time BETWEEN $3 AND $4
-                        THEN EXTRACT(EPOCH FROM (COALESCE(p.end_time, NOW()) - p.start_time)) / 3600
+             COALESCE(SUM(CASE WHEN p.start_time BETWEEN ? AND ? THEN p.salary_earned ELSE 0 END), 0) AS salary_last_week,
+             COALESCE(SUM(CASE WHEN p.start_time BETWEEN ? AND ?
+                        THEN TIMESTAMPDIFF(SECOND, p.start_time, COALESCE(p.end_time, NOW())) / 3600
                         ELSE 0 END), 0) AS hours_last_week
       FROM lspd_pointage p
       GROUP BY p.id_discord
@@ -337,6 +337,10 @@ router.get("/admin/users-salaries", async (req, res) => {
     const result = await pool.query(query, [
       startOfWeek.toISO(),
       endOfWeek.toISO(),
+      startOfWeek.toISO(),
+      endOfWeek.toISO(),
+      startOfLastWeek.toISO(),
+      endOfLastWeek.toISO(),
       startOfLastWeek.toISO(),
       endOfLastWeek.toISO(),
     ]);
@@ -389,7 +393,7 @@ router.post("/admin/pointeuse/stop/:discordId", async (req, res) => {
     const result = await pool.query(`
       SELECT p.*, c.salary_rate FROM lspd_pointage p
       JOIN lspd_config_pointage c ON p.discord_role_id = c.discord_role_id
-      WHERE p.id_discord = $1 AND p.end_time IS NULL
+      WHERE p.id_discord = ? AND p.end_time IS NULL
     `, [discordId]);
 
     if (!result.rows.length) return res.status(400).json({ error: "Aucun pointage en cours pour cet utilisateur" });
@@ -405,8 +409,8 @@ router.post("/admin/pointeuse/stop/:discordId", async (req, res) => {
 
     await pool.query(`
       UPDATE lspd_pointage
-      SET end_time = $1, salary_earned = $2
-      WHERE id = $3
+      SET end_time = ?, salary_earned = ?
+      WHERE id = ?
     `, [nowParis, earned, row.id]);
 
     if (conf.logs_pointeuse) {
@@ -486,23 +490,27 @@ router.get("/admin/pointeuse/sessions/:discordId", async (req, res) => {
     const query = `
       SELECT p.id, p.id_discord, p.discord_role_id, p.start_time, p.end_time, p.salary_earned,
              r.role_name, r.salary_rate,
-             EXTRACT(EPOCH FROM (COALESCE(p.end_time, NOW()) - p.start_time)) / 3600 as hours_worked,
+             TIMESTAMPDIFF(SECOND, p.start_time, COALESCE(p.end_time, NOW())) / 3600 as hours_worked,
              CASE 
-               WHEN p.start_time BETWEEN $2 AND $3 THEN 'cette_semaine'
-               WHEN p.start_time BETWEEN $4 AND $5 THEN 'semaine_derniere'
+               WHEN p.start_time BETWEEN ? AND ? THEN 'cette_semaine'
+               WHEN p.start_time BETWEEN ? AND ? THEN 'semaine_derniere'
                ELSE 'autre'
              END as week_type
       FROM lspd_pointage p
       LEFT JOIN lspd_config_pointage r ON p.discord_role_id = r.discord_role_id
-      WHERE p.id_discord = $1 
+      WHERE p.id_discord = ? 
         AND (
-          (p.start_time BETWEEN $2 AND $3) OR 
-          (p.start_time BETWEEN $4 AND $5)
+          (p.start_time BETWEEN ? AND ?) OR 
+          (p.start_time BETWEEN ? AND ?)
         )
       ORDER BY p.start_time DESC
     `;
 
     const result = await pool.query(query, [
+      startOfWeek.toISO(),
+      endOfWeek.toISO(),
+      startOfLastWeek.toISO(),
+      endOfLastWeek.toISO(),
       discordId,
       startOfWeek.toISO(),
       endOfWeek.toISO(),
@@ -532,7 +540,7 @@ router.post("/admin/pointeuse/session/:sessionId", async (req, res) => {
       SELECT p.discord_role_id, r.salary_rate
       FROM lspd_pointage p
       LEFT JOIN lspd_config_pointage r ON p.discord_role_id = r.discord_role_id
-      WHERE p.id = $1
+      WHERE p.id = ?
     `;
 
     const sessionInfo = await pool.query(sessionQuery, [sessionId]);
@@ -553,9 +561,9 @@ router.post("/admin/pointeuse/session/:sessionId", async (req, res) => {
 
     const updateQuery = `
       UPDATE lspd_pointage 
-      SET start_time = $1, end_time = $2, salary_earned = $3
-      WHERE id = $4
-      RETURNING *
+      SET start_time = ?, end_time = ?, salary_earned = ?
+      WHERE id = ?
+      
     `;
 
     const result = await pool.query(updateQuery, [start_time, end_time, calculatedSalary, sessionId]);

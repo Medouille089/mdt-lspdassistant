@@ -31,7 +31,7 @@ module.exports = {
 
             // Vérifier si l'utilisateur existe
             const checkRes = await pool.query(
-                'SELECT discord_id, note FROM allowed_users WHERE discord_id = $1',
+                'SELECT discord_id, note FROM allowed_users WHERE discord_id = ?',
                 [discordId]
             );
 
@@ -46,7 +46,7 @@ module.exports = {
 
             // Retirer l'utilisateur
             await pool.query(
-                'DELETE FROM allowed_users WHERE discord_id = $1',
+                'DELETE FROM allowed_users WHERE discord_id = ?',
                 [discordId]
             );
 

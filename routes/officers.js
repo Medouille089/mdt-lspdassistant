@@ -79,7 +79,7 @@ router.get("/api/officers", checkAuth, async (req, res) => {
     
     if (discordIds.length > 0) {
       const photosRes = await pool.query(
-        'SELECT discord_id, photo_url FROM lspd_agent_profiles WHERE discord_id = ANY($1)',
+        'SELECT discord_id, photo_url FROM lspd_agent_profiles WHERE discord_id = ANY(?)',
         [discordIds]
       );
       photosMap = photosRes.rows.reduce((acc, row) => {

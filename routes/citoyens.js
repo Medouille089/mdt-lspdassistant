@@ -19,27 +19,24 @@ router.get('/api/citoyens', checkAuth, cacheCitoyens(), async (req, res) => {
 
         let query = 'SELECT * FROM citoyens WHERE 1=1';
         const params = [];
-        let paramIndex = 1;
 
         // Filtre de recherche (nom, prénom, téléphone)
         if (search) {
-            query += ` AND (LOWER(nom) LIKE $${paramIndex} OR LOWER(prenom) LIKE $${paramIndex} OR telephone LIKE $${paramIndex})`;
-            params.push(`%${search.toLowerCase()}%`);
-            paramIndex++;
+            query += ` AND (LOWER(nom) LIKE ? OR LOWER(prenom) LIKE ? OR telephone LIKE ?)`;
+            params.push(`%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`);
         }
 
         // Filtre mandat actif
         if (mandat_actif !== undefined) {
-            query += ` AND mandat_actif = $${paramIndex}`;
+            query += ` AND mandat_actif = ?`;
             params.push(mandat_actif === 'true');
-            paramIndex++;
         }
 
         // Order by
         query += ' ORDER BY created_at DESC';
 
         // Pagination
-        query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+        query += ` LIMIT ? OFFSET ?`;
         params.push(parseInt(limit), parseInt(offset));
 
         const { rows } = await pool.query(query, params);
@@ -47,16 +44,14 @@ router.get('/api/citoyens', checkAuth, cacheCitoyens(), async (req, res) => {
         // Compter le total pour la pagination
         let countQuery = 'SELECT COUNT(*) FROM citoyens WHERE 1=1';
         const countParams = [];
-        let countParamIndex = 1;
 
         if (search) {
-            countQuery += ` AND (LOWER(nom) LIKE $${countParamIndex} OR LOWER(prenom) LIKE $${countParamIndex} OR telephone LIKE $${countParamIndex})`;
-            countParams.push(`%${search.toLowerCase()}%`);
-            countParamIndex++;
+            countQuery += ` AND (LOWER(nom) LIKE ? OR LOWER(prenom) LIKE ? OR telephone LIKE ?)`;
+            countParams.push(`%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`);
         }
 
         if (mandat_actif !== undefined) {
-            countQuery += ` AND mandat_actif = $${countParamIndex}`;
+            countQuery += ` AND mandat_actif = ?`;
             countParams.push(mandat_actif === 'true');
         }
 
@@ -79,7 +74,7 @@ router.get('/api/citoyens', checkAuth, cacheCitoyens(), async (req, res) => {
 router.get('/api/citoyens/:id', checkAuth, cacheCitoyenDetail(), async (req, res) => {
     try {
         const { id } = req.params;
-        const { rows } = await pool.query('SELECT * FROM citoyens WHERE id = $1', [id]);
+        const { rows } = await pool.query('SELECT * FROM citoyens WHERE id = ?', [id]);
 
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Citoyen non trouvé' });
@@ -116,11 +111,10 @@ router.post('/api/citoyens', checkAuth, async (req, res) => {
         const user = req.user;
         const createdBy = created_by || user.guild_member?.nick || user.displayName || user.username;
 
-        const { rows } = await pool.query(
+        const insertResult = await pool.query(
             `INSERT INTO citoyens 
             (nom, prenom, date_naissance, nationalite, genre, telephone, emploi, mandat_actif, photo, created_by, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
-            RETURNING *`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
             [
                 nom,
                 prenom,
@@ -134,8 +128,13 @@ router.post('/api/citoyens', checkAuth, async (req, res) => {
                 createdBy
             ]
         );
-
-        const newCitoyen = rows[0];
+        
+        console.log('insertResult:', insertResult);
+        console.log('Recherche du citoyen avec id:', insertResult.rows.insertId);
+        const selectResult = await pool.query('SELECT * FROM citoyens WHERE id = ?', [insertResult.rows.insertId]);
+        console.log('selectResult:', selectResult);
+        console.log('selectResult.rows:', selectResult.rows);
+        const newCitoyen = selectResult.rows[0];
 
         // Logs Discord
         const conf = await config.getConfig();
@@ -177,6 +176,7 @@ router.post('/api/citoyens', checkAuth, async (req, res) => {
         // Invalider le cache
         invalidateCitoyensCache();
 
+        console.log('Citoyen créé, envoi de la réponse:', newCitoyen);
         res.status(201).json(newCitoyen);
     } catch (error) {
         console.error('Erreur lors de la création du citoyen:', error);
@@ -209,19 +209,18 @@ router.put('/api/citoyens/:id', checkAuth, async (req, res) => {
         const updatedBy = user.guild_member?.nick || user.displayName || user.username;
 
         // Vérifier si le citoyen existe
-        const { rows: existingRows } = await pool.query('SELECT * FROM citoyens WHERE id = $1', [id]);
+        const { rows: existingRows } = await pool.query('SELECT * FROM citoyens WHERE id = ?', [id]);
         if (existingRows.length === 0) {
             return res.status(404).json({ error: 'Citoyen non trouvé' });
         }
 
         const oldCitoyen = existingRows[0];
 
-        const { rows } = await pool.query(
+        await pool.query(
             `UPDATE citoyens 
-            SET nom = $1, prenom = $2, date_naissance = $3, nationalite = $4, genre = $5, 
-                telephone = $6, emploi = $7, mandat_actif = $8, photo = $9, updated_by = $10, updated_at = NOW()
-            WHERE id = $11
-            RETURNING *`,
+            SET nom = ?, prenom = ?, date_naissance = ?, nationalite = ?, genre = ?, 
+                telephone = ?, emploi = ?, mandat_actif = ?, photo = ?, updated_by = ?, updated_at = NOW()
+            WHERE id = ?`,
             [
                 nom,
                 prenom,
@@ -236,8 +235,9 @@ router.put('/api/citoyens/:id', checkAuth, async (req, res) => {
                 id
             ]
         );
-
-        const updatedCitoyen = rows[0];
+        
+        const selectResult = await pool.query('SELECT * FROM citoyens WHERE id = ?', [id]);
+        const updatedCitoyen = selectResult.rows[0];
 
         // Logs Discord
         const conf = await config.getConfig();
@@ -293,13 +293,13 @@ router.delete('/api/citoyens/:id', checkAuth, async (req, res) => {
         const { id } = req.params;
 
         // Vérifier si le citoyen existe
-        const { rows: existingRows } = await pool.query('SELECT * FROM citoyens WHERE id = $1', [id]);
+        const { rows: existingRows } = await pool.query('SELECT * FROM citoyens WHERE id = ?', [id]);
         if (existingRows.length === 0) {
             return res.status(404).json({ error: 'Citoyen non trouvé' });
         }
 
         const citoyen = existingRows[0];
-        await pool.query('DELETE FROM citoyens WHERE id = $1', [id]);
+        await pool.query('DELETE FROM citoyens WHERE id = ?', [id]);
 
         // Logs Discord
         const conf = await config.getConfig();

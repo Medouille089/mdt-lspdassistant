@@ -37,7 +37,7 @@ module.exports = {
 
             // Vérifier si l'utilisateur existe déjà
             const checkRes = await pool.query(
-                'SELECT discord_id FROM allowed_users WHERE discord_id = $1',
+                'SELECT discord_id FROM allowed_users WHERE discord_id = ?',
                 [discordId]
             );
 
@@ -50,7 +50,7 @@ module.exports = {
 
             // Ajouter l'utilisateur
             await pool.query(
-                'INSERT INTO allowed_users (discord_id, added_by, note) VALUES ($1, $2, $3)',
+                'INSERT INTO allowed_users (discord_id, added_by, note) VALUES (?, ?, ?)',
                 [discordId, interaction.user.id, note]
             );
 

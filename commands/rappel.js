@@ -69,11 +69,10 @@ module.exports = {
 
       const insertRes = await db.query(
         `INSERT INTO lspd_reminders (user_id, channel_id, remind_at, reason, dm_only)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING id`,
+         VALUES (?, ?, ?, ?, ?)`,
         [interaction.user.id, interaction.channel?.id || 'dm', remindAtUtc, reason, isDM]
       );
-      const reminderId = insertRes.rows[0].id;
+      const reminderId = insertRes.insertId;
 
       const botUser = interaction.client.user;
       const fields = [

@@ -52,19 +52,19 @@ router.put("/api/config", async (req, res) => {
 
     const result = await pool.query(
       `UPDATE configlspd SET 
-        required_role_id = $1,
-        supervisor_role_id = $2,
-        thread_id = $3,
-        archive_tag = $4,
-        logs_channel = $5,
-        commandstaff_id = $6,
-        convocation_thread_id = $7,
-        incident_thread_id = $8,
-        arrestation_thread_id = $9,
-        situations_thread_id = $10,
-        pointeuse_alert = $11,
-        rapport_rookie_channel_id = $12
-       WHERE id = 1 RETURNING *`,
+        required_role_id = ?,
+        supervisor_role_id = ?,
+        thread_id = ?,
+        archive_tag = ?,
+        logs_channel = ?,
+        commandstaff_id = ?,
+        convocation_thread_id = ?,
+        incident_thread_id = ?,
+        arrestation_thread_id = ?,
+        situations_thread_id = ?,
+        pointeuse_alert = ?,
+        rapport_rookie_channel_id = ?
+       WHERE id = 1`,
       [
         required_role_id,
         supervisor_role_id,

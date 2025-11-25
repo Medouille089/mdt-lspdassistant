@@ -85,9 +85,9 @@ module.exports = {
       // Mise à jour BDD
       await db.query(
         `UPDATE configlspd
-         SET fiche_de_presence_id = $1,
-             fiche_de_presence_hour = $2,
-             fiche_de_presence_rappel = $3
+         SET fiche_de_presence_id = ?,
+             fiche_de_presence_hour = ?,
+             fiche_de_presence_rappel = ?
          WHERE id = 1`,
         [salon.id, heure, rappel]
       );

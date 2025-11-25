@@ -27,7 +27,7 @@ async function checkAuth(req, res, next) {
     // Vérifier si l'utilisateur est dans la table lspd_blacklist
     try {
       const pool = require('./db');
-      const { rows } = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1', [req.user.id]);
+      const { rows } = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = ?', [req.user.id]);
       if (rows.length) {
         if (req.originalUrl && req.originalUrl.startsWith('/api/') || req.xhr || (req.get && req.get('accept') && req.get('accept').includes('application/json'))) {
           return res.status(403).json({ error: 'blacklisted' });

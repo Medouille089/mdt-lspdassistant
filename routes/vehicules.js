@@ -26,34 +26,30 @@ router.get('/api/vehicules', checkAuth, cacheVehicules(), async (req, res) => {
             WHERE 1=1
         `;
         const params = [];
-        let paramIndex = 1;
 
         // Filtre de recherche (modèle, plaque)
         if (search) {
-            query += ` AND (LOWER(v.modele) LIKE $${paramIndex} OR LOWER(v.plaque) LIKE $${paramIndex})`;
-            params.push(`%${search.toLowerCase()}%`);
-            paramIndex++;
+            query += ` AND (LOWER(v.modele) LIKE ? OR LOWER(v.plaque) LIKE ?)`;
+            params.push(`%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`);
         }
 
         // Filtre mandat actif
         if (mandat_actif !== undefined) {
-            query += ` AND v.mandat_actif = $${paramIndex}`;
+            query += ` AND v.mandat_actif = ?`;
             params.push(mandat_actif === 'true');
-            paramIndex++;
         }
 
         // Filtre par propriétaire
         if (proprietaire_id) {
-            query += ` AND v.proprietaire_id = $${paramIndex}`;
+            query += ` AND v.proprietaire_id = ?`;
             params.push(parseInt(proprietaire_id));
-            paramIndex++;
         }
 
         // Order by
         query += ' ORDER BY v.created_at DESC';
 
         // Pagination
-        query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+        query += ` LIMIT ? OFFSET ?`;
         params.push(parseInt(limit), parseInt(offset));
 
         const { rows } = await pool.query(query, params);
@@ -61,22 +57,19 @@ router.get('/api/vehicules', checkAuth, cacheVehicules(), async (req, res) => {
         // Compter le total pour la pagination
         let countQuery = 'SELECT COUNT(*) FROM vehicules v WHERE 1=1';
         const countParams = [];
-        let countParamIndex = 1;
 
         if (search) {
-            countQuery += ` AND (LOWER(v.modele) LIKE $${countParamIndex} OR LOWER(v.plaque) LIKE $${countParamIndex})`;
-            countParams.push(`%${search.toLowerCase()}%`);
-            countParamIndex++;
+            countQuery += ` AND (LOWER(v.modele) LIKE ? OR LOWER(v.plaque) LIKE ?)`;
+            countParams.push(`%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`);
         }
 
         if (mandat_actif !== undefined) {
-            countQuery += ` AND v.mandat_actif = $${countParamIndex}`;
+            countQuery += ` AND v.mandat_actif = ?`;
             countParams.push(mandat_actif === 'true');
-            countParamIndex++;
         }
 
         if (proprietaire_id) {
-            countQuery += ` AND v.proprietaire_id = $${countParamIndex}`;
+            countQuery += ` AND v.proprietaire_id = ?`;
             countParams.push(parseInt(proprietaire_id));
         }
 
@@ -107,7 +100,7 @@ router.get('/api/vehicules/:id', checkAuth, cacheVehiculeDetail(), async (req, r
                    c.date_naissance as proprietaire_date_naissance
             FROM vehicules v
             LEFT JOIN citoyens c ON v.proprietaire_id = c.id
-            WHERE v.id = $1
+            WHERE v.id = ?
         `, [id]);
 
         if (rows.length === 0) {
@@ -141,7 +134,7 @@ router.post('/api/vehicules', checkAuth, async (req, res) => {
 
         // Vérifier si la plaque existe déjà
         const { rows: existingPlaque } = await pool.query(
-            'SELECT id FROM vehicules WHERE LOWER(plaque) = LOWER($1)',
+            'SELECT id FROM vehicules WHERE LOWER(plaque) = LOWER(?)',
             [plaque]
         );
 
@@ -152,7 +145,7 @@ router.post('/api/vehicules', checkAuth, async (req, res) => {
         // Vérifier que le propriétaire existe si fourni
         if (proprietaire_id) {
             const { rows: citoyenRows } = await pool.query(
-                'SELECT id FROM citoyens WHERE id = $1',
+                'SELECT id FROM citoyens WHERE id = ?',
                 [proprietaire_id]
             );
             if (citoyenRows.length === 0) {
@@ -166,8 +159,8 @@ router.post('/api/vehicules', checkAuth, async (req, res) => {
         const { rows } = await pool.query(
             `INSERT INTO vehicules 
             (modele, plaque, couleur, proprietaire_id, mandat_actif, photo, created_by, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-            RETURNING *`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            `,
             [
                 modele,
                 plaque.toUpperCase(),
@@ -185,7 +178,7 @@ router.post('/api/vehicules', checkAuth, async (req, res) => {
         let proprietaireInfo = 'Aucun';
         if (proprietaire_id) {
             const { rows: propRows } = await pool.query(
-                'SELECT nom, prenom FROM citoyens WHERE id = $1',
+                'SELECT nom, prenom FROM citoyens WHERE id = ?',
                 [proprietaire_id]
             );
             if (propRows.length > 0) {
@@ -261,7 +254,7 @@ router.put('/api/vehicules/:id', checkAuth, async (req, res) => {
         const updatedBy = user.guild_member?.nick || user.displayName || user.username;
 
         // Vérifier si le véhicule existe
-        const { rows: existingRows } = await pool.query('SELECT * FROM vehicules WHERE id = $1', [id]);
+        const { rows: existingRows } = await pool.query('SELECT * FROM vehicules WHERE id = ?', [id]);
         if (existingRows.length === 0) {
             return res.status(404).json({ error: 'Véhicule non trouvé' });
         }
@@ -270,7 +263,7 @@ router.put('/api/vehicules/:id', checkAuth, async (req, res) => {
 
         // Vérifier si la plaque existe déjà (sauf pour ce véhicule)
         const { rows: existingPlaque } = await pool.query(
-            'SELECT id FROM vehicules WHERE LOWER(plaque) = LOWER($1) AND id != $2',
+            'SELECT id FROM vehicules WHERE LOWER(plaque) = LOWER(?) AND id != ?',
             [plaque, id]
         );
 
@@ -281,7 +274,7 @@ router.put('/api/vehicules/:id', checkAuth, async (req, res) => {
         // Vérifier que le propriétaire existe si fourni
         if (proprietaire_id) {
             const { rows: citoyenRows } = await pool.query(
-                'SELECT id FROM citoyens WHERE id = $1',
+                'SELECT id FROM citoyens WHERE id = ?',
                 [proprietaire_id]
             );
             if (citoyenRows.length === 0) {
@@ -291,10 +284,10 @@ router.put('/api/vehicules/:id', checkAuth, async (req, res) => {
 
         const { rows } = await pool.query(
             `UPDATE vehicules 
-            SET modele = $1, plaque = $2, couleur = $3, proprietaire_id = $4, 
-                mandat_actif = $5, photo = $6, updated_by = $7, updated_at = NOW()
-            WHERE id = $8
-            RETURNING *`,
+            SET modele = ?, plaque = ?, couleur = ?, proprietaire_id = ?, 
+                mandat_actif = ?, photo = ?, updated_by = ?, updated_at = NOW()
+            WHERE id = ?
+            `,
             [
                 modele,
                 plaque.toUpperCase(),
@@ -318,7 +311,7 @@ router.put('/api/vehicules/:id', checkAuth, async (req, res) => {
                    c.date_naissance as proprietaire_date_naissance
             FROM vehicules v
             LEFT JOIN citoyens c ON v.proprietaire_id = c.id
-            WHERE v.id = $1
+            WHERE v.id = ?
         `, [id]);
 
         const fullVehiculeData = fullDataRows[0] || updatedVehicule;
@@ -380,16 +373,16 @@ router.put('/api/vehicules/:id/notes', checkAuth, async (req, res) => {
         const updatedBy = user.guild_member?.nick || user.displayName || user.username;
 
         // Vérifier si le véhicule existe
-        const { rows: existingRows } = await pool.query('SELECT * FROM vehicules WHERE id = $1', [id]);
+        const { rows: existingRows } = await pool.query('SELECT * FROM vehicules WHERE id = ?', [id]);
         if (existingRows.length === 0) {
             return res.status(404).json({ error: 'Véhicule non trouvé' });
         }
 
         const { rows } = await pool.query(
             `UPDATE vehicules 
-            SET notes = $1, updated_by = $2, updated_at = NOW()
-            WHERE id = $3
-            RETURNING *`,
+            SET notes = ?, updated_by = ?, updated_at = NOW()
+            WHERE id = ?
+            `,
             [notes || null, updatedBy, id]
         );
 
@@ -413,7 +406,7 @@ router.delete('/api/vehicules/:id', checkAuth, async (req, res) => {
             SELECT v.*, c.nom as proprietaire_nom, c.prenom as proprietaire_prenom
             FROM vehicules v
             LEFT JOIN citoyens c ON v.proprietaire_id = c.id
-            WHERE v.id = $1
+            WHERE v.id = ?
         `, [id]);
 
         if (existingRows.length === 0) {
@@ -421,7 +414,7 @@ router.delete('/api/vehicules/:id', checkAuth, async (req, res) => {
         }
 
         const vehicule = existingRows[0];
-        await pool.query('DELETE FROM vehicules WHERE id = $1', [id]);
+        await pool.query('DELETE FROM vehicules WHERE id = ?', [id]);
 
         // Logs Discord
         const conf = await config.getConfig();

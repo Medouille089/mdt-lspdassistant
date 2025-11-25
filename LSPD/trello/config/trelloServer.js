@@ -36,7 +36,7 @@ async function initTrello(app, io) {
     app.get("/trello/health", async (req, res) => {
         res.json({
             status: "OK",
-            mode: isDatabaseEnabled() ? "PostgreSQL" : "Mémoire locale",
+            mode: isDatabaseEnabled() ? "MySQL" : "Mémoire locale",
             timestamp: new Date().toISOString(),
         });
     });

@@ -27,7 +27,7 @@ router.post('/api/weapon_models', checkAuth, async (req, res) => {
 
         const { rows } = await pool.query(
             `INSERT INTO weapon_models (model_name, image_url, created_by, created_at, updated_at)
-            VALUES ($1, $2, $3, NOW(), NOW()) RETURNING *`,
+            VALUES (?, ?, ?, NOW(), NOW()) `,
             [model_name, image_url || null, createdBy]
         );
 
@@ -43,7 +43,7 @@ router.post('/api/weapon_models', checkAuth, async (req, res) => {
 router.get('/api/weapon_models/:id', checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { rows } = await pool.query('SELECT * FROM weapon_models WHERE id = $1', [id]);
+        const { rows } = await pool.query('SELECT * FROM weapon_models WHERE id = ?', [id]);
         if (rows.length === 0) return res.status(404).json({ error: 'Modèle introuvable' });
         res.json(rows[0]);
     } catch (err) {
@@ -63,7 +63,7 @@ router.put('/api/weapon_models/:id', checkAuth, async (req, res) => {
         const updatedBy = user.guild_member?.nick || user.displayName || user.username;
 
         const { rows } = await pool.query(
-            `UPDATE weapon_models SET model_name = $1, image_url = $2, calibre = $3, updated_by = $4, updated_at = NOW() WHERE id = $5 RETURNING *`,
+            `UPDATE weapon_models SET model_name = ?, image_url = ?, calibre = ?, updated_by = ?, updated_at = NOW() WHERE id = ? `,
             [model_name, image_url || null, calibre || null, updatedBy, id]
         );
 
@@ -79,10 +79,10 @@ router.put('/api/weapon_models/:id', checkAuth, async (req, res) => {
 router.delete('/api/weapon_models/:id', checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { rows: existing } = await pool.query('SELECT * FROM weapon_models WHERE id = $1', [id]);
+        const { rows: existing } = await pool.query('SELECT * FROM weapon_models WHERE id = ?', [id]);
         if (existing.length === 0) return res.status(404).json({ error: 'Modèle introuvable' });
 
-        await pool.query('DELETE FROM weapon_models WHERE id = $1', [id]);
+        await pool.query('DELETE FROM weapon_models WHERE id = ?', [id]);
         res.json({ message: 'Modèle supprimé' });
     } catch (err) {
         console.error('Erreur suppression weapon_model:', err);
@@ -97,22 +97,18 @@ router.get('/api/weapons', checkAuth, async (req, res) => {
         const { owner_id, model_id, search, limit = 20, offset = 0 } = req.query;
         let query = 'SELECT * FROM weapons WHERE 1=1';
         const params = [];
-        let idx = 1;
 
         if (owner_id) {
-            query += ` AND owner_id = $${idx}`;
+            query += ` AND owner_id = ?`;
             params.push(parseInt(owner_id));
-            idx++;
         }
         if (model_id) {
-            query += ` AND model_id = $${idx}`;
+            query += ` AND model_id = ?`;
             params.push(parseInt(model_id));
-            idx++;
         }
         if (search) {
-            query += ` AND (LOWER(model_name) LIKE $${idx} OR LOWER(serial_number) LIKE $${idx})`;
-            params.push(`%${search.toLowerCase()}%`);
-            idx++;
+            query += ` AND (LOWER(model_name) LIKE ? OR LOWER(serial_number) LIKE ?)`;
+            params.push(`%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`);
         }
 
         // Count total
@@ -120,7 +116,7 @@ router.get('/api/weapons', checkAuth, async (req, res) => {
         const { rows: countRows } = await pool.query(countQuery, params);
         const total = parseInt(countRows[0].count);
 
-        query += ` ORDER BY created_at DESC LIMIT $${idx} OFFSET $${idx + 1}`;
+        query += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`;
         params.push(parseInt(limit), parseInt(offset));
 
         const { rows } = await pool.query(query, params);
@@ -135,7 +131,7 @@ router.get('/api/weapons', checkAuth, async (req, res) => {
 router.get('/api/weapons/:id', checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { rows } = await pool.query('SELECT * FROM weapons WHERE id = $1', [id]);
+        const { rows } = await pool.query('SELECT * FROM weapons WHERE id = ?', [id]);
         if (rows.length === 0) return res.status(404).json({ error: 'Arme non trouvée' });
         res.json(rows[0]);
     } catch (err) {
@@ -151,14 +147,14 @@ router.post('/api/weapons', checkAuth, async (req, res) => {
         if (!model_id || !serial_number) return res.status(400).json({ error: 'model_id et serial_number requis' });
 
         // Récupérer le modèle
-        const { rows: modelRows } = await pool.query('SELECT * FROM weapon_models WHERE id = $1', [model_id]);
+        const { rows: modelRows } = await pool.query('SELECT * FROM weapon_models WHERE id = ?', [model_id]);
         if (modelRows.length === 0) return res.status(400).json({ error: 'Modèle d\'arme introuvable' });
         const model = modelRows[0];
 
         // Récupérer le propriétaire si fourni
         let ownerName = null;
         if (owner_id) {
-            const { rows: ownerRows } = await pool.query('SELECT nom, prenom FROM citoyens WHERE id = $1', [owner_id]);
+            const { rows: ownerRows } = await pool.query('SELECT nom, prenom FROM citoyens WHERE id = ?', [owner_id]);
             if (ownerRows.length > 0) {
                 ownerName = `${ownerRows[0].prenom || ''} ${ownerRows[0].nom || ''}`.trim();
             }
@@ -169,7 +165,7 @@ router.post('/api/weapons', checkAuth, async (req, res) => {
 
         const { rows } = await pool.query(
             `INSERT INTO weapons (model_id, model_name, model_image_url, serial_number, owner_id, owner_name, created_by, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING *`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW()) `,
             [model.id, model.model_name, model.image_url || null, serial_number, owner_id || null, ownerName || null, createdBy]
         );
 
@@ -189,14 +185,14 @@ router.put('/api/weapons/:id', checkAuth, async (req, res) => {
         const { id } = req.params;
         const { model_id, serial_number, owner_id } = req.body;
 
-        const { rows: existing } = await pool.query('SELECT * FROM weapons WHERE id = $1', [id]);
+        const { rows: existing } = await pool.query('SELECT * FROM weapons WHERE id = ?', [id]);
         if (existing.length === 0) return res.status(404).json({ error: 'Arme non trouvée' });
 
         // If model changed, get model data
         let modelName = existing[0].model_name;
         let modelImage = existing[0].model_image_url;
         if (model_id) {
-            const { rows: modelRows } = await pool.query('SELECT * FROM weapon_models WHERE id = $1', [model_id]);
+            const { rows: modelRows } = await pool.query('SELECT * FROM weapon_models WHERE id = ?', [model_id]);
             if (modelRows.length > 0) {
                 modelName = modelRows[0].model_name;
                 modelImage = modelRows[0].image_url || null;
@@ -205,7 +201,7 @@ router.put('/api/weapons/:id', checkAuth, async (req, res) => {
 
         let ownerName = existing[0].owner_name;
         if (owner_id) {
-            const { rows: ownerRows } = await pool.query('SELECT nom, prenom FROM citoyens WHERE id = $1', [owner_id]);
+            const { rows: ownerRows } = await pool.query('SELECT nom, prenom FROM citoyens WHERE id = ?', [owner_id]);
             if (ownerRows.length > 0) ownerName = `${ownerRows[0].prenom || ''} ${ownerRows[0].nom || ''}`.trim();
             else ownerName = null;
         }
@@ -214,8 +210,8 @@ router.put('/api/weapons/:id', checkAuth, async (req, res) => {
         const updatedBy = user.guild_member?.nick || user.displayName || user.username;
 
         const { rows } = await pool.query(
-            `UPDATE weapons SET model_id = $1, model_name = $2, model_image_url = $3, serial_number = $4, owner_id = $5, owner_name = $6, updated_by = $7, updated_at = NOW()
-            WHERE id = $8 RETURNING *`,
+            `UPDATE weapons SET model_id = ?, model_name = ?, model_image_url = ?, serial_number = ?, owner_id = ?, owner_name = ?, updated_by = ?, updated_at = NOW()
+            WHERE id = ? `,
             [model_id || existing[0].model_id, modelName, modelImage, serial_number || existing[0].serial_number, owner_id || existing[0].owner_id, ownerName, updatedBy, id]
         );
 
@@ -230,10 +226,10 @@ router.put('/api/weapons/:id', checkAuth, async (req, res) => {
 router.delete('/api/weapons/:id', checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { rows: existing } = await pool.query('SELECT * FROM weapons WHERE id = $1', [id]);
+        const { rows: existing } = await pool.query('SELECT * FROM weapons WHERE id = ?', [id]);
         if (existing.length === 0) return res.status(404).json({ error: 'Arme non trouvée' });
 
-        await pool.query('DELETE FROM weapons WHERE id = $1', [id]);
+        await pool.query('DELETE FROM weapons WHERE id = ?', [id]);
         res.json({ message: 'Arme supprimée' });
     } catch (err) {
         console.error('Erreur suppression weapon:', err);

@@ -48,7 +48,7 @@ router.get('/api/agents', async (req, res) => {
         const discordIds = membersWithRole.map(m => m.discord_id);
         const result = await pool.query(
             `SELECT * FROM lspd_sanctions 
-             WHERE player_id = ANY($1::varchar[])
+             WHERE player_id = ANY(?)
              AND archived = FALSE
              ORDER BY created_at DESC`,
             [discordIds]
@@ -91,7 +91,7 @@ router.post('/api/sanctions', async (req, res) => {
         }
 
         const roleRes = await pool.query(
-            `SELECT id_discord, nom FROM lspd_sanctions_roles WHERE id_discord = $1 LIMIT 1`,
+            `SELECT id_discord, nom FROM lspd_sanctions_roles WHERE id_discord = ? LIMIT 1`,
             [type]
         );
 
@@ -117,7 +117,7 @@ router.post('/api/sanctions', async (req, res) => {
                 player_id, player_discord_id,
                 type, reason, date_from, date_end,
                 issued_by, issued_by_discord_id, issuer_grade
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+            ) VALUES (?,?,?,?,?,?,?,?,?) `,
             [
                 player_name, player_id,
                 roleInfo.id_discord, reason, date_from, date_end || null,
@@ -203,7 +203,7 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
             `SELECT s.*, r.nom AS type_name 
              FROM lspd_sanctions s
              LEFT JOIN lspd_sanctions_roles r ON s.type = r.id_discord
-             WHERE s.id = $1`,
+             WHERE s.id = ?`,
             [sanctionId]
         );
         if (!sanctionRes.rows.length) return res.status(404).json({ error: "Sanction introuvable" });
@@ -253,8 +253,8 @@ router.post('/api/sanctions/revoke/:id', async (req, res) => {
         // Marque la sanction comme révoquée
         await pool.query(
             `UPDATE lspd_sanctions 
-             SET archived = TRUE, revoked_by = $1 
-             WHERE id = $2`,
+             SET archived = TRUE, revoked_by = ? 
+             WHERE id = ?`,
             [revokerName, sanctionId]
         );
 
@@ -357,7 +357,7 @@ router.get('/api/officer/sanctions', checkAuth, async (req, res) => {
             `SELECT s.id,s.player_id, s.type, s.reason, s.date_from, s.date_end, s.issued_by, s.archived, s.revoked_by, r.nom AS type_name
              FROM lspd_sanctions s
              LEFT JOIN lspd_sanctions_roles r ON s.type = r.id_discord
-             WHERE s.player_discord_id = $1
+             WHERE s.player_discord_id = ?
              ORDER BY s.date_from DESC`,
             [userId]
         );
@@ -425,7 +425,7 @@ async function revokeExpiredSanctions() {
             `SELECT s.*, r.nom AS type_name
              FROM lspd_sanctions s
              LEFT JOIN lspd_sanctions_roles r ON s.type = r.id_discord
-             WHERE archived = FALSE AND date_end IS NOT NULL AND date_end <= CURRENT_DATE`
+             WHERE archived = FALSE AND date_end IS NOT NULL AND date_end <= CURDATE()`
         );
 
         for (const sanction of result.rows) {
@@ -488,7 +488,7 @@ async function revokeExpiredSanctions() {
 
             // Archive la sanction
             await pool.query(
-                `UPDATE lspd_sanctions SET archived = TRUE, revoked_by = $1 WHERE id = $2`,
+                `UPDATE lspd_sanctions SET archived = TRUE, revoked_by = ? WHERE id = ?`,
                 ['LSPD Assistant', sanction.id]
             );
         }

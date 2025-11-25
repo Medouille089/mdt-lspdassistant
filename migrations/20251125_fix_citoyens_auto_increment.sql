@@ -1,0 +1,2 @@
+-- Migration : Ajouter AUTO_INCREMENT à citoyens.id
+ALTER TABLE citoyens MODIFY COLUMN id INT AUTO_INCREMENT PRIMARY KEY;

@@ -138,7 +138,7 @@ bot.on(Events.InteractionCreate, async (interaction) => {
       }
 
       // Vérifier existence et ownership
-      const { rows } = await db.query('SELECT id, user_id, channel_id, remind_at, reason, dm_only FROM lspd_reminders WHERE id=$1', [reminderId]);
+      const { rows } = await db.query('SELECT id, user_id, channel_id, remind_at, reason, dm_only FROM lspd_reminders WHERE id=?', [reminderId]);
       if (!rows.length) {
         return interaction.reply({ content: '⚠️ Rappel déjà annulé ou inexistant.', flags: 64 });
       }
@@ -148,7 +148,7 @@ bot.on(Events.InteractionCreate, async (interaction) => {
 
       const reminderData = rows[0];
 
-      await db.query('DELETE FROM lspd_reminders WHERE id=$1', [reminderId]);
+      await db.query('DELETE FROM lspd_reminders WHERE id=?', [reminderId]);
 
       // Répondre immédiatement à l'interaction
       await interaction.reply({ content: '✅ Rappel annulé.', flags: 64 });
@@ -369,7 +369,7 @@ async function startBot() {
 
     const purgeOldPresence = async () => {
       await db.query(
-        "DELETE FROM lspd_presenceig WHERE timestamp < NOW() - INTERVAL '14 days'"
+        "DELETE FROM lspd_presenceig WHERE timestamp < NOW() - INTERVAL 14 DAY"
       );
     };
     cron.schedule("0 3 * * *", purgeOldPresence);
@@ -393,7 +393,7 @@ async function startBot() {
               channel = await bot.channels.fetch(r.channel_id).catch(() => null);
               if (!channel || !channel.isTextBased()) {
                 // Salon disparu -> suppression silencieuse
-                await db.query('DELETE FROM lspd_reminders WHERE id=$1', [r.id]);
+                await db.query('DELETE FROM lspd_reminders WHERE id=?', [r.id]);
                 continue;
               }
             }
@@ -439,7 +439,7 @@ async function startBot() {
             } catch (dmErr) {
               // silent
             }
-            await db.query('DELETE FROM lspd_reminders WHERE id=$1', [r.id]);
+            await db.query('DELETE FROM lspd_reminders WHERE id=?', [r.id]);
           } catch (sendErr) {
             console.error('Erreur envoi rappel:', sendErr.message);
             // On laisse l'entrée pour réessayer plus tard (empêche perte si bug momentané)

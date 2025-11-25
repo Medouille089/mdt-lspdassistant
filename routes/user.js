@@ -96,12 +96,12 @@ router.get('/api/user', checkAuthOrDOJ, async (req, res) => {
     }
 
     // 💾 Insère uniquement si pas super-admin
+    const displayName = member.displayName || user.username;
     await pool.query(`
       INSERT INTO lspd_live_users (user_id, display_name, last_seen)
-      VALUES ($1, $2, NOW())
-      ON CONFLICT (user_id)
-      DO UPDATE SET display_name = $2, last_seen = NOW()
-    `, [user.id, member.displayName || user.username]);
+      VALUES (?, ?, NOW())
+      ON DUPLICATE KEY UPDATE display_name = ?, last_seen = NOW()
+    `, [user.id, displayName, displayName]);
 
     const userData = {
       id: user.id,
@@ -176,7 +176,7 @@ router.post('/register', async (req, res) => {
   try {
     // Vérifier si le compte Discord est déjà lié
     const existingAccount = await pool.query(
-      'SELECT id FROM user_accounts WHERE discord_id = $1',
+      'SELECT id FROM user_accounts WHERE discord_id = ?',
       [req.user.id]
     );
 
@@ -186,7 +186,7 @@ router.post('/register', async (req, res) => {
 
     // Vérifier si le nom d'utilisateur est déjà pris
     const existingUsername = await pool.query(
-      'SELECT id FROM user_accounts WHERE username = $1',
+      'SELECT id FROM user_accounts WHERE username = ?',
       [username]
     );
 
@@ -200,7 +200,7 @@ router.post('/register', async (req, res) => {
     // Créer le compte
     await pool.query(
       `INSERT INTO user_accounts (discord_id, username, password_hash, email, created_at, last_login)
-       VALUES ($1, $2, $3, $4, NOW(), NOW())`,
+       VALUES (?, ?, ?, ?, NOW(), NOW())`,
       [req.user.id, username, passwordHash, email || null]
     );
 
@@ -257,7 +257,7 @@ router.post('/login-local', async (req, res) => {
   try {
     // Récupérer le compte
     const result = await pool.query(
-      'SELECT * FROM user_accounts WHERE username = $1 AND is_active = true',
+      'SELECT * FROM user_accounts WHERE username = ? AND is_active = true',
       [username]
     );
 
@@ -275,7 +275,7 @@ router.post('/login-local', async (req, res) => {
 
     // Mettre à jour la dernière connexion
     await pool.query(
-      'UPDATE user_accounts SET last_login = NOW() WHERE id = $1',
+      'UPDATE user_accounts SET last_login = NOW() WHERE id = ?',
       [account.id]
     );
 
@@ -318,7 +318,7 @@ router.post('/login-local', async (req, res) => {
 
         // CHECK: si l'utilisateur est blacklisté en BDD -> log tentative et blocage immédiat
         try {
-          const blCheck = await require('../config/db').query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1', [account.discord_id]);
+          const blCheck = await require('../config/db').query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = ?', [account.discord_id]);
           if (blCheck.rows.length) {
             // Envoyer log de tentative dans logs_connexion si configuré
             try {
@@ -365,7 +365,7 @@ router.post('/login-local', async (req, res) => {
       if (!hasRequiredRole && !isDOJ) {
         // Vérifier si l'utilisateur est dans la table lspd_blacklist
         try {
-          const bl = await require('../config/db').query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1', [account.discord_id]);
+          const bl = await require('../config/db').query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = ?', [account.discord_id]);
           if (bl.rows.length) {
             // log to logs_connexion (if configured)
             if (config.logs_connexion) {
@@ -482,7 +482,7 @@ router.post('/forgot-password', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT * FROM user_accounts WHERE username = $1 AND is_active = true',
+      'SELECT * FROM user_accounts WHERE username = ? AND is_active = true',
       [username]
     );
 
@@ -502,7 +502,7 @@ router.post('/forgot-password', async (req, res) => {
 
     // Stocker le token dans la BDD
     await pool.query(
-      'UPDATE user_accounts SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
+      'UPDATE user_accounts SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
       [resetToken, resetTokenExpires, account.id]
     );
 
@@ -555,7 +555,7 @@ router.post('/reset-password', async (req, res) => {
   try {
     // Vérifier le token
     const result = await pool.query(
-      'SELECT * FROM user_accounts WHERE reset_token = $1 AND reset_token_expires > NOW() AND is_active = true',
+      'SELECT * FROM user_accounts WHERE reset_token = ? AND reset_token_expires > NOW() AND is_active = true',
       [token]
     );
 
@@ -570,7 +570,7 @@ router.post('/reset-password', async (req, res) => {
 
     // Mettre à jour le mot de passe et supprimer le token
     await pool.query(
-      'UPDATE user_accounts SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL, updated_at = NOW() WHERE id = $2',
+      'UPDATE user_accounts SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL, updated_at = NOW() WHERE id = ?',
       [passwordHash, account.id]
     );
 

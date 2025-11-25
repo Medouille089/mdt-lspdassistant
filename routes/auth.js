@@ -64,7 +64,7 @@ router.get('/callback',
       // Vérifier si l'utilisateur est dans la table lspd_blacklist
       try {
         const pool = require('../config/db');
-        const bl = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1', [req.user.id]);
+        const bl = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = ?', [req.user.id]);
         if (bl.rows.length) {
           // log to logs_connexion (if configured)
           if (logs_connexion) {
@@ -157,7 +157,7 @@ router.get('/callback',
       // Vérifier si l'utilisateur a déjà un compte local
       const pool = require('../config/db');
       const accountCheck = await pool.query(
-        'SELECT id FROM user_accounts WHERE discord_id = $1',
+        'SELECT id FROM user_accounts WHERE discord_id = ?',
         [req.user.id]
       );
 
@@ -169,7 +169,7 @@ router.get('/callback',
       // Mettre à jour le last_login pour l'utilisateur qui se connecte via Discord
       try {
         await pool.query(
-          'UPDATE user_accounts SET last_login = NOW() WHERE discord_id = $1',
+          'UPDATE user_accounts SET last_login = NOW() WHERE discord_id = ?',
           [req.user.id]
         );
       } catch (updateError) {

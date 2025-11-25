@@ -39,7 +39,7 @@ router.post('/api/rookie-patrols', checkAuth, async (req, res) => {
 
     // Vérifier si la patrouille existe déjà
     const existing = await pool.query(
-      'SELECT id FROM trello_historiquerookie WHERE card_id = $1',
+      'SELECT id FROM trello_historiquerookie WHERE card_id = ?',
       [cardId]
     );
 
@@ -47,30 +47,30 @@ router.post('/api/rookie-patrols', checkAuth, async (req, res) => {
       // Mise à jour
       const result = await pool.query(`
         UPDATE trello_historiquerookie 
-        SET patrol_name = $1, 
-            list_name = $2, 
-            list_id = $3,
-            badges = $4,
-            rookies = $5,
-            all_members = $6,
-            rookie_count = $7,
-            total_count = $8,
+        SET patrol_name = ?, 
+            list_name = ?, 
+            list_id = ?,
+            badges = ?,
+            rookies = ?,
+            all_members = ?,
+            rookie_count = ?,
+            total_count = ?,
             updated_at = NOW()
-        WHERE card_id = $9
-        RETURNING *
+        WHERE card_id = ?
       `, [patrolName, listName, listId, JSON.stringify(badges), JSON.stringify(rookies), JSON.stringify(allMembers), rookieCount, totalCount, cardId]);
       
-      res.json(result.rows[0]);
+      const selectResult = await pool.query('SELECT * FROM trello_historiquerookie WHERE card_id = ?', [cardId]);
+      res.json(selectResult.rows[0]);
     } else {
       // Insertion
       const result = await pool.query(`
         INSERT INTO trello_historiquerookie (
           card_id, patrol_name, list_name, list_id, badges, rookies, all_members, rookie_count, total_count, timestamp
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-        RETURNING *
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
       `, [cardId, patrolName, listName, listId, JSON.stringify(badges), JSON.stringify(rookies), JSON.stringify(allMembers), rookieCount, totalCount]);
       
-      res.json(result.rows[0]);
+      const selectResult = await pool.query('SELECT * FROM trello_historiquerookie WHERE card_id = ?', [cardId]);
+      res.json(selectResult.rows[0]);
     }
   } catch (err) {
     console.error('Erreur lors de l\'ajout de la patrouille rookie:', err);
@@ -89,12 +89,12 @@ router.put('/api/rookie-patrols/:cardId/mark-deleted', checkAuth, async (req, re
       UPDATE trello_historiquerookie 
       SET deleted_at = NOW(),
           active_duration = NOW() - timestamp
-      WHERE card_id = $1 AND deleted_at IS NULL
-      RETURNING *
+      WHERE card_id = ? AND deleted_at IS NULL
     `, [cardId]);
     
-    if (result.rows.length > 0) {
-      res.json(result.rows[0]);
+    if (result.affectedRows > 0) {
+      const selectResult = await pool.query('SELECT * FROM trello_historiquerookie WHERE card_id = ?', [cardId]);
+      res.json(selectResult.rows[0]);
     } else {
       res.status(404).json({ error: 'Patrouille non trouvée ou déjà marquée comme supprimée' });
     }
@@ -111,12 +111,17 @@ router.delete('/api/rookie-patrols/deleted', checkAuth, async (req, res) => {
   try {
     const { deletedCardIds } = req.body;
     
-    const result = await pool.query(
-      'DELETE FROM trello_historiquerookie WHERE card_id = ANY($1) RETURNING card_id',
+    const selectResult = await pool.query(
+      'SELECT card_id FROM trello_historiquerookie WHERE card_id IN (?)',
       [deletedCardIds]
     );
     
-    res.json({ deleted: result.rows.length, cardIds: result.rows.map(r => r.card_id) });
+    await pool.query(
+      'DELETE FROM trello_historiquerookie WHERE card_id IN (?)',
+      [deletedCardIds]
+    );
+    
+    res.json({ deleted: selectResult.rows.length, cardIds: selectResult.rows.map(r => r.card_id) });
   } catch (err) {
     console.error('Erreur lors de la suppression des patrouilles:', err);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -128,9 +133,9 @@ router.delete('/api/rookie-patrols/deleted', checkAuth, async (req, res) => {
  */
 router.delete('/api/rookie-patrols', checkAuth, async (req, res) => {
   try {
-    const result = await pool.query('DELETE FROM trello_historiquerookie RETURNING card_id');
+    const result = await pool.query('DELETE FROM trello_historiquerookie');
     
-    res.json({ deleted: result.rows.length });
+    res.json({ deleted: result.affectedRows });
   } catch (err) {
     console.error('Erreur lors de la suppression de l\'historique:', err);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -149,20 +154,20 @@ router.put('/api/rookie-patrols/:cardId/report', checkAuth, async (req, res) => 
       return res.status(400).json({ error: 'Paramètre "completed" invalide' });
     }
 
-    const result = await pool.query(`
+    const updateResult = await pool.query(`
       UPDATE trello_historiquerookie
-      SET report_completed = $2,
-          report_completed_at = CASE WHEN $2 THEN NOW() ELSE NULL END,
+      SET report_completed = ?,
+          report_completed_at = CASE WHEN ? THEN NOW() ELSE NULL END,
           updated_at = NOW()
-      WHERE card_id = $1
-      RETURNING *
-    `, [cardId, completed]);
+      WHERE card_id = ?
+    `, [completed, completed, cardId]);
 
-    if (result.rows.length === 0) {
+    if (updateResult.affectedRows === 0) {
       return res.status(404).json({ error: 'Patrouille non trouvée' });
     }
 
-    res.json(result.rows[0]);
+    const selectResult = await pool.query('SELECT * FROM trello_historiquerookie WHERE card_id = ?', [cardId]);
+    res.json(selectResult.rows[0]);
   } catch (err) {
     console.error("Erreur lors de la mise à jour du rapport de patrouille:", err);
     res.status(500).json({ error: 'Erreur serveur' });

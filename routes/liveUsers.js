@@ -87,8 +87,8 @@ router.post('/api/live-user-heartbeat', checkAuth, async (req, res) => {
     // Upsert dans la table lspd_live_users
     await pool.query(`
       INSERT INTO lspd_live_users (user_id, display_name, last_seen)
-      VALUES ($1, $2, NOW())
-      ON CONFLICT (user_id) DO UPDATE SET last_seen = NOW(), display_name = EXCLUDED.display_name
+      VALUES (?, ?, NOW())
+      ON DUPLICATE KEY UPDATE last_seen = NOW(), display_name = VALUES(display_name)
     `, [userId, displayName]);
     res.json({ ok: true });
   } catch (err) {

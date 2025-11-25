@@ -74,7 +74,7 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     const user = req.user;
 
     const result = await pool.query(
-      'SELECT * FROM lspd_agent_profiles WHERE discord_id = $1',
+      'SELECT * FROM lspd_agent_profiles WHERE discord_id = ?',
       [userId]
     );
 
@@ -121,11 +121,15 @@ router.get('/api/agent-profile/:userId', checkAuth, async (req, res) => {
         console.warn('Impossible de calculer avatar par défaut:', e);
       }
 
-      const newProfile = await pool.query(
-        'INSERT INTO lspd_agent_profiles (discord_id, photo_url, telephone) VALUES ($1, $2, $3) RETURNING *',
+      const insertResult = await pool.query(
+        'INSERT INTO lspd_agent_profiles (discord_id, photo_url, telephone) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE discord_id = discord_id',
         [userId, defaultPhoto, '']
       );
-      const created = newProfile.rows[0];
+      const selectResult = await pool.query(
+        'SELECT * FROM lspd_agent_profiles WHERE discord_id = ?',
+        [userId]
+      );
+      const created = selectResult.rows[0];
       // Normaliser champs tableaux
       created.armes = [];
       created.vehicules = [];
@@ -193,7 +197,7 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
     armes = parseArray(armes).filter(a => a && a.nom);
     vehicules = parseArray(vehicules).filter(v => v && v.nom);
 
-    const oldRes = await pool.query('SELECT * FROM lspd_agent_profiles WHERE discord_id = $1', [userId]);
+    const oldRes = await pool.query('SELECT * FROM lspd_agent_profiles WHERE discord_id = ?', [userId]);
     const oldProfileRaw = oldRes.rows[0] || null;
     let oldProfile = null;
     if (oldProfileRaw) {
@@ -209,28 +213,29 @@ router.put('/api/agent-profile/:userId', checkAuth, async (req, res) => {
 
     const result = await pool.query(
       `UPDATE lspd_agent_profiles 
-       SET photo_url = $1, armes = $2, vehicules = $3, matricule = $4, 
-           nom = $5, prenom = $6, telephone = $7, numero_casier = $8, date_modification = NOW()
-       WHERE discord_id = $9 
-       RETURNING *`,
+       SET photo_url = ?, armes = ?, vehicules = ?, matricule = ?, 
+           nom = ?, prenom = ?, telephone = ?, numero_casier = ?, date_modification = NOW()
+       WHERE discord_id = ?`,
       [photo_url, JSON.stringify(armes || []), JSON.stringify(vehicules || []), matricule, nom, prenom, telephone, numero_casier, userId]
     );
 
-    if (result.rows.length === 0) {
+    if (result.affectedRows === 0) {
       // Créer le profil s'il n'existe pas
-      const newProfile = await pool.query(
+      const insertResult = await pool.query(
         `INSERT INTO lspd_agent_profiles 
          (discord_id, photo_url, armes, vehicules, matricule, nom, prenom, telephone, numero_casier)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [userId, photo_url, JSON.stringify(armes || []), JSON.stringify(vehicules || []), matricule, nom, prenom, telephone, numero_casier]
       );
-      const created = newProfile.rows[0];
+      const selectResult = await pool.query('SELECT * FROM lspd_agent_profiles WHERE id = ?', [insertResult.insertId]);
+      const created = selectResult.rows[0];
       try { created.armes = JSON.parse(created.armes || '[]'); } catch { created.armes = []; }
       try { created.vehicules = JSON.parse(created.vehicules || '[]'); } catch { created.vehicules = []; }
       return res.json(created);
     }
 
-    const updated = result.rows[0];
+    const selectResult = await pool.query('SELECT * FROM lspd_agent_profiles WHERE discord_id = ?', [userId]);
+    const updated = selectResult.rows[0];
     try { updated.armes = JSON.parse(updated.armes || '[]'); } catch { updated.armes = []; }
     try { updated.vehicules = JSON.parse(updated.vehicules || '[]'); } catch { updated.vehicules = []; }
     res.json(updated);
@@ -334,7 +339,7 @@ router.post('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) 
 
     // Vérifier si quelqu'un d'autre est en mode édition
     const editCheck = await pool.query(
-      'SELECT is_editing, edited_by, edit_started_at FROM lspd_agent_profiles WHERE discord_id = $1',
+      'SELECT is_editing, edited_by, edit_started_at FROM lspd_agent_profiles WHERE discord_id = ?',
       [userId]
     );
     
@@ -353,10 +358,10 @@ router.post('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res) 
 
     // Activer le mode édition
     await pool.query(
-      `UPDATE lspd_agent_profiles 
-       SET is_editing = true, edited_by = $1, edit_started_at = NOW()
-       WHERE discord_id = $2`,
-      [user.id, userId]
+      `UPDATE lspd_agent_profiles
+       SET is_editing = true, edited_by = ?, edit_started_at = NOW()
+       WHERE discord_id = ?`,
+      [req.user.id, userId]
     );
 
     res.json({ success: true, editMode: true });
@@ -402,7 +407,7 @@ router.delete('/api/agent-profile/:userId/edit-mode', checkAuth, async (req, res
     await pool.query(
       `UPDATE lspd_agent_profiles 
        SET is_editing = false, edited_by = NULL, edit_started_at = NULL
-       WHERE discord_id = $1 AND edited_by = $2`,
+       WHERE discord_id = ? AND edited_by = ?`,
       [userId, user.id]
     );
 

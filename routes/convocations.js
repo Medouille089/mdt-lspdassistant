@@ -10,7 +10,7 @@ router.get('/api/convocations/search', async (req, res) => {
     const result = await pool.query(
       `SELECT id, nom, prenom, date, heure, officer, lieu
        FROM lspd_convocations
-       WHERE LOWER(nom) LIKE LOWER($1) OR LOWER(prenom) LIKE LOWER($1)
+       WHERE LOWER(nom) LIKE LOWER(?) OR LOWER(prenom) LIKE LOWER(?)
        ORDER BY date DESC LIMIT 10`,
       [`%${name}%`]
     );
@@ -32,7 +32,7 @@ router.get('/api/convocations/:id', async (req, res) => {
     const result = await pool.query(
       `SELECT id, nom, prenom, date, heure, officer, lieu
        FROM lspd_convocations
-       WHERE id = $1
+       WHERE id = ?
        LIMIT 1`,
       [id]
     );

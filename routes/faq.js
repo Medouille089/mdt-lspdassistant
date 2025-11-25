@@ -109,8 +109,8 @@ router.patch('/api/faq/:id', checkAuth, async (req, res) => {
   if (!titre || !description) return res.status(400).json({ error: 'Champs manquants' });
   try {
     // Récupérer ancien pour log diff minimal
-    const oldRes = await pool.query('SELECT titre, description, image FROM lspd_faq_entries WHERE id = $1', [id]);
-    await pool.query('UPDATE lspd_faq_entries SET titre = $1, description = $2, image = $3 WHERE id = $4', [titre, description, image || null, id]);
+    const oldRes = await pool.query('SELECT titre, description, image FROM lspd_faq_entries WHERE id = ?', [id]);
+    await pool.query('UPDATE lspd_faq_entries SET titre = ?, description = ?, image = ? WHERE id = ?', [titre, description, image || null, id]);
     res.json({ success: true });
     const old = oldRes.rows[0];
     let extra = '';
@@ -132,8 +132,8 @@ router.patch('/api/faq/category/:id', checkAuth, async (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: 'Nom manquant' });
   try {
-    const oldRes = await pool.query('SELECT nom FROM lspd_faq_categories WHERE id = $1', [id]);
-    await pool.query('UPDATE lspd_faq_categories SET nom = $1 WHERE id = $2', [name, id]);
+    const oldRes = await pool.query('SELECT nom FROM lspd_faq_categories WHERE id = ?', [id]);
+    await pool.query('UPDATE lspd_faq_categories SET nom = ? WHERE id = ?', [name, id]);
     res.json({ success: true });
     const old = oldRes.rows[0];
   const extra = old && old.nom !== name ? `Nom: \`${old.nom}\` -> \`${name}\`` : null;
@@ -148,8 +148,8 @@ router.delete('/api/faq/:id', checkAuth, async (req, res) => {
   if (!req.user?.isCommandStaff && !req.user?.isSupervisor && !req.user?.isSuperAdmin) return res.status(403).json({ error: 'Accès refusé' });
   const { id } = req.params;
   try {
-    const oldRes = await pool.query('SELECT titre FROM lspd_faq_entries WHERE id = $1', [id]);
-    await pool.query('DELETE FROM lspd_faq_entries WHERE id = $1', [id]);
+    const oldRes = await pool.query('SELECT titre FROM lspd_faq_entries WHERE id = ?', [id]);
+    await pool.query('DELETE FROM lspd_faq_entries WHERE id = ?', [id]);
     res.json({ success: true });
     const old = oldRes.rows[0];
     logFaqAction({ actorId: req.user.id, type: 'delete', targetType: 'entry', targetName: old ? old.titre : '(inconnu)', targetId: id });
@@ -163,8 +163,8 @@ router.delete('/api/faq/category/:id', checkAuth, async (req, res) => {
   if (!req.user?.isCommandStaff && !req.user?.isSupervisor && !req.user?.isSuperAdmin) return res.status(403).json({ error: 'Accès refusé' });
   const { id } = req.params;
   try {
-    const oldRes = await pool.query('SELECT nom FROM lspd_faq_categories WHERE id = $1', [id]);
-    await pool.query('DELETE FROM lspd_faq_categories WHERE id = $1', [id]);
+    const oldRes = await pool.query('SELECT nom FROM lspd_faq_categories WHERE id = ?', [id]);
+    await pool.query('DELETE FROM lspd_faq_categories WHERE id = ?', [id]);
     res.json({ success: true });
     const old = oldRes.rows[0];
     logFaqAction({ actorId: req.user.id, type: 'delete', targetType: 'category', targetName: old ? old.nom : '(inconnu)', targetId: id });
@@ -197,11 +197,12 @@ router.post('/api/faq', checkAuth, async (req, res) => {
   if (!titre || !description || !categoryId) return res.status(400).json({ error: 'Champs manquants' });
   try {
     const insertRes = await pool.query(
-      'INSERT INTO lspd_faq_entries (titre, description, image, category_id, auteur_id) VALUES ($1,$2,$3,$4,$5) RETURNING id',
+      'INSERT INTO lspd_faq_entries (titre, description, image, category_id, auteur_id) VALUES (?,?,?,?,?)',
       [titre, description, image || null, categoryId, req.user.id]
     );
+    const newId = insertRes.insertId;
     res.json({ success: true });
-    logFaqAction({ actorId: req.user.id, type: 'create', targetType: 'entry', targetName: titre, targetId: insertRes.rows[0].id });
+    logFaqAction({ actorId: req.user.id, type: 'create', targetType: 'entry', targetName: titre, targetId: newId });
   } catch (e) {
     res.status(500).json({ error: 'Erreur ajout FAQ' });
   }
@@ -213,9 +214,10 @@ router.post('/api/faq/category', checkAuth, async (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: 'Nom manquant' });
   try {
-    const insertRes = await pool.query('INSERT INTO lspd_faq_categories (nom) VALUES ($1) RETURNING id', [name]);
+    const insertRes = await pool.query('INSERT INTO lspd_faq_categories (nom) VALUES (?)', [name]);
+    const newId = insertRes.insertId;
     res.json({ success: true });
-    logFaqAction({ actorId: req.user.id, type: 'create', targetType: 'category', targetName: name, targetId: insertRes.rows[0].id });
+    logFaqAction({ actorId: req.user.id, type: 'create', targetType: 'category', targetName: name, targetId: newId });
   } catch (e) {
     res.status(500).json({ error: 'Erreur ajout catégorie' });
   }
@@ -232,7 +234,7 @@ router.patch('/api/faq/order/categories', checkAuth, async (req, res) => {
       await client.query('BEGIN');
       for (let i = 0; i < order.length; i++) {
         const id = order[i];
-        await client.query('UPDATE lspd_faq_categories SET ordre = $1 WHERE id = $2', [i, id]);
+        await client.query('UPDATE lspd_faq_categories SET ordre = ? WHERE id = ?', [i, id]);
       }
       await client.query('COMMIT');
       res.json({ success: true });
@@ -258,7 +260,7 @@ router.patch('/api/faq/order/entries', checkAuth, async (req, res) => {
       await client.query('BEGIN');
       for (const it of items) {
         const { id, categoryId, ordre } = it;
-        await client.query('UPDATE lspd_faq_entries SET category_id = $1, ordre = $2 WHERE id = $3', [categoryId, ordre, id]);
+        await client.query('UPDATE lspd_faq_entries SET category_id = ?, ordre = ? WHERE id = ?', [categoryId, ordre, id]);
       }
       await client.query('COMMIT');
       res.json({ success: true });

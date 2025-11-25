@@ -11,7 +11,7 @@ module.exports = {
   async execute(interaction) {
     try {
       // Vérifier d'abord si l'utilisateur est dans allowed_users (bypass complet)
-      const allowedUserCheck = await pool.query('SELECT discord_id FROM allowed_users WHERE discord_id = $1', [interaction.user.id]);
+      const allowedUserCheck = await pool.query('SELECT discord_id FROM allowed_users WHERE discord_id = ?', [interaction.user.id]);
       const isBypassUser = allowedUserCheck.rows.length > 0;
 
       // Si l'utilisateur n'est pas dans allowed_users, vérifier les rôles normaux
@@ -34,12 +34,12 @@ module.exports = {
       }
 
       // Vérifier si déjà blacklist
-      const res = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = $1', [target.id]);
+      const res = await pool.query('SELECT discord_id FROM lspd_blacklist WHERE discord_id = ?', [target.id]);
       if (res.rows.length) {
         return interaction.reply({ content: 'Utilisateur déjà blacklist.', flags: 64 });
       }
 
-      await pool.query('INSERT INTO lspd_blacklist (discord_id, created_by, reason) VALUES ($1, $2, $3)', [target.id, interaction.user.id, reason]);
+      await pool.query('INSERT INTO lspd_blacklist (discord_id, created_by, reason) VALUES (?, ?, ?)', [target.id, interaction.user.id, reason]);
 
       // Essayer d'ajouter le rôle Discord blacklist_role_id si configuré
       try {

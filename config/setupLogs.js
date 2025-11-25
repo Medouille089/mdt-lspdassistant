@@ -68,21 +68,21 @@ router.put("/api/logs-config", async (req, res) => {
     const oldConfig = oldResult.rows[0];
     const result = await pool.query(
       `UPDATE configlspd SET 
-        logs_pointeuse = $1,
-        logs_config = $2,
-        logs_connexion = $3,
-        logs_bracelets = $4,
-        logs_arrestations = $5,
-        logs_incidents = $6,
-        logs_convocations = $7,
-        logs_convocations_agent = $8,
-        logs_documentation = $9,
-        logs_rapport_rookie = $10,
-        logs_sanctions = $11,
-        logs_tickets = $12,
-        logs_calendrier = $13,
-        logs_trello = $14
-       WHERE id = 1 RETURNING *`,
+        logs_pointeuse = ?,
+        logs_config = ?,
+        logs_connexion = ?,
+        logs_bracelets = ?,
+        logs_arrestations = ?,
+        logs_incidents = ?,
+        logs_convocations = ?,
+        logs_convocations_agent = ?,
+        logs_documentation = ?,
+        logs_rapport_rookie = ?,
+        logs_sanctions = ?,
+        logs_tickets = ?,
+        logs_calendrier = ?,
+        logs_trello = ?
+       WHERE id = 1`,
       [
         logs_pointeuse,
         logs_config,

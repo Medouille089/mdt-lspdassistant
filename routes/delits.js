@@ -74,7 +74,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 //       (arrestation_id, date_arrestation, profession, ddn, address, tel, droits,
 //        entree_cellule, sortie_cellule, bracelet, miranda, avocat, nourriture, ems,
 //        avocatname, officer, grade, lieu, motifarrestation, circonstances, arme, uof, accusations, discord_thread_id, name)
-//       VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+//       VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 //     `, [
 //             arrestationId, date, profession, DDN, address, tel, droits,
 //             entreecellule, sortiecellule, bracelet, miranda,
@@ -159,13 +159,13 @@ router.post('/api/delits', async (req, res) => {
             return res.status(400).json({ error: 'Chef d\'accusation et type sont requis' });
         }
 
-        const result = await pool.query(`
+        const insertResult = await pool.query(`
             INSERT INTO lspd_delit (chef_accusation, code_article, type, amende, peine, commentaire)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING *
+            VALUES (?, ?, ?, ?, ?, ?)
         `, [chef_accusation, code_article, type, amende || '$0', peine || '00:00', commentaire || '']);
-
-        res.status(201).json(result.rows[0]);
+        
+        const selectResult = await pool.query('SELECT * FROM lspd_delit WHERE id = ?', [insertResult.insertId]);
+        res.status(201).json(selectResult.rows[0]);
     } catch (err) {
         console.error('Erreur POST /api/delits :', err);
         res.status(500).json({ error: 'Erreur lors de l\'ajout du délit' });
@@ -178,18 +178,18 @@ router.put('/api/delits/:id', async (req, res) => {
         const { id } = req.params;
         const { chef_accusation, code_article, type, amende, peine, commentaire } = req.body;
 
-        const result = await pool.query(`
+        const updateResult = await pool.query(`
             UPDATE lspd_delit
-            SET chef_accusation = $1, code_article = $2, type = $3, amende = $4, peine = $5, commentaire = $6, updated_at = NOW()
-            WHERE id = $7
-            RETURNING *
+            SET chef_accusation = ?, code_article = ?, type = ?, amende = ?, peine = ?, commentaire = ?, updated_at = NOW()
+            WHERE id = ?
         `, [chef_accusation, code_article, type, amende, peine, commentaire, id]);
 
-        if (result.rows.length === 0) {
+        if (updateResult.affectedRows === 0) {
             return res.status(404).json({ error: 'Délit non trouvé' });
         }
 
-        res.json(result.rows[0]);
+        const selectResult = await pool.query('SELECT * FROM lspd_delit WHERE id = ?', [id]);
+        res.json(selectResult.rows[0]);
     } catch (err) {
         console.error('Erreur PUT /api/delits/:id :', err);
         res.status(500).json({ error: 'Erreur lors de la modification du délit' });
@@ -201,17 +201,14 @@ router.delete('/api/delits/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const result = await pool.query(`
-            DELETE FROM lspd_delit
-            WHERE id = $1
-            RETURNING *
-        `, [id]);
-
-        if (result.rows.length === 0) {
+        const selectResult = await pool.query('SELECT * FROM lspd_delit WHERE id = ?', [id]);
+        
+        if (selectResult.rows.length === 0) {
             return res.status(404).json({ error: 'Délit non trouvé' });
         }
 
-        res.json({ message: 'Délit supprimé avec succès', delit: result.rows[0] });
+        await pool.query('DELETE FROM lspd_delit WHERE id = ?', [id]);
+        res.json({ message: 'Délit supprimé avec succès', delit: selectResult.rows[0] });
     } catch (err) {
         console.error('Erreur DELETE /api/delits/:id :', err);
         res.status(500).json({ error: 'Erreur lors de la suppression du délit' });

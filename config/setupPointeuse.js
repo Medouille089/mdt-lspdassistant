@@ -57,14 +57,14 @@ router.post('/config/pointeuse', async (req, res) => {
 
     if (id) {
       // Récupère l'ancienne config pour logger
-      const oldRes = await pool.query(`SELECT * FROM lspd_config_pointage WHERE id=$1`, [id]);
+      const oldRes = await pool.query(`SELECT * FROM lspd_config_pointage WHERE id=?`, [id]);
       const oldData = oldRes.rows[0];
 
       // Update
       await pool.query(`
         UPDATE lspd_config_pointage 
-        SET discord_role_id=$1, role_name=$2, salary_rate=$3, rank=$4 
-        WHERE id=$5
+        SET discord_role_id=?, role_name=?, salary_rate=?, rank=? 
+        WHERE id=?
       `, [discord_role_id, role_name, salary_rate, rank, id]);
 
       // Log les changements
@@ -73,7 +73,7 @@ router.post('/config/pointeuse', async (req, res) => {
       // Insert
       await pool.query(`
         INSERT INTO lspd_config_pointage (discord_role_id, role_name, salary_rate, rank)
-        VALUES ($1, $2, $3, $4)
+        VALUES (?, ?, ?, ?)
       `, [discord_role_id, role_name, salary_rate, rank]);
 
       // Log l'ajout
@@ -99,10 +99,10 @@ router.delete("/config/pointeuse/:role_id", async (req, res) => {
     }
 
     // Récupère le rôle avant suppression pour logger
-    const oldRes = await pool.query(`SELECT * FROM lspd_config_pointage WHERE id=$1`, [role_id]);
+    const oldRes = await pool.query(`SELECT * FROM lspd_config_pointage WHERE id=?`, [role_id]);
     const oldData = oldRes.rows[0];
 
-    await pool.query(`DELETE FROM lspd_config_pointage WHERE id = $1`, [role_id]);
+    await pool.query(`DELETE FROM lspd_config_pointage WHERE id = ?`, [role_id]);
 
     // Log suppression
     await logConfigPointageChange(oldData, {}, req.user?.id || "Inconnu", displayName);
@@ -127,10 +127,10 @@ router.delete("/admin/pointeuse/users/:id", async (req, res) => {
     }
 
     // Récupère le total avant suppression pour logger
-    const oldRes = await pool.query(`SELECT * FROM lspd_pointage WHERE id_discord=$1`, [id]);
+    const oldRes = await pool.query(`SELECT * FROM lspd_pointage WHERE id_discord=?`, [id]);
     const oldData = oldRes.rows;
 
-    await pool.query(`DELETE FROM lspd_pointage WHERE id_discord = $1`, [id]);
+    await pool.query(`DELETE FROM lspd_pointage WHERE id_discord = ?`, [id]);
 
     if (oldData.length) {
       const resChannel = await pool.query(`SELECT logs_config FROM configlspd WHERE id = 1`);
@@ -197,13 +197,13 @@ router.get("/admin/pointeuse/users", async (req, res) => {
       WITH current_week AS (
         SELECT id_discord, SUM(salary_earned) AS total_current_week
         FROM lspd_pointage
-        WHERE start_time >= $1 AND start_time <= $2
+        WHERE start_time >= ? AND start_time <= ?
         GROUP BY id_discord
       ),
       last_week AS (
         SELECT id_discord, SUM(salary_earned) AS total_last_week
         FROM lspd_pointage
-        WHERE start_time >= $3 AND start_time <= $4
+        WHERE start_time >= ? AND start_time <= ?
         GROUP BY id_discord
       )
       SELECT
@@ -260,7 +260,7 @@ router.post("/config/pointeuse/heure", async (req, res) => {
     const oldHeure = oldRes.rows[0]?.heure_pointeuse_alerte || null;
 
     // Met à jour dans la base
-    await pool.query(`UPDATE configlspd SET heure_pointeuse_alerte = $1 WHERE id = 1`, [heure]);
+    await pool.query(`UPDATE configlspd SET heure_pointeuse_alerte = ? WHERE id = 1`, [heure]);
 
     // Log de la modification
     if (req.user?.id) {

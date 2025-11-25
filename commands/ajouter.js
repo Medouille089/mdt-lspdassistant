@@ -25,7 +25,7 @@ module.exports = {
         if (!channel || channel.type !== ChannelType.GuildText) {
             return interaction.reply({ content: 'Cette commande doit être utilisée dans un ticket.', flags: 64 });
         }
-        const ticketRes = await db.query('SELECT user_id FROM lspd_tickets WHERE channel_id=$1', [channel.id]);
+        const ticketRes = await db.query('SELECT user_id FROM lspd_tickets WHERE channel_id=?', [channel.id]);
         if (!ticketRes.rows[0]) {
             return interaction.reply({ content: 'Ce salon n\'est pas un ticket valide.', flags: 64 });
         }

@@ -78,7 +78,7 @@ router.get('/api/absence/mes-absences', checkAuth, async (req, res) => {
                 date_creation,
                 date_modification
             FROM absences 
-            WHERE officier = $1
+            WHERE officier = ?
             ORDER BY date_creation DESC
         `;
 
@@ -114,13 +114,13 @@ router.get('/api/absence/periode/:debut/:fin', async (req, res) => {
                 statut,
                 date_creation
             FROM absences 
-            WHERE (date_debut BETWEEN $1 AND $2) 
-               OR (date_fin BETWEEN $1 AND $2)
-               OR (date_debut <= $1 AND date_fin >= $2)
+            WHERE (date_debut BETWEEN ? AND ?) 
+               OR (date_fin BETWEEN ? AND ?)
+               OR (date_debut <= ? AND date_fin >= ?)
             ORDER BY date_debut ASC
         `;
 
-        const result = await db.query(query, [debut, fin]);
+        const result = await db.query(query, [debut, fin, debut, fin, debut, fin]);
         res.json(result.rows);
     } catch (error) {
         console.error('Erreur lors de la récupération des absences par période:', error);
@@ -174,8 +174,8 @@ router.post('/api/absence', async (req, res) => {
                 date_creation,
                 date_modification
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, 'en_attente', NOW(), NOW()
-            ) RETURNING *
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, 'en_attente', NOW(), NOW()
+            )
         `;
 
         const values = [
@@ -191,7 +191,9 @@ router.post('/api/absence', async (req, res) => {
         ];
 
         const result = await db.query(query, values);
-        const nouvelleAbsence = result.rows[0];
+        const insertId = result.insertId;
+        const selectResult = await db.query('SELECT * FROM absences WHERE id = ?', [insertId]);
+        const nouvelleAbsence = selectResult.rows[0];
         const bot = getBot();
         const conf = getConfig();
         const logsChannelId = conf.logs_calendrier;
@@ -254,23 +256,23 @@ router.put('/api/absence/:id/statut', async (req, res) => {
 
         const query = `
             UPDATE absences 
-            SET statut = $1, 
-                commentaire_admin = $2,
+            SET statut = ?, 
+                commentaire_admin = ?,
                 date_modification = NOW()
-            WHERE id = $3 
-            RETURNING *
+            WHERE id = ?
         `;
 
         const result = await db.query(query, [statut, commentaire || null, id]);
 
-        if (result.rows.length === 0) {
+        if (result.affectedRows === 0) {
             return res.status(404).json({
                 error: 'Absence non trouvée',
                 message: 'Aucune absence trouvée avec cet ID'
             });
         }
 
-        const absenceModifiee = result.rows[0];
+        const selectResult = await db.query('SELECT * FROM absences WHERE id = ?', [id]);
+        const absenceModifiee = selectResult.rows[0];
         const bot = getBot(); // Ton client Discord
         const conf = getConfig();
         const logsChannelId = conf.logs_calendrier;
@@ -337,21 +339,24 @@ router.delete('/api/absence/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const query = 'DELETE FROM absences WHERE id = $1 RETURNING *';
-        const result = await db.query(query, [id]);
-
-        if (result.rows.length === 0) {
+        // Récupérer l'absence avant de la supprimer (MySQL n'a pas RETURNING)
+        const selectResult = await db.query('SELECT * FROM absences WHERE id = ?', [id]);
+        
+        if (selectResult.rows.length === 0) {
             return res.status(404).json({
                 error: 'Absence non trouvée',
                 message: 'Aucune absence trouvée avec cet ID'
             });
         }
 
+        const absence = selectResult.rows[0];
+        await db.query('DELETE FROM absences WHERE id = ?', [id]);
+
         cache.deletePattern('absence:*');
 
         res.json({
             message: 'Absence supprimée avec succès',
-            absence: result.rows[0]
+            absence: absence
         });
 
     } catch (error) {
@@ -376,7 +381,7 @@ router.get('/api/absence/stats', async (req, res) => {
                 COUNT(CASE WHEN type_absence = 'formation' THEN 1 END) as formations,
                 COUNT(CASE WHEN type_absence = 'personnel' THEN 1 END) as personnelles
             FROM absences
-            WHERE date_creation >= CURRENT_DATE - INTERVAL '30 days'
+            WHERE date_creation >= CURDATE() - INTERVAL 30 DAY
         `;
 
         const result = await db.query(query);

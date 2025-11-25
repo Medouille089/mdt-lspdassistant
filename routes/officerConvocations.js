@@ -8,7 +8,7 @@ router.get('/api/officer/convocations', async (req, res) => {
         const { userId } = req.query;
         if (!userId) return res.status(400).json({ error: "userId manquant" });
         const result = await pool.query(
-            `SELECT * FROM lspd_convocations_agents WHERE agent_convoque_id = $1 ORDER BY created_at DESC`,
+            `SELECT * FROM lspd_convocations_agents WHERE agent_convoque_id = ? ORDER BY created_at DESC`,
             [userId]
         );
         res.json(result.rows);

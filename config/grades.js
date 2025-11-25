@@ -53,26 +53,24 @@ router.put('/api/grades', checkAuth, async (req, res) => {
         lieutenant_role_id, lieutenant_chef_role_id, capitaine_role_id,
         commandant_role_id, chief_role_id
       ) VALUES (
-        $1, $2, $3, $4,
-        $5, $6, $7, $8,
-        $9, $10, $11,
-        $12, $13
+        ?, ?, ?, ?,
+        ?, ?, ?, ?,
+        ?, ?, ?,
+        ?, ?
       )
-      ON CONFLICT (id)
-      DO UPDATE SET
-        rookie_role_id = $1,
-        officier_1_role_id = $2,
-        officier_2_role_id = $3,
-        officier_3_role_id = $4,
-        slo_role_id = $5,
-        sergent_1_role_id = $6,
-        sergent_2_role_id = $7,
-        sergent_chef_role_id = $8,
-        lieutenant_role_id = $9,
-        lieutenant_chef_role_id = $10,
-        capitaine_role_id = $11,
-        commandant_role_id = $12,
-        chief_role_id = $13
+      ON DUPLICATE KEY UPDATE rookie_role_id = ?,
+        officier_1_role_id = ?,
+        officier_2_role_id = ?,
+        officier_3_role_id = ?,
+        slo_role_id = ?,
+        sergent_1_role_id = ?,
+        sergent_2_role_id = ?,
+        sergent_chef_role_id = ?,
+        lieutenant_role_id = ?,
+        lieutenant_chef_role_id = ?,
+        capitaine_role_id = ?,
+        commandant_role_id = ?,
+        chief_role_id = ?
     `, [
       rookie_role_id,
       officier_1_role_id,

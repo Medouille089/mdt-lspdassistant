@@ -95,7 +95,7 @@ router.post('/forms/recruitment', async (req, res) => {
     try {
       const discordId = (body.discordId || '').toString().trim();
       if (discordId) {
-        const { rows } = await pool.query('SELECT discord_id, reason, agent, created_at FROM lspd_blacklist WHERE discord_id=$1', [discordId]);
+        const { rows } = await pool.query('SELECT discord_id, reason, agent, created_at FROM lspd_blacklist WHERE discord_id=?', [discordId]);
         if (rows && rows.length) {
           const r = rows[0];
           preface = `❌ Le candidat qui postule est **blacklist** depuis le **${r.created_at ? new Date(r.created_at).toLocaleDateString() : '—'}** pour **${r.reason || '—'}** par l’agent **${r.agent || '—'}**. ❌`;
@@ -154,15 +154,15 @@ router.post('/forms/recruitment', async (req, res) => {
            etat_major, radio_codes, inferiority, entry_plans, division_choice, supervision_role, avis,
            payload, banner_url, preface, created_at
          ) VALUES (
-           $1,$2,$3,
-           $4,$5,$6,
-           $7,$8,$9,
-           $10,$11,$12,
-           $13,$14,$15,$16,$17,
-           $18,$19,$20,$21,
-           $22,$23,$24,$25,$26,$27,$28,
-           $29,$30,$31,NOW()
-         ) RETURNING id`,
+           ?,?,?,
+           ?,?,?,
+           ?,?,?,
+           ?,?,?,
+           ?,?,?,?,?,
+           ?,?,?,?,
+           ?,?,?,?,?,?,?,
+           ?,?,?,NOW()
+         ) `,
         [
           body.discordId || null,
           body.username || null,
@@ -221,7 +221,7 @@ router.post('/forms/recruitment', async (req, res) => {
           // truncate long texts to avoid extremely long rows (but payload keeps full data)
           const valText = typeof value === 'string' ? value : JSON.stringify(value);
           await pool.query(
-            'INSERT INTO recruitment_answers (submission_id, question_key, question_label, answer_text, created_at) VALUES ($1,$2,$3,$4,NOW())',
+            'INSERT INTO recruitment_answers (submission_id, question_key, question_label, answer_text, created_at) VALUES (?,?,?,?,NOW())',
             [submissionId, key, null, valText]
           );
         }
@@ -234,13 +234,13 @@ router.post('/forms/recruitment', async (req, res) => {
     if (!bot || !bot.channels) {
       console.error('Bot instance not available');
       // Update DB record as failed if we have an id
-      if (submissionId) await pool.query('UPDATE recruitment_submissions SET sent=false, error_text=$1 WHERE id=$2', ['Bot not available', submissionId]).catch(()=>{});
+      if (submissionId) await pool.query('UPDATE recruitment_submissions SET sent=false, error_text=? WHERE id=?', ['Bot not available', submissionId]).catch(()=>{});
       return res.status(500).send('Bot not available');
     }
 
     const channel = await bot.channels.fetch(channelId).catch(() => null);
     if (!channel || !channel.isTextBased()) {
-      if (submissionId) await pool.query('UPDATE recruitment_submissions SET sent=false, error_text=$1 WHERE id=$2', ['Invalid channel', submissionId]).catch(()=>{});
+      if (submissionId) await pool.query('UPDATE recruitment_submissions SET sent=false, error_text=? WHERE id=?', ['Invalid channel', submissionId]).catch(()=>{});
       return res.status(400).send('Invalid channel');
     }
 
@@ -252,14 +252,14 @@ router.post('/forms/recruitment', async (req, res) => {
       // Save send result in DB
       if (submissionId) {
         const msgIds = Array.isArray(msg) ? msg.map(m => m.id) : [msg.id];
-        await pool.query('UPDATE recruitment_submissions SET sent=true, sent_at=NOW(), message_ids=$1, error_text=NULL WHERE id=$2', [JSON.stringify(msgIds), submissionId]).catch(err => console.warn('Failed updating submission sent status:', err && err.message ? err.message : err));
+        await pool.query('UPDATE recruitment_submissions SET sent=true, sent_at=NOW(), message_ids=?, error_text=NULL WHERE id=?', [JSON.stringify(msgIds), submissionId]).catch(err => console.warn('Failed updating submission sent status:', err && err.message ? err.message : err));
       }
 
       return res.json({ ok: true, embeds: embedObjs.length, submissionId });
     } catch (sendErr) {
       console.error('Discord send error for recruitment submission:', sendErr && sendErr.message ? sendErr.message : sendErr);
       if (submissionId) {
-        await pool.query('UPDATE recruitment_submissions SET sent=false, error_text=$1 WHERE id=$2', [sendErr.message || String(sendErr), submissionId]).catch(()=>{});
+        await pool.query('UPDATE recruitment_submissions SET sent=false, error_text=? WHERE id=?', [sendErr.message || String(sendErr), submissionId]).catch(()=>{});
       }
       return res.status(500).json({ error: 'Failed to send message to Discord', details: sendErr && sendErr.message ? sendErr.message : String(sendErr), submissionId });
     }

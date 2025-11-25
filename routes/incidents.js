@@ -15,7 +15,7 @@ router.get('/api/incidents/search', async (req, res) => {
     const result = await pool.query(
       `SELECT id, incident_id, date_incident, heure_incident, officier_redacteur, lieu_incident
        FROM incidents
-       WHERE LOWER(officier_redacteur) LIKE LOWER($1) OR LOWER(incident_id) LIKE LOWER($1)
+       WHERE LOWER(officier_redacteur) LIKE LOWER(?) OR LOWER(incident_id) LIKE LOWER(?)
        ORDER BY date_incident DESC LIMIT 10`,
       [`%${query}%`]
     );
@@ -150,7 +150,7 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
     await pool.query(`
       INSERT INTO incidents 
       (incident_id, date_incident, heure_incident, officier_redacteur, grade, recit, officier_implique, type_rapport, lieu_incident, discord_thread_id, discord_message_id)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?)
     `, [
       incidentId, date, heure, officier, grade,
       recit || '', // obligatoire pour NOT NULL
@@ -187,7 +187,7 @@ router.get('/api/getIncident', async (req, res) => {
   try {
     const { id } = req.query; // possibilité de demander un incident précis
     const query = id
-      ? `SELECT * FROM incidents WHERE incident_id=$1`
+      ? `SELECT * FROM incidents WHERE incident_id=?`
       : `SELECT * FROM incidents ORDER BY date_incident DESC, heure_incident DESC`;
 
     const params = id ? [id] : [];
@@ -291,9 +291,9 @@ const { formatDateFR } = require('../utils/formatDate');
     // Mise à jour en base
     await pool.query(`
       UPDATE incidents 
-      SET date_incident=$1, heure_incident=$2, officier_redacteur=$3, grade=$4, recit=$5,
-          officier_implique=$6, type_rapport=$7, lieu_incident=$8
-      WHERE incident_id=$9
+      SET date_incident=?, heure_incident=?, officier_redacteur=?, grade=?, recit=?,
+          officier_implique=?, type_rapport=?, lieu_incident=?
+      WHERE incident_id=?
     `, [date, heure, officier, grade, recit, implique, type, lieu, incidentId]);
 
     if (!discord_thread_id || discord_thread_id === 'null' || discord_thread_id === 'undefined') {
@@ -369,7 +369,7 @@ router.get('/api/incidents/:id', async (req, res) => {
     const result = await pool.query(
       `SELECT incident_id, date_incident, heure_incident, officier_redacteur, lieu_incident
        FROM incidents
-       WHERE incident_id = $1
+       WHERE incident_id = ?
        LIMIT 1`,
       [incidentId]
     );
