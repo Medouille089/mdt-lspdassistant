@@ -100,6 +100,7 @@ h1 {
     padding: var(--spacing-xs);
     scrollbar-width: thin;
     scrollbar-color: var(--text-secondary) transparent;
+    height: 100%;
 }
 
 .board-container::-webkit-scrollbar {
@@ -124,6 +125,7 @@ h1 {
 .board {
     display: flex;
     gap: var(--spacing-md);
+    height: 100%;
 }
 
 /* === AJOUT DE LISTE === */
@@ -202,9 +204,9 @@ h1 {
     transition: background-color 0.2s ease;
     color: var(--text-primary);
     height: fit-content;
-    max-height: calc(100vh - 220px);
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 .list.drag-over {
