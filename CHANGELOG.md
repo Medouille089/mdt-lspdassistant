@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.21.1](https://github.com/Medouille089/lspdassistant/compare/v1.21.0...v1.21.1) (2025-11-25)
+
+
+### Bug Fixes
+
+* adjust sizes for IG iframe ([c15d9e6](https://github.com/Medouille089/lspdassistant/commit/c15d9e6c83cc4238ac0a36105a53f9327c2a85ce))
+
 ## [1.21.0](https://github.com/Medouille089/lspdassistant/compare/v1.20.3...v1.21.0) (2025-11-25)
 
 
