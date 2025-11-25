@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.20.3](https://github.com/Medouille089/lspdassistant/compare/v1.20.2...v1.20.3) (2025-11-25)
+
+
+### Bug Fixes
+
+* hide mdt menu ([87bf013](https://github.com/Medouille089/lspdassistant/commit/87bf0131860ab8fecbddda50cf42ea8c104b84cd))
+
 ### [1.20.2](https://github.com/Medouille089/lspdassistant/compare/v1.20.1...v1.20.2) (2025-11-25)
 
 
