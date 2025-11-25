@@ -171,7 +171,7 @@ class CitoyenSelectorModal {
             if (this.selectedCitoyenId && this.onSelectCallback) {
                 const citoyen = this.citoyens.find(c => c.id === this.selectedCitoyenId);
                 console.log('Sélection confirmée:', citoyen);
-                this.onSelectCallback(citoyen);
+                this.onSelectCallback(citoyen.id, `${citoyen.nom || ''} ${citoyen.prenom || ''}`.trim());
             }
             this.close();
         });

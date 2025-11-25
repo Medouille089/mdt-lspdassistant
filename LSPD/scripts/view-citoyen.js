@@ -299,6 +299,7 @@ async function loadWeaponsForCitizen(citizenId) {
             item.style.gap = '10px';
             item.style.padding = '10px 12px';
             item.style.background = '#fff';
+            item.style.cursor = 'pointer';
             if (idx !== 0) {
                 item.style.borderTop = '1px solid #e0e0e0';
             }
@@ -315,13 +316,24 @@ async function loadWeaponsForCitizen(citizenId) {
             info.style.flex = '1';
             info.innerHTML = `<strong>${w.model_name || 'Modèle inconnu'}</strong><div style="color:#7f8c8d; font-size:13px">S/N: ${w.serial_number || '-'}</div>`;
 
+            // Chevron
+            const chevron = document.createElement('span');
+            chevron.innerHTML = '&#8250;';
+            chevron.style.fontSize = '22px';
+            chevron.style.color = '#7f8c8d';
+            chevron.style.marginLeft = '8px';
+            chevron.style.transition = 'color 0.2s';
+            chevron.style.userSelect = 'none';
+
+            // Actions (delete button)
             const actions = document.createElement('div');
-            // In edit mode, show a delete button; otherwise no action button
+            let hasDelete = false;
             if (isEditMode && currentUserInfo && currentUserInfo.isSupervisor) {
                 const delBtn = document.createElement('button');
                 delBtn.setAttribute('type', 'button');
                 delBtn.className = 'btn btn-danger';
                 delBtn.textContent = 'Supprimer';
+                hasDelete = true;
 
                 function markItemForDeletion(mark) {
                     if (mark) {
@@ -341,7 +353,8 @@ async function loadWeaponsForCitizen(citizenId) {
 
                 if (pendingWeaponDeletions.has(w.id)) markItemForDeletion(true);
 
-                delBtn.addEventListener('click', () => {
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     if (!pendingWeaponDeletions.has(w.id)) {
                         showConfirmModal('Marquer cette arme pour suppression ? La suppression sera effectuée lors de l\'enregistrement.', 'Marquer', 'Annuler')
                             .then(confirmed => {
@@ -356,7 +369,18 @@ async function loadWeaponsForCitizen(citizenId) {
 
             item.appendChild(img);
             item.appendChild(info);
+            if (!hasDelete) item.appendChild(chevron);
             item.appendChild(actions);
+
+            // Clic sur la ligne = ouvrir la fiche arme (sauf clic sur bouton supprimer)
+            item.addEventListener('click', (e) => {
+                if (hasDelete && e.target.closest('button')) return;
+                window.location.href = `/view-arme.html?id=${w.id}`;
+            });
+
+            // Hover effet sur chevron
+            item.addEventListener('mouseenter', () => { chevron.style.color = '#3498db'; });
+            item.addEventListener('mouseleave', () => { chevron.style.color = '#7f8c8d'; });
 
             list.appendChild(item);
         });
@@ -587,39 +611,27 @@ function setupPhotoModal() {
     const photoContainer = document.getElementById('photo-container');
     const modal = document.getElementById('photoModal');
     const photoUrlInput = document.getElementById('photoUrlInput');
-    const photoPreviewModal = document.getElementById('photoPreviewModal');
+    // PAS de preview, juste le champ
     const savePhotoBtn = document.getElementById('savePhotoBtn');
     const cancelPhotoBtn = document.getElementById('cancelPhotoBtn');
 
     // Clic sur la photo pour ouvrir le modal en mode édition
-    photoContainer.addEventListener('click', () => {
-        if (!isEditMode && !document.body.classList.contains('edit-mode')) return;
-
+    photoContainer.addEventListener('click', (e) => {
+        if (!(isEditMode || document.body.classList.contains('edit-mode'))) return;
         const previewEl = document.getElementById('photo_preview');
         const currentSrc = previewEl ? (previewEl.getAttribute('src') || '').trim() : '';
-
         photoUrlInput.value = currentSrc || '';
-        updatePhotoPreviewModal();
         modal.style.display = 'flex';
     });
 
-    // Aperçu en temps réel dans le modal
-    photoUrlInput.addEventListener('input', updatePhotoPreviewModal);
+    // PAS d'aperçu ni de logique d'image
 
-    function updatePhotoPreviewModal() {
-        const url = photoUrlInput.value.trim();
-        if (url) {
-            photoPreviewModal.src = url;
-            photoPreviewModal.style.display = 'block';
-        } else {
-            photoPreviewModal.style.display = 'none';
-        }
-    }
-
-    // Sauvegarder la photo
+    // Sauvegarder le lien
     savePhotoBtn.addEventListener('click', () => {
         const url = photoUrlInput.value.trim();
-        updatePhotoPreview(url);
+        // Met à jour l'image preview pour que le PUT prenne le bon lien
+        const previewEl = document.getElementById('photo_preview');
+        if (previewEl) previewEl.src = url;
         modal.style.display = 'none';
     });
 
