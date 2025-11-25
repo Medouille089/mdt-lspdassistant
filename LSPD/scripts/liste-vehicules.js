@@ -12,8 +12,56 @@ const totalMandatsEl = document.getElementById('totalMandats');
 let allVehicules = [];
 let filteredVehicules = [];
 let currentPage = 1;
+let contextVehicule = null;
 
-// Charge les données depuis l'API
+function enrichContextMenu() {
+    if (typeof MENU_ITEMS !== 'undefined' && contextVehicule) {
+        const oldVehiculeIndex = MENU_ITEMS.findIndex(item => item.id === 'vehicule-copy-plaque');
+        if (oldVehiculeIndex !== -1) {
+            MENU_ITEMS.splice(oldVehiculeIndex, 3);
+        }
+
+        const currentVehicule = contextVehicule;
+
+        MENU_ITEMS.unshift(
+            {
+                id: 'vehicule-copy-plaque',
+                label: 'Copier la plaque',
+                action: () => {
+                    navigator.clipboard.writeText(currentVehicule.plaque).then(() => {
+                        showNotification('Plaque copiée !', 'success');
+                    }).catch(() => {
+                        showNotification('Erreur lors de la copie', 'error');
+                    });
+                }
+            },
+            {
+                id: 'vehicule-copy-link',
+                label: 'Copier le lien',
+                action: () => {
+                    const vehiculeUrl = `${window.location.origin}/view-vehicule.html?id=${currentVehicule.id}`;
+                    navigator.clipboard.writeText(vehiculeUrl).then(() => {
+                        showNotification('Lien copié !', 'success');
+                    }).catch(() => {
+                        showNotification('Erreur lors de la copie', 'error');
+                    });
+                }
+            },
+            { separator: true }
+        );
+    }
+}
+
+function cleanContextMenu() {
+    if (typeof MENU_ITEMS !== 'undefined') {
+        const oldVehiculeIndex = MENU_ITEMS.findIndex(item => item.id === 'vehicule-copy-plaque');
+        if (oldVehiculeIndex !== -1) {
+            MENU_ITEMS.splice(oldVehiculeIndex, 3);
+        }
+    }
+    contextVehicule = null;
+}
+
 async function loadVehicules() {
     const loader = document.getElementById('loaderOverlay');
     loader.style.display = 'flex';
@@ -33,26 +81,22 @@ async function loadVehicules() {
     }
 }
 
-// Mettre à jour les statistiques
 function updateStats() {
     totalVehiculesEl.textContent = allVehicules.length;
     const mandatsActifs = allVehicules.filter(v => v.mandat_actif).length;
     totalMandatsEl.textContent = mandatsActifs;
 }
 
-// Appliquer filtres et pagination
 function applyFilters() {
     const search = searchInput.value.trim().toLowerCase();
     const mandatValue = mandatFilter.value;
 
     filteredVehicules = allVehicules.filter(item => {
-        // Filtre texte sur modèle, plaque
         const textMatch = (
             item.modele.toLowerCase().includes(search) ||
             item.plaque.toLowerCase().includes(search)
         );
 
-        // Filtre mandat
         let mandatMatch = true;
         if (mandatValue === 'true') {
             mandatMatch = item.mandat_actif === true;
@@ -63,12 +107,11 @@ function applyFilters() {
         return textMatch && mandatMatch;
     });
 
-    currentPage = 1; // reset page à 1 à chaque filtre
+    currentPage = 1;
     renderTable();
     renderPagination();
 }
 
-// Affiche la page courante du tableau
 function renderTable() {
     tableBody.innerHTML = '';
 
@@ -109,18 +152,39 @@ function renderTable() {
             window.location.href = `/view-vehicule.html?id=${item.id}`;
         });
 
+
+        tr.dataset.vehiculeId = item.id;
+        tr.dataset.vehiculePlaque = item.plaque;
+
         tableBody.appendChild(tr);
     });
 }
 
-// Affiche la pagination
+document.addEventListener('contextmenu', (e) => {
+    const tr = e.target.closest('tr');
+    if (tr && tr.dataset.vehiculeId) {
+        const vehicule = allVehicules.find(v => v.id == tr.dataset.vehiculeId);
+        if (vehicule) {
+            contextVehicule = vehicule;
+            enrichContextMenu();
+        }
+    } else {
+        cleanContextMenu();
+    }
+}, true);
+
+if (tableBody) {
+    tableBody.parentElement.addEventListener('mouseleave', () => {
+        cleanContextMenu();
+    });
+}
+
 function renderPagination() {
     paginationDiv.innerHTML = '';
 
     const totalPages = Math.ceil(filteredVehicules.length / ITEMS_PER_PAGE);
-    if (totalPages <= 1) return; // Pas besoin de pagination
+    if (totalPages <= 1) return;
 
-    // Bouton précédent
     const prevBtn = document.createElement('button');
     prevBtn.textContent = '‹ Précédent';
     prevBtn.disabled = currentPage === 1;
@@ -134,7 +198,6 @@ function renderPagination() {
     });
     paginationDiv.appendChild(prevBtn);
 
-    // Boutons de pages (max 5 boutons visibles)
     const maxButtons = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxButtons - 1);
@@ -196,7 +259,6 @@ function renderPagination() {
         paginationDiv.appendChild(lastBtn);
     }
 
-    // Bouton suivant
     const nextBtn = document.createElement('button');
     nextBtn.textContent = 'Suivant ›';
     nextBtn.disabled = currentPage === totalPages;
@@ -211,12 +273,10 @@ function renderPagination() {
     paginationDiv.appendChild(nextBtn);
 }
 
-// Event listeners
 searchInput.addEventListener('input', applyFilters);
 mandatFilter.addEventListener('change', applyFilters);
 addVehiculeBtn.addEventListener('click', () => {
     window.location.href = '/vehicule.html';
 });
 
-// Chargement initial
 loadVehicules();

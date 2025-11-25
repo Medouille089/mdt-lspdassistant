@@ -1,4 +1,3 @@
-// View vehicle details - Style similaire à view-citoyen.js
 (function () {
     let vehicleId = null;
     let vehicleData = null;
@@ -6,13 +5,10 @@
     let isEditMode = false;
     let originalData = {};
 
-    // Récupérer l'ID du véhicule depuis l'URL
     function getVehicleIdFromURL() {
         const params = new URLSearchParams(window.location.search);
         return params.get('id');
     }
-
-    // Charger les données du véhicule
     async function loadVehicle() {
         vehicleId = getVehicleIdFromURL();
         if (!vehicleId) {
@@ -41,9 +37,7 @@
         }
     }
 
-    // Afficher le véhicule
     function renderVehicle() {
-        // Header
         const photoPreview = document.getElementById('photo_preview');
         if (vehicleData.photo) {
             photoPreview.src = vehicleData.photo;
@@ -69,14 +63,12 @@
             mandatBadge.className = 'badge no-mandat';
         }
 
-        // Formulaire
         document.getElementById('modele').value = vehicleData.modele || '';
         document.getElementById('plaque').value = vehicleData.plaque || '';
         document.getElementById('couleur').value = vehicleData.couleur || '';
         document.getElementById('mandat_actif').value = vehicleData.mandat_actif ? 'true' : 'false';
         document.getElementById('notes').value = vehicleData.notes || '';
 
-        // Propriétaire
         if (vehicleData.proprietaire_id) {
             selectedProprietaireId = vehicleData.proprietaire_id;
             document.getElementById('proprietaire').value = `${vehicleData.proprietaire_nom} ${vehicleData.proprietaire_prenom}`;
@@ -87,7 +79,6 @@
             document.getElementById('proprietaire_id').value = '';
         }
 
-        // Infos système
         document.getElementById('created_by').textContent = vehicleData.created_by || 'N/A';
 
         const updatedDate = vehicleData.updated_at
@@ -102,7 +93,6 @@
         document.getElementById('date_modification').textContent = updatedDate;
     }
 
-    // Mode visualisation
     function setViewMode() {
         isEditMode = false;
         document.body.classList.remove('edit-mode');
@@ -110,8 +100,17 @@
         const form = document.getElementById('profileForm');
         const inputs = form.querySelectorAll('input:not([type="hidden"]):not([readonly]), select, textarea');
         inputs.forEach(input => {
-            input.setAttribute('disabled', 'disabled');
-            input.classList.add('disabled-field');
+            if (input.id === 'proprietaire') {
+                input.setAttribute('readonly', 'readonly');
+                input.removeAttribute('disabled');
+                input.classList.add('disabled-field');
+                if (selectedProprietaireId) {
+                    input.style.cursor = 'pointer';
+                }
+            } else {
+                input.setAttribute('disabled', 'disabled');
+                input.classList.add('disabled-field');
+            }
         });
 
         const editBtn = document.getElementById('edit-mode-btn');
@@ -125,26 +124,44 @@
         if (cancelBtn) cancelBtn.style.display = 'none';
         if (saveBtn) saveBtn.style.display = 'none';
         if (deleteBtn) deleteBtn.style.display = 'inline-flex';
-        if (selectBtn) selectBtn.disabled = true;
+        if (selectBtn) {
+            selectBtn.disabled = true;
+            selectBtn.style.display = 'none';
+        }
         if (photoOverlay) photoOverlay.style.display = 'none';
+
+        const proprietaireContainer = document.querySelector('.proprietaire-selector');
+        if (proprietaireContainer && selectedProprietaireId) {
+            proprietaireContainer.style.cursor = 'pointer';
+        }
     }
 
-    // Mode édition
     function setEditMode() {
         isEditMode = true;
         document.body.classList.add('edit-mode');
 
-        // Sauvegarder les données originales
         originalData = { ...vehicleData };
 
         const form = document.getElementById('profileForm');
         const inputs = form.querySelectorAll('input:not([type="hidden"]):not([readonly]), select, textarea');
 
         inputs.forEach(input => {
-            input.removeAttribute('disabled');
-            input.classList.remove('disabled-field');
-            input.disabled = false;
+            if (input.id === 'proprietaire') {
+                input.setAttribute('disabled', 'disabled');
+                input.removeAttribute('readonly');
+                input.classList.add('disabled-field');
+                input.style.cursor = '';
+            } else {
+                input.removeAttribute('disabled');
+                input.classList.remove('disabled-field');
+                input.disabled = false;
+            }
         });
+
+        const proprietaireContainer = document.querySelector('.proprietaire-selector');
+        if (proprietaireContainer) {
+            proprietaireContainer.style.cursor = 'default';
+        }
 
         const editBtn = document.getElementById('edit-mode-btn');
         const cancelBtn = document.getElementById('cancel-edit-btn');
@@ -160,20 +177,19 @@
         if (selectBtn) {
             selectBtn.disabled = false;
             selectBtn.removeAttribute('disabled');
+            selectBtn.style.display = 'block';
         }
         if (photoOverlay) photoOverlay.style.display = 'flex';
 
         console.log('=== MODE EDITION TERMINÉ ===');
     }
 
-    // Annuler l'édition
     function cancelEdit() {
         vehicleData = { ...originalData };
         renderVehicle();
         setViewMode();
     }
 
-    // Sauvegarder les modifications
     async function saveChanges(event) {
         event.preventDefault();
 
@@ -203,7 +219,6 @@
             if (res.ok) {
                 vehicleData = result;
 
-                // Sauvegarder les notes séparément
                 await saveNotes();
 
                 renderVehicle();
@@ -220,7 +235,6 @@
         }
     }
 
-    // Sauvegarder les notes
     async function saveNotes() {
         try {
             const res = await fetch(`/api/vehicules/${vehicleId}/notes`, {
@@ -242,7 +256,6 @@
         }
     }
 
-    // Supprimer le véhicule
     async function deleteVehicle() {
         if (!confirm(`Êtes-vous sûr de vouloir supprimer ce véhicule (${vehicleData.modele} - ${vehicleData.plaque}) ?\n\nCette action est irréversible.`)) {
             return;
@@ -273,7 +286,6 @@
         }
     }
 
-    // Gestion de la photo
     function setupPhotoModal() {
         const photoContainer = document.getElementById('photo-container');
         const photoModal = document.getElementById('photoModal');
@@ -319,24 +331,26 @@
         });
     }
 
-    // Event listeners
     document.addEventListener('DOMContentLoaded', function () {
         loadVehicle();
         setupPhotoModal();
 
-        // Bouton modifier
         document.getElementById('edit-mode-btn').addEventListener('click', setEditMode);
-
-        // Bouton annuler
         document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
-
-        // Bouton supprimer
         document.getElementById('delete-btn').addEventListener('click', deleteVehicle);
-
-        // Soumettre le formulaire
         document.getElementById('profileForm').addEventListener('submit', saveChanges);
 
-        // Sélectionner un propriétaire
+        const proprietaireContainer = document.querySelector('.proprietaire-selector');
+        if (proprietaireContainer) {
+            proprietaireContainer.addEventListener('click', (e) => {
+                if (selectedProprietaireId && !isEditMode && e.target.id !== 'selectProprietaireBtn') {
+                    window.location.href = `/view-citoyen.html?id=${selectedProprietaireId}`;
+                }
+            });
+
+            proprietaireContainer.style.cursor = 'default';
+        }
+
         document.getElementById('selectProprietaireBtn').addEventListener('click', () => {
             if (citoyenSelector) {
                 citoyenSelector.open((citoyenId, citoyenName) => {
@@ -345,7 +359,6 @@
                         document.getElementById('proprietaire').value = citoyenName;
                         document.getElementById('proprietaire_id').value = citoyenId;
                     } else {
-                        // Aucun propriétaire sélectionné
                         selectedProprietaireId = null;
                         document.getElementById('proprietaire').value = '';
                         document.getElementById('proprietaire_id').value = '';
@@ -354,20 +367,16 @@
             }
         });
 
-        // Formater la plaque en majuscules
         document.getElementById('plaque').addEventListener('input', function (e) {
             e.target.value = e.target.value.toUpperCase();
         });
 
-        // Zoom sur la photo principale
         setupPhotoZoom();
     });
 
-    // Fonction pour agrandir la photo au clic
     function setupPhotoZoom() {
         const photoPreview = document.getElementById('photo_preview');
 
-        // Créer le modal de zoom
         const zoomModal = document.createElement('div');
         zoomModal.className = 'photo-zoom-modal';
         zoomModal.innerHTML = `
@@ -379,7 +388,6 @@
         const zoomedPhoto = document.getElementById('zoomed-photo');
         const closeZoom = zoomModal.querySelector('.close-zoom');
 
-        // Ouvrir le zoom au clic sur la photo
         photoPreview.addEventListener('click', () => {
             if (vehicleData && vehicleData.photo) {
                 zoomedPhoto.src = vehicleData.photo;
@@ -387,7 +395,6 @@
             }
         });
 
-        // Fermer le zoom
         closeZoom.addEventListener('click', () => {
             zoomModal.style.display = 'none';
         });
@@ -398,7 +405,6 @@
             }
         });
 
-        // Fermer avec Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && zoomModal.style.display === 'flex') {
                 zoomModal.style.display = 'none';
