@@ -12,6 +12,74 @@
   <link rel="stylesheet" href="styles/infosagent.css">
   <link rel="stylesheet" href="styles/context-menu.css" />
   <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <style>
+    .photo-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .photo-modal-content {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      padding: 36px 28px 24px;
+      min-width: 340px;
+      max-width: 95vw;
+      position: relative;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    #photoUrlInput {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid #0b1b5a;
+      border-radius: 8px;
+      color: #222;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+    }
+    #photoUrlInput:focus {
+      border-color: #ffa726;
+      outline: none;
+    }
+    .photo-modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+    .btn-cancel, .btn-confirm {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-cancel {
+      background: #eee;
+      color: #333;
+    }
+    .btn-cancel:hover {
+      background: #e0e0e0;
+    }
+    .btn-confirm {
+      background: linear-gradient(45deg, #ffa726, #ff9800);
+      color: #fff;
+    }
+    .btn-confirm:hover {
+      background: linear-gradient(45deg, #ff9800, #ffa726);
+      transform: translateY(-2px);
+    }
+  </style>
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
 </head>
