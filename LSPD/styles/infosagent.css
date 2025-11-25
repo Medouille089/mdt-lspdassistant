@@ -10,16 +10,19 @@
   border-radius: 50%;
   margin: 0 2px;
 }
+
 .formation-check.valid {
   background: #eafaf3;
   color: var(--success);
   border: 2px solid var(--success);
 }
+
 .formation-check.invalid {
   background: #fff0f0;
   color: var(--danger);
   border: 2px solid var(--danger);
 }
+
 /* Design moderne de carte d'agent LSPD */
 
 /* Styles globaux pour les icônes Material Symbols */
@@ -54,6 +57,7 @@ body {
   z-index: 0;
   background: none;
 }
+
 body::before {
   content: "";
   position: fixed;
@@ -83,6 +87,7 @@ body::before {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -115,10 +120,12 @@ body::before {
     transform: scale(0.85);
     opacity: 0;
   }
+
   60% {
     transform: scale(1.02);
     opacity: 1;
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -142,11 +149,13 @@ body::before {
   transition: background 0.2s, transform 0.2s, border-color 0.2s;
   z-index: 2;
 }
+
 .photo-lightbox-close:hover {
   background: rgba(0, 0, 0, 0.75);
   transform: scale(1.05);
   border-color: rgba(255, 255, 255, 0.4);
 }
+
 .photo-lightbox-close .material-symbols-rounded {
   font-size: 22px;
 }
@@ -156,27 +165,32 @@ body::before {
     max-width: min(70vw, 460px);
     max-height: min(65vh, 460px);
   }
+
   .photo-lightbox-image {
     max-width: 440px;
     max-height: 440px;
   }
 }
+
 @media (max-width: 600px) {
   .photo-lightbox-wrapper {
     max-width: calc(100vw - 60px);
     max-height: calc(70vh - 40px);
     padding: 14px 14px 20px;
   }
+
   .photo-lightbox-image {
     max-width: 100%;
     max-height: 100%;
   }
+
   .photo-lightbox-close {
     width: 36px;
     height: 36px;
     top: 6px;
     right: 6px;
   }
+
   .photo-lightbox-close .material-symbols-rounded {
     font-size: 20px;
   }
@@ -239,7 +253,8 @@ body::before {
   overflow: hidden;
   background: var(--card-bg);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  cursor: pointer; /* clickable pour popup / lightbox */
+  cursor: pointer;
+  /* clickable pour popup / lightbox */
 }
 
 .agent-photo {
@@ -331,9 +346,12 @@ body::before {
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.7;
   }
@@ -592,10 +610,12 @@ body:not(.edit-mode) .agent-profile-container .form-group select {
   font-size: 0;
   line-height: 1;
 }
+
 .equipment-actions {
   display: flex;
   align-items: center;
-  gap: 5px; /* espace entre Modifier et Supprimer */
+  gap: 5px;
+  /* espace entre Modifier et Supprimer */
 }
 
 .edit-equipment-btn .material-symbols-rounded {
@@ -730,15 +750,18 @@ body:not(.edit-mode) .agent-profile-container .form-group select {
 
 /* Make equipment rows glue together: shared borders and rounded corners only on first/last */
 .equipment-list .equipment-item {
-  margin-bottom: 0; /* remove gap between rows */
+  margin-bottom: 0;
+  /* remove gap between rows */
   border-left: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
   border-top: 1px solid var(--border-color);
-  border-radius: 0; /* radius applied only on first/last */
+  border-radius: 0;
+  /* radius applied only on first/last */
 }
 
-.equipment-list .equipment-item + .equipment-item {
-  border-top: 0; /* avoid double border between adjacent items */
+.equipment-list .equipment-item+.equipment-item {
+  border-top: 0;
+  /* avoid double border between adjacent items */
 }
 
 .equipment-list .equipment-item:first-child {
@@ -760,17 +783,64 @@ body:not(.edit-mode) .agent-profile-container .form-group select {
   border-top: 1px solid var(--border-input) !important;
   border-radius: 0;
 }
-.agent-profile-container .equipment-list .equipment-item + .equipment-item {
+
+.agent-profile-container .equipment-list .equipment-item+.equipment-item {
   border-top: 0 !important;
 }
+
 .agent-profile-container .equipment-list .equipment-item:first-child {
   border-top-left-radius: 8px !important;
   border-top-right-radius: 8px !important;
 }
+
 .agent-profile-container .equipment-list .equipment-item:last-child {
   border-bottom-left-radius: 8px !important;
   border-bottom-right-radius: 8px !important;
   border-bottom: 1px solid var(--border-input) !important;
+}
+
+/* Styles pour affichage en grille des véhicules */
+.equipment-list.vehicules-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.equipment-list.vehicules-grid .equipment-item {
+  margin-bottom: 0;
+  border: 1px solid var(--border-input) !important;
+  border-radius: 8px !important;
+}
+
+.equipment-list.vehicules-grid .equipment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.equipment-list.vehicules-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.equipment-list.vehicules-grid-compact .equipment-item {
+  margin-bottom: 0;
+  border: 1px solid var(--border-input) !important;
+  border-radius: 8px !important;
+}
+
+.equipment-list.vehicules-grid-compact .equipment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive : passer à 1 colonne sur petits écrans */
+@media (max-width: 768px) {
+
+  .equipment-list.vehicules-grid,
+  .equipment-list.vehicules-grid-compact {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* keep default list behavior (no glued rows) */
@@ -1009,6 +1079,7 @@ textarea:disabled,
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1030,7 +1101,8 @@ textarea:disabled,
 
 /* Photo cliquable avec overlay */
 .photo-container.clickable {
-  cursor: pointer; /* conservé */
+  cursor: pointer;
+  /* conservé */
   position: relative;
   transition: transform 0.2s ease;
 }
@@ -1282,9 +1354,11 @@ body:not(.edit-mode) textarea:focus {
   transition: background 0.2s, transform 0.15s;
   user-select: none;
 }
+
 #agent_id:hover {
   background: rgba(0, 0, 0, 0.7);
 }
+
 #agent_id:active {
   transform: scale(0.95);
 }
@@ -1310,10 +1384,12 @@ body:not(.edit-mode) textarea:focus {
     opacity: 0;
     transform: translateY(6px);
   }
+
   40% {
     opacity: 1;
     transform: translateY(0);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -1324,6 +1400,7 @@ body:not(.edit-mode) textarea:focus {
   0% {
     background: rgba(255, 215, 0, 0.1);
   }
+
   100% {
     background: rgba(255, 255, 255, 0.02);
   }
@@ -1334,12 +1411,15 @@ body:not(.edit-mode) textarea:focus {
 .agent-meta .agent-id {
   color: var(--white, #fff);
 }
+
 .section-title {
   color: var(--white, #fff);
 }
+
 .form-group label {
   color: var(--white, #fff);
 }
+
 .form-group input {
   color: var(--white, #fff);
 }
@@ -1361,7 +1441,8 @@ body:not(.edit-mode) textarea:focus {
 
 /* Garder le header visuellement distinct mais mieux intégré */
 .agent-profile-container .agent-header {
-  margin: -40px -50px 30px; /* étire le header pour couvrir le bord arrondi */
+  margin: -40px -50px 30px;
+  /* étire le header pour couvrir le bord arrondi */
   border-radius: 7px 7px 0 0;
   padding: 35px 40px;
   box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
@@ -1420,6 +1501,7 @@ body:not(.edit-mode) .agent-profile-container .form-group textarea {
 .agent-profile-container .equipment-name {
   color: var(--text-dark) !important;
 }
+
 .agent-profile-container .equipment-detail {
   color: var(--text-muted) !important;
 }
@@ -1437,6 +1519,7 @@ body:not(.edit-mode) .agent-profile-container .form-group textarea {
   border: 1px dashed var(--success) !important;
   color: var(--success) !important;
 }
+
 .agent-profile-container .add-equipment-btn:hover {
   background: rgba(0, 212, 170, 0.08) !important;
 }
@@ -1449,6 +1532,7 @@ body:not(.edit-mode) .agent-profile-container .form-group textarea {
 .agent-profile-container .info-section {
   background: transparent;
 }
+
 .agent-profile-container .info-item span {
   color: var(--text-dark);
 }
@@ -1464,6 +1548,7 @@ body:not(.edit-mode) .agent-profile-container .form-group textarea {
   color: var(--text-dark);
   border: 1px solid var(--border-input);
 }
+
 .agent-profile-container .btn-secondary:hover {
   background: var(--input-bg-focus);
   border-color: var(--border-color);
@@ -1479,9 +1564,11 @@ body:not(.edit-mode) .agent-profile-container .form-group textarea {
   background: var(--white);
   border: 1px solid var(--border-input);
 }
+
 .agent-profile-container .popup-header h3 {
   color: var(--text-dark);
 }
+
 .agent-profile-container .popup-close {
   color: var(--text-dark);
 }
@@ -1502,6 +1589,7 @@ body:not(.edit-mode) .agent-profile-container .form-group textarea {
   color: #fff;
   border: 1px solid var(--main-color);
 }
+
 .popup-footer .btn.btn-secondary#cancelPhotoBtn:hover {
   background: var(--main-color-normal);
   border-color: var(--main-color-normal);
@@ -1513,6 +1601,7 @@ body:not(.edit-mode) .agent-profile-container .form-group textarea {
   background: var(--input-bg);
   color: var(--input-text);
 }
+
 .popup-content #photoUrlInput:focus {
   border-color: var(--main-color);
   box-shadow: 0 0 0 2px rgba(11, 27, 90, 0.15);
@@ -1530,6 +1619,7 @@ body:not(.edit-mode) .agent-profile-container .form-group textarea {
   .agent-profile-container {
     padding: 30px 25px 50px;
   }
+
   .agent-profile-container .agent-header {
     margin: -30px -25px 25px;
     padding: 30px 25px;

@@ -1,4 +1,3 @@
-// Client-side form handling for vehicule.html
 (function () {
     async function getCurrentUser() {
         try {
@@ -87,16 +86,12 @@
         }
     }
 
-    // Event listeners
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('vehiculeForm');
         const selectProprietaireBtn = document.getElementById('selectProprietaireBtn');
         const proprietaireInput = document.getElementById('proprietaire');
-
-        // Form submission
         form.addEventListener('submit', submitForm);
 
-        // Ouvrir le modal de sélection de citoyen
         selectProprietaireBtn.addEventListener('click', () => {
             if (citoyenSelector) {
                 citoyenSelector.open((citoyenId, citoyenName) => {
@@ -105,7 +100,6 @@
                         proprietaireInput.value = citoyenName;
                         document.getElementById('proprietaire_id').value = citoyenId;
                     } else {
-                        // Aucun propriétaire sélectionné
                         selectedProprietaireId = null;
                         proprietaireInput.value = '';
                         document.getElementById('proprietaire_id').value = '';
@@ -114,7 +108,6 @@
             }
         });
 
-        // Formater la plaque en majuscules automatiquement
         const plaqueInput = document.getElementById('plaque');
         plaqueInput.addEventListener('input', function (e) {
             e.target.value = e.target.value.toUpperCase();
