@@ -84,16 +84,23 @@ try {
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
-// CSP pour autoriser l'affichage en iframe (NUI FiveM / tablettes)
-// Note: FiveM NUI utilise le schéma nui:// qui n'est pas un "network scheme" standard
-// On doit donc autoriser toutes les origines avec * (wildcard)
+// Middleware pour autoriser l'affichage en iframe (FiveM NUI + iframes classiques)
+// Strategy: remove restrictive headers and provide a permissive CSP for frame-ancestors.
+// Note: FiveM NUI may use the custom scheme `nui://` and some embed contexts may use file:// or other origins.
 app.use((req, res, next) => {
-  // Supprimer toute CSP existante qui pourrait bloquer
+  // Remove potentially restrictive headers set elsewhere
   res.removeHeader('Content-Security-Policy');
   res.removeHeader('X-Frame-Options');
 
-  // Autoriser l'affichage en iframe depuis n'importe quelle origine
-  res.setHeader('Content-Security-Policy', "frame-ancestors * 'self' https: http: data: nui:");
+  // Set a permissive frame-ancestors policy so the site can be embedded in iframes
+  // Explicitly include http: and https: schemes (required for some browsers when embedding localhost)
+  // Also allow 'self' and the custom nui: scheme used by FiveM NUI. `data:` is included for data URLs.
+  // Allow common local origins explicitly (useful for dev and FiveM NUI)
+  res.setHeader(
+    'Content-Security-Policy',
+    "frame-ancestors 'self' http: https: data: nui: http://localhost:3001 http://127.0.0.1:3001;"
+  );
+
   next();
 });
 

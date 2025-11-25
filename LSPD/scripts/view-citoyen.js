@@ -299,7 +299,6 @@ async function loadWeaponsForCitizen(citizenId) {
             item.style.gap = '10px';
             item.style.padding = '10px 12px';
             item.style.background = '#fff';
-            // separator between items
             if (idx !== 0) {
                 item.style.borderTop = '1px solid #e0e0e0';
             }
@@ -317,16 +316,13 @@ async function loadWeaponsForCitizen(citizenId) {
             info.innerHTML = `<strong>${w.model_name || 'Modèle inconnu'}</strong><div style="color:#7f8c8d; font-size:13px">S/N: ${w.serial_number || '-'}</div>`;
 
             const actions = document.createElement('div');
-
-            // In edit mode, show a delete button; otherwise no action button (remove 'Voir')
+            // In edit mode, show a delete button; otherwise no action button
             if (isEditMode && currentUserInfo && currentUserInfo.isSupervisor) {
                 const delBtn = document.createElement('button');
                 delBtn.setAttribute('type', 'button');
-                // default state: action to mark for deletion
                 delBtn.className = 'btn btn-danger';
                 delBtn.textContent = 'Supprimer';
 
-                // helper to visually mark/unmark the item
                 function markItemForDeletion(mark) {
                     if (mark) {
                         pendingWeaponDeletions.add(w.id);
@@ -343,23 +339,18 @@ async function loadWeaponsForCitizen(citizenId) {
                     }
                 }
 
-                // initialize if already marked (e.g., re-render)
                 if (pendingWeaponDeletions.has(w.id)) markItemForDeletion(true);
 
                 delBtn.addEventListener('click', () => {
-                    // toggle mark state; ask for confirmation when marking
                     if (!pendingWeaponDeletions.has(w.id)) {
-                        // use custom non-blocking popup instead of native confirm
                         showConfirmModal('Marquer cette arme pour suppression ? La suppression sera effectuée lors de l\'enregistrement.', 'Marquer', 'Annuler')
                             .then(confirmed => {
                                 if (confirmed) markItemForDeletion(true);
                             });
                     } else {
-                        // unmark
                         markItemForDeletion(false);
                     }
                 });
-
                 actions.appendChild(delBtn);
             }
 
@@ -730,6 +721,9 @@ async function loadVehicules() {
 
             vehiculesListEl.appendChild(seeAllBtn);
         }
+
+        vehiculesListEl.innerHTML = '';
+        vehiculesListEl.appendChild(list);
 
     } catch (error) {
         console.error('Erreur chargement véhicules:', error);

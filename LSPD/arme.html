@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="utf-8" />
   <title>Enregistrer une arme - LSPD Assistant</title>
@@ -7,58 +8,111 @@
   <link rel="stylesheet" href="styles/sidebar.css" />
   <link rel="stylesheet" href="styles/colors.css" />
   <link rel="stylesheet" href="styles/loader.css" />
-  <link rel="stylesheet" href="styles/incident/incident.css" />
-  <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/sanction/sanctions.css" />
   <link rel="stylesheet" href="styles/context-menu.css" />
+  <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <link rel="stylesheet" href="styles/citoyen-selector.css" />
+  <style>
+    .proprietaire-selector {
+      position: relative;
+      width: 100%;
+      display: flex;
+    }
+
+    .proprietaire-selector input[type="text"] {
+      width: 100%;
+      padding: 10px 130px 10px 10px;
+      cursor: pointer;
+      background-color: #f8f9fa;
+      box-sizing: border-box;
+      margin-bottom: 0;
+    }
+
+    .proprietaire-selector input[type="text"]:focus {
+      background-color: white;
+    }
+
+    .proprietaire-selector button {
+      background-color: #002147;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-top: 0;
+      transition: all 0.2s ease;
+      width: 25%;
+    }
+
+    .proprietaire-selector button:hover {
+      background-color: #003366;
+    }
+  </style>
 </head>
+
 <body>
   <div id="sidebar-container"></div>
   <script src="scripts/instant-sidebar.js"></script>
 
   <div class="main-container">
     <h1>Enregistrer une arme</h1>
-    <button id="backlinkBtn" class="backlink-btn">← Retour</button>
+    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">← Retour</button>
 
-    <div class="incident-container">
+    <div class="sanction-container">
       <div class="header">
-        <img src="data/images/lspd.png" alt="Logo LSPD" />
+        <img src="data/images/lspd.png" alt="Logo LSPD">
         <div class="header-title">
           <h2>LOS SANTOS POLICE DEPARTMENT</h2>
-          <h3 class="title">ENREGISTREMENT ARME</h3>
+          <h3>ENREGISTREMENT ARME</h3>
         </div>
+        <div style="width: 70px;"></div>
       </div>
-
-      <form id="weaponForm">
-        <label for="model_select">Modèle d'arme</label>
-        <select id="model_select" required>
-          <option value="">-- Sélectionner un modèle --</option>
-        </select>
-
-        <label for="serial_number">Numéro de série</label>
-        <input type="text" id="serial_number" placeholder="S/N" required />
-
-        <label for="owner_search">Propriétaire (recherche)</label>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <input type="text" id="owner_search" placeholder="Rechercher un citoyen par nom/prénom/telephone" />
-          <button id="create_citizen_btn" type="button" class="add-btn">+</button>
+      <form id="armeForm">
+        <div class="inline-fields">
+          <div>
+            <label for="model_select">Modèle d'arme :</label>
+            <select id="model_select" required>
+              <option value="">-- Sélectionner un modèle --</option>
+            </select>
+          </div>
+          <div>
+            <label for="calibre">Calibre :</label>
+            <input type="text" id="calibre" required placeholder="Calibre" readonly>
+          </div>
+          <div>
+            <label for="serial_number">Numéro de série :</label>
+            <input type="text" id="serial_number" required placeholder="S/N">
+          </div>
         </div>
-        <div id="owner_results" style="margin-top:8px;"></div>
 
-        <input type="hidden" id="owner_id" />
+        <label for="proprietaire">Propriétaire :</label>
+        <div class="proprietaire-selector">
+          <input type="text" id="proprietaire" name="proprietaire" readonly
+            placeholder="Aucun propriétaire sélectionné">
+          <input type="hidden" id="proprietaire_id" name="proprietaire_id">
+          <button type="button" id="selectProprietaireBtn">Choisir</button>
+        </div>
 
+
+        <div class="button-container">
+          <button type="submit" id="submitWeapon" class="send-button">Enregistrer l'arme</button>
+        </div>
       </form>
-    </div>
-
-    <div class="button-container">
-      <button id="submitWeapon" class="send-button">Enregistrer l'arme</button>
     </div>
   </div>
 
-  <div id="loaderOverlay" class="loader-overlay" style="display:none;"><div class="loader-spinner"></div></div>
+  <div id="loaderOverlay" class="loader-overlay" style="display:none;">
+    <div class="loader-spinner"></div>
+  </div>
   <div id="feedbackAnimation" style="display:none"></div>
 
+  <script src="scripts/citoyen-selector.js"></script>
   <script src="scripts/loadSidebar.js"></script>
   <script src="scripts/custom-notifications.js"></script>
   <script src="scripts/arme.js"></script>
 </body>
+
 </html>

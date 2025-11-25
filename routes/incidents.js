@@ -91,9 +91,11 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
     const situationsChannel = await bot.channels.fetch(situationForumChannelId);
     const botUser = await bot.user;
 
-    const { rows } = await pool.query("SELECT COUNT(*) FROM incidents");
-    const count = parseInt(rows[0].count, 10) + 1;
-    const incidentId = `INC${count.toString().padStart(4, "0")}`;
+    const result = await pool.query(
+      "SELECT MAX(CAST(SUBSTRING(incident_id FROM 4) AS INTEGER)) AS max_id FROM incidents"
+    );
+    const lastId = result.rows[0].max_id || 0;
+    const incidentId = `INC${(lastId + 1).toString().padStart(4, "0")}`;
 
     const [yyyy, mm, dd] = date.split("-");
     const formattedDate = `${dd}/${mm}/${yyyy}`;
