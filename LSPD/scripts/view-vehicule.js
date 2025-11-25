@@ -287,19 +287,11 @@
     }
 
     function setupPhotoModal() {
-        const photoContainer = document.getElementById('photo-container');
         const photoModal = document.getElementById('photoModal');
         const photoUrlInput = document.getElementById('photoUrlInput');
         const photoPreviewModal = document.getElementById('photoPreviewModal');
         const savePhotoBtn = document.getElementById('savePhotoBtn');
         const cancelPhotoBtn = document.getElementById('cancelPhotoBtn');
-
-        photoContainer.addEventListener('click', () => {
-            if (!isEditMode) return;
-            photoUrlInput.value = vehicleData.photo || '';
-            photoPreviewModal.style.display = 'none';
-            photoModal.style.display = 'flex';
-        });
 
         photoUrlInput.addEventListener('input', (e) => {
             const url = e.target.value;
@@ -316,7 +308,13 @@
 
         savePhotoBtn.addEventListener('click', () => {
             vehicleData.photo = photoUrlInput.value.trim() || null;
-            document.getElementById('photo_preview').src = vehicleData.photo || 'data/images/default-vehicle.png';
+            const photoPreview = document.getElementById('photo_preview');
+            if (vehicleData.photo) {
+                photoPreview.src = vehicleData.photo;
+                photoPreview.style.display = 'block';
+            } else {
+                photoPreview.src = 'data/images/default-vehicle.png';
+            }
             photoModal.style.display = 'none';
         });
 
@@ -329,6 +327,22 @@
                 photoModal.style.display = 'none';
             }
         });
+    }
+
+    function openPhotoModal() {
+        const photoModal = document.getElementById('photoModal');
+        const photoUrlInput = document.getElementById('photoUrlInput');
+        const photoPreviewModal = document.getElementById('photoPreviewModal');
+
+        photoUrlInput.value = vehicleData.photo || '';
+        photoPreviewModal.style.display = 'none';
+
+        if (vehicleData.photo) {
+            photoPreviewModal.src = vehicleData.photo;
+            photoPreviewModal.style.display = 'block';
+        }
+
+        photoModal.style.display = 'flex';
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -376,6 +390,7 @@
 
     function setupPhotoZoom() {
         const photoPreview = document.getElementById('photo_preview');
+        const photoContainer = document.getElementById('photo-container');
 
         const zoomModal = document.createElement('div');
         zoomModal.className = 'photo-zoom-modal';
@@ -388,8 +403,11 @@
         const zoomedPhoto = document.getElementById('zoomed-photo');
         const closeZoom = zoomModal.querySelector('.close-zoom');
 
-        photoPreview.addEventListener('click', () => {
-            if (vehicleData && vehicleData.photo) {
+        photoContainer.addEventListener('click', (e) => {
+            if (isEditMode) {
+                openPhotoModal();
+            }
+            else if (vehicleData && vehicleData.photo) {
                 zoomedPhoto.src = vehicleData.photo;
                 zoomModal.style.display = 'flex';
             }

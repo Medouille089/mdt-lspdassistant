@@ -734,9 +734,6 @@ async function loadVehicules() {
             vehiculesListEl.appendChild(seeAllBtn);
         }
 
-        vehiculesListEl.innerHTML = '';
-        vehiculesListEl.appendChild(list);
-
     } catch (error) {
         console.error('Erreur chargement véhicules:', error);
         vehiculesListEl.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur de chargement</p>';
