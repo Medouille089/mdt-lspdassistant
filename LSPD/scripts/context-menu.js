@@ -161,6 +161,10 @@ function removeContextMenu() {
 
 document.addEventListener('contextmenu', function (e) {
   if (!is_active) return;
+  // If not a table row in weapons list, clear extraMenuItems
+  if (!e.target.closest('tr') || !window.location.pathname.includes('liste-armes.html')) {
+    window.setExtraContextMenuItems([]);
+  }
   // Mémorise le champ actif si c'est un input ou textarea
   const active = document.activeElement;
   if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {

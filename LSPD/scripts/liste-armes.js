@@ -128,6 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Ajout du menu contextuel personnalisé pour copier le N° série
                         tr.addEventListener('contextmenu', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 window.setExtraContextMenuItems([
                                     {
                                         label: 'Copier le N° série',
@@ -141,6 +143,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                         id: 'copy-serial-item'
                                     }
                                 ]);
+                                if (typeof window.createContextMenu === 'function') {
+                                    window.createContextMenu(e.clientX, e.clientY);
+                                }
                         });
                     // Remove extra menu items when clicking elsewhere (cleanup)
                     document.addEventListener('click', () => {
