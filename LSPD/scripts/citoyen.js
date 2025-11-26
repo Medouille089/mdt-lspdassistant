@@ -91,6 +91,8 @@
       const telephoneNumbers = telephoneInput.replace(/\D/g, '');
       const telephoneFormatted = telephoneNumbers ? formatPhoneNumber(telephoneNumbers) : null;
 
+      const photoPreview = document.getElementById('photo_preview');
+      const photoUrl = photoPreview && photoPreview.src && !photoPreview.src.includes('default-citoyen.png') ? photoPreview.src.trim() : null;
       const formData = {
         nom: document.getElementById('nom').value.trim(),
         prenom: document.getElementById('prenom').value.trim(),
@@ -100,7 +102,7 @@
         telephone: telephoneFormatted,
         emploi: document.getElementById('emploi').value.trim() || null,
         mandat_actif: document.getElementById('mandat_actif').value === 'true',
-        photo: document.getElementById('photo').value.trim() || null,
+        photo: photoUrl,
         created_by: user.username
       };
 
@@ -136,6 +138,13 @@
   document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('citoyenForm');
     const telephoneInput = document.getElementById('telephone');
+    const photoPreview = document.getElementById('photo_preview');
+    const editPhotoBtn = document.getElementById('editPhotoBtn');
+    const photoModal = document.getElementById('photoModal');
+    const photoUrlInput = document.getElementById('photoUrlInput');
+    const photoPreviewModal = document.getElementById('photoPreviewModal');
+    const savePhotoBtn = document.getElementById('savePhotoBtn');
+    const cancelPhotoBtn = document.getElementById('cancelPhotoBtn');
 
     // Form submission
     form.addEventListener('submit', submitForm);
@@ -144,17 +153,59 @@
     telephoneInput.addEventListener('input', function(e) {
       const cursorPosition = e.target.selectionStart;
       const oldLength = e.target.value.length;
-      
       e.target.value = formatPhoneNumber(e.target.value);
-      
       const newLength = e.target.value.length;
       const diff = newLength - oldLength;
-      
-      // Ajuster la position du curseur si le formatage a ajouté des caractères
       if (diff > 0) {
         e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
       } else {
         e.target.setSelectionRange(cursorPosition, cursorPosition);
+      }
+    });
+
+    // Photo modal logic
+    editPhotoBtn.addEventListener('click', () => {
+      photoUrlInput.value = photoPreview.src && !photoPreview.src.includes('default-citoyen.png') ? photoPreview.src : '';
+      if (photoUrlInput.value) {
+        photoPreviewModal.src = photoUrlInput.value;
+        photoPreviewModal.style.display = 'block';
+      } else {
+        photoPreviewModal.style.display = 'none';
+      }
+      photoModal.style.display = 'flex';
+    });
+
+    photoUrlInput.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      if (url) {
+        photoPreviewModal.src = url;
+        photoPreviewModal.style.display = 'block';
+        photoPreviewModal.onerror = () => {
+          photoPreviewModal.style.display = 'none';
+        };
+      } else {
+        photoPreviewModal.style.display = 'none';
+      }
+    });
+
+    savePhotoBtn.addEventListener('click', () => {
+      const url = photoUrlInput.value.trim();
+      if (url) {
+        photoPreview.src = url;
+        photoPreview.style.display = 'block';
+      } else {
+        photoPreview.src = 'data/images/default-citoyen.png';
+      }
+      photoModal.style.display = 'none';
+    });
+
+    cancelPhotoBtn.addEventListener('click', () => {
+      photoModal.style.display = 'none';
+    });
+
+    photoModal.addEventListener('click', (e) => {
+      if (e.target === photoModal) {
+        photoModal.style.display = 'none';
       }
     });
   });

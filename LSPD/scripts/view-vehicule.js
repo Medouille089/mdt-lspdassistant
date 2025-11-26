@@ -295,9 +295,13 @@
         const cancelPhotoBtn = document.getElementById('cancelPhotoBtn');
 
         photoContainer.addEventListener('click', () => {
-            if (!isEditMode) return;
             photoUrlInput.value = vehicleData.photo || '';
-            photoPreviewModal.style.display = 'none';
+            if (photoUrlInput.value) {
+                photoPreviewModal.src = photoUrlInput.value;
+                photoPreviewModal.style.display = 'block';
+            } else {
+                photoPreviewModal.style.display = 'none';
+            }
             photoModal.style.display = 'flex';
         });
 

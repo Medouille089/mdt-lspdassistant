@@ -153,6 +153,90 @@
         .agent-photo {
             cursor: pointer;
         }
+
+        /* Modal d'édition de photo */
+        .photo-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            padding: 24px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        #photoUrlInput {
+            width: 100%;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            color: #222;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            box-sizing: border-box;
+        }
+
+        #photoUrlInput:focus {
+            border-color: #002147;
+            outline: none;
+        }
+
+        .photo-modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .btn-cancel,
+        .btn-confirm {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-cancel:hover {
+            background: #eee;
+        }
+
+        .btn-confirm {
+            background: #002147;
+            color: #fff;
+        }
+
+        .btn-confirm:hover {
+            background: #003366;
+            transform: translateY(-2px);
+        }
+
+        .photo-preview-container img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            display: none;
+        }
     </style>
 </head>
 

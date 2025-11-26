@@ -609,41 +609,57 @@ async function deleteCitoyen() {
 // Gestion du popup photo
 function setupPhotoModal() {
     const photoContainer = document.getElementById('photo-container');
-    const modal = document.getElementById('photoModal');
+    const photoModal = document.getElementById('photoModal');
     const photoUrlInput = document.getElementById('photoUrlInput');
-    // PAS de preview, juste le champ
+    const photoPreviewModal = document.getElementById('photoPreviewModal');
     const savePhotoBtn = document.getElementById('savePhotoBtn');
     const cancelPhotoBtn = document.getElementById('cancelPhotoBtn');
 
-    // Clic sur la photo pour ouvrir le modal en mode édition
-    photoContainer.addEventListener('click', (e) => {
+    photoContainer.addEventListener('click', () => {
         if (!(isEditMode || document.body.classList.contains('edit-mode'))) return;
         const previewEl = document.getElementById('photo_preview');
-        const currentSrc = previewEl ? (previewEl.getAttribute('src') || '').trim() : '';
-        photoUrlInput.value = currentSrc || '';
-        modal.style.display = 'flex';
+        photoUrlInput.value = previewEl && previewEl.src && !previewEl.src.includes('default-citoyen.png') ? previewEl.src : '';
+        if (photoUrlInput.value) {
+            photoPreviewModal.src = photoUrlInput.value;
+            photoPreviewModal.style.display = 'block';
+        } else {
+            photoPreviewModal.style.display = 'none';
+        }
+        photoModal.style.display = 'flex';
     });
 
-    // PAS d'aperçu ni de logique d'image
+    photoUrlInput.addEventListener('input', (e) => {
+        const url = e.target.value.trim();
+        if (url) {
+            photoPreviewModal.src = url;
+            photoPreviewModal.style.display = 'block';
+            photoPreviewModal.onerror = () => {
+                photoPreviewModal.style.display = 'none';
+            };
+        } else {
+            photoPreviewModal.style.display = 'none';
+        }
+    });
 
-    // Sauvegarder le lien
     savePhotoBtn.addEventListener('click', () => {
         const url = photoUrlInput.value.trim();
-        // Met à jour l'image preview pour que le PUT prenne le bon lien
         const previewEl = document.getElementById('photo_preview');
-        if (previewEl) previewEl.src = url;
-        modal.style.display = 'none';
+        if (url) {
+            previewEl.src = url;
+            previewEl.style.display = 'block';
+        } else {
+            previewEl.src = 'data/images/default-citoyen.png';
+        }
+        photoModal.style.display = 'none';
     });
 
-    // Fermer le modal
     cancelPhotoBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
+        photoModal.style.display = 'none';
     });
 
-    // Fermer le modal en cliquant sur l'overlay
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
+    photoModal.addEventListener('click', (e) => {
+        if (e.target === photoModal) {
+            photoModal.style.display = 'none';
         }
     });
 }
@@ -734,8 +750,7 @@ async function loadVehicules() {
             vehiculesListEl.appendChild(seeAllBtn);
         }
 
-        vehiculesListEl.innerHTML = '';
-        vehiculesListEl.appendChild(list);
+        // Rien à faire ici, les items sont déjà ajoutés à vehiculesListEl
 
     } catch (error) {
         console.error('Erreur chargement véhicules:', error);

@@ -11,6 +11,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const modelsList = document.getElementById('modelsList');
     const tableBody = document.querySelector('#armesTable tbody');
     const searchInput = document.getElementById('searchInput');
+    const imagePreviewModal = document.getElementById('imagePreviewModal');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+    // Preview dynamique de l'image dans la modal
+    imageUrlInput.addEventListener('input', (e) => {
+        const url = e.target.value.trim();
+        if (url) {
+            imagePreviewModal.src = url;
+            imagePreviewModal.style.display = 'block';
+            imagePreviewModal.onerror = () => {
+                imagePreviewModal.style.display = 'none';
+            };
+        } else {
+            imagePreviewModal.style.display = 'none';
+        }
+    });
+
+    // Affiche le preview si on ouvre la modal avec une valeur déjà présente
+    modal.addEventListener('show', () => {
+        const url = imageUrlInput.value.trim();
+        if (url) {
+            imagePreviewModal.src = url;
+            imagePreviewModal.style.display = 'block';
+        } else {
+            imagePreviewModal.style.display = 'none';
+        }
+    });
     let modelsCache = [];
     const loader = document.getElementById('loaderOverlay');
 
@@ -152,6 +179,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 imageUrlInput.value = m.image_url || '';
                 document.getElementById('calibre_modal').value = m.calibre || '';
                 modalTitle.textContent = 'Modifier le modèle';
+                // Affiche le preview si une image existe
+                if (imageUrlInput.value.trim()) {
+                    imagePreviewModal.src = imageUrlInput.value.trim();
+                    imagePreviewModal.style.display = 'block';
+                } else {
+                    imagePreviewModal.style.display = 'none';
+                }
                 modal.style.display = 'flex';
             });
 
@@ -170,7 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
             modelIdInput.value = '';
             modelNameInput.value = '';
             imageUrlInput.value = '';
+            document.getElementById('calibre_modal').value = '';
             modalTitle.textContent = 'Ajouter un modèle';
+            imagePreviewModal.style.display = 'none';
             modal.style.display = 'flex';
         });
     }
