@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <title>Liste des contrats - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/context-menu.css" />
+    <link rel="stylesheet" href="styles/custom-notifications.css" />
+    <link rel="stylesheet" href="styles/contrat/liste-contrats.css" />
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <script src="scripts/context-menu.js"></script>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <script src="scripts/instant-sidebar.js"></script>
+        <div class="content">
+            <h1>Liste des contrats LSPD</h1>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Total des contrats</h3>
+                    <div class="value" id="totalContrats">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Contrats actifs</h3>
+                    <div class="value" id="contratsActifs" style="color: #27ae60;">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>En attente</h3>
+                    <div class="value" id="contratsAttente" style="color: #f39c12;">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Expirés</h3>
+                    <div class="value" id="contratsExpires" style="color: #e74c3c;">0</div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <input type="text" id="searchInput" placeholder="🔍 Rechercher (entreprise, numéro...)"
+                    style="flex: 1; min-width: 250px;">
+
+                <select id="statutFilter">
+                    <option value="">Tous les statuts</option>
+                    <option value="actif">Actif</option>
+                    <option value="en_attente">En attente</option>
+                    <option value="expire">Expiré</option>
+                    <option value="resilie">Résilié</option>
+                </select>
+
+                <button class="add-btn" onclick="window.location.href='/contrat'">
+                    Nouveau contrat
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="contratTable">
+                    <thead>
+                        <tr>
+                            <th>Numéro</th>
+                            <th>Entreprise</th>
+                            <th>Représentant</th>
+                            <th>Date début</th>
+                            <th>Date fin</th>
+                            <th>Durée</th>
+                            <th>Statut</th>
+                            <th>Officier</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contratTableBody">
+                        <!-- Rempli dynamiquement -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination">
+                <!-- Pagination dynamique -->
+            </div>
+        </div>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script type="module" src="scripts/liste-contrats.js"></script>
+</body>
+
+</html>
