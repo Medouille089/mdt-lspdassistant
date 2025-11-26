@@ -30,8 +30,13 @@ router.get('/api/contrats', checkAuth, async (req, res) => {
 
         // Filtre statut
         if (statut) {
-            query += ` AND statut = $${paramIndex}`;
-            params.push(statut);
+            if (statut === 'resilie') {
+                query += ` AND (statut = $${paramIndex} OR statut = 'Résilié')`;
+                params.push('resilie');
+            } else {
+                query += ` AND statut = $${paramIndex}`;
+                params.push(statut);
+            }
             paramIndex++;
         }
 
@@ -56,8 +61,13 @@ router.get('/api/contrats', checkAuth, async (req, res) => {
         }
 
         if (statut) {
-            countQuery += ` AND statut = $${countParamIndex}`;
-            countParams.push(statut);
+            if (statut === 'resilie') {
+                countQuery += ` AND (statut = $${countParamIndex} OR statut = 'Résilié')`;
+                countParams.push('resilie');
+            } else {
+                countQuery += ` AND statut = $${countParamIndex}`;
+                countParams.push(statut);
+            }
         }
 
         const { rows: countRows } = await pool.query(countQuery, countParams);
@@ -284,15 +294,7 @@ router.post('/api/contrats/:id/image', checkAuth, upload.single('image'), async 
 
         const attachment = new AttachmentBuilder(file.buffer, { name: file.originalname });
 
-        // Log simple
-        if (logsChannelId) {
-            try {
-                const logsChannel = await bot.channels.fetch(logsChannelId);
-                await logsChannel.send({ embeds: [embed] });
-            } catch (e) {
-                console.error('Erreur log channel:', e);
-            }
-        }
+        let threadId = null;
 
         if (threadChannelId) {
             const threadChannel = await bot.channels.fetch(threadChannelId);
@@ -313,16 +315,18 @@ router.post('/api/contrats/:id/image', checkAuth, upload.single('image'), async 
 
             if (targetThread) {
                 await targetThread.send({ files: [attachment] });
+                threadId = targetThread.id;
             } else {
                 // Création du thread avec Embed + Image
                 if (threadChannel.type === 15) { // GUILD_FORUM
-                    await threadChannel.threads.create({
+                    const thread = await threadChannel.threads.create({
                         name: `${contrat.numero_contrat} - ${contrat.nom_entreprise}`,
                         message: {
                             embeds: [embed],
                             files: [attachment]
                         }
                     });
+                    threadId = thread.id;
                 } else {
                     const thread = await threadChannel.threads.create({
                         name: `${contrat.numero_contrat} - ${contrat.nom_entreprise}`,
@@ -330,7 +334,43 @@ router.post('/api/contrats/:id/image', checkAuth, upload.single('image'), async 
                         reason: 'Nouveau contrat'
                     });
                     await thread.send({ embeds: [embed], files: [attachment] });
+                    threadId = thread.id;
                 }
+            }
+        }
+
+        // Log simple
+        if (logsChannelId) {
+            try {
+                const logsChannel = await bot.channels.fetch(logsChannelId);
+                const mentionThread = threadId ? `<#${threadId}>` : 'Aucun thread';
+                const user = req.user || {};
+                const userName = user.guild_member?.nick || user.displayName || user.username || 'Utilisateur inconnu';
+                const userId = user.id || 'Inconnu';
+
+                const embedLog = new EmbedBuilder()
+                    .setColor(0x0b1b5a)
+                    .setTitle(`Nouveau contrat - ${contrat.numero_contrat}`)
+                    .setDescription(`${userName} a créé un nouveau contrat pour **${contrat.nom_entreprise}**`)
+                    .addFields({
+                        name: "ID's",
+                        value: `> <@${userId}> (\`${userId}\`)\n> ${mentionThread} (\`${threadId || 'N/A'}\`)`,
+                        inline: false
+                    })
+                    .addFields({
+                        name: "Détails",
+                        value: `> **Entreprise:** ${contrat.nom_entreprise}\n> **Durée:** ${contrat.duree_mois} mois\n> **Officier:** ${contrat.officier_responsable}`,
+                        inline: false
+                    })
+                    .setFooter({
+                        text: "LSPD Assistant",
+                        iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
+                    })
+                    .setTimestamp();
+
+                await logsChannel.send({ embeds: [embedLog] });
+            } catch (e) {
+                console.error('Erreur log channel:', e);
             }
         }
 
@@ -349,7 +389,7 @@ router.post('/api/contrats/:id/terminate', checkAuth, async (req, res) => {
 
         const { rows } = await pool.query(
             'UPDATE contrats SET statut = $1, updated_by = $2 WHERE id = $3 RETURNING *',
-            ['Résilié', username, id]
+            ['resilie', username, id]
         );
 
         if (rows.length === 0) {
@@ -363,17 +403,26 @@ router.post('/api/contrats/:id/terminate', checkAuth, async (req, res) => {
 
             if (logsChannelId) {
                 const logsChannel = await bot.channels.fetch(logsChannelId);
-                const embed = new EmbedBuilder()
-                    .setTitle('🚫 Contrat Résilié')
-                    .setColor('#FF0000')
-                    .addFields(
-                        { name: 'Numéro', value: rows[0].numero_contrat, inline: true },
-                        { name: 'Entreprise', value: rows[0].nom_entreprise, inline: true }
-                    )
-                    .setTimestamp()
-                    .setFooter({ text: `Résilié par ${username}` });
+                const user = req.user || {};
+                const userName = user.guild_member?.nick || user.displayName || user.username || 'Utilisateur inconnu';
+                const userId = user.id || 'Inconnu';
 
-                await logsChannel.send({ embeds: [embed] });
+                const embedLog = new EmbedBuilder()
+                    .setColor(0x0b1b5a)
+                    .setTitle(`Contrat résilié - ${rows[0].numero_contrat}`)
+                    .setDescription(`${userName} a résilié le contrat de **${rows[0].nom_entreprise}**`)
+                    .addFields({
+                        name: "ID's",
+                        value: `> <@${userId}> (\`${userId}\`)`,
+                        inline: false
+                    })
+                    .setFooter({
+                        text: "LSPD Assistant",
+                        iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
+                    })
+                    .setTimestamp();
+
+                await logsChannel.send({ embeds: [embedLog] });
             }
         } catch (logError) {
             console.error('Erreur lors de l\'envoi du log Discord:', logError);
@@ -411,17 +460,26 @@ router.delete('/api/contrats/:id', checkAuth, async (req, res) => {
 
             if (logsChannelId) {
                 const logsChannel = await bot.channels.fetch(logsChannelId);
-                const embed = new EmbedBuilder()
-                    .setTitle('🗑️ Contrat supprimé')
-                    .setColor('#FF0000')
-                    .addFields(
-                        { name: 'Numéro', value: existingRows[0].numero_contrat, inline: true },
-                        { name: 'Entreprise', value: existingRows[0].nom_entreprise, inline: true }
-                    )
-                    .setTimestamp()
-                    .setFooter({ text: `Supprimé par ${username}` });
+                const user = req.user || {};
+                const userName = user.guild_member?.nick || user.displayName || user.username || 'Utilisateur inconnu';
+                const userId = user.id || 'Inconnu';
 
-                await logsChannel.send({ embeds: [embed] });
+                const embedLog = new EmbedBuilder()
+                    .setColor(0x0b1b5a)
+                    .setTitle(`Contrat supprimé - ${existingRows[0].numero_contrat}`)
+                    .setDescription(`${userName} a supprimé le contrat de **${existingRows[0].nom_entreprise}**`)
+                    .addFields({
+                        name: "ID's",
+                        value: `> <@${userId}> (\`${userId}\`)`,
+                        inline: false
+                    })
+                    .setFooter({
+                        text: "LSPD Assistant",
+                        iconURL: bot.user.displayAvatarURL({ extension: 'png', size: 256 })
+                    })
+                    .setTimestamp();
+
+                await logsChannel.send({ embeds: [embedLog] });
             }
         } catch (logError) {
             console.error('Erreur lors de l\'envoi du log Discord:', logError);

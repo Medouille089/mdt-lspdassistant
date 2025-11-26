@@ -47,7 +47,7 @@ async function loadAllStats() {
 function updateStats(contrats) {
     document.getElementById('totalContrats').textContent = contrats.length;
     document.getElementById('contratsActifs').textContent = contrats.filter(c => c.statut === 'actif').length;
-    document.getElementById('contratsAttente').textContent = contrats.filter(c => c.statut === 'en_attente').length;
+    document.getElementById('contratsResilies').textContent = contrats.filter(c => c.statut === 'resilie' || c.statut === 'Résilié').length;
     document.getElementById('contratsExpires').textContent = contrats.filter(c => c.statut === 'expire').length;
 }
 
