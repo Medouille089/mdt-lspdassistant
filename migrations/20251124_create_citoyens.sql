@@ -10,14 +10,25 @@ CREATE TABLE IF NOT EXISTS citoyens (
     nationalite VARCHAR(100) NOT NULL,
     genre VARCHAR(50) NOT NULL,
     telephone VARCHAR(20),
+    adresse TEXT,
+    gang_affilie VARCHAR(255),
+    note_interne TEXT,
     emploi VARCHAR(255),
     mandat_actif BOOLEAN NOT NULL DEFAULT FALSE,
     photo TEXT,
+    permis_A BOOLEAN NOT NULL DEFAULT FALSE,
+    permis_B BOOLEAN NOT NULL DEFAULT FALSE,
+    permis_C BOOLEAN NOT NULL DEFAULT FALSE,
+    permis_PPA BOOLEAN NOT NULL DEFAULT FALSE,
+    permis_BRAVO BOOLEAN NOT NULL DEFAULT FALSE,
+    permis_ASD BOOLEAN NOT NULL DEFAULT FALSE,
+    note TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(255),
     updated_by VARCHAR(255)
 );
+
 
 -- Index pour améliorer les performances de recherche
 CREATE INDEX IF NOT EXISTS idx_citoyens_nom ON citoyens(nom);

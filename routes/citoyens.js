@@ -79,13 +79,23 @@ router.get('/api/citoyens', checkAuth, cacheCitoyens(), async (req, res) => {
 router.get('/api/citoyens/:id', checkAuth, cacheCitoyenDetail(), async (req, res) => {
     try {
         const { id } = req.params;
-        const { rows } = await pool.query('SELECT * FROM citoyens WHERE id = $1', [id]);
-
+        const { rows } = await pool.query(`
+            SELECT id, nom, prenom, date_naissance, nationalite, genre, telephone, adresse, gang_affilie, note_interne, emploi, mandat_actif, photo, created_at, updated_at, created_by, updated_by,
+                permis_A, permis_B, permis_C, permis_PPA, permis_BRAVO, permis_ASD
+            FROM citoyens
+            WHERE id = $1
+        `, [id]);
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Citoyen non trouvé' });
         }
-
-        res.json(rows[0]);
+        const citoyen = rows[0];
+        citoyen.permis_A = !!citoyen.permis_A;
+        citoyen.permis_B = !!citoyen.permis_B;
+        citoyen.permis_C = !!citoyen.permis_C;
+        citoyen.permis_PPA = !!citoyen.permis_PPA;
+        citoyen.permis_BRAVO = !!citoyen.permis_BRAVO;
+        citoyen.permis_ASD = !!citoyen.permis_ASD;
+        res.json(citoyen);
     } catch (error) {
         console.error('Erreur lors de la récupération du citoyen:', error);
         res.status(500).json({ error: 'Erreur serveur lors de la récupération du citoyen' });
@@ -103,9 +113,19 @@ router.post('/api/citoyens', checkAuth, async (req, res) => {
             genre,
             telephone,
             emploi,
+            adresse,
+            gang_affilie,
+            note_interne,
             mandat_actif,
             photo,
-            created_by
+            created_by,
+            permis_A,
+            permis_B,
+            permis_C,
+            permis_PPA,
+            permis_BRAVO,
+            permis_ASD,
+            note
         } = req.body;
 
         // Validation des champs requis
@@ -118,8 +138,9 @@ router.post('/api/citoyens', checkAuth, async (req, res) => {
 
         const { rows } = await pool.query(
             `INSERT INTO citoyens 
-            (nom, prenom, date_naissance, nationalite, genre, telephone, emploi, mandat_actif, photo, created_by, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+            (nom, prenom, date_naissance, nationalite, genre, telephone, emploi, adresse, gang_affilie, note_interne, mandat_actif, photo, created_by, created_at, updated_at,
+            permis_A, permis_B, permis_C, permis_PPA, permis_BRAVO, permis_ASD, note)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW(), $14, $15, $16, $17, $18, $19, $20)
             RETURNING *`,
             [
                 nom,
@@ -129,9 +150,19 @@ router.post('/api/citoyens', checkAuth, async (req, res) => {
                 genre,
                 telephone || null,
                 emploi || null,
+                adresse || null,
+                gang_affilie || null,
+                note_interne || null,
                 mandat_actif || false,
                 photo || null,
-                createdBy
+                createdBy,
+                !!permis_A,
+                !!permis_B,
+                !!permis_C,
+                !!permis_PPA,
+                !!permis_BRAVO,
+                !!permis_ASD,
+                note || null
             ]
         );
 
@@ -196,8 +227,18 @@ router.put('/api/citoyens/:id', checkAuth, async (req, res) => {
             genre,
             telephone,
             emploi,
+            adresse,
+            gang_affilie,
+            note_interne,
             mandat_actif,
-            photo
+            photo,
+            permis_A,
+            permis_B,
+            permis_C,
+            permis_PPA,
+            permis_BRAVO,
+            permis_ASD,
+            note
         } = req.body;
 
         // Validation des champs requis
@@ -219,8 +260,9 @@ router.put('/api/citoyens/:id', checkAuth, async (req, res) => {
         const { rows } = await pool.query(
             `UPDATE citoyens 
             SET nom = $1, prenom = $2, date_naissance = $3, nationalite = $4, genre = $5, 
-                telephone = $6, emploi = $7, mandat_actif = $8, photo = $9, updated_by = $10, updated_at = NOW()
-            WHERE id = $11
+                telephone = $6, emploi = $7, adresse = $8, gang_affilie = $9, note_interne = $10, mandat_actif = $11, photo = $12, updated_by = $13, updated_at = NOW(),
+                permis_A = $14, permis_B = $15, permis_C = $16, permis_PPA = $17, permis_BRAVO = $18, permis_ASD = $19, note = $20
+            WHERE id = $21
             RETURNING *`,
             [
                 nom,
@@ -230,12 +272,37 @@ router.put('/api/citoyens/:id', checkAuth, async (req, res) => {
                 genre,
                 telephone || null,
                 emploi || null,
+                adresse || null,
+                gang_affilie || null,
+                note_interne || null,
                 mandat_actif || false,
                 photo || null,
                 updatedBy,
+                !!permis_A,
+                !!permis_B,
+                !!permis_C,
+                !!permis_PPA,
+                !!permis_BRAVO,
+                !!permis_ASD,
+                note || null,
                 id
             ]
         );
+// DELETE /api/citoyens/:id - Supprimer un citoyen
+router.delete('/api/citoyens/:id', checkAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rows } = await pool.query('DELETE FROM citoyens WHERE id = $1 RETURNING *', [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Citoyen non trouvé' });
+        }
+        invalidateCitoyensCache();
+        res.json({ success: true, deleted: rows[0] });
+    } catch (error) {
+        console.error('Erreur lors de la suppression du citoyen:', error);
+        res.status(500).json({ error: 'Erreur serveur lors de la suppression du citoyen' });
+    }
+});
 
         const updatedCitoyen = rows[0];
 

@@ -45,6 +45,9 @@
         <div style="width: 70px;"></div>
       </div>
       <form id="citoyenForm">
+
+
+        <!-- Identité -->
         <div class="inline-fields">
           <div>
             <label for="nom">Nom :</label>
@@ -55,7 +58,6 @@
             <input type="text" id="prenom" name="prenom" required placeholder="John">
           </div>
         </div>
-
         <div class="inline-fields">
           <div>
             <label for="date_naissance">Date de naissance :</label>
@@ -66,7 +68,6 @@
             <input type="text" id="nationalite" name="nationalite" required placeholder="Américaine">
           </div>
         </div>
-
         <div class="inline-fields">
           <div>
             <label for="genre">Genre :</label>
@@ -83,35 +84,85 @@
           </div>
         </div>
 
-        <label for="emploi">Emploi :</label>
-        <input type="text" id="emploi" name="emploi" placeholder="Profession du citoyen">
+        <!-- Photo -->
+        <label for="photoUrlInput">Photo (URL) :</label>
+        <input type="url" id="photoUrlInput" name="photoUrlInput"
+          placeholder="https://cdn.discordapp.com/attachments/..." style="margin-bottom: 8px;">
+        <div class="photo-preview-container" style="margin: 15px 0;">
+          <img id="photo_preview" src="" alt="Photo Citoyen"
+            style="max-width: 120px; max-height: 120px; border-radius: 8px; object-fit: cover; background: #f8f9fa; border: 1px solid #e0e0e0; display: none;">
+        </div>
 
+
+        <!-- Adresse et emploi -->
+        <div class="inline-fields">
+          <div>
+            <label for="adresse">Adresse :</label>
+            <input type="text" id="adresse" name="adresse" placeholder="123 Grove St, Los Santos">
+          </div>
+          <div>
+            <label for="emploi">Emploi :</label>
+            <input type="text" id="emploi" name="emploi" placeholder="Profession du citoyen">
+          </div>
+        </div>
+
+        <!-- Gang et note interne -->
+        <div class="inline-fields">
+          <div>
+            <label for="gang_affilie">Gang affilié :</label>
+            <input type="text" id="gang_affilie" name="gang_affilie" placeholder="Nom du gang (si applicable)">
+          </div>
+          <div>
+            <label for="note_interne">Note interne :</label>
+            <textarea id="note_interne" name="note_interne"
+              placeholder="Notes internes, visible uniquement par le staff" style="min-height: 40px;"></textarea>
+          </div>
+        </div>
+
+        <!-- Permis -->
+
+        <div class="equipment-category">
+          <h4>Permis</h4>
+          <div class="equipment-list" style="display: flex; flex-wrap: wrap; gap: 18px;">
+            <div class="checkbox-wrapper-34">
+              <input class="tgl tgl-ios" id="permis_A" type="checkbox">
+              <label class="tgl-btn" for="permis_A"></label>
+              <span style="margin-left:8px;">Permis A</span>
+            </div>
+            <div class="checkbox-wrapper-34">
+              <input class="tgl tgl-ios" id="permis_B" type="checkbox">
+              <label class="tgl-btn" for="permis_B"></label>
+              <span style="margin-left:8px;">Permis B</span>
+            </div>
+            <div class="checkbox-wrapper-34">
+              <input class="tgl tgl-ios" id="permis_C" type="checkbox">
+              <label class="tgl-btn" for="permis_C"></label>
+              <span style="margin-left:8px;">Permis C</span>
+            </div>
+            <div class="checkbox-wrapper-34">
+              <input class="tgl tgl-ios" id="permis_PPA" type="checkbox">
+              <label class="tgl-btn" for="permis_PPA"></label>
+              <span style="margin-left:8px;">Permis port d'arme</span>
+            </div>
+            <div class="checkbox-wrapper-34">
+              <input class="tgl tgl-ios" id="permis_BRAVO" type="checkbox">
+              <label class="tgl-btn" for="permis_BRAVO"></label>
+              <span style="margin-left:8px;">License BRAVO</span>
+            </div>
+            <div class="checkbox-wrapper-34">
+              <input class="tgl tgl-ios" id="permis_ASD" type="checkbox">
+              <label class="tgl-btn" for="permis_ASD"></label>
+              <span style="margin-left:8px;">License ASD</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mandat d'arrêt -->
         <label for="mandat_actif">Mandat d'arrêt actif :</label>
         <select id="mandat_actif" name="mandat_actif">
           <option value="false">Non</option>
           <option value="true">Oui</option>
         </select>
-
-        <label for="photo">Photo (URL) :</label>
-        <div id="photo-container" style="margin: 15px 0; cursor: pointer; display: flex; align-items: center; gap: 16px;">
-          <img id="photo_preview" src="data/images/default-citoyen.png" alt="Photo Citoyen" style="max-width: 120px; max-height: 120px; border-radius: 8px; object-fit: cover; background: #f8f9fa; border: 1px solid #e0e0e0;">
-          <button type="button" id="editPhotoBtn" style="padding: 8px 16px; background-color: #002147; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s ease;">Modifier la photo</button>
-        </div>
-
-        <!-- Modal pour modifier la photo -->
-        <div id="photoModal" class="photo-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center;">
-          <div class="photo-modal-content" style="background: white; border-radius: 12px; max-width: 400px; width: 90%; padding: 24px; margin: auto; display: flex; flex-direction: column; gap: 12px;">
-            <h3 style="margin-bottom: 8px;">Modifier la photo</h3>
-            <input type="url" id="photoUrlInput" placeholder="https://cdn.discordapp.com/attachments/..." style="margin-bottom: 8px;">
-            <div class="photo-preview-container" style="margin: 15px 0;">
-              <img id="photoPreviewModal" src="" alt="Aperçu" style="max-width: 100%; max-height: 200px; display: none; border-radius: 8px;">
-            </div>
-            <div class="photo-modal-actions" style="display: flex; gap: 12px; justify-content: flex-end;">
-              <button type="button" class="btn-cancel" id="cancelPhotoBtn" style="background: #e0e0e0; color: #333; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer;">Annuler</button>
-              <button type="button" class="btn-confirm" id="savePhotoBtn" style="background: #002147; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer;">Confirmer</button>
-            </div>
-          </div>
-        </div
 
         <div class="button-container">
           <button type="submit" id="submitBtn">Enregistrer le citoyen</button>

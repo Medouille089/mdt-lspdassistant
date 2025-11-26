@@ -100,9 +100,18 @@
         nationalite: document.getElementById('nationalite').value.trim(),
         genre: document.getElementById('genre').value,
         telephone: telephoneFormatted,
+        adresse: document.getElementById('adresse').value.trim() || null,
+        gang_affilie: document.getElementById('gang_affilie').value.trim() || null,
+        note_interne: document.getElementById('note_interne').value.trim() || null,
         emploi: document.getElementById('emploi').value.trim() || null,
         mandat_actif: document.getElementById('mandat_actif').value === 'true',
         photo: photoUrl,
+        permis_A: document.getElementById('permis_A').checked,
+        permis_B: document.getElementById('permis_B').checked,
+        permis_C: document.getElementById('permis_C').checked,
+        permis_PPA: document.getElementById('permis_PPA').checked,
+        permis_BRAVO: document.getElementById('permis_BRAVO').checked,
+        permis_ASD: document.getElementById('permis_ASD').checked,
         created_by: user.username
       };
 
@@ -139,12 +148,7 @@
     const form = document.getElementById('citoyenForm');
     const telephoneInput = document.getElementById('telephone');
     const photoPreview = document.getElementById('photo_preview');
-    const editPhotoBtn = document.getElementById('editPhotoBtn');
-    const photoModal = document.getElementById('photoModal');
     const photoUrlInput = document.getElementById('photoUrlInput');
-    const photoPreviewModal = document.getElementById('photoPreviewModal');
-    const savePhotoBtn = document.getElementById('savePhotoBtn');
-    const cancelPhotoBtn = document.getElementById('cancelPhotoBtn');
 
     // Form submission
     form.addEventListener('submit', submitForm);
@@ -163,49 +167,16 @@
       }
     });
 
-    // Photo modal logic
-    editPhotoBtn.addEventListener('click', () => {
-      photoUrlInput.value = photoPreview.src && !photoPreview.src.includes('default-citoyen.png') ? photoPreview.src : '';
-      if (photoUrlInput.value) {
-        photoPreviewModal.src = photoUrlInput.value;
-        photoPreviewModal.style.display = 'block';
-      } else {
-        photoPreviewModal.style.display = 'none';
-      }
-      photoModal.style.display = 'flex';
-    });
-
     photoUrlInput.addEventListener('input', (e) => {
       const url = e.target.value.trim();
       if (url) {
-        photoPreviewModal.src = url;
-        photoPreviewModal.style.display = 'block';
-        photoPreviewModal.onerror = () => {
-          photoPreviewModal.style.display = 'none';
-        };
-      } else {
-        photoPreviewModal.style.display = 'none';
-      }
-    });
-
-    savePhotoBtn.addEventListener('click', () => {
-      const url = photoUrlInput.value.trim();
-      if (url) {
         photoPreview.src = url;
         photoPreview.style.display = 'block';
+        photoPreview.onerror = () => {
+          photoPreview.style.display = 'none';
+        };
       } else {
-        photoPreview.src = 'data/images/default-citoyen.png';
-      }
-      photoModal.style.display = 'none';
-    });
-
-    cancelPhotoBtn.addEventListener('click', () => {
-      photoModal.style.display = 'none';
-    });
-
-    photoModal.addEventListener('click', (e) => {
-      if (e.target === photoModal) {
-        photoModal.style.display = 'none';
+        photoPreview.style.display = 'none';
       }
     });
   });
