@@ -14,10 +14,10 @@
   function formatPhoneNumber(value) {
     // Enlever tous les caractères non-numériques
     const numbers = value.replace(/\D/g, '');
-    
+
     // Limiter à 10 chiffres
     const limited = numbers.substring(0, 10);
-    
+
     // Formater selon le pattern (000) 000-0000
     if (limited.length <= 3) {
       return limited;
@@ -135,27 +135,41 @@
   // Event listeners
   document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('citoyenForm');
-    const telephoneInput = document.getElementById('telephone');
 
     // Form submission
     form.addEventListener('submit', submitForm);
 
     // Formatage automatique du téléphone
-    telephoneInput.addEventListener('input', function(e) {
-      const cursorPosition = e.target.selectionStart;
-      const oldLength = e.target.value.length;
-      
-      e.target.value = formatPhoneNumber(e.target.value);
-      
-      const newLength = e.target.value.length;
-      const diff = newLength - oldLength;
-      
-      // Ajuster la position du curseur si le formatage a ajouté des caractères
-      if (diff > 0) {
-        e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
-      } else {
-        e.target.setSelectionRange(cursorPosition, cursorPosition);
-      }
-    });
+    const telInput = document.getElementById('telephone');
+    if (telInput) {
+      telInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, ''); // Garder que les chiffres
+        if (value.startsWith('555')) {
+          value = value.substring(3);
+        }
+
+        if (value.length > 4) {
+          value = value.substring(0, 4);
+        }
+
+        if (value.length > 0) {
+          e.target.value = '555-' + value;
+        } else {
+          e.target.value = '555-';
+        }
+      });
+
+      telInput.addEventListener('focus', function (e) {
+        if (!e.target.value) {
+          e.target.value = '555-';
+        }
+      });
+
+      telInput.addEventListener('blur', function (e) {
+        if (e.target.value === '555-') {
+          e.target.value = '';
+        }
+      });
+    }
   });
 })();
