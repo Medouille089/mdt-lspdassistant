@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data/images/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="styles/admin/emploi.css" />
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <title>Gestion Emploi du Temps - LSPD Assistant</title>
+</head>
+
+<body>
+  <script src="scripts/annonce-popup.js"></script>
+  <div id="sidebar-container"></div>
+  <script src="scripts/instant-sidebar.js"></script>
+
+  <div class="main-container">
+    <div class="header">
+      <h1>📅 Gestion de l'Emploi du Temps</h1>
+      <p class="subtitle">Gérez les cours, matières et professeurs de manière simple et intuitive</p>
+    </div>
+
+    <!-- Navigation par onglets -->
+    <div class="tabs-container">
+      <button class="tab-button active" data-tab="cours">
+        <span class="tab-icon">📚</span>
+        <span>Ajouter un cours</span>
+      </button>
+      <button class="tab-button" data-tab="matiere">
+        <span class="tab-icon">🎨</span>
+        <span>Nouvelle matière</span>
+      </button>
+      <button class="tab-button" data-tab="professeur">
+        <span class="tab-icon">👨‍🏫</span>
+        <span>Nouveau professeur</span>
+      </button>
+      <button class="tab-button" data-tab="visualiser">
+        <span class="tab-icon">👁️</span>
+        <span>Visualiser</span>
+      </button>
+    </div>
+
+    <!-- Onglet: Ajouter un cours -->
+    <div class="tab-content active" id="tab-cours">
+      <div class="form-card">
+        <h2>Ajouter un cours à l'emploi du temps</h2>
+        <form id="form-cours">
+          <div class="form-grid">
+            <!-- Jour -->
+            <div class="form-group">
+              <label for="jour_id">
+                <span class="label-icon">📅</span>
+                Jour de la semaine <span class="required">*</span>
+              </label>
+              <select id="jour_id" name="jour_id" required>
+                <option value="">-- Sélectionner un jour --</option>
+              </select>
+            </div>
+
+            <!-- Créneau -->
+            <div class="form-group">
+              <label for="creneau_id">
+                <span class="label-icon">⏰</span>
+                Créneau horaire <span class="required">*</span>
+              </label>
+              <select id="creneau_id" name="creneau_id" required>
+                <option value="">-- Sélectionner un créneau --</option>
+              </select>
+            </div>
+
+            <!-- Matière -->
+            <div class="form-group">
+              <label for="matiere_id">
+                <span class="label-icon">📖</span>
+                Matière
+              </label>
+              <select id="matiere_id" name="matiere_id">
+                <option value="">-- Aucune matière --</option>
+              </select>
+            </div>
+
+            <!-- Professeur -->
+            <div class="form-group">
+              <label for="professeur_id">
+                <span class="label-icon">👨‍🏫</span>
+                Professeur
+              </label>
+              <select id="professeur_id" name="professeur_id">
+                <option value="">-- Aucun professeur --</option>
+              </select>
+            </div>
+
+            <!-- Salle -->
+            <div class="form-group">
+              <label for="salle">
+                <span class="label-icon">🚪</span>
+                Salle
+              </label>
+              <input type="text" id="salle" name="salle" placeholder="Ex: Salle 101" />
+            </div>
+
+            <!-- Remarques -->
+            <div class="form-group full-width">
+              <label for="remarques">
+                <span class="label-icon">📝</span>
+                Remarques
+              </label>
+              <textarea id="remarques" name="remarques" rows="3" placeholder="Informations complémentaires..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">
+              <span>➕</span> Ajouter le cours
+            </button>
+            <button type="button" class="btn-secondary" onclick="resetForm('form-cours')">
+              <span>🔄</span> Réinitialiser
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Onglet: Ajouter une matière -->
+    <div class="tab-content" id="tab-matiere">
+      <div class="form-card">
+        <h2>Ajouter une nouvelle matière</h2>
+        <form id="form-matiere">
+          <div class="form-grid">
+            <!-- Nom de la matière -->
+            <div class="form-group">
+              <label for="matiere_nom">
+                <span class="label-icon">📖</span>
+                Nom de la matière <span class="required">*</span>
+              </label>
+              <input type="text" id="matiere_nom" name="nom" required placeholder="Ex: Mathématiques" />
+            </div>
+
+            <!-- Code -->
+            <div class="form-group">
+              <label for="matiere_code">
+                <span class="label-icon">🔤</span>
+                Code (optionnel)
+              </label>
+              <input type="text" id="matiere_code" name="code" placeholder="Ex: MATH" maxlength="20" />
+            </div>
+
+            <!-- Couleur -->
+            <div class="form-group">
+              <label for="matiere_couleur">
+                <span class="label-icon">🎨</span>
+                Couleur
+              </label>
+              <div class="color-picker-container">
+                <input type="color" id="matiere_couleur" name="couleur" value="#3498db" />
+                <span class="color-preview" id="color-preview">#3498db</span>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full-width">
+              <label for="matiere_description">
+                <span class="label-icon">📝</span>
+                Description
+              </label>
+              <textarea id="matiere_description" name="description" rows="3" placeholder="Description de la matière..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">
+              <span>➕</span> Ajouter la matière
+            </button>
+            <button type="button" class="btn-secondary" onclick="resetForm('form-matiere')">
+              <span>🔄</span> Réinitialiser
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Onglet: Ajouter un professeur -->
+    <div class="tab-content" id="tab-professeur">
+      <div class="form-card">
+        <h2>Ajouter un nouveau professeur</h2>
+        <form id="form-professeur">
+          <div class="form-grid">
+            <!-- Nom -->
+            <div class="form-group">
+              <label for="prof_nom">
+                <span class="label-icon">👤</span>
+                Nom <span class="required">*</span>
+              </label>
+              <input type="text" id="prof_nom" name="nom" required placeholder="Ex: Dupont" />
+            </div>
+
+            <!-- Prénom -->
+            <div class="form-group">
+              <label for="prof_prenom">
+                <span class="label-icon">👤</span>
+                Prénom <span class="required">*</span>
+              </label>
+              <input type="text" id="prof_prenom" name="prenom" required placeholder="Ex: Jean" />
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="prof_email">
+                <span class="label-icon">📧</span>
+                Email
+              </label>
+              <input type="email" id="prof_email" name="email" placeholder="Ex: jean.dupont@example.com" />
+            </div>
+
+            <!-- Téléphone -->
+            <div class="form-group">
+              <label for="prof_telephone">
+                <span class="label-icon">📱</span>
+                Téléphone
+              </label>
+              <input type="tel" id="prof_telephone" name="telephone" placeholder="Ex: 06 12 34 56 78" />
+            </div>
+
+            <!-- Spécialité -->
+            <div class="form-group full-width">
+              <label for="prof_specialite">
+                <span class="label-icon">🎓</span>
+                Spécialité
+              </label>
+              <input type="text" id="prof_specialite" name="specialite" placeholder="Ex: Mathématiques" />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">
+              <span>➕</span> Ajouter le professeur
+            </button>
+            <button type="button" class="btn-secondary" onclick="resetForm('form-professeur')">
+              <span>🔄</span> Réinitialiser
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Onglet: Visualiser l'emploi du temps -->
+    <div class="tab-content" id="tab-visualiser">
+      <div class="form-card">
+        <h2>Emploi du temps actuel</h2>
+        <div class="schedule-controls">
+          <button class="btn-secondary" onclick="loadSchedule()">
+            <span>🔄</span> Rafraîchir
+          </button>
+        </div>
+        <div id="schedule-container" class="schedule-container">
+          <div class="loader-container">
+            <div class="loader"></div>
+            <p>Chargement de l'emploi du temps...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages de notification -->
+    <div id="notification" class="notification"></div>
+  </div>
+
+  <script src="scripts/loadSidebar.js"></script>
+  <script src="scripts/admin-emploi.js"></script>
+</body>
+</html>

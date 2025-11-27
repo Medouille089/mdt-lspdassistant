@@ -280,6 +280,7 @@ const weaponsRoutes = require('./routes/weapons');
 const vehiculesRoutes = require('./routes/vehicules');
 
 const githubPushRoute = require('./routes/githubPush');
+const emploiRoutes = require('./routes/emploi');
 
 app.use(configRoutes);
 app.use(authRoutes);
@@ -320,6 +321,7 @@ app.use(discordUploader);
 app.use(officerConvocations);
 app.use(accountsRoutes);
 app.use(trelloLogs);
+app.use(emploiRoutes);
 
 // Route pour recevoir les pushs GitHub
 app.use(githubPushRoute);
