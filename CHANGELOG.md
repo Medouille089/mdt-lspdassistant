@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.21.4](https://github.com/Medouille089/lspdassistant/compare/v1.21.3...v1.21.4) (2025-11-27)
+
+
+### Bug Fixes
+
+* width height on overlay ([67f5271](https://github.com/Medouille089/lspdassistant/commit/67f5271e49ec0de4a045106cebfab197b7947937))
+
 ### [1.21.3](https://github.com/Medouille089/lspdassistant/compare/v1.21.2...v1.21.3) (2025-11-26)
 
 
