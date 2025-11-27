@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <link rel="stylesheet" href="styles/annonce-popup.css" />
     <meta charset="UTF-8" />
@@ -14,46 +15,9 @@
     <link rel="stylesheet" href="styles/citoyen-selector.css" />
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
-    <style>
-        .serial-display {
-            font-family: 'Consolas', monospace;
-            font-weight: 700;
-            font-size: 18px;
-            background: #2c3e50;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            display: inline-block;
-            letter-spacing: 2px;
-        }
-        .badge.etat-actif {
-            background: #e74c3c;
-        }
-        .badge.etat-ok {
-            background: #27ae60;
-        }
-        .notes-section { margin-top: 20px; }
-        .notes-section textarea {
-            width: 100%; min-height: 150px; padding: 12px;
-            border: 2px solid #dfe6e9; border-radius: 6px;
-            font-family: inherit; font-size: 14px; resize: vertical; box-sizing: border-box;
-        }
-        .notes-section textarea:focus { outline: none; border-color: #002147; }
-        .notes-section textarea:disabled { background-color: #f8f9fa; cursor: not-allowed; }
-        .rapports-section { margin-top: 20px; padding: 20px; background: white; border-radius: 8px; border: 1px solid #e1e8ed; }
-        .rapports-section h4 { margin: 0 0 15px 0; color: #2c3e50; font-size: 16px; }
-        .no-rapports { text-align: center; padding: 40px; color: #95a5a6; }
-        .proprietaire-selector { position: relative; }
-        .proprietaire-selector input { width: 100%; padding-right: 140px; cursor: pointer; }
-        .proprietaire-selector button { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); padding: 8px 16px; background-color: #002147; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s ease; }
-        .proprietaire-selector button:hover { background-color: #003366; }
-        .photo-zoom-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.9); align-items: center; justify-content: center; }
-        .photo-zoom-modal img { max-width: 90%; max-height: 90%; object-fit: contain; }
-        .photo-zoom-modal .close-zoom { position: absolute; top: 20px; right: 40px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .photo-zoom-modal .close-zoom:hover { color: #bbb; }
-        .agent-photo { cursor: pointer; }
-    </style>
+    <link rel="stylesheet" href="styles/view-arme.css" />
 </head>
+
 <body>
     <script src="scripts/annonce-popup.js"></script>
     <script src="scripts/context-menu.js"></script>
@@ -81,7 +45,8 @@
             </div>
             <form id="profileForm" class="profile-form">
                 <div class="form-section">
-                    <h3 class="section-title"><span class="material-symbols-rounded">gavel</span> Informations de l'arme</h3>
+                    <h3 class="section-title"><span class="material-symbols-rounded">gavel</span> Informations de l'arme
+                    </h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="modele">Modèle</label>
@@ -89,7 +54,8 @@
                         </div>
                         <div class="form-group">
                             <label for="serial_number">Numéro de série</label>
-                            <input type="text" id="serial_number" placeholder="SN-123456" required style="font-family: Consolas, monospace;">
+                            <input type="text" id="serial_number" placeholder="SN-123456" required
+                                style="font-family: Consolas, monospace;">
                         </div>
                         <div class="form-group">
                             <label for="calibre">Calibre</label>
@@ -103,7 +69,8 @@
                         <div class="form-group" style="grid-column: 1 / -1;">
                             <label for="proprietaire">Citoyen propriétaire</label>
                             <div class="proprietaire-selector">
-                                <input type="text" id="proprietaire" readonly placeholder="Aucun propriétaire sélectionné">
+                                <input type="text" id="proprietaire" readonly
+                                    placeholder="Aucun propriétaire sélectionné">
                                 <input type="hidden" id="proprietaire_id">
                                 <button type="button" id="selectProprietaireBtn">Choisir</button>
                             </div>
@@ -117,7 +84,8 @@
                     </div>
                 </div>
                 <div class="form-section">
-                    <h3 class="section-title"><span class="material-symbols-rounded">description</span> Rapports liés</h3>
+                    <h3 class="section-title"><span class="material-symbols-rounded">description</span> Rapports liés
+                    </h3>
                     <div class="rapports-section">
                         <div id="rapportsList">
                             <div class="no-rapports">Aucun rapport disponible pour le moment</div>
@@ -125,7 +93,8 @@
                     </div>
                 </div>
                 <div class="form-section">
-                    <h3 class="section-title"><span class="material-symbols-rounded">info</span> Informations système</h3>
+                    <h3 class="section-title"><span class="material-symbols-rounded">info</span> Informations système
+                    </h3>
                     <div class="form-row" style="grid-template-columns: 1fr 1fr;">
                         <div class="form-group">
                             <label>Créé par</label>
@@ -133,15 +102,20 @@
                         </div>
                         <div class="form-group">
                             <label>Dernière modification</label>
-                            <div id="date_modification" style="color: #000000; font-size: 15px; padding: 12px 0;">-</div>
+                            <div id="date_modification" style="color: #000000; font-size: 15px; padding: 12px 0;">-
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="action-buttons">
-                    <button type="button" id="edit-mode-btn" class="btn btn-warning" style="display: none;"><span class="material-symbols-rounded">edit</span> Modifier l'arme</button>
-                    <button type="button" id="cancel-edit-btn" class="btn btn-secondary" style="display: none;"><span class="material-symbols-rounded">close</span> Annuler</button>
-                    <button type="submit" id="save-btn" class="btn btn-primary" style="display: none;"><span class="material-symbols-rounded">save</span> Enregistrer</button>
-                    <button type="button" id="delete-btn" class="btn btn-danger" style="display: none;"><span class="material-symbols-rounded">delete</span> Supprimer</button>
+                    <button type="button" id="edit-mode-btn" class="btn btn-warning" style="display: none;"><span
+                            class="material-symbols-rounded">edit</span> Modifier l'arme</button>
+                    <button type="button" id="cancel-edit-btn" class="btn btn-secondary" style="display: none;"><span
+                            class="material-symbols-rounded">close</span> Annuler</button>
+                    <button type="submit" id="save-btn" class="btn btn-primary" style="display: none;"><span
+                            class="material-symbols-rounded">save</span> Enregistrer</button>
+                    <button type="button" id="delete-btn" class="btn btn-danger" style="display: none;"><span
+                            class="material-symbols-rounded">delete</span> Supprimer</button>
                 </div>
             </form>
         </div>
@@ -154,7 +128,8 @@
             <h3>Modifier la photo</h3>
             <input type="url" id="photoUrlInput" placeholder="https://cdn.discordapp.com/attachments/...">
             <div class="photo-preview-container" style="margin: 15px 0;">
-                <img id="photoPreviewModal" src="" alt="Aperçu" style="max-width: 100%; max-height: 300px; display: none; border-radius: 8px;">
+                <img id="photoPreviewModal" src="" alt="Aperçu"
+                    style="max-width: 100%; max-height: 300px; display: none; border-radius: 8px;">
             </div>
             <div class="photo-modal-actions">
                 <button type="button" class="btn-cancel" id="cancelPhotoBtn">Annuler</button>
@@ -172,4 +147,5 @@
         });
     </script>
 </body>
+
 </html>

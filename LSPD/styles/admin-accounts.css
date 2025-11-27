@@ -1,0 +1,66 @@
+.avatar-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    vertical-align: middle;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-active {
+    background: #28a745;
+    color: white;
+}
+
+.status-inactive {
+    background: #dc3545;
+    color: white;
+}
+
+.delete-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.3s;
+}
+
+.delete-btn:hover {
+    background: #c82333;
+}
+
+.delete-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.date-cell {
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+/* Style pour les lignes cliquables */
+tbody tr {
+    cursor: pointer;
+}
+
+tbody tr:hover {
+    background: var(--table-hover-bg) !important;
+}
+
+/* Empêcher le clic sur le bouton de supprimer de déclencher le clic de la ligne */
+.delete-btn {
+    position: relative;
+    z-index: 10;
+}
