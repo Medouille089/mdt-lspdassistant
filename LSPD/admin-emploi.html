@@ -266,6 +266,87 @@
 
     <!-- Messages de notification -->
     <div id="notification" class="notification"></div>
+
+    <!-- Modal de modification -->
+    <div id="edit-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>✏️ Modifier le cours</h2>
+          <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form id="form-edit-cours">
+          <input type="hidden" id="edit_cours_id" />
+          <div class="form-grid">
+            <!-- Jour (lecture seule) -->
+            <div class="form-group">
+              <label for="edit_jour">
+                <span class="label-icon">📅</span>
+                Jour de la semaine
+              </label>
+              <input type="text" id="edit_jour" readonly disabled />
+            </div>
+
+            <!-- Créneau (lecture seule) -->
+            <div class="form-group">
+              <label for="edit_creneau">
+                <span class="label-icon">⏰</span>
+                Créneau horaire
+              </label>
+              <input type="text" id="edit_creneau" readonly disabled />
+            </div>
+
+            <!-- Matière -->
+            <div class="form-group">
+              <label for="edit_matiere_id">
+                <span class="label-icon">📖</span>
+                Matière
+              </label>
+              <select id="edit_matiere_id" name="matiere_id">
+                <option value="">-- Aucune matière --</option>
+              </select>
+            </div>
+
+            <!-- Professeur -->
+            <div class="form-group">
+              <label for="edit_professeur_id">
+                <span class="label-icon">👨‍🏫</span>
+                Professeur
+              </label>
+              <select id="edit_professeur_id" name="professeur_id">
+                <option value="">-- Aucun professeur --</option>
+              </select>
+            </div>
+
+            <!-- Salle -->
+            <div class="form-group">
+              <label for="edit_salle">
+                <span class="label-icon">🚪</span>
+                Salle
+              </label>
+              <input type="text" id="edit_salle" name="salle" placeholder="Ex: Salle 101" />
+            </div>
+
+            <!-- Remarques -->
+            <div class="form-group full-width">
+              <label for="edit_remarques">
+                <span class="label-icon">📝</span>
+                Remarques
+              </label>
+              <textarea id="edit_remarques" name="remarques" rows="3" placeholder="Informations complémentaires..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">
+              <span>💾</span> Enregistrer
+            </button>
+            <button type="button" class="btn-secondary" onclick="closeEditModal()">
+              <span>❌</span> Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <script src="scripts/loadSidebar.js"></script>

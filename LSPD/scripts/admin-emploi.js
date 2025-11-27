@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Configurer le color picker
   setupColorPicker();
 
+  // Configurer le formulaire d'édition
+  setupEditForm();
+
   console.log('✅ Initialisation terminée');
 });
 
@@ -340,6 +343,7 @@ async function loadSchedule() {
             <td>${cours.remarques || '-'}</td>
             <td>
               <div class="action-buttons">
+                <button class="btn-edit" onclick="openEditModal(${cours.id})">✏️ Modifier</button>
                 <button class="btn-delete" onclick="deleteCours(${cours.id})">🗑️ Supprimer</button>
               </div>
             </td>
@@ -443,8 +447,133 @@ function showNotification(message, type = 'success') {
 }
 
 // ============================================
+// Configuration du formulaire d'édition
+// ============================================
+function setupEditForm() {
+  const formEdit = document.getElementById('form-edit-cours');
+  if (formEdit) {
+    formEdit.addEventListener('submit', handleEditSubmit);
+  }
+
+  // Fermer le modal en cliquant en dehors
+  const modal = document.getElementById('edit-modal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeEditModal();
+      }
+    });
+  }
+}
+
+// ============================================
+// Ouvrir le modal de modification
+// ============================================
+function openEditModal(coursId) {
+  const cours = state.emploiDuTemps.find(c => c.id === coursId);
+  if (!cours) {
+    showNotification('Cours introuvable', 'error');
+    return;
+  }
+
+  // Remplir les champs
+  document.getElementById('edit_cours_id').value = cours.id;
+  document.getElementById('edit_jour').value = cours.jour;
+  document.getElementById('edit_creneau').value = `${cours.creneau} (${cours.heure_debut?.substring(0,5)} - ${cours.heure_fin?.substring(0,5)})`;
+
+  // Remplir les selects
+  const editMatiereSelect = document.getElementById('edit_matiere_id');
+  const editProfesseurSelect = document.getElementById('edit_professeur_id');
+
+  // Vider et remplir le select matière
+  editMatiereSelect.innerHTML = '<option value="">-- Aucune matière --</option>';
+  state.matieres.forEach(m => {
+    const option = document.createElement('option');
+    option.value = m.id;
+    option.textContent = m.nom;
+    if (cours.matiere === m.nom) {
+      option.selected = true;
+    }
+    editMatiereSelect.appendChild(option);
+  });
+
+  // Vider et remplir le select professeur
+  editProfesseurSelect.innerHTML = '<option value="">-- Aucun professeur --</option>';
+  state.professeurs.forEach(p => {
+    const option = document.createElement('option');
+    option.value = p.id;
+    option.textContent = `${p.prenom} ${p.nom}`;
+    if (cours.professeur_prenom === p.prenom && cours.professeur_nom === p.nom) {
+      option.selected = true;
+    }
+    editProfesseurSelect.appendChild(option);
+  });
+
+  // Remplir les autres champs
+  document.getElementById('edit_salle').value = cours.salle || '';
+  document.getElementById('edit_remarques').value = cours.remarques || '';
+
+  // Afficher le modal
+  const modal = document.getElementById('edit-modal');
+  modal.classList.add('show');
+}
+
+// ============================================
+// Fermer le modal de modification
+// ============================================
+function closeEditModal() {
+  const modal = document.getElementById('edit-modal');
+  modal.classList.remove('show');
+
+  // Réinitialiser le formulaire
+  document.getElementById('form-edit-cours').reset();
+}
+
+// ============================================
+// Gérer la soumission du formulaire d'édition
+// ============================================
+async function handleEditSubmit(e) {
+  e.preventDefault();
+
+  const coursId = document.getElementById('edit_cours_id').value;
+  const formData = new FormData(e.target);
+
+  const data = {
+    matiere_id: formData.get('matiere_id') ? parseInt(formData.get('matiere_id')) : null,
+    professeur_id: formData.get('professeur_id') ? parseInt(formData.get('professeur_id')) : null,
+    salle: formData.get('salle') || null,
+    remarques: formData.get('remarques') || null
+  };
+
+  try {
+    const response = await fetch(`/api/emploi-du-temps/${coursId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      showNotification('✅ Cours modifié avec succès !', 'success');
+      closeEditModal();
+      loadSchedule(); // Recharger l'affichage
+    } else {
+      showNotification(`❌ ${result.error || 'Erreur lors de la modification'}`, 'error');
+    }
+  } catch (error) {
+    console.error('❌ Erreur:', error);
+    showNotification('❌ Erreur de connexion au serveur', 'error');
+  }
+}
+
+// ============================================
 // Exposer les fonctions globalement
 // ============================================
 window.loadSchedule = loadSchedule;
 window.deleteCours = deleteCours;
 window.resetForm = resetForm;
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
