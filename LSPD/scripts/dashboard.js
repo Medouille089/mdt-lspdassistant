@@ -40,7 +40,7 @@ async function fetchUser() {
 
     const now = Date.now();
     const lastSeen = localStorage.getItem('overlayLastSeen');
-    const delay = 3000;
+    const delay = 3600000;
 
     if (!lastSeen || now - lastSeen > delay) {
       showOverlay();
