@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.21.4](https://github.com/Medouille089/lspdassistant/compare/v1.21.3...v1.21.4) (2025-11-27)
+
+
+### Bug Fixes
+
+* width height on overlay ([67f5271](https://github.com/Medouille089/lspdassistant/commit/67f5271e49ec0de4a045106cebfab197b7947937))
+
+### [1.21.3](https://github.com/Medouille089/lspdassistant/compare/v1.21.2...v1.21.3) (2025-11-26)
+
+
+### Bug Fixes
+
+* add licences + more infos in citoyens ([e47bd5d](https://github.com/Medouille089/lspdassistant/commit/e47bd5d2cbdabc66a3f0bfc2e55fae4303de612f))
+* fixed modal for image preview in cit weap vh ([c74a8ec](https://github.com/Medouille089/lspdassistant/commit/c74a8ecfaa4a627d81773969b9fbd741ba61727a))
+
 ### [1.21.2](https://github.com/Medouille089/lspdassistant/compare/v1.21.1...v1.21.2) (2025-11-25)
 
 

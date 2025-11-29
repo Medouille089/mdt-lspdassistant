@@ -40,7 +40,7 @@ async function fetchUser() {
 
     const now = Date.now();
     const lastSeen = localStorage.getItem('overlayLastSeen');
-    const delay = 3600000;
+    const delay = 3000;
 
     if (!lastSeen || now - lastSeen > delay) {
       showOverlay();
@@ -251,6 +251,13 @@ async function loadActivityChart() {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadActivityChart();
+  // Bouton Refresh
+  const refreshBtn = document.getElementById('refreshDashboardBtn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      location.reload();
+    });
+  }
 });
 
 fetchConnectedAgents();

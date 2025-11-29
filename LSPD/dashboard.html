@@ -18,7 +18,7 @@
 <body>
     <script src="scripts/annonce-popup.js"></script>
     <!-- Overlay de bienvenue -->
-    <div id="overlay">
+    <div id="overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999;">
         <span id="overlayMessage"></span>
         <div id="overlayGrade" style="font-size: 0.5em; font-weight: normal; margin-top: 10px;"></div>
     </div>
@@ -38,6 +38,8 @@
                     target="_blank" href="https://www.ligue-cancer.net/octobre-rose">ligue-cancer.net</a> 🎀</span>
         </div> -->
         <h1>Tableau de bord</h1>
+        <button id="refreshDashboardBtn"
+            style="margin-bottom: 16px; padding: 8px 16px; font-size: 1em; cursor: pointer;">🔄 Rafraîchir</button>
 
         <div class="dashboard-container">
             <!-- Top widgets -->

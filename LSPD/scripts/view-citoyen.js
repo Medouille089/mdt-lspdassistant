@@ -8,21 +8,29 @@ let pendingWeaponDeletions = new Set();
 
 // Fonction pour afficher les animations de feedback
 function showAnimation(type = 'success', message = '') {
-    const container = document.getElementById('feedbackAnimation');
+    let container = document.getElementById('feedbackAnimation');
     if (!container) {
         const feedbackDiv = document.createElement('div');
         feedbackDiv.id = 'feedbackAnimation';
         feedbackDiv.className = 'feedback-animation';
+        feedbackDiv.style.background = '#fff';
+        feedbackDiv.style.border = '1px solid #bbb';
+        feedbackDiv.style.color = '#222';
+        feedbackDiv.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)';
         document.body.appendChild(feedbackDiv);
     }
 
-    const animationContainer = document.getElementById('feedbackAnimation');
-    animationContainer.className = `feedback-animation ${type}`;
-    animationContainer.textContent = message || (type === 'success' ? 'Succès !' : 'Erreur !');
-    animationContainer.style.display = 'block';
+    container = document.getElementById('feedbackAnimation');
+    container.className = `feedback-animation ${type}`;
+    container.textContent = message || (type === 'success' ? 'Succès !' : 'Erreur !');
+    container.style.display = 'block';
+    container.style.background = '#fff';
+    container.style.border = '1px solid #bbb';
+    container.style.color = '#222';
+    container.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)';
 
     setTimeout(() => {
-        animationContainer.style.display = 'none';
+        container.style.display = 'none';
     }, 3000);
 }
 
@@ -192,6 +200,343 @@ async function loadCitoyenProfile() {
 
 // Fonction pour afficher le profil dans le formulaire
 async function displayProfile(profile) {
+    // Affichage des permis actifs dans Liens associés
+    const permisList = document.getElementById('permis-list');
+    if (permisList) {
+        permisList.innerHTML = '';
+
+        const permisLabels = [
+            { key: 'permis_a', label: 'Permis A', icon: 'two_wheeler' },
+            { key: 'permis_b', label: 'Permis B', icon: 'directions_car' },
+            { key: 'permis_c', label: 'Permis C', icon: 'local_shipping' },
+            { key: 'permis_ppa', label: "Permis port d'arme", icon: 'gpp_maybe' },
+            { key: 'permis_bravo', label: 'License BRAVO', icon: 'shield' },
+            { key: 'permis_asd', label: 'License ASD', icon: 'verified_user' }
+        ];
+
+        // Créer le conteneur avec bordure arrondie (style véhicules)
+        const list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        list.style.border = '1px solid #e0e0e0';
+        list.style.borderRadius = '8px';
+        list.style.overflow = 'hidden';
+        list.style.background = '#fff';
+
+        let hasPermis = false;
+
+        permisLabels.forEach((p, idx) => {
+            const isActive = profile[p.key] === true || profile[p.key] === 't';
+            const item = document.createElement('div');
+            item.className = 'equipment-item permis-item';
+            item.setAttribute('data-permis-key', p.key);
+            item.setAttribute('data-permis-label', p.label);
+            item.style.display = 'flex';
+            item.style.alignItems = 'center';
+            item.style.gap = '12px';
+            item.style.padding = '10px 12px';
+            item.style.background = 'rgba(255, 255, 255, 0.03)';
+            item.style.transition = 'all 0.3s ease';
+            item.style.borderColor = 'var(--border-color)';
+            if (idx !== 0) {
+                item.style.borderTop = '1px solid #e0e0e0';
+            }
+
+            // Icône Material Symbols
+            const icon = document.createElement('span');
+            icon.className = 'material-symbols-rounded';
+            icon.textContent = p.icon;
+            icon.style.color = isActive ? 'var(--lspd-gold, #d4af37)' : '#7f8c8d';
+            icon.style.fontSize = '20px';
+            icon.style.transition = 'color 0.2s';
+
+
+            // Texte du permis + statut en dessous
+            const text = document.createElement('div');
+            text.style.flex = '1';
+            text.innerHTML = `<div style=\"font-weight: 600; color: var(--text-dark);\">${p.label}</div>`;
+            // Texte statut en dessous
+            const statusText = isActive ? 'En règle' : 'Suspendu / Non-acquis';
+            const statusColor = isActive ? 'var(--success-color, #2ecc71)' : 'var(--danger-color, #e74c3c)';
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'permis-status';
+            statusDiv.setAttribute('data-permis-key', p.key);
+            statusDiv.style.fontSize = '13px';
+            statusDiv.style.fontWeight = '600';
+            statusDiv.style.color = statusColor;
+            statusDiv.style.marginTop = '2px';
+            statusDiv.textContent = statusText;
+            text.appendChild(statusDiv);
+
+            // Switch
+            const switchWrapper = document.createElement('div');
+            switchWrapper.className = 'checkbox-wrapper-34';
+            switchWrapper.style.marginLeft = 'auto';
+            const switchInput = document.createElement('input');
+            switchInput.className = 'tgl tgl-ios permis-switch';
+            switchInput.type = 'checkbox';
+            switchInput.id = `switch_${p.key}`;
+            switchInput.checked = isActive;
+            switchInput.disabled = !isEditMode;
+            const switchLabel = document.createElement('label');
+            switchLabel.className = 'tgl-btn';
+            switchLabel.setAttribute('for', `switch_${p.key}`);
+            switchWrapper.appendChild(switchInput);
+            switchWrapper.appendChild(switchLabel);
+
+            item.appendChild(icon);
+            item.appendChild(text);
+            item.appendChild(switchWrapper);
+
+            list.appendChild(item);
+            hasPermis = true;
+        });
+
+        if (hasPermis) {
+            permisList.appendChild(list);
+        } else {
+            permisList.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Aucun permis configuré</p>';
+        }
+            // Add instant feedback for switches (status text and icon color)
+            if (isEditMode) {
+                const switchInputs = list.querySelectorAll('.permis-switch');
+                switchInputs.forEach(switchInput => {
+                    switchInput.addEventListener('change', function() {
+                        const item = switchInput.closest('.permis-item');
+                        if (!item) return;
+                        const statusDiv = item.querySelector('.permis-status');
+                        const icon = item.querySelector('.material-symbols-rounded');
+                        const isActive = switchInput.checked;
+                        statusDiv.textContent = isActive ? 'En règle' : 'Suspendu / Non-acquis';
+                        statusDiv.style.color = isActive ? 'var(--success-color, #2ecc71)' : 'var(--danger-color, #e74c3c)';
+                        if (icon) {
+                            icon.style.color = isActive ? 'var(--lspd-gold, #d4af37)' : '#7f8c8d';
+                        }
+                    });
+                });
+            }
+    }
+    /**
+     * Affiche une modale pour gérer le statut d'un permis (En règle/Suspendu / Non-acquis).
+     * @param {string} permisKey - Clé du permis (ex: 'permis_b').
+     * @param {string} permisLabel - Nom du permis (ex: 'Permis B').
+     * @param {boolean} isCurrentlyActive - Statut actuel du permis.
+     */
+    function showPermisModal(permisKey, permisLabel, isCurrentlyActive) {
+        const existingModal = document.getElementById('permisModalOverlay');
+        if (existingModal) existingModal.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'permisModalOverlay';
+        overlay.style.position = 'fixed';
+        overlay.style.left = '0';
+        overlay.style.top = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.background = 'rgba(0,0,0,0.5)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '5000';
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.2s ease';
+
+        const box = document.createElement('div');
+        box.style.background = 'var(--white, #fff)';
+        box.style.padding = '20px';
+        box.style.borderRadius = '12px';
+        box.style.maxWidth = '400px';
+        box.style.width = '90%';
+        box.style.boxShadow = '0 12px 40px rgba(0,0,0,0.25)';
+        box.style.transform = 'scale(0.9)';
+        box.style.transition = 'transform 0.2s ease';
+
+        box.innerHTML = `
+            <h3 style="margin-top: 0; color: var(--text-dark); border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                Gérer le statut : ${permisLabel}
+            </h3>
+            <p style="color: #7f8c8d; margin-bottom: 25px;">
+                Statut actuel : 
+                <strong id="currentPermisStatus" style="color: ${isCurrentlyActive ? 'var(--success-color, #2ecc71)' : 'var(--danger-color, #e74c3c)'};">
+                    ${isCurrentlyActive ? 'En règle' : 'Suspendu / Non-acquis'}
+                </strong>
+            </p>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px;">
+                <span style="font-weight: 600; color: var(--text-dark);">Statut du permis</span>
+                <label class="switch" style="display: inline-block; width: 60px; height: 34px; position: relative;">
+                    <input type="checkbox" id="permisSwitch" ${isCurrentlyActive ? 'checked' : ''} style="opacity: 0; width: 0; height: 0;">
+                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;"></span>
+                </label>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="cancelPermisBtn" class="btn btn-secondary" type="button" style="background: #fff; border: 1px solid #bbb; color: #222;">Annuler</button>
+                <button id="savePermisBtn" class="btn btn-primary" type="button" disabled>Sauvegarder</button>
+            </div>
+        `;
+
+        // Petit bout de CSS pour le switch (devrait être dans votre CSS principal)
+        const style = document.createElement('style');
+        style.textContent = `
+            .switch input:checked + .slider {
+                background-color: var(--success-color, #2ecc71);
+            }
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 26px;
+                width: 26px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+            .switch input:checked + .slider:before {
+                transform: translateX(26px);
+            }
+        `;
+        document.head.appendChild(style);
+
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        // Animations d'ouverture
+        function updatePermisStatusText(switchInput, statusDiv, icon) {
+            const isActive = switchInput.checked;
+            statusDiv.textContent = isActive ? 'En règle' : 'Suspendu / Non-acquis';
+            statusDiv.style.color = isActive ? 'var(--success-color, #2ecc71)' : 'var(--danger-color, #e74c3c)';
+            if (icon) {
+                icon.style.color = isActive ? 'var(--lspd-gold, #d4af37)' : '#7f8c8d';
+            }
+        }
+        setTimeout(() => {
+            overlay.style.opacity = '1';
+            box.style.transform = 'scale(1)';
+        }, 10);
+
+        const permisSwitch = document.getElementById('permisSwitch');
+        const saveBtn = document.getElementById('savePermisBtn');
+    
+        // Écouteurs d'événements
+        permisSwitch.addEventListener('change', () => {
+            // Activer le bouton Save uniquement si l'état a changé
+            saveBtn.disabled = permisSwitch.checked === isCurrentlyActive;
+
+            // Mise à jour visuelle du statut dans la modal
+            const statusEl = document.getElementById('currentPermisStatus');
+            if (permisSwitch.checked) {
+                statusEl.textContent = 'En règle';
+                statusEl.style.color = 'var(--success-color, #2ecc71)';
+            } else {
+                statusEl.textContent = 'Suspendu / Non-acquis';
+                statusEl.style.color = 'var(--danger-color, #e74c3c)';
+            }
+        });
+
+        // Fermeture
+        const closeModal = () => {
+            overlay.style.opacity = '0';
+            box.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                overlay.remove();
+                style.remove();
+            }, 200);
+        };
+
+        document.getElementById('cancelPermisBtn').addEventListener('click', closeModal);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeModal();
+        });
+
+        // Sauvegarde
+        saveBtn.addEventListener('click', () => {
+            const newState = permisSwitch.checked;
+            if (newState !== isCurrentlyActive) {
+                updatePermisStatus(permisKey, newState)
+                    .then(success => {
+                        if (success) {
+                            closeModal();
+                            loadCitoyenProfile();
+                        }
+                    });
+            }
+        });
+    }
+
+    /**
+     * Met à jour le statut d'un permis via l'API et met à jour l'objet citoyenProfile.
+     * @param {string} permisKey - Clé du permis.
+
+            // Feedback instantané sur le texte statut
+            if (isEditMode) {
+                switchInput.addEventListener('change', () => {
+                    updatePermisStatusText(switchInput, statusDiv, icon);
+                });
+            }
+     * @param {boolean} newState - Nouvel état (true pour En règle, false pour Suspendu / Non-acquis).
+     * @returns {Promise<boolean>} Succès ou échec de la mise à jour.
+     */
+    async function updatePermisStatus(permisKey, newState) {
+        if (!citoyenId) {
+            showAnimation('error', 'ID citoyen manquant pour la mise à jour.');
+            return false;
+        }
+
+        try {
+            // Inclure tous les champs obligatoires + le permis modifié
+            const updateData = {
+                nom: originalData.nom || '',
+                prenom: originalData.prenom || '',
+                date_naissance: originalData.date_naissance || '',
+                nationalite: originalData.nationalite || '',
+                genre: originalData.genre || '',
+                telephone: originalData.telephone || '',
+                emploi: originalData.emploi || '',
+                adresse: originalData.adresse || '',
+                gang_affilie: originalData.gang_affilie || '',
+                note_interne: originalData.note_interne || '',
+                mandat_actif: originalData.mandat_actif || false,
+                photo: originalData.photo || '',
+                // Permis actuels
+                permis_a: originalData.permis_a,
+                permis_b: originalData.permis_b,
+                permis_c: originalData.permis_c,
+                permis_ppa: originalData.permis_ppa,
+                permis_bravo: originalData.permis_bravo,
+                permis_asd: originalData.permis_asd
+            };
+            updateData[permisKey] = newState;
+
+            const res = await fetch(`/api/citoyens/${citoyenId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error);
+            }
+
+            const updatedProfile = await res.json();
+            citoyenProfile = updatedProfile;
+
+            if (originalData) {
+                originalData[permisKey] = newState;
+            }
+
+            showAnimation('success', `Statut du permis mis à jour avec succès !`);
+            return true;
+
+        } catch (err) {
+            console.error('Erreur mise à jour permis:', err);
+            showAnimation('error', `Erreur de mise à jour du permis: ${err.message}`);
+            return false;
+        }
+    }
+    
     // Remplir les champs du formulaire
     document.getElementById('nom').value = profile.nom || '';
     document.getElementById('prenom').value = profile.prenom || '';
@@ -200,7 +545,11 @@ async function displayProfile(profile) {
     document.getElementById('genre').value = profile.genre || '';
     document.getElementById('telephone').value = profile.telephone || '';
     document.getElementById('emploi').value = profile.emploi || '';
+    document.getElementById('adresse').value = profile.adresse || '';
+    document.getElementById('gang_affilie').value = profile.gang_affilie || '';
+    document.getElementById('note_interne').value = profile.note_interne || '';
     document.getElementById('mandat_actif').value = profile.mandat_actif ? 'true' : 'false';
+    // Les champs permis_* n'existent plus dans le HTML, on retire l'affectation.
 
     // Afficher les métadonnées
     document.getElementById('citoyen_id').textContent = `ID: ${profile.id}`;
@@ -243,8 +592,17 @@ async function displayProfile(profile) {
         genre: profile.genre || '',
         telephone: profile.telephone || '',
         emploi: profile.emploi || '',
+        adresse: profile.adresse || '',
+        gang_affilie: profile.gang_affilie || '',
+        note_interne: profile.note_interne || '',
         mandat_actif: profile.mandat_actif,
-        photo: profile.photo || ''
+        photo: profile.photo || '',
+        permis_a: !!profile.permis_a,
+        permis_b: !!profile.permis_b,
+        permis_c: !!profile.permis_c,
+        permis_ppa: !!profile.permis_ppa,
+        permis_bravo: !!profile.permis_bravo,
+        permis_asd: !!profile.permis_asd
     };
 
     // Charger et afficher les armes associées
@@ -448,6 +806,16 @@ function activateEditMode() {
     // Activer les champs
     enableFormFields();
 
+    // Afficher les checkboxes et masquer les chevrons
+    document.querySelectorAll('.permis-checkbox').forEach(cb => {
+        cb.style.display = 'block';
+    });
+    document.querySelectorAll('#permis-list .material-symbols-rounded[style*="chevron"]').forEach(chevron => {
+        if (chevron.textContent === 'chevron_right') {
+            chevron.style.display = 'none';
+        }
+    });
+
     // Refresh weapons list so delete buttons appear when in edit mode
     try { loadWeaponsForCitizen(citoyenId); } catch (e) { /* ignore */ }
 
@@ -465,6 +833,16 @@ function deactivateEditMode() {
     document.getElementById('cancel-edit-btn').style.display = 'none';
     document.getElementById('delete-btn').style.display = 'none';
 
+    // Masquer les checkboxes et afficher les chevrons
+    document.querySelectorAll('.permis-checkbox').forEach(cb => {
+        cb.style.display = 'none';
+    });
+    document.querySelectorAll('#permis-list .material-symbols-rounded[style*="chevron"]').forEach(chevron => {
+        if (chevron.textContent === 'chevron_right') {
+            chevron.style.display = 'block';
+        }
+    });
+
     // Désactiver les champs
     disableFormFields();
     // Refresh weapons list to hide delete buttons
@@ -480,7 +858,10 @@ function cancelEdit() {
     document.getElementById('nationalite').value = originalData.nationalite;
     document.getElementById('genre').value = originalData.genre;
     document.getElementById('telephone').value = originalData.telephone;
-    document.getElementById('emploi').value = originalData.emploi;
+    // Correction : le champ "emploi" n'existe pas, on ignore ou on utilise "emploi" si présent
+    if (document.getElementById('emploi')) {
+        document.getElementById('emploi').value = originalData.emploi || '';
+    }
     document.getElementById('mandat_actif').value = originalData.mandat_actif ? 'true' : 'false';
 
     updatePhotoPreview(originalData.photo);
@@ -506,8 +887,17 @@ async function saveProfile(event) {
             genre: document.getElementById('genre').value,
             telephone: document.getElementById('telephone').value.trim() || null,
             emploi: document.getElementById('emploi').value.trim() || null,
+            adresse: document.getElementById('adresse').value.trim() || null,
+            gang_affilie: document.getElementById('gang_affilie').value.trim() || null,
+            note_interne: document.getElementById('note_interne').value.trim() || null,
             mandat_actif: document.getElementById('mandat_actif').value === 'true',
-            photo: document.getElementById('photo_preview').src || ''
+            photo: document.getElementById('photo_preview').src || '',
+            permis_A: document.getElementById('switch_permis_a')?.checked || false,
+            permis_B: document.getElementById('switch_permis_b')?.checked || false,
+            permis_C: document.getElementById('switch_permis_c')?.checked || false,
+            permis_PPA: document.getElementById('switch_permis_ppa')?.checked || false,
+            permis_BRAVO: document.getElementById('switch_permis_bravo')?.checked || false,
+            permis_ASD: document.getElementById('switch_permis_asd')?.checked || false
         };
 
         // Validation des champs obligatoires
@@ -609,41 +999,57 @@ async function deleteCitoyen() {
 // Gestion du popup photo
 function setupPhotoModal() {
     const photoContainer = document.getElementById('photo-container');
-    const modal = document.getElementById('photoModal');
+    const photoModal = document.getElementById('photoModal');
     const photoUrlInput = document.getElementById('photoUrlInput');
-    // PAS de preview, juste le champ
+    const photoPreviewModal = document.getElementById('photoPreviewModal');
     const savePhotoBtn = document.getElementById('savePhotoBtn');
     const cancelPhotoBtn = document.getElementById('cancelPhotoBtn');
 
-    // Clic sur la photo pour ouvrir le modal en mode édition
-    photoContainer.addEventListener('click', (e) => {
+    photoContainer.addEventListener('click', () => {
         if (!(isEditMode || document.body.classList.contains('edit-mode'))) return;
         const previewEl = document.getElementById('photo_preview');
-        const currentSrc = previewEl ? (previewEl.getAttribute('src') || '').trim() : '';
-        photoUrlInput.value = currentSrc || '';
-        modal.style.display = 'flex';
+        photoUrlInput.value = previewEl && previewEl.src && !previewEl.src.includes('default-citoyen.png') ? previewEl.src : '';
+        if (photoUrlInput.value) {
+            photoPreviewModal.src = photoUrlInput.value;
+            photoPreviewModal.style.display = 'block';
+        } else {
+            photoPreviewModal.style.display = 'none';
+        }
+        photoModal.style.display = 'flex';
     });
 
-    // PAS d'aperçu ni de logique d'image
+    photoUrlInput.addEventListener('input', (e) => {
+        const url = e.target.value.trim();
+        if (url) {
+            photoPreviewModal.src = url;
+            photoPreviewModal.style.display = 'block';
+            photoPreviewModal.onerror = () => {
+                photoPreviewModal.style.display = 'none';
+            };
+        } else {
+            photoPreviewModal.style.display = 'none';
+        }
+    });
 
-    // Sauvegarder le lien
     savePhotoBtn.addEventListener('click', () => {
         const url = photoUrlInput.value.trim();
-        // Met à jour l'image preview pour que le PUT prenne le bon lien
         const previewEl = document.getElementById('photo_preview');
-        if (previewEl) previewEl.src = url;
-        modal.style.display = 'none';
+        if (url) {
+            previewEl.src = url;
+            previewEl.style.display = 'block';
+        } else {
+            previewEl.src = 'data/images/default-citoyen.png';
+        }
+        photoModal.style.display = 'none';
     });
 
-    // Fermer le modal
     cancelPhotoBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
+        photoModal.style.display = 'none';
     });
 
-    // Fermer le modal en cliquant sur l'overlay
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
+    photoModal.addEventListener('click', (e) => {
+        if (e.target === photoModal) {
+            photoModal.style.display = 'none';
         }
     });
 }
@@ -734,8 +1140,7 @@ async function loadVehicules() {
             vehiculesListEl.appendChild(seeAllBtn);
         }
 
-        vehiculesListEl.innerHTML = '';
-        vehiculesListEl.appendChild(list);
+        // Rien à faire ici, les items sont déjà ajoutés à vehiculesListEl
 
     } catch (error) {
         console.error('Erreur chargement véhicules:', error);

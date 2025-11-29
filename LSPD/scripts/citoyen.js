@@ -91,6 +91,8 @@
       const telephoneNumbers = telephoneInput.replace(/\D/g, '');
       const telephoneFormatted = telephoneNumbers ? formatPhoneNumber(telephoneNumbers) : null;
 
+      const photoPreview = document.getElementById('photo_preview');
+      const photoUrl = photoPreview && photoPreview.src && !photoPreview.src.includes('default-citoyen.png') ? photoPreview.src.trim() : null;
       const formData = {
         nom: document.getElementById('nom').value.trim(),
         prenom: document.getElementById('prenom').value.trim(),
@@ -98,9 +100,18 @@
         nationalite: document.getElementById('nationalite').value.trim(),
         genre: document.getElementById('genre').value,
         telephone: telephoneFormatted,
+        adresse: document.getElementById('adresse').value.trim() || null,
+        gang_affilie: document.getElementById('gang_affilie').value.trim() || null,
+        note_interne: document.getElementById('note_interne').value.trim() || null,
         emploi: document.getElementById('emploi').value.trim() || null,
         mandat_actif: document.getElementById('mandat_actif').value === 'true',
-        photo: document.getElementById('photo').value.trim() || null,
+        photo: photoUrl,
+        permis_A: document.getElementById('permis_A').checked,
+        permis_B: document.getElementById('permis_B').checked,
+        permis_C: document.getElementById('permis_C').checked,
+        permis_PPA: document.getElementById('permis_PPA').checked,
+        permis_BRAVO: document.getElementById('permis_BRAVO').checked,
+        permis_ASD: document.getElementById('permis_ASD').checked,
         created_by: user.username
       };
 
@@ -136,6 +147,8 @@
   document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('citoyenForm');
     const telephoneInput = document.getElementById('telephone');
+    const photoPreview = document.getElementById('photo_preview');
+    const photoUrlInput = document.getElementById('photoUrlInput');
 
     // Form submission
     form.addEventListener('submit', submitForm);
@@ -144,17 +157,26 @@
     telephoneInput.addEventListener('input', function(e) {
       const cursorPosition = e.target.selectionStart;
       const oldLength = e.target.value.length;
-      
       e.target.value = formatPhoneNumber(e.target.value);
-      
       const newLength = e.target.value.length;
       const diff = newLength - oldLength;
-      
-      // Ajuster la position du curseur si le formatage a ajouté des caractères
       if (diff > 0) {
         e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
       } else {
         e.target.setSelectionRange(cursorPosition, cursorPosition);
+      }
+    });
+
+    photoUrlInput.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      if (url) {
+        photoPreview.src = url;
+        photoPreview.style.display = 'block';
+        photoPreview.onerror = () => {
+          photoPreview.style.display = 'none';
+        };
+      } else {
+        photoPreview.style.display = 'none';
       }
     });
   });
