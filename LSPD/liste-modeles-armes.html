@@ -70,15 +70,39 @@
 
 
 
-    <div id="weaponModelModal" class="modal" style="display:none;">
-        <div class="modal-content"
-            style="background:#fff; border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.12); max-width:520px; width:100%; border:4px solid #e6e6e6; padding:0;">
-            <div class="modal-header" style="padding:24px 28px 0 28px; border-bottom:none; align-items:center;">
-                <img src="data/images/lspd.png" alt="Logo LSPD" style="height:40px; margin-right:16px;" />
-                <div style="flex:1;">
-                    <h2 style="margin:0; font-size:20px; font-weight:700; color:#222;">Catalogue : Modèle</h2>
-                    <h3 id="modalTitle" style="margin:4px 0 0; font-size:14px; color:#7f8c8d; font-weight:500;">Ajouter
-                        un modèle</h3>
+        <div id="weaponModelModal" class="modal" style="display:none;">
+            <div class="modal-content" style="background:#fff; border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.12); max-width:520px; width:100%; border:4px solid #e6e6e6; padding:0;">
+                <div class="modal-header" style="padding:24px 28px 0 28px; border-bottom:none; align-items:center;">
+                    <img src="data/images/lspd.png" alt="Logo LSPD" style="height:40px; margin-right:16px;" />
+                    <div style="flex:1;">
+                        <h2 style="margin:0; font-size:20px; font-weight:700; color:#222;">Catalogue : Modèle</h2>
+                        <h3 id="modalTitle" style="margin:4px 0 0; font-size:14px; color:#7f8c8d; font-weight:500;">Ajouter un modèle</h3>
+                    </div>
+                    <span class="close" id="modalClose" style="cursor:pointer; font-size:28px; margin-left:12px;">&times;</span>
+                </div>
+                <div class="modal-body" style="padding:24px 28px 0 28px;">
+                    <form id="modalForm" style="display:flex; flex-direction:column; gap:18px;">
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                            <label for="model_name_modal" style="font-weight:600; color:#222; font-size:15px;">Nom du modèle</label>
+                            <input type="text" id="model_name_modal" required style="padding:12px 16px; border:2px solid #e6e6e6; border-radius:8px; font-size:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.04);" />
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                            <label for="calibre_modal" style="font-weight:600; color:#222; font-size:15px;">Calibre</label>
+                            <input type="text" id="calibre_modal" required placeholder="Calibre" style="padding:12px 16px; border:2px solid #e6e6e6; border-radius:8px; font-size:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.04);" />
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                            <label for="image_url_modal" style="font-weight:600; color:#222; font-size:15px;">URL de l'image</label>
+                            <input type="url" id="image_url_modal" placeholder="https://..." style="padding:12px 16px; border:2px solid #e6e6e6; border-radius:8px; font-size:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.04);" />
+                            <div id="imagePreviewContainer" style="margin-top:10px; text-align:center;">
+                                <img id="imagePreviewModal" src="" alt="Aperçu" style="max-width:180px; max-height:120px; display:none; border-radius:8px; border:1px solid #e0e0e0; background:#f8f9fa;">
+                            </div>
+                        </div>
+                        <input type="hidden" id="model_id_modal" />
+                    </form>
+                </div>
+                <div class="modal-footer" style="padding:24px 28px 24px 28px; border-top:none; display:flex; gap:12px; justify-content:flex-end;">
+                    <button type="button" id="cancelModelBtn" class="btn btn-secondary" style="min-width:110px;">Annuler</button>
+                    <button type="button" id="saveModelBtn" class="send-button" style="min-width:110px; background:#27ae60; color:#fff; border-radius:8px; font-weight:600; font-size:15px; border:none; box-shadow:0 2px 8px rgba(39,174,96,0.08);">Enregistrer</button>
                 </div>
                 <span class="close" id="modalClose"
                     style="cursor:pointer; font-size:28px; margin-left:12px;">&times;</span>

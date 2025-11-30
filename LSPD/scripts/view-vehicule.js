@@ -293,6 +293,17 @@
         const savePhotoBtn = document.getElementById('savePhotoBtn');
         const cancelPhotoBtn = document.getElementById('cancelPhotoBtn');
 
+        photoContainer.addEventListener('click', () => {
+            photoUrlInput.value = vehicleData.photo || '';
+            if (photoUrlInput.value) {
+                photoPreviewModal.src = photoUrlInput.value;
+                photoPreviewModal.style.display = 'block';
+            } else {
+                photoPreviewModal.style.display = 'none';
+            }
+            photoModal.style.display = 'flex';
+        });
+
         photoUrlInput.addEventListener('input', (e) => {
             const url = e.target.value;
             if (url) {

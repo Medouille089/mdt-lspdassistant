@@ -86,15 +86,31 @@
               <input type="tel" id="telephone" placeholder="(000) 000-0000" maxlength="14">
             </div>
             <div class="form-group">
-              <label for="emploi">Emploi</label>
-              <input type="text" id="emploi" placeholder="Profession">
+              <label for="emploi">Métier</label>
+              <input type="text" id="emploi" placeholder="Ex: Policier, Médecin">
             </div>
             <div class="form-group">
+              <label for="adresse">Adresse</label>
+              <input type="text" id="adresse" placeholder="123 Grove St, Los Santos">
+            </div>
+            <div class="form-group">
+              <label for="gang_affilie">Gang affilié</label>
+              <input type="text" id="gang_affilie" placeholder="Nom du gang (si applicable)">
+            </div>
+            <div class="form-group" style="max-width: 220px;">
               <label for="mandat_actif">Mandat d'arrêt</label>
               <select id="mandat_actif">
                 <option value="false">Non</option>
                 <option value="true">Oui</option>
               </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="grid-column: span 5; max-width: 100%; width: 100%;">
+              <label for="note_interne">Note interne</label>
+              <textarea id="note_interne" placeholder="Notes internes, visible uniquement par le staff"
+                style="min-height: 40px; width: 100%; resize: vertical;"></textarea>
             </div>
           </div>
         </div>
@@ -106,6 +122,14 @@
             Liens associés
           </h3>
           <div class="equipment-grid">
+            <!-- Permis -->
+            <div class="equipment-category">
+              <h4>Permis</h4>
+              <div id="permis-list" class="equipment-list">
+                <!-- JS: Liste des permis actifs -->
+              </div>
+            </div>
+
             <!-- Véhicules -->
             <div class="equipment-category">
               <h4>Véhicules</h4>

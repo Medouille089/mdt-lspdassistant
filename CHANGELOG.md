@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.21.4](https://github.com/Medouille089/lspdassistant/compare/v1.21.3...v1.21.4) (2025-11-27)
+
+
+### Bug Fixes
+
+* width height on overlay ([67f5271](https://github.com/Medouille089/lspdassistant/commit/67f5271e49ec0de4a045106cebfab197b7947937))
+
+### [1.21.3](https://github.com/Medouille089/lspdassistant/compare/v1.21.2...v1.21.3) (2025-11-26)
+
+
+### Bug Fixes
+
+* add licences + more infos in citoyens ([e47bd5d](https://github.com/Medouille089/lspdassistant/commit/e47bd5d2cbdabc66a3f0bfc2e55fae4303de612f))
+* fixed modal for image preview in cit weap vh ([c74a8ec](https://github.com/Medouille089/lspdassistant/commit/c74a8ecfaa4a627d81773969b9fbd741ba61727a))
+
+### [1.21.2](https://github.com/Medouille089/lspdassistant/compare/v1.21.1...v1.21.2) (2025-11-25)
+
+
+### Bug Fixes
+
+* fix trello ([c25a41e](https://github.com/Medouille089/lspdassistant/commit/c25a41e4e75d8cdb8e816034a533127f28f87078))
+
+### [1.21.1](https://github.com/Medouille089/lspdassistant/compare/v1.21.0...v1.21.1) (2025-11-25)
+
+
+### Bug Fixes
+
+* adjust sizes for IG iframe ([c15d9e6](https://github.com/Medouille089/lspdassistant/commit/c15d9e6c83cc4238ac0a36105a53f9327c2a85ce))
+
+## [1.21.0](https://github.com/Medouille089/lspdassistant/compare/v1.20.3...v1.21.0) (2025-11-25)
+
+
+### Features
+
+* add different way to show vehicules ([8ae744a](https://github.com/Medouille089/lspdassistant/commit/8ae744afac9614d529a3559d5c3710f03eb3dadd))
+* Add vehicules in view citoyens, and etc ([1cd80f5](https://github.com/Medouille089/lspdassistant/commit/1cd80f5189bed36bd6fefd5ccbde913d5605de10))
+
+
+### Bug Fixes
+
+* add % ([dba20e7](https://github.com/Medouille089/lspdassistant/commit/dba20e7f96a913e2b1d0a2cff266857f8615cdf8))
+
 ### [1.20.3](https://github.com/Medouille089/lspdassistant/compare/v1.20.2...v1.20.3) (2025-11-25)
 
 
