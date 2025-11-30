@@ -1,0 +1,214 @@
+.plaque-display {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 18px;
+    background: #2c3e50;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    display: inline-block;
+    letter-spacing: 2px;
+}
+
+.badge.mandat-actif {
+    background: #e74c3c;
+}
+
+.badge.no-mandat {
+    background: #27ae60;
+}
+
+.notes-section {
+    margin-top: 20px;
+}
+
+.notes-section textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 12px;
+    border: 2px solid #dfe6e9;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.notes-section textarea:focus {
+    outline: none;
+    border-color: #002147;
+}
+
+.notes-section textarea:disabled {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+    color: var(--text-darkk);
+    border: 2px solid #dfe6e9;
+    cursor: default;
+}
+
+.rapports-section {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e1e8ed;
+}
+
+.rapports-section h4 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.no-rapports {
+    text-align: center;
+    padding: 40px;
+    color: #95a5a6;
+}
+
+.proprietaire-selector {
+    position: relative;
+}
+
+.proprietaire-selector input {
+    width: 100%;
+    padding-right: 140px;
+    cursor: pointer;
+}
+
+.proprietaire-selector button {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 8px 16px;
+    background-color: #002147;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.proprietaire-selector button:hover {
+    background-color: #003366;
+}
+
+/* Modal d'agrandissement de photo */
+.photo-zoom-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-zoom-modal img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+.photo-zoom-modal .close-zoom {
+    position: absolute;
+    top: 20px;
+    right: 40px;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.photo-zoom-modal .close-zoom:hover {
+    color: #bbb;
+}
+
+.agent-photo {
+    cursor: pointer;
+}
+
+.photo-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.photo-modal-content h3 {
+    margin: 0 0 20px 0;
+    color: #002147;
+    font-size: 20px;
+}
+
+.photo-modal-content input[type="url"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #dfe6e9;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.photo-modal-content input[type="url"]:focus {
+    outline: none;
+    border-color: #002147;
+}
+
+.photo-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.photo-modal-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.photo-modal-actions .btn-cancel {
+    background: #95a5a6;
+    color: white;
+}
+
+.photo-modal-actions .btn-cancel:hover {
+    background: #7f8c8d;
+}
+
+.photo-modal-actions .btn-confirm {
+    background: #002147;
+    color: white;
+}
+
+.photo-modal-actions .btn-confirm:hover {
+    background: #003366;
+}

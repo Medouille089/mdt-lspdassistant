@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <title>Contrat LSPD - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/checkmark.css">
+    <link rel="stylesheet" href="styles/warning.css">
+    <link rel="stylesheet" href="styles/arrestation/arrestation.css" />
+    <link rel="stylesheet" href="styles/context-menu.css" />
+    <link rel="stylesheet" href="styles/custom-notifications.css" />
+    <link rel="stylesheet" href="styles/contrat/contrat.css" />
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <script src="scripts/context-menu.js"></script>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <script src="scripts/instant-sidebar.js"></script>
+        <h1 id="page-title">Nouveau contrat LSPD</h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
+        <div class="warning-modern">
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern">
+            <span>Merci de bien vérifier les informations avant de soumettre le contrat</span>
+            <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+                class="warning-icon-modern">
+        </div>
+        <div class="incident-container">
+
+            <div class="header">
+                <img src="data/images/lspd.png" alt="Logo LSPD" />
+                <div class="header-title">
+                    <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+                    <h3>CONTRAT DE PARTENARIAT</h3>
+                </div>
+                <div style="width: 60px;"></div>
+            </div>
+
+            <form id="contratForm">
+                <input type="hidden" id="contratId" name="contratId" />
+                <input type="hidden" id="grade" name="grade" />
+
+                <div class="inline-fields-2">
+                    <div>
+                        <label for="date_debut">Date du contrat</label>
+                        <input type="date" id="date_debut" name="date_debut" required />
+                    </div>
+                    <div>
+                        <label for="duree_mois">Durée du contrat (en mois)</label>
+                        <input type="text" id="duree_mois" name="duree_mois" placeholder="Nombre de mois" required />
+                    </div>
+                </div>
+
+                <div class="inline-fields-2">
+                    <div>
+                        <label for="date_fin">Date de fin (calculée automatiquement)</label>
+                        <input type="date" id="date_fin" name="date_fin" required readonly />
+                    </div>
+                    <div>
+                        <label for="statut">Statut du contrat</label>
+                        <select id="statut" name="statut" required class="modern-select">
+                            <option value="actif">Actif</option>
+                            <option value="en_attente">En attente</option>
+                            <option value="expire">Expiré</option>
+                            <option value="resilie">Résilié</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>Informations de l'entreprise</label>
+                <div class="inline-fields border">
+                    <div>
+                        <label for="nom_entreprise">Nom de l'entreprise</label>
+                        <input type="text" id="nom_entreprise" name="nom_entreprise" required />
+                    </div>
+                    <div>
+                        <label for="representant_entreprise">Représentant</label>
+                        <input type="text" id="representant_entreprise" name="representant_entreprise" />
+                    </div>
+                    <div>
+                        <label for="contact_entreprise">Contact</label>
+                        <input type="text" id="contact_entreprise" name="contact_entreprise" placeholder="555-XXXX"
+                            pattern="555-\d{4}" title="Format requis: 555-XXXX" />
+                    </div>
+                </div>
+
+                <label>Informations de l'officier responsable</label>
+                <div class="inline-fields border">
+                    <div>
+                        <label for="officier_responsable">Nom de l'officier</label>
+                        <input type="text" id="officier_responsable" name="officier_responsable" required readonly />
+                    </div>
+                    <div>
+                        <label for="grade_officier">Grade</label>
+                        <input type="text" id="grade_officier" name="grade_officier" readonly />
+                    </div>
+                </div>
+
+                <div>
+                    <label for="objet_contrat">Objet du contrat</label>
+                    <textarea id="objet_contrat" name="objet_contrat" rows="4" required
+                        placeholder="Décrivez l'objet principal du contrat..."></textarea>
+                </div>
+
+                <div class="clauses-section">
+                    <div class="clauses-column">
+                        <label>Engagements LSPD</label>
+                        <div id="clauses-lspd" class="clauses-list"></div>
+                        <button type="button" class="btn-add-clause" id="btn-add-clause-lspd">+ Ajouter</button>
+                    </div>
+                    <div class="clauses-column">
+                        <label>Engagements Entreprise</label>
+                        <div id="clauses-entreprise" class="clauses-list"></div>
+                        <button type="button" class="btn-add-clause" id="btn-add-clause-entreprise">+ Ajouter</button>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">
+                        <span id="submit-text">Créer le contrat</span>
+                    </button>
+                    <button type="button" class="btn-export" id="btn-export" style="display: none;">
+                        Exporter en PNG
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script type="module" src="scripts/contrat.js"></script>
+</body>
+
+</html>

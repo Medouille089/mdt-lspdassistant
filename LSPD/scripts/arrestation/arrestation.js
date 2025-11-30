@@ -368,13 +368,36 @@ function supprimerElement(li) {
 
 
 const telInput = document.getElementById('tel');
-telInput.addEventListener('input', function () {
-  let x = this.value.replace(/\D/g, '').slice(0, 10);
-  if (x.length >= 1) x = '(' + x;
-  if (x.length >= 4) x = x.slice(0, 4) + ') ' + x.slice(4);
-  if (x.length >= 9) x = x.slice(0, 9) + '-' + x.slice(9);
-  this.value = x;
-});
+if (telInput) {
+  telInput.addEventListener('input', function (e) {
+    let value = e.target.value.replace(/\D/g, ''); // Garder que les chiffres
+    if (value.startsWith('555')) {
+      value = value.substring(3);
+    }
+
+    if (value.length > 4) {
+      value = value.substring(0, 4);
+    }
+
+    if (value.length > 0) {
+      e.target.value = '555-' + value;
+    } else {
+      e.target.value = '555-';
+    }
+  });
+
+  telInput.addEventListener('focus', function (e) {
+    if (!e.target.value) {
+      e.target.value = '555-';
+    }
+  });
+
+  telInput.addEventListener('blur', function (e) {
+    if (e.target.value === '555-') {
+      e.target.value = '';
+    }
+  });
+}
 function setupImagePicker(id) {
   const fileInput = document.getElementById(`fileInput${id}`);
   const customButton = document.getElementById(`customButton${id}`);

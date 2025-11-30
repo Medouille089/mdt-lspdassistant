@@ -10,77 +10,13 @@
     <link rel="stylesheet" href="styles/loader.css" />
     <link rel="stylesheet" href="styles/annonce-popup.css" />
     <link rel="stylesheet" href="styles/context-menu.css" />
-    <style>
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            position: relative;
-            z-index: 0;
-            background: none;
-            overflow: hidden;
-        }
-
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: -1;
-            background: var(--background-gradient);
-            background-repeat: no-repeat;
-            background-size: cover;
-            
-        }
-
-        .annexe-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .annexe-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .annexe-toolbar .open-external {
-            background: var(--button-bg);
-            color: var(--button-text);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px 12px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: -32px;
-        }
-
-        .annexe-toolbar .open-external:hover {
-            background: var(--button-bg-hover);
-        }
-
-        .annexe-frame {
-            width: 100%;
-            height: calc(100vh - 180px);
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
-            background: #fff;
-        }
-
-        .annexe-warning {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-    </style>
+    <link rel="stylesheet" href="styles/archivesViewer.css" />
 </head>
 
 <body>
     <div class="main-container">
-        <div id="sidebar-container"></div>    <script src="scripts/instant-sidebar.js"></script>
+        <div id="sidebar-container"></div>
+        <script src="scripts/instant-sidebar.js"></script>
         <h1>Archives</h1>
         <div class="annexe-wrapper">
             <div class="annexe-toolbar">
@@ -102,36 +38,7 @@
     <script src="scripts/annonce-popup.js"></script>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/context-menu.js"></script>
-    <script>
-        (function () {
-            const params = new URLSearchParams(window.location.search);
-            const url = params.get('url');
-            const frame = document.getElementById('annexFrame');
-            const info = document.getElementById('annexeInfo');
-            const openBtn = document.getElementById('openExternal');
-
-            function decodeUrl(u) {
-                try { return decodeURIComponent(u || ''); } catch (_) { return u || ''; }
-            }
-
-            const target = decodeUrl(url);
-            if (!target) {
-                if (info) info.textContent = "Aucun lien fourni.";
-                return;
-            }
-
-            // Google Docs/Sheets/Slides se chargent souvent en iframe mais parfois refusent (X-Frame-Options)
-            frame.src = target;
-            if (info) info.textContent = target;
-            openBtn.addEventListener('click', function () {
-                const w = window.open(target, '_blank');
-                if (w) w.opener = null;
-            });
-
-            // Gestion d'erreurs de chargement (limité sur iframe): proposer l'ouverture externe
-            frame.addEventListener('error', function () { if (info) info.textContent = "Impossible d'afficher l'aperçu. Ouvrez dans un nouvel onglet."; });
-        })();
-    </script>
+    <script src="scripts/archivesViewer.js"></script>
 </body>
 
 </html>
