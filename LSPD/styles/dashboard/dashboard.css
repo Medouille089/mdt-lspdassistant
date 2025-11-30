@@ -41,10 +41,12 @@ body::before {
 
 #overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  transform: scale(1.3333);
+  transform-origin: top left;
+  overflow: hidden;
   background-color: var(--main-color);
   color: var(--white);
   display: flex;
@@ -56,7 +58,7 @@ body::before {
   opacity: 0;
   pointer-events: none;
   flex-direction: column;
-  padding: 20px;
+  padding: 0;
   text-align: center;
 }
 
@@ -67,15 +69,17 @@ body::before {
 
 #overlay.hide {
   animation: curtainUp 1s forwards;
+  /* On garde le scale pendant l'anim */
+  transform: scale(1.3333);
 }
 
 @keyframes curtainUp {
   from {
-    transform: translateY(0);
+    transform: scale(1.3333) translateY(0);
   }
 
   to {
-    transform: translateY(-100%);
+    transform: scale(1.3333) translateY(-100%);
   }
 }
 
