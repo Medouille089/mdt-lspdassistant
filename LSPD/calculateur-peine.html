@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="styles/warningCancer.css" />
     <link rel="stylesheet" href="styles/checkmark.css" />
     <link rel="stylesheet" href="styles/outils/calculateur-peines.css">
+    <link rel="stylesheet" href="styles/generic-selector.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
     <link rel="stylesheet" href="styles/custom-notifications.css" />
 </head>
@@ -29,6 +30,16 @@
         <h1>Calculateur de peines</h1>
 
         <div class="calculateur-container">
+            <!-- NEW: Citizen Selector -->
+            <div class="citoyen-section" style="margin-bottom: 20px; background: var(--input-bg); padding: 20px; border-radius: 8px;">
+                <h2>Citoyen concerné</h2>
+                <div class="selector-container">
+                    <button type="button" id="selectCitizenBtn" class="btn-primary" style="width: 100%;">Sélectionner un citoyen</button>
+                </div>
+                <div id="selectedCitizenDisplay" class="selected-list" style="margin-top: 10px;"></div>
+                <input type="hidden" id="selectedCitizenId" />
+            </div>
+
             <div class="delits-section">
                 <h2>Ajouter un délit</h2>
 
@@ -175,6 +186,7 @@
     <script src="scripts/loadSidebar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="scripts/custom-notifications.js"></script>
+    <script src="scripts/generic-selector.js"></script>
     <script src="scripts/calculateur-peines.js"></script>
 </body>
 

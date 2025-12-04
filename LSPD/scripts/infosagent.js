@@ -246,6 +246,9 @@ async function loadAgentProfile() {
 
         agentProfile = await res.json();
         await displayProfile(agentProfile);
+        
+        // Charger les rapports d'arrestation
+        await loadAgentReports(agentProfile.discord_id || currentUserId);
 
     } catch (err) {
         console.error('Erreur chargement profil:', err);
@@ -774,3 +777,62 @@ function activateEditModeLocal() {
 // Rendre les fonctions globalement accessibles
 window.removeEquipmentRow = removeEquipmentRow;
 window.editEquipmentRow = editEquipmentRow;
+
+// Fonction pour charger les rapports impliquant l'agent
+async function loadAgentReports(agentId) {
+    const container = document.getElementById('rapports-container');
+    if (!container) return;
+
+    container.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>';
+
+    try {
+        const res = await fetch(`/api/rapports-arrestation?agentId=${agentId}&limit=5`);
+        if (!res.ok) throw new Error('Erreur chargement rapports');
+        
+        const data = await res.json();
+        const reports = data.reports;
+
+        if (reports.length === 0) {
+            container.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Aucun rapport trouvé.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        reports.forEach(report => {
+            const dateObj = new Date(report.date_arrestation);
+            const dateStr = dateObj.toLocaleDateString('fr-FR');
+            
+            let suspects = 'Aucun';
+            try {
+                const suspArr = typeof report.suspects_impliques === 'string' ? JSON.parse(report.suspects_impliques) : report.suspects_impliques;
+                if (suspArr && suspArr.length > 0) {
+                    suspects = suspArr.map(s => s.name).join(', ');
+                }
+            } catch (e) {}
+
+            const div = document.createElement('div');
+            div.className = 'equipment-item';
+            div.style.cursor = 'pointer';
+            div.onclick = () => window.location.href = `/view-rapport-arrestation?id=${report.id}`;
+            
+            let titre = (report.titre_rapport && report.titre_rapport.trim() !== '') ? report.titre_rapport : `Rapport #${report.id}`;
+            div.innerHTML = `
+                <span class="equipment-name">${titre} - ${dateStr}</span>
+                <span class="equipment-detail">Suspect(s): ${suspects}</span>
+            `;
+            container.appendChild(div);
+        });
+
+        if (data.totalPages > 1) {
+            const moreDiv = document.createElement('div');
+            moreDiv.style.textAlign = 'center';
+            moreDiv.style.marginTop = '10px';
+            moreDiv.innerHTML = `<a href="/liste-rapports-arrestation?search=${agentId}" style="color: var(--main-color); text-decoration: none; font-size: 14px;">Voir tous les rapports</a>`;
+            container.appendChild(moreDiv);
+        }
+
+    } catch (err) {
+        console.error("Erreur loadAgentReports:", err);
+        container.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur de chargement.</p>';
+    }
+}

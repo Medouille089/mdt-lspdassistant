@@ -1,0 +1,141 @@
+document.addEventListener('DOMContentLoaded', async () => {
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.querySelector('#reportsTable tbody');
+    const paginationContainer = document.getElementById('pagination');
+    const loader = document.getElementById('loaderOverlay');
+
+    let currentPage = 1;
+    let currentSearch = '';
+    let currentUser = null;
+
+    // Charger l'utilisateur pour les permissions
+    try {
+        const res = await fetch('/api/user');
+        currentUser = await res.json();
+    } catch (e) {
+        console.error("Erreur chargement user", e);
+    }
+
+    // Debounce search
+    let timeout = null;
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            currentSearch = e.target.value;
+            currentPage = 1;
+            loadReports();
+        }, 300);
+    });
+
+    async function loadReports() {
+        loader.style.display = 'flex';
+        try {
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: 10,
+                search: currentSearch
+            });
+
+            const res = await fetch(`/api/rapports-arrestation?${params}`);
+            if (!res.ok) throw new Error('Erreur chargement rapports');
+            
+            const data = await res.json();
+            renderTable(data.reports);
+            renderPagination(data.totalPages);
+
+        } catch (err) {
+            console.error(err);
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erreur de chargement</td></tr>';
+        } finally {
+            loader.style.display = 'none';
+        }
+    }
+
+    function renderTable(reports) {
+        tableBody.innerHTML = '';
+        if (reports.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aucun rapport trouvé</td></tr>';
+            return;
+        }
+
+        reports.forEach(report => {
+            const tr = document.createElement('tr');
+            
+            // Format date
+            const dateObj = new Date(report.date_arrestation);
+            const dateStr = dateObj.toLocaleDateString('fr-FR') + ' ' + dateObj.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+
+            // Suspects formatting
+            let suspects = 'Aucun';
+            try {
+                const suspArr = typeof report.suspects_impliques === 'string' ? JSON.parse(report.suspects_impliques) : report.suspects_impliques;
+                if (suspArr && suspArr.length > 0) {
+                    suspects = suspArr.map(s => s.name).join(', ');
+                }
+            } catch (e) {}
+
+            tr.innerHTML = `
+                <td>#${report.id}</td>
+                <td>${dateStr}</td>
+                <td>${report.grade} ${report.officier_redacteur}</td>
+                <td>${suspects}</td>
+                <td class="actions-cell">
+                    <button class="btn-action view" title="Voir" onclick="window.location.href='/view-rapport-arrestation?id=${report.id}'">
+                        <span class="material-symbols-rounded">visibility</span>
+                    </button>
+                    <button class="btn-action edit" title="Modifier" onclick="window.location.href='/modifier-rapport-arrestation?id=${report.id}'">
+                        <span class="material-symbols-rounded">edit</span>
+                    </button>
+                    ${(currentUser && currentUser.isCommandStaff) ? `
+                    <button class="btn-action delete" title="Supprimer" data-id="${report.id}">
+                        <span class="material-symbols-rounded">delete</span>
+                    </button>` : ''}
+                </td>
+            `;
+
+            tableBody.appendChild(tr);
+        });
+
+        // Attach delete listeners
+        document.querySelectorAll('.btn-action.delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.dataset.id;
+                if (confirm('Êtes-vous sûr de vouloir supprimer ce rapport ? Cette action est irréversible.')) {
+                    deleteReport(id);
+                }
+            });
+        });
+    }
+
+    async function deleteReport(id) {
+        try {
+            const res = await fetch(`/api/rapports-arrestation/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                loadReports();
+            } else {
+                alert('Erreur lors de la suppression');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Erreur serveur');
+        }
+    }
+
+    function renderPagination(totalPages) {
+        paginationContainer.innerHTML = '';
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.textContent = i;
+            btn.addEventListener('click', () => {
+                currentPage = i;
+                loadReports();
+            });
+            paginationContainer.appendChild(btn);
+        }
+    }
+
+    loadReports();
+});

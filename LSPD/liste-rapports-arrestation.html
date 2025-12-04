@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <title>Liste des rapports d'arrestation - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/context-menu.css" />
+    <link rel="stylesheet" href="styles/liste-rapports.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
+
+    <div class="main-container">
+        <h1>Liste des rapports d'arrestation</h1>
+        
+        <div class="controls-container">
+            <div class="search-box">
+                <span class="material-symbols-rounded">search</span>
+                <input type="text" id="searchInput" placeholder="Rechercher (officier, suspect, civil...)" autocomplete="off" />
+            </div>
+            <!-- Future tags filter -->
+            <div class="filters" id="tagFilters">
+                <!-- Tags will be injected here -->
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="reportsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Officier</th>
+                        <th>Suspects</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows injected by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" id="pagination">
+            <!-- Pagination buttons -->
+        </div>
+    </div>
+
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/context-menu.js"></script>
+    <script src="scripts/liste-rapports-arrestation.js"></script>
+</body>
+
+</html>

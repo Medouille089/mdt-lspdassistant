@@ -114,8 +114,48 @@ document.addEventListener('DOMContentLoaded', async function () {
         exportBtn.addEventListener('click', exporterCalcul);
     }
 
+    // Initialize Citizen Selector
+    const selectCitizenBtn = document.getElementById('selectCitizenBtn');
+    if (selectCitizenBtn) {
+        selectCitizenBtn.addEventListener('click', () => {
+            GenericSelector.open({
+                type: 'citizen',
+                renderItem: (citizen) => {
+                    // Format date to DD/MM/YYYY
+                    let date = '?';
+                    if (citizen.date_naissance) {
+                        const d = new Date(citizen.date_naissance);
+                        date = d.toLocaleDateString('fr-FR');
+                    }
+                    return `${citizen.nom} ${citizen.prenom} (${date})`;
+                },
+                onSelect: (citizen) => {
+                    const display = document.getElementById('selectedCitizenDisplay');
+                    const input = document.getElementById('selectedCitizenId');
+                    let date = '?';
+                    if (citizen.date_naissance) {
+                        const d = new Date(citizen.date_naissance);
+                        date = d.toLocaleDateString('fr-FR');
+                    }
+                    display.innerHTML = `
+                        <div class="selected-pill">
+                            <span>${citizen.nom} ${citizen.prenom} (${date})</span>
+                            <button type="button" class="pill-remove" onclick="removeCitizen()" aria-label="Supprimer" tabindex="0">&times;</button>
+                        </div>
+                    `;
+                    input.value = citizen.id;
+                }
+            });
+        });
+    }
+
     setupPeineClickHandlers();
 });
+
+function removeCitizen() {
+    document.getElementById('selectedCitizenDisplay').innerHTML = '';
+    document.getElementById('selectedCitizenId').value = '';
+}
 
 async function loadDelitsFromDatabase() {
     try {
@@ -461,15 +501,42 @@ async function exporterCalcul() {
         return;
     }
 
-    try {
     const exportBtn = document.getElementById('exportBtn');
     const originalText = exportBtn.textContent;
     exportBtn.textContent = 'Exportation en cours...';
     exportBtn.disabled = true;
-    // Affiche le loader
+    
     const loader = document.getElementById('loaderOverlay');
     if (loader) loader.style.display = 'flex';
 
+    try {
+        // 1. Save to Database
+        const citizenId = document.getElementById('selectedCitizenId').value;
+        const totalAmendesStr = document.getElementById('totalAmendes').textContent;
+        const totalPeinesStr = document.getElementById('totalPeines').textContent;
+        const totalAmendes = parseInt(totalAmendesStr.replace(/[^0-9]/g, ''));
+
+        const payload = {
+            citizen_id: citizenId || null,
+            details: delitsAjoutes,
+            total_amende: totalAmendes,
+            total_peine: totalPeinesStr
+        };
+
+        const saveResponse = await fetch('/api/calcul-peine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!saveResponse.ok) {
+            console.error('Erreur sauvegarde DB', await saveResponse.text());
+            showNotification('Erreur lors de la sauvegarde en base de données, mais le screenshot va continuer.', 'warning');
+        } else {
+            showNotification('Calcul enregistré avec succès !', 'success');
+        }
+
+        // 2. Generate Screenshot
         const tableauSection = document.querySelector('.tableau-section');
         const totauxSection = document.querySelector('.totaux-section');
 
@@ -520,9 +587,7 @@ async function exporterCalcul() {
             height: tempContainer.scrollHeight
         });
 
-    document.body.removeChild(tempContainer);
-    // Masque le loader
-    if (loader) loader.style.display = 'none';
+        document.body.removeChild(tempContainer);
 
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 
@@ -539,37 +604,36 @@ async function exporterCalcul() {
             throw new Error(errorData.message || 'Erreur lors de l\'exportation');
         }
 
-        const result = await response.json();
+        // Success Feedback
+        exportBtn.textContent = originalText;
+        exportBtn.disabled = false;
+        if (loader) loader.style.display = 'none';
 
-                exportBtn.textContent = originalText;
-                exportBtn.disabled = false;
-
-                // Affiche le checkmark SVG de succès
-                let feedback = document.getElementById('feedbackAnimation');
-                if (!feedback) {
-                        feedback = document.createElement('div');
-                        feedback.id = 'feedbackAnimation';
-                        feedback.className = 'feedback-animation';
-                        document.body.appendChild(feedback);
-                }
-                feedback.innerHTML = `<div class=\"feedback-inner\">
-                    <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 130.2 130.2\">
-                        <circle class=\"path circle\" fill=\"none\" stroke=\"#0b1b5a\" stroke-width=\"8\" stroke-miterlimit=\"10\" cx=\"65.1\" cy=\"65.1\" r=\"60\"/>
-                        <polyline class=\"path check\" fill=\"none\" stroke=\"#0b1b5a\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" points=\"100.2,40.2 51.5,88.8 29.8,67.5 \"/>
-                    </svg>
-                    <p class=\"success\">Exportation réussie !</p>
-                </div>`;
-                feedback.style.display = 'flex';
-                setTimeout(() => {
-                        feedback.style.display = 'none';
-                }, 2000);
+        let feedback = document.getElementById('feedbackAnimation');
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.id = 'feedbackAnimation';
+            feedback.className = 'feedback-animation';
+            document.body.appendChild(feedback);
+        }
+        feedback.innerHTML = `<div class=\"feedback-inner\">
+            <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 130.2 130.2\">
+                <circle class=\"path circle\" fill=\"none\" stroke=\"#0b1b5a\" stroke-width=\"8\" stroke-miterlimit=\"10\" cx=\"65.1\" cy=\"65.1\" r=\"60\"/>
+                <polyline class=\"path check\" fill=\"none\" stroke=\"#0b1b5a\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" points=\"100.2,40.2 51.5,88.8 29.8,67.5 \"/>
+            </svg>
+            <p class=\"success\">Exportation réussie !</p>
+        </div>`;
+        feedback.style.display = 'flex';
+        setTimeout(() => {
+            feedback.style.display = 'none';
+        }, 2000);
 
     } catch (error) {
         console.error('Erreur lors de l\'exportation:', error);
         showNotification('Erreur lors de l\'exportation: ' + error.message, 'error');
 
-        const exportBtn = document.getElementById('exportBtn');
-        exportBtn.textContent = 'Exporter';
+        exportBtn.textContent = originalText;
         exportBtn.disabled = false;
+        if (loader) loader.style.display = 'none';
     }
 }
