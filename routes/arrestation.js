@@ -198,6 +198,11 @@ router.get('/api/getArrestation', async (req, res) => {
         }
         query += ' ORDER BY date_arrestation DESC';
 
+        // Limiter à 200 si pas d'ID spécifique
+        if (!id) {
+            query += ' LIMIT 200';
+        }
+
         const result = await pool.query(query, params);
         const bot = getBot();
 

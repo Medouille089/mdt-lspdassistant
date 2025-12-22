@@ -188,7 +188,7 @@ router.get('/api/getIncident', async (req, res) => {
     const { id, includeImages } = req.query;
     const query = id
       ? `SELECT * FROM incidents WHERE incident_id=$1`
-      : `SELECT * FROM incidents ORDER BY date_incident DESC, heure_incident DESC`;
+      : `SELECT * FROM incidents ORDER BY date_incident DESC, heure_incident DESC LIMIT 200`;
 
     const params = id ? [id] : [];
     const result = await pool.query(query, params);
