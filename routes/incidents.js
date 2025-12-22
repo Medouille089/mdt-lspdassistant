@@ -185,7 +185,7 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
 
 router.get('/api/getIncident', async (req, res) => {
   try {
-    const { id } = req.query; // possibilité de demander un incident précis
+    const { id, includeImages } = req.query;
     const query = id
       ? `SELECT * FROM incidents WHERE incident_id=$1`
       : `SELECT * FROM incidents ORDER BY date_incident DESC, heure_incident DESC`;
@@ -198,7 +198,8 @@ router.get('/api/getIncident', async (req, res) => {
       let images = [];
       let threadExists = true;
 
-      if (row.discord_thread_id) {
+      // Ne charger les images que si explicitement demandé
+      if (includeImages === 'true' && row.discord_thread_id) {
         try {
           const thread = await bot.channels.fetch(row.discord_thread_id);
           if (!thread?.isThread()) {
@@ -215,7 +216,15 @@ router.get('/api/getIncident', async (req, res) => {
           if (err.code !== 10003) {
             console.error(`[ERROR] Problème sur incident ${row.incident_id}:`, err);
           }
-          threadExists = false; // thread introuvable ou supprimé
+          threadExists = false;
+        }
+      } else if (row.discord_thread_id) {
+        // Vérifier juste si le thread existe sans charger les images
+        try {
+          const thread = await bot.channels.fetch(row.discord_thread_id);
+          threadExists = thread?.isThread();
+        } catch (err) {
+          threadExists = false;
         }
       } else {
         threadExists = false;

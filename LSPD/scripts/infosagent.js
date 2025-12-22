@@ -473,26 +473,21 @@ async function saveProfile(event) {
 // Initialisation de la page
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // Formatage automatique du champ téléphone (parenthèses, espaces, limite)
+    // Formatage automatique du champ téléphone (format xxx-xxxx)
     const telephoneInput = document.getElementById('telephone');
     if (telephoneInput) {
         telephoneInput.addEventListener('input', function(e) {
             let value = telephoneInput.value.replace(/\D/g, '');
-            if (value.length > 10) value = value.slice(0, 10);
+            if (value.length > 7) value = value.slice(0, 7);
             let formatted = value;
-            if (value.length > 0) {
-                formatted = '(';
-                formatted += value.substring(0, 3);
-                if (value.length >= 4) {
-                    formatted += ') ' + value.substring(3, 6);
-                }
-                if (value.length >= 7) {
-                    formatted += '-' + value.substring(6, 10);
-                }
+            if (value.length > 3) {
+                formatted = value.substring(0, 3) + '-' + value.substring(3, 7);
+            } else {
+                formatted = value;
             }
             telephoneInput.value = formatted;
         });
-        telephoneInput.setAttribute('maxlength', '14');
+        telephoneInput.setAttribute('maxlength', '8');
     }
     const loader = document.getElementById('loaderOverlay');
     loader.style.display = 'flex';
