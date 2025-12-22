@@ -12,90 +12,7 @@
   <link rel="stylesheet" href="styles/infosagent.css">
   <link rel="stylesheet" href="styles/context-menu.css" />
   <link rel="stylesheet" href="styles/custom-notifications.css" />
-  <style>
-    .photo-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .photo-modal-content {
-      background: white;
-      border-radius: 12px;
-      max-width: 400px;
-      width: 90%;
-      padding: 24px;
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    #photoUrlInput {
-      width: 100%;
-      padding: 12px;
-      background: #f8f9fa;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      color: #222;
-      font-size: 1rem;
-      margin-bottom: 8px;
-      box-sizing: border-box;
-    }
-
-    #photoUrlInput:focus {
-      border-color: #002147;
-      outline: none;
-    }
-
-    .photo-modal-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-      margin-top: 8px;
-    }
-
-    .btn-cancel,
-    .btn-confirm {
-      padding: 8px 16px;
-      border-radius: 4px;
-      border: none;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-    }
-
-    .btn-cancel {
-      background: #e0e0e0;
-      color: #333;
-    }
-
-    .btn-cancel:hover {
-      background: #eee;
-    }
-
-    .btn-confirm {
-      background: #002147;
-      color: #fff;
-    }
-
-    .btn-confirm:hover {
-      background: #003366;
-      transform: translateY(-2px);
-    }
-
-    .photo-preview-container img {
-      max-width: 100%;
-      max-height: 200px;
-      border-radius: 8px;
-      display: none;
-    }
-  </style>
+  <link rel="stylesheet" href="styles/view-citoyen.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
 </head>
@@ -233,6 +150,47 @@
               <p style="color: #7f8c8d; font-size: 14px; margin-top: 10px;">
                 Section disponible prochainement
               </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Dossiers associés -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="material-symbols-rounded">folder_shared</span>
+            Dossiers associés
+          </h3>
+          <div class="equipment-grid">
+            <!-- Rapports en tant que Suspect -->
+            <div class="equipment-category">
+              <h4>Rapports (Suspect)</h4>
+              <div id="rapports-suspect-list" class="equipment-list">
+                <p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>
+              </div>
+            </div>
+
+            <!-- Rapports en tant que Victime/Témoin -->
+            <div class="equipment-category">
+              <h4>Rapports (Autre)</h4>
+              <div id="rapports-autre-list" class="equipment-list">
+                <p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Casier Judiciaire -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <span class="material-symbols-rounded">gavel</span>
+            Casier Judiciaire
+          </h3>
+          <div class="equipment-grid">
+            <div class="equipment-category" style="width: 100%;">
+              <h4>Historique des peines</h4>
+              <div id="casier-list" class="equipment-list">
+                <p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>
+              </div>
             </div>
           </div>
         </div>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <meta charset="UTF-8" />
+  <title>Rapport d'arrestation - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/rapport-arrestation.css" />
+  <link rel="stylesheet" href="styles/generic-selector.css" />
+  <link rel="stylesheet" href="styles/context-menu.css" />
+  <link rel="stylesheet" href="styles/custom-notifications.css" />
+</head>
+
+<body>
+  <script src="scripts/annonce-popup.js"></script>
+  <script src="scripts/liveUserHeartbeat.js"></script>
+  <div class="main-container">
+    <div id="sidebar-container"></div>    <script src="scripts/instant-sidebar.js"></script>
+    <h1>Rapport d'arrestation</h1>
+    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+      ← Retour
+    </button>
+    <div class="warning-modern">
+      <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+        class="warning-icon-modern">
+      <span>Merci de bien vérifier les informations avant de soumettre le rapport d'arrestation</span>
+      <img src="https://fonts.gstatic.com/s/i/materialiconsoutlined/warning_amber/v15/24px.svg" alt="warning icon"
+        class="warning-icon-modern">
+    </div>
+    <div class="incident-container">
+
+      <div class="header">
+        <img src="data/images/lspd.png" alt="Logo LSPD" />
+        <div class="header-title">
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3>RAPPORT D'ARRESTATION</h3>
+        </div>
+        <div style="width: 60px;"></div>
+      </div>
+
+      <form id="arrestReportForm">
+        <!-- Titre du rapport -->
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label for="titre_rapport">Titre du rapport</label>
+          <input type="text" id="titre_rapport" name="titre_rapport" placeholder="Ex: Interpellation sur Grove St" required />
+        </div>
+
+        <!-- Partie Récit -->
+        <h3 class="section-title">Partie Récit</h3>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label>Lier un calcul de peine (Optionnel)</label>
+          <div class="selector-container">
+            <button type="button" id="selectCalculPeineBtn" class="btn-primary" style="width:100%;">Sélectionner un calcul</button>
+          </div>
+          <div id="selectedCalculDisplay" class="selected-list" style="margin-top: 10px;"></div>
+          <input type="hidden" id="calcul_peine_id" name="calcul_peine_id" />
+        </div>
+
+        <div class="inline-fields">
+          <div>
+            <label for="date">Date de l'arrestation</label>
+            <input type="date" id="date" name="date" required />
+          </div>
+          <div>
+            <label for="heure">Heure de l'arrestation</label>
+            <input type="time" id="heure" name="heure" required />
+          </div>
+        </div>
+
+        <div class="inline-fields">
+          <div>
+            <label for="officier">Agent rédacteur</label>
+            <input type="text" id="officier" name="officier" readonly />
+          </div>
+          <div>
+            <label for="grade">Grade</label>
+            <input type="text" id="grade" name="grade" readonly />
+          </div>
+        </div>
+
+        <div class="inline-fields">
+            <div style="display: flex; align-items: center; margin-top: 30px;">
+                <label for="droits_cites" style="margin: 0 10px 0 0;">Droits cités ?</label>
+                <input type="checkbox" id="droits_cites" name="droits_cites" style="width: 20px; height: 20px;" />
+            </div>
+            <div>
+                <label for="droits_heure">Droits cités (Heure)</label>
+                <input type="time" id="droits_heure" name="droits_heure" />
+            </div>
+        </div>
+
+        <div class="switches-row">
+            <div class="switch-container">
+                <p class="switch-label">Avocat</p>
+                <label class="switch">
+                    <input type="checkbox" id="avocat_intervention" name="avocat_intervention">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="switch-container">
+                <p class="switch-label">EMS</p>
+                <label class="switch">
+                    <input type="checkbox" id="ems_intervention" name="ems_intervention">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="switch-container">
+                <p class="switch-label">Nourriture</p>
+                <label class="switch">
+                    <input type="checkbox" id="nourriture_demandee" name="nourriture_demandee">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div>
+            <label for="heure_cellule">Heure d'entrée en cellule</label>
+            <input type="time" id="heure_cellule" name="heure_cellule" />
+        </div>
+
+        <div>
+            <label for="objets_confisques">Objets confisqués</label>
+            <textarea id="objets_confisques" name="objets_confisques" style="height: 100px;" placeholder="Listez les objets confisqués..."></textarea>
+        </div>
+
+        <label for="recit">Récit des faits</label>
+        <div class="recit-spellcheck-wrapper">
+          <textarea id="recit" name="recit" required></textarea>
+          <div class="recit-btn-row">
+            <a href="https://chat.openai.com/?q=Corrige%20les%20fautes%20d%27orthographes%20pr%C3%A9sentes%20dans%20le%20texte%20que%20je%20te%20fournis%20sans%20changer%20le%20sens%2C%20ni%20reformuler%20le%20texte."
+              target="_blank" rel="noopener" id="gpt-btn">Chat GPT</a>
+          </div>
+        </div>
+
+        <div>
+            <!-- Champ chef d'inculpation supprimé, le sélecteur de calcul de peine est utilisé à la place -->
+        </div>
+
+        <!-- Partie Agent Impliqué -->
+        <h3 class="section-title">Agents Impliqués</h3>
+        <div class="selector-container">
+            <button type="button" id="addAgentBtn" class="custom-file-upload">Ajouter un agent</button>
+        </div>
+        <div id="selectedAgents" class="selected-list"></div>
+        <input type="hidden" id="agents_impliques" name="agents_impliques" />
+
+        <!-- Partie Civil Impliqué -->
+        <h3 class="section-title">Civils Impliqués</h3>
+        <div class="selector-container">
+            <button type="button" id="addCivilBtn" class="custom-file-upload">Ajouter un civil</button>
+        </div>
+        <div id="selectedCivils" class="selected-list"></div>
+        <input type="hidden" id="civils_impliques" name="civils_impliques" />
+
+        <!-- Partie Suspects Impliqué -->
+        <h3 class="section-title">Suspects Impliqués</h3>
+        <div class="selector-container">
+            <button type="button" id="addSuspectBtn" class="custom-file-upload">Ajouter un suspect</button>
+        </div>
+        <div id="selectedSuspects" class="selected-list"></div>
+        <input type="hidden" id="suspects_impliques" name="suspects_impliques" />
+
+        <!-- Partie Photos -->
+        <h3 class="section-title">Photos / Preuves</h3>
+        <label for="pieces">Ajouter des photos</label>
+        <div class="file-upload-wrapper">
+          <label for="pieces" class="custom-file-upload">
+            Sélectionner des photos
+          </label>
+          <input type="file" id="pieces" name="pieces" accept="image/*" multiple />
+        </div>
+        <div class="attachments-preview" id="attachmentsPreview"></div>
+
+      </form>
+      <div class="image-container">
+        <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo" />
+      </div>
+    </div>
+    
+    <div class="button-container">
+      <button type="submit" form="arrestReportForm" class="send-button">Envoyer le rapport d'arrestation</button>
+    </div>
+  </div>
+  <div class="loader-overlay" id="loaderOverlay">
+    <div class="loader-spinner"></div>
+  </div>
+  </div>
+  <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="scripts/custom-notifications.js"></script>
+  <script src="scripts/generic-selector.js"></script>
+  <script src="scripts/rapport-arrestation.js"></script>
+  <script src="scripts/loadSidebar.js"></script>
+  <script src="scripts/context-menu.js"></script>
+</body>
+
+</html>

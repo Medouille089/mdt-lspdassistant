@@ -14,7 +14,7 @@ function showAnimation(type = 'success', message = '') {
         feedbackDiv.className = 'feedback-animation';
         document.body.appendChild(feedbackDiv);
     }
-    
+
     const animationContainer = document.getElementById('feedbackAnimation');
     animationContainer.className = `feedback-animation ${type}`;
     animationContainer.textContent = message || (type === 'success' ? 'Succès !' : 'Erreur !');
@@ -163,7 +163,7 @@ function getEquipmentFromDOM(type) {
 // Fonction pour remplir les équipements dans le DOM
 function fillEquipmentInDOM(container, equipments, type) {
     container.innerHTML = '';
-    
+
     if (!equipments || equipments.length === 0) {
         addEquipmentRow(container, {}, type);
         return;
@@ -177,32 +177,32 @@ function fillEquipmentInDOM(container, equipments, type) {
 // Fonction pour mettre à jour la visibilité des équipements selon le mode
 function updateEquipmentVisibility() {
     const isEditModeActive = document.body.classList.contains('edit-mode');
-    
+
     document.querySelectorAll('.equipment-item').forEach(item => {
         const removeBtn = item.querySelector('.remove-equipment-btn');
         const editBtn = item.querySelector('.edit-equipment-btn');
         const inputs = item.querySelectorAll('input');
-        
+
         if (removeBtn) removeBtn.style.display = isEditModeActive ? 'block' : 'none';
         if (editBtn) editBtn.style.display = isEditModeActive ? 'block' : 'none';
         inputs.forEach(input => input.disabled = !isEditModeActive);
     });
-    
+
     document.querySelectorAll('.add-equipment-btn').forEach(btn => {
         btn.style.display = isEditModeActive ? 'block' : 'none';
     });
-    
+
     // Gérer les en-têtes des équipements
     const armesContainer = document.getElementById('armes-container');
     const vehiculesContainer = document.getElementById('vehicules-container');
-    
+
     // Gérer les en-têtes des armes
     const armesHeaders = document.querySelector('.equipment-headers.armes');
     if (armesContainer && armesHeaders) {
         const hasArmes = armesContainer.children.length > 0;
         armesHeaders.style.display = hasArmes ? 'grid' : 'none';
     }
-    
+
     // Gérer les en-têtes des véhicules
     const vehiculesHeaders = document.querySelector('.equipment-headers.vehicules');
     if (vehiculesContainer && vehiculesHeaders) {
@@ -216,13 +216,13 @@ async function loadUserInfo() {
     try {
         const res = await fetch('/api/user');
         if (!res.ok) throw new Error('Erreur récupération utilisateur');
-        
+
         currentUserInfo = await res.json();
-        
+
         // Déterminer l'userId à partir de l'URL ou utiliser l'utilisateur actuel
         const urlParams = new URLSearchParams(window.location.search);
         currentUserId = urlParams.get('userId') || currentUserInfo.id;
-        
+
         return currentUserInfo;
     } catch (err) {
         console.error('Erreur chargement utilisateur:', err);
@@ -234,19 +234,22 @@ async function loadUserInfo() {
 // Fonction pour charger le profil de l'agent
 async function loadAgentProfile() {
     if (!currentUserId) return;
-    
+
     try {
         const res = await fetch(`/api/agent-profile/${currentUserId}`);
-        
+
         if (!res.ok) {
             const errorData = await res.json();
             console.error('Erreur API:', res.status, errorData);
             throw new Error(`Erreur ${res.status}: ${errorData.error || 'Erreur récupération profil'}`);
         }
-        
+
         agentProfile = await res.json();
         await displayProfile(agentProfile);
         
+        // Charger les rapports d'arrestation
+        await loadAgentReports(agentProfile.discord_id || currentUserId);
+
     } catch (err) {
         console.error('Erreur chargement profil:', err);
         showAnimation('error', `Erreur de chargement du profil: ${err.message}`);
@@ -266,7 +269,7 @@ async function displayProfile(profile) {
     document.getElementById('date_modification').textContent = formatDate(profile.date_modification);
 
     // Charger photo / équipements
-    const armes = Array.isArray(profile.armes) ? profile.armes : []; 
+    const armes = Array.isArray(profile.armes) ? profile.armes : [];
     const vehicules = Array.isArray(profile.vehicules) ? profile.vehicules : [];
     const armesContainer = document.getElementById('armes-container');
     const vehiculesContainer = document.getElementById('vehicules-container');
@@ -279,77 +282,77 @@ async function displayProfile(profile) {
     // Récupérer et afficher les formations
     await fillFormationsInDOM(profile.discord_id || currentUserId);
 
-    originalData = { matricule: profile.matricule||'', nom: profile.nom||'', prenom: profile.prenom||'', numero_casier: profile.numero_casier||'', photo_url: profile.photo_url||'', armes, vehicules };
+    originalData = { matricule: profile.matricule || '', nom: profile.nom || '', prenom: profile.prenom || '', numero_casier: profile.numero_casier || '', photo_url: profile.photo_url || '', armes, vehicules };
     updateEquipmentVisibility();
 
     // Ensuite seulement récupérer et afficher grade + titre
     await fetchAgentDisplayName();
 
     // Vérifier les permissions d'édition
-    const canEdit = currentUserInfo.id === profile.discord_id || 
-                   currentUserInfo.id === currentUserId ||
-                   currentUserInfo.isSupervisor || 
-                   currentUserInfo.isCommandStaff;
+    const canEdit = currentUserInfo.id === profile.discord_id ||
+        currentUserInfo.id === currentUserId ||
+        currentUserInfo.isSupervisor ||
+        currentUserInfo.isCommandStaff;
 
     // Afficher le bouton d'édition si autorisé
     if (canEdit) {
         document.getElementById('edit-mode-btn').style.display = 'block';
     }
-// Fonction pour remplir les formations dans le DOM
-async function fillFormationsInDOM(userId) {
-    const formationsContainer = document.getElementById('formations-container');
-    const formationsHeaders = document.querySelector('.equipment-headers.formations');
-    formationsContainer.innerHTML = '';
-    let formations = [];
-    try {
-        const res = await fetch(`/api/agent-formations/${userId}`);
-        if (res.ok) {
-            formations = await res.json();
+    // Fonction pour remplir les formations dans le DOM
+    async function fillFormationsInDOM(userId) {
+        const formationsContainer = document.getElementById('formations-container');
+        const formationsHeaders = document.querySelector('.equipment-headers.formations');
+        formationsContainer.innerHTML = '';
+        let formations = [];
+        try {
+            const res = await fetch(`/api/agent-formations/${userId}`);
+            if (res.ok) {
+                formations = await res.json();
+            }
+        } catch (e) {
+            console.warn('Erreur récupération formations:', e);
         }
-    } catch (e) {
-        console.warn('Erreur récupération formations:', e);
-    }
 
-    // Liste complète des formations possibles (doit matcher l'ordre du backend)
-    const allFormations = [
-        { nom: 'Négociateur' },
-        { nom: 'Lead Terrain' },
-        { nom: 'Dispatcher' },
-        { nom: 'Mary Unit' },
-        { nom: 'Nautics Unit' },
-        { nom: 'VIR' },
-        { nom: 'Convoi' },
-        { nom: 'ASD' },
-        { nom: 'Plongée' },
-        { nom: 'Parachute' },
-        { nom: 'Premiers Secours' },
-        { nom: 'Bomb Squad' }
-    ];
+        // Liste complète des formations possibles (doit matcher l'ordre du backend)
+        const allFormations = [
+            { nom: 'Négociateur' },
+            { nom: 'Lead Terrain' },
+            { nom: 'Dispatcher' },
+            { nom: 'Mary Unit' },
+            { nom: 'Nautics Unit' },
+            { nom: 'VIR' },
+            { nom: 'Convoi' },
+            { nom: 'ASD' },
+            { nom: 'Plongée' },
+            { nom: 'Parachute' },
+            { nom: 'Premiers Secours' },
+            { nom: 'Bomb Squad' }
+        ];
 
-    // Créer le tableau des formations
-    let hasFormation = false;
-    allFormations.forEach(f => {
-        const isValid = formations.some(userF => userF.nom === f.nom);
-        const div = document.createElement('div');
-        div.className = 'equipment-item';
-        div.innerHTML = `
+        // Créer le tableau des formations
+        let hasFormation = false;
+        allFormations.forEach(f => {
+            const isValid = formations.some(userF => userF.nom === f.nom);
+            const div = document.createElement('div');
+            div.className = 'equipment-item';
+            div.innerHTML = `
             <span class="equipment-name">${f.nom}</span>
             <span class="equipment-detail">
                 <span class="formation-check ${isValid ? 'valid' : 'invalid'}">
                     ${isValid
-                        ? '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 9.5L8 12.5L13 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-                        : '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6L12 12M12 6L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
+                    ? '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 9.5L8 12.5L13 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+                    : '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6L12 12M12 6L6 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
                 </span>
             </span>
         `;
-        formationsContainer.appendChild(div);
-        if (isValid) hasFormation = true;
-    });
-    // Afficher les headers si au moins une formation
-    if (formationsHeaders) {
-        formationsHeaders.style.display = hasFormation ? 'grid' : 'none';
+            formationsContainer.appendChild(div);
+            if (isValid) hasFormation = true;
+        });
+        // Afficher les headers si au moins une formation
+        if (formationsHeaders) {
+            formationsHeaders.style.display = hasFormation ? 'grid' : 'none';
+        }
     }
-}
 }
 
 // Fonction pour récupérer le nom d'affichage et le grade de l'agent
@@ -402,17 +405,17 @@ async function fetchAgentDisplayName() {
 function updatePhotoPreview(url) {
     const preview = document.getElementById('photo_preview');
     const uploadBtn = document.querySelector('.photo-upload-btn');
-    
+
     if (!preview) {
         console.warn('Élément photo_preview non trouvé');
         return;
     }
-    
+
     if (url && url.trim()) {
         preview.src = url;
         preview.style.display = 'block';
         if (uploadBtn) uploadBtn.style.display = 'none';
-        
+
         preview.onerror = () => {
             preview.style.display = 'none';
             if (uploadBtn) uploadBtn.style.display = 'flex';
@@ -452,10 +455,10 @@ async function saveProfile(event) {
 
         const updatedProfile = await res.json();
         agentProfile = updatedProfile;
-        
+
         // Mettre à jour les données originales
         originalData = { ...formData };
-        
+
         await deactivateEditMode();
         showAnimation('success', 'Profil sauvegardé avec succès !');
 
@@ -473,46 +476,62 @@ async function saveProfile(event) {
 // Initialisation de la page
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // Formatage automatique du champ téléphone (format xxx-xxxx)
+    // Formatage automatique du champ téléphone (format 555-xxxx)
     const telephoneInput = document.getElementById('telephone');
     if (telephoneInput) {
-        telephoneInput.addEventListener('input', function(e) {
-            let value = telephoneInput.value.replace(/\D/g, '');
-            if (value.length > 7) value = value.slice(0, 7);
-            let formatted = value;
-            if (value.length > 3) {
-                formatted = value.substring(0, 3) + '-' + value.substring(3, 7);
-            } else {
-                formatted = value;
+        telephoneInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, ''); // Garder que les chiffres
+            if (value.startsWith('555')) {
+                value = value.substring(3);
             }
-            telephoneInput.value = formatted;
+
+            if (value.length > 4) {
+                value = value.substring(0, 4);
+            }
+
+            if (value.length > 0) {
+                e.target.value = '555-' + value;
+            } else {
+                e.target.value = '555-';
+            }
         });
-        telephoneInput.setAttribute('maxlength', '8');
+
+        telephoneInput.addEventListener('focus', function (e) {
+            if (!e.target.value) {
+                e.target.value = '555-';
+            }
+        });
+
+        telephoneInput.addEventListener('blur', function (e) {
+            if (e.target.value === '555-') {
+                e.target.value = '';
+            }
+        });
     }
     const loader = document.getElementById('loaderOverlay');
     loader.style.display = 'flex';
-    
+
     try {
         await loadUserInfo();
         await loadAgentProfile();
-        
+
         setupPhotoPopup();
 
         // Boutons d'action
-    document.getElementById('edit-mode-btn').addEventListener('click', activateEditModeLocal);
-    document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
-    document.getElementById('profileForm').addEventListener('submit', saveProfile);
-    document.getElementById('backlinkBtn').addEventListener('click', () => history.back());
+        document.getElementById('edit-mode-btn').addEventListener('click', activateEditModeLocal);
+        document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
+        document.getElementById('profileForm').addEventListener('submit', saveProfile);
+        document.getElementById('backlinkBtn').addEventListener('click', () => history.back());
 
         // Boutons d'ajout d'équipement
         document.getElementById('add-arme-btn').addEventListener('click', () => {
             const nom = document.getElementById('new-arme-nom').value.trim();
             const serie = document.getElementById('new-arme-serie').value.trim();
-            
+
             if (nom) {
                 const container = document.getElementById('armes-container');
                 addEquipmentRow(container, { nom, numero_serie: serie }, 'arme');
-                
+
                 // Vider les champs
                 document.getElementById('new-arme-nom').value = '';
                 document.getElementById('new-arme-serie').value = '';
@@ -522,11 +541,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('add-vehicule-btn').addEventListener('click', () => {
             const nom = document.getElementById('new-vehicule-nom').value.trim();
             const immat = document.getElementById('new-vehicule-immat').value.trim();
-            
+
             if (nom) {
                 const container = document.getElementById('vehicules-container');
                 addEquipmentRow(container, { nom, immatriculation: immat }, 'vehicule');
-                
+
                 // Vider les champs
                 document.getElementById('new-vehicule-nom').value = '';
                 document.getElementById('new-vehicule-immat').value = '';
@@ -551,12 +570,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await navigator.clipboard.writeText(value);
                     idEl.classList.add('copied');
                     setTimeout(() => idEl.classList.remove('copied'), 2000);
-                } catch(e) {
+                } catch (e) {
                     console.warn('Clipboard échoué', e);
                 }
             });
         }
-        
+
     } catch (err) {
         console.error('Erreur initialisation page:', err);
     } finally {
@@ -583,11 +602,11 @@ async function activateEditMode() {
 
         isEditMode = true;
         document.body.classList.add('edit-mode');
-        
+
         // Masquer le bouton édition, afficher sauvegarde et annulation
-    document.getElementById('edit-mode-btn').style.display = 'none';
-    document.getElementById('cancel-edit-btn').style.display = 'block';
-    document.getElementById('save-btn').style.display = 'block';
+        document.getElementById('edit-mode-btn').style.display = 'none';
+        document.getElementById('cancel-edit-btn').style.display = 'block';
+        document.getElementById('save-btn').style.display = 'block';
 
         // Activer les champs
         const inputs = document.querySelectorAll('input, textarea');
@@ -611,7 +630,7 @@ async function deactivateEditMode() {
 
         isEditMode = false;
         document.body.classList.remove('edit-mode');
-        
+
         // Restaurer l'affichage des boutons
         document.getElementById('edit-mode-btn').style.display = 'block';
         document.getElementById('save-btn').style.display = 'none';
@@ -634,16 +653,16 @@ function cancelEdit() {
     document.getElementById('matricule').value = originalData.matricule;
     document.getElementById('nom').value = originalData.nom;
     document.getElementById('prenom').value = originalData.prenom;
-    
+
     // Restaurer les équipements
     const armesContainer = document.getElementById('armes-container');
     fillEquipmentInDOM(armesContainer, originalData.armes, 'arme');
-    
+
     const vehiculesContainer = document.getElementById('vehicules-container');
     fillEquipmentInDOM(vehiculesContainer, originalData.vehicules, 'vehicule');
-    
+
     updatePhotoPreview(originalData.photo_url);
-    
+
     deactivateEditMode();
     showAnimation('success', 'Modifications annulées');
 }
@@ -703,7 +722,7 @@ function setupPhotoPopup() {
 
     // Aperçu en temps réel dans le popup
     photoUrlInput.addEventListener('input', updatePhotoPreviewPopup);
-    
+
     function updatePhotoPreviewPopup() {
         const url = photoUrlInput.value.trim();
         if (url) {
@@ -738,10 +757,10 @@ function setupPhotoPopup() {
 
 // Fonction pour activer le mode édition localement (sans API)
 function activateEditModeLocal() {
-    
+
     isEditMode = true;
     document.body.classList.add('edit-mode');
-    
+
     // Masquer le bouton édition, afficher sauvegarde et annulation
     document.getElementById('edit-mode-btn').style.display = 'none';
     document.getElementById('save-btn').style.display = 'block';
@@ -758,3 +777,62 @@ function activateEditModeLocal() {
 // Rendre les fonctions globalement accessibles
 window.removeEquipmentRow = removeEquipmentRow;
 window.editEquipmentRow = editEquipmentRow;
+
+// Fonction pour charger les rapports impliquant l'agent
+async function loadAgentReports(agentId) {
+    const container = document.getElementById('rapports-container');
+    if (!container) return;
+
+    container.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>';
+
+    try {
+        const res = await fetch(`/api/rapports-arrestation?agentId=${agentId}&limit=5`);
+        if (!res.ok) throw new Error('Erreur chargement rapports');
+        
+        const data = await res.json();
+        const reports = data.reports;
+
+        if (reports.length === 0) {
+            container.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Aucun rapport trouvé.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        reports.forEach(report => {
+            const dateObj = new Date(report.date_arrestation);
+            const dateStr = dateObj.toLocaleDateString('fr-FR');
+            
+            let suspects = 'Aucun';
+            try {
+                const suspArr = typeof report.suspects_impliques === 'string' ? JSON.parse(report.suspects_impliques) : report.suspects_impliques;
+                if (suspArr && suspArr.length > 0) {
+                    suspects = suspArr.map(s => s.name).join(', ');
+                }
+            } catch (e) {}
+
+            const div = document.createElement('div');
+            div.className = 'equipment-item';
+            div.style.cursor = 'pointer';
+            div.onclick = () => window.location.href = `/view-rapport-arrestation?id=${report.id}`;
+            
+            let titre = (report.titre_rapport && report.titre_rapport.trim() !== '') ? report.titre_rapport : `Rapport #${report.id}`;
+            div.innerHTML = `
+                <span class="equipment-name">${titre} - ${dateStr}</span>
+                <span class="equipment-detail">Suspect(s): ${suspects}</span>
+            `;
+            container.appendChild(div);
+        });
+
+        if (data.totalPages > 1) {
+            const moreDiv = document.createElement('div');
+            moreDiv.style.textAlign = 'center';
+            moreDiv.style.marginTop = '10px';
+            moreDiv.innerHTML = `<a href="/liste-rapports-arrestation?search=${agentId}" style="color: var(--main-color); text-decoration: none; font-size: 14px;">Voir tous les rapports</a>`;
+            container.appendChild(moreDiv);
+        }
+
+    } catch (err) {
+        console.error("Erreur loadAgentReports:", err);
+        container.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur de chargement.</p>';
+    }
+}

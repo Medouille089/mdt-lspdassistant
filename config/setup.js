@@ -44,6 +44,8 @@ router.put("/api/config", async (req, res) => {
     situations_thread_id,
     pointeuse_alert,
     rapport_rookie_channel_id,
+    contrats_thread_id,
+    logs_contrats
   } = req.body;
 
   try {
@@ -63,7 +65,9 @@ router.put("/api/config", async (req, res) => {
         arrestation_thread_id = $9,
         situations_thread_id = $10,
         pointeuse_alert = $11,
-        rapport_rookie_channel_id = $12
+        rapport_rookie_channel_id = $12,
+        contrats_thread_id = $13,
+        logs_contrats = $14
        WHERE id = 1 RETURNING *`,
       [
         required_role_id,
@@ -77,7 +81,9 @@ router.put("/api/config", async (req, res) => {
         arrestation_thread_id,
         situations_thread_id,
         pointeuse_alert,
-        rapport_rookie_channel_id
+        rapport_rookie_channel_id,
+        contrats_thread_id,
+        logs_contrats
       ]
     );
 

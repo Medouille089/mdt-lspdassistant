@@ -278,6 +278,8 @@ const trelloLogs = require('./routes/trelloLogs');
 const citoyensRoutes = require('./routes/citoyens');
 const weaponsRoutes = require('./routes/weapons');
 const vehiculesRoutes = require('./routes/vehicules');
+const contratsRoutes = require('./routes/contrats');
+const rapportArrestationRoute = require('./routes/rapportArrestation');
 
 const githubPushRoute = require('./routes/githubPush');
 
@@ -288,6 +290,8 @@ app.use(braceletRoutes);
 app.use(citoyensRoutes);
 app.use(weaponsRoutes);
 app.use(vehiculesRoutes);
+app.use(contratsRoutes);
+app.use(rapportArrestationRoute);
 app.use(arrestationRoute);
 app.use(convocationRoute);
 app.use(convocationsRoute);

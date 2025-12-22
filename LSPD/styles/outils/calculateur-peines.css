@@ -1,3 +1,37 @@
+/* Blue pill selector for citizen */
+.selected-pill {
+  background: var(--main-color);
+  color: white;
+  padding: 6px 18px 6px 14px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.pill-remove {
+  background: white;
+  color: var(--main-color);
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+  margin-left: 6px;
+  box-shadow: 0 2px 6px rgba(11, 27, 90, 0.12);
+}
+.pill-remove:hover {
+  background: #e74c3c;
+  color: white;
+}
 html,
 body {
   height: 100%;

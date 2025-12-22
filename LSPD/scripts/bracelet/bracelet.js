@@ -24,12 +24,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const telInput = document.getElementById('tel');
     if (telInput) {
-        telInput.addEventListener('input', function () {
-            let x = this.value.replace(/\D/g, '').slice(0, 10);
-            if (x.length >= 1) x = '(' + x;
-            if (x.length >= 4) x = x.slice(0, 4) + ') ' + x.slice(4);
-            if (x.length >= 9) x = x.slice(0, 9) + '-' + x.slice(9);
-            this.value = x;
+        telInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, ''); // Garder que les chiffres
+            if (value.startsWith('555')) {
+                value = value.substring(3);
+            }
+
+            if (value.length > 4) {
+                value = value.substring(0, 4);
+            }
+
+            if (value.length > 0) {
+                e.target.value = '555-' + value;
+            } else {
+                e.target.value = '555-';
+            }
+        });
+
+        telInput.addEventListener('focus', function (e) {
+            if (!e.target.value) {
+                e.target.value = '555-';
+            }
+        });
+
+        telInput.addEventListener('blur', function (e) {
+            if (e.target.value === '555-') {
+                e.target.value = '';
+            }
         });
     }
 
@@ -49,23 +70,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function showAnimation(type = 'success') {
-    return new Promise((resolve) => {
-        const container = document.getElementById('feedbackAnimation');
-        container.innerHTML = ''; // reset
+        return new Promise((resolve) => {
+            const container = document.getElementById('feedbackAnimation');
+            container.innerHTML = ''; // reset
 
-        const content = document.createElement('div');
-        content.className = 'feedback-inner';
+            const content = document.createElement('div');
+            content.className = 'feedback-inner';
 
-        if (type === 'success') {
-            content.innerHTML = `
+            if (type === 'success') {
+                content.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
                     <circle class="path circle" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
                     <polyline class="path check" fill="none" stroke="#0b1b5a" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
                 </svg>
                 <p class="success">Bracelet soumis avec succès!</p>
             `;
-        } else {
-            content.innerHTML = `
+            } else {
+                content.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130.2 130.2">
                     <circle class="path circle" fill="none" stroke="#D06079" stroke-width="8" stroke-miterlimit="10" cx="65.1" cy="65.1" r="60"/>
                     <line class="path line" fill="none" stroke="#D06079" stroke-width="8" stroke-linecap="round" stroke-miterlimit="10" x1="34.4" y1="37.9" x2="95.8" y2="92.3"/>
@@ -73,30 +94,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </svg>
                 <p class="error">Erreur lors de la soumission du bracelet</p>
             `;
-        }
+            }
 
 
-        container.appendChild(content);
-        container.style.display = 'flex';
+            container.appendChild(content);
+            container.style.display = 'flex';
 
-        setTimeout(() => resolve(), 1800);
-    });
+            setTimeout(() => resolve(), 1800);
+        });
     }
 
     const form = document.getElementById('lspdForm');
     if (form) form.addEventListener('submit', async function (e) {
-    e.preventDefault();
+        e.preventDefault();
         const nom = document.getElementById('nom') ? document.getElementById('nom').value : '';
         const prenom = document.getElementById('prenom') ? document.getElementById('prenom').value : '';
         const tel = document.getElementById('tel') ? document.getElementById('tel').value : '';
         const motif = document.getElementById('motif') ? document.getElementById('motif').value : '';
         const dateDebutRaw = document.getElementById('dateDebut') ? document.getElementById('dateDebut').value : '';
-    const dateDebutForDB = dateDebutRaw; // format YYYY-MM-DD
-    const dateDebutForDisplay = formatDateForDisplay(dateDebutRaw);
-    const webhookRes = await fetch('/api/webhook-url');
-    const webhookData = await webhookRes.json();
-    const webhookUrl = webhookData.webhook;
-    const imageUrl = "https://i.ibb.co/DDQWSHmZ/assistant.png";
+        const dateDebutForDB = dateDebutRaw; // format YYYY-MM-DD
+        const dateDebutForDisplay = formatDateForDisplay(dateDebutRaw);
+        const webhookRes = await fetch('/api/webhook-url');
+        const webhookData = await webhookRes.json();
+        const webhookUrl = webhookData.webhook;
+        const imageUrl = "https://i.ibb.co/DDQWSHmZ/assistant.png";
         if (loader) loader.style.display = 'flex';
 
         const payload = {
