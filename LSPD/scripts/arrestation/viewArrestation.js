@@ -142,10 +142,10 @@ async function loadIncidentDetail() {
     const loader = document.getElementById('loaderOverlay');
     loader.style.display = 'flex';
     try {
-        const res = await fetch('/api/getArrestation');
+        const res = await fetch(`/api/getArrestation?id=${id}&includeImages=true`);
         if (!res.ok) throw new Error('Erreur chargement');
         const arrestations = await res.json();
-        const arrestation = arrestations.find(i => i.arrestationId == id);
+        const arrestation = arrestations[0];
         if (!arrestation) throw new Error('Rap. Arrestation non trouvé');
 
         arrestation.date = arrestation.date.split('T')[0] + "T" + arrestation.date.split('T')[1].substring(0, 5);

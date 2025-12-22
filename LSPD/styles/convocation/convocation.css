@@ -131,7 +131,8 @@ p {
   /* couleur texte */
   min-height: 44px;
   /* hauteur approximative input */
-  line-height: 1.2;
+  line-height: 1.5;
+  padding-top: 15px;
 }
 
 .content input[readonly] {
