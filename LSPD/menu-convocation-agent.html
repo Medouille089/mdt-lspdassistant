@@ -6,15 +6,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data/images/favicon.png" type="image/png">
-        <link rel="stylesheet" href="styles/admin/admin.css">
+    <link rel="stylesheet" href="styles/admin/admin.css">
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/genMenu.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <title>Convocation agent - LSPD Assistant</title>
     <style>
-        /* Force le bouton retour à gauche pour cette page */
         .backlink-row { display: flex; justify-content: flex-start; }
         .backlink-row .backlink-btn { margin-left: 0 !important; margin-right: auto !important; }
     </style>
@@ -23,7 +23,8 @@
 <body>
     <script src="scripts/annonce-popup.js"></script>
     <script src="scripts/context-menu.js"></script>
-    <div id="sidebar-container"></div>    <script src="scripts/instant-sidebar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
 
     <div class="main-container">
         <h1>Convocation agent</h1>
@@ -32,14 +33,22 @@
         </div>
         <div class="grid-wrapper">
             <div class="button-grid">
-                <a href="/convocation-agent" class="send-button">Nouvelle convocation</a>
-                <a href="/liste-convocations-agent" class="send-button">Liste</a>
+                <a href="/convocation-agent" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="plus-circle" class="icon"></i></div>
+                    <span class="label">Nouvelle convocation</span>
+                </a>
+                <a href="/liste-convocations-agent" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="list" class="icon"></i></div>
+                    <span class="label">Liste</span>
+                </a>
             </div>
         </div>
     </div>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/genMenu.js"></script>
     <script>
+        lucide.createIcons();
+
         (function () {
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
