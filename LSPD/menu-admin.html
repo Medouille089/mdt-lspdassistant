@@ -10,40 +10,79 @@
   <link rel="stylesheet" href="styles/colors.css" />
   <link rel="stylesheet" href="styles/loader.css" />
   <link rel="stylesheet" href="styles/sidebar.css" />
-  <link rel="stylesheet" href="styles/annonce-popup.css" />
   <link rel="stylesheet" href="styles/genMenu.css" />
   <link rel="stylesheet" href="styles/context-menu.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
   <title>Menu admin - LSPD Assistant</title>
 </head>
 
 <body>
   <script src="scripts/annonce-popup.js"></script>
   <script src="scripts/context-menu.js"></script>
-  <div id="sidebar-container"></div>    <script src="scripts/instant-sidebar.js"></script>
+  <div id="sidebar-container"></div>
+  <script src="scripts/instant-sidebar.js"></script>
 
   <div class="main-container">
     <h1>Menu admin</h1>
 
     <div class="grid-wrapper">
       <div class="button-grid">
-        <a href="/admin-salons" class="send-button">Salons</a>
-        <a href="/admin-logs" class="send-button">Logs</a>
-        <a href="/admin-pointeuse" class="send-button">Pointeuse</a>
-        <a href="/admin-grades" class="send-button">Grades</a>
-        <a href="/admin-absences" class="send-button">Absences</a>
-        <a href="/admin-presence" class="send-button">Présence IG</a>
-        <a href="/liste-officiers" class="send-button">Liste des agents</a>
-        <a href="/tickets" class="send-button">Tickets</a>
-        <a href="/admin-annonce" class="send-button">Annonce</a>
-        <a href="/admin-comptabilite" class="send-button">Comptabilité</a>
-        <a href="/admin-accounts" class="send-button">Gestion des comptes</a>
-        <a href="/menu-mdt" class="send-button">Menu MDT</a>
+        <a href="/admin-salons" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="hash" class="icon"></i></div>
+          <span class="label">Salons</span>
+        </a>
+        <a href="/admin-logs" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="scroll-text" class="icon"></i></div>
+          <span class="label">Logs</span>
+        </a>
+        <a href="/admin-pointeuse" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="clock" class="icon"></i></div>
+          <span class="label">Pointeuse</span>
+        </a>
+        <a href="/admin-grades" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="award" class="icon"></i></div>
+          <span class="label">Grades</span>
+        </a>
+        <a href="/admin-absences" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="calendar-x" class="icon"></i></div>
+          <span class="label">Absences</span>
+        </a>
+        <a href="/admin-presence" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="user-check" class="icon"></i></div>
+          <span class="label">Présence IG</span>
+        </a>
+        <a href="/liste-officiers" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="users" class="icon"></i></div>
+          <span class="label">Liste des agents</span>
+        </a>
+        <a href="/tickets" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="ticket" class="icon"></i></div>
+          <span class="label">Tickets</span>
+        </a>
+        <a href="/admin-annonce" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="megaphone" class="icon"></i></div>
+          <span class="label">Annonce</span>
+        </a>
+        <a href="/admin-comptabilite" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="calculator" class="icon"></i></div>
+          <span class="label">Comptabilité</span>
+        </a>
+        <a href="/admin-accounts" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="settings" class="icon"></i></div>
+          <span class="label">Gestion des comptes</span>
+        </a>
+        <a href="/menu-mdt" class="send-button">
+          <div class="icon-wrapper"><i data-lucide="database" class="icon"></i></div>
+          <span class="label">Menu MDT</span>
+        </a>
       </div>
     </div>
   </div>
   <script src="scripts/loadSidebar.js"></script>
   <script src="scripts/genMenu.js"></script>
-  <script src="scripts/annonce-popup.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
 </body>
 
 </html>

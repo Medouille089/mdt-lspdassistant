@@ -12,9 +12,9 @@
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/genMenu.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <title>Dossier d'arrestation - LSPD Assistant</title>
     <style>
-        /* Force le bouton retour à gauche pour cette page */
         .backlink-row { display: flex; justify-content: flex-start; }
         .backlink-row .backlink-btn { margin-left: 0 !important; margin-right: auto !important; }
     </style>
@@ -33,16 +33,22 @@
         </div>
         <div class="grid-wrapper">
             <div class="button-grid">
-                <a href="/da-viewer?url=https%3A%2F%2Fdocs.google.com%2Fdocument%2Fd%2F19Ds2L-b8rArMByjY0t7Ko2wG5aggCWqhkVnyS50jr7E%2Fedit%3Fusp%3Dsharing"
-                    class="send-button">Dossier d'arrestation</a>
-                <a href="/da-viewer?url=https%3A%2F%2Fdocs.google.com%2Fdocument%2Fd%2F1a0hWw0FDSDkvo5gBxwjdo7hK6ygESVgrwAAZikKT2Fk%2Fedit%3Fusp%3Dsharing"
-                    class="send-button">Aide dossier d'arrestation</a>
+                <a href="/da-viewer?url=https%3A%2F%2Fdocs.google.com%2Fdocument%2Fd%2F19Ds2L-b8rArMByjY0t7Ko2wG5aggCWqhkVnyS50jr7E%2Fedit%3Fusp%3Dsharing" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="folder-open" class="icon"></i></div>
+                    <span class="label">Dossier d'arrestation</span>
+                </a>
+                <a href="/da-viewer?url=https%3A%2F%2Fdocs.google.com%2Fdocument%2Fd%2F1a0hWw0FDSDkvo5gBxwjdo7hK6ygESVgrwAAZikKT2Fk%2Fedit%3Fusp%3Dsharing" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="help-circle" class="icon"></i></div>
+                    <span class="label">Aide dossier d'arrestation</span>
+                </a>
             </div>
         </div>
     </div>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/genMenu.js"></script>
     <script>
+        lucide.createIcons();
+
         (function () {
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
