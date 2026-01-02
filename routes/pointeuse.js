@@ -543,10 +543,11 @@ router.post("/admin/pointeuse/session/:sessionId", async (req, res) => {
 
     const salaryRate = sessionInfo.rows[0].salary_rate || 0;
 
-    // Calculer la durée en heures
-    const startDateTime = new Date(start_time);
-    const endDateTime = new Date(end_time);
-    const durationHours = (endDateTime - startDateTime) / (1000 * 60 * 60); // Conversion en heures
+    // Calculer la durée en heures (en forçant le fuseau horaire Paris)
+    const startDateTime = DateTime.fromISO(start_time, { zone: "Europe/Paris" });
+    const endDateTime = DateTime.fromISO(end_time, { zone: "Europe/Paris" });
+    
+    const durationHours = endDateTime.diff(startDateTime, 'hours').hours;
 
     // Calculer le salaire gagné
     const calculatedSalary = durationHours * salaryRate;
@@ -558,7 +559,7 @@ router.post("/admin/pointeuse/session/:sessionId", async (req, res) => {
       RETURNING *
     `;
 
-    const result = await pool.query(updateQuery, [start_time, end_time, calculatedSalary, sessionId]);
+    const result = await pool.query(updateQuery, [startDateTime.toJSDate(), endDateTime.toJSDate(), calculatedSalary, sessionId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Erreur lors de la mise à jour" });
