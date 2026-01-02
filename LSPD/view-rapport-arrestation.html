@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <meta charset="UTF-8" />
+  <title>Rapport d'Arrestation - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/rapport-arrestation.css" />
+  <link rel="stylesheet" href="styles/generic-selector.css" />
+  <link rel="stylesheet" href="styles/context-menu.css" />
+  <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+      /* Read-only specific styles */
+      input:disabled, textarea:disabled, select:disabled {
+          background-color: #f8f9fa;
+          color: #333;
+          border: 1px solid #ddd;
+          cursor: default;
+      }
+      .action-bar {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-bottom: 20px;
+      }
+      .btn-edit {
+          background-color: var(--lspd-gold);
+          color: #fff;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 5px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          font-weight: bold;
+          text-decoration: none;
+          font-size: 14px;
+      }
+      .btn-edit:hover {
+          background-color: #bfa130;
+      }
+      /* Hide elements not needed in view mode */
+      .recit-btn-row, .selector-container, .file-upload-wrapper, .warning-modern {
+          display: none;
+      }
+      /* Adjust switch appearance for read-only */
+      .switch input:disabled + .slider {
+          cursor: default;
+          opacity: 0.7;
+      }
+  </style>
+</head>
+
+<body>
+  <script src="scripts/annonce-popup.js"></script>
+  <script src="scripts/liveUserHeartbeat.js"></script>
+  <div class="main-container">
+    <div id="sidebar-container"></div>    <script src="scripts/instant-sidebar.js"></script>
+    
+    <!-- <div class="action-bar">
+        <a href="#" id="editLink" class="btn-edit" style="display:none;">
+            <span class="material-symbols-rounded">edit</span> Modifier
+        </a>
+    </div> -->
+
+    <h1>Rapport d'arrestation</h1>
+    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+      ← Retour
+    </button>
+
+    <div class="incident-container">
+
+      <div class="header">
+        <img src="data/images/lspd.png" alt="Logo LSPD" />
+        <div class="header-title">
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3>RAPPORT D'ARRESTATION #<span id="displayId"></span></h3>
+        </div>
+        <div style="width: 60px;"></div>
+      </div>
+
+      <form id="viewReportForm">
+        <!-- Partie Récit -->
+        <h3 class="section-title">Partie Récit</h3>
+        
+        <div class="inline-fields">
+          <div>
+            <label for="date">Date de l'arrestation</label>
+            <input type="date" id="date" name="date" disabled />
+          </div>
+          <div>
+            <label for="heure">Heure de l'arrestation</label>
+            <input type="time" id="heure" name="heure" disabled />
+          </div>
+        </div>
+
+        <div class="inline-fields">
+          <div>
+            <label for="officier">Agent rédacteur</label>
+            <input type="text" id="officier" name="officier" disabled />
+          </div>
+          <div>
+            <label for="grade">Grade</label>
+            <input type="text" id="grade" name="grade" disabled />
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center;">
+                <!-- <label for="droits_cites" style="margin: 0 10px 0 0;">Droits cités ?</label> -->
+                <input type="checkbox" id="droits_cites" name="droits_cites" style="width: 20px; height: 20px;" disabled hidden />
+            </div>
+
+        <div class="inline-fields">
+            
+            <div>
+                <label for="droits_heure">Droits cités (Heure)</label>
+                <input type="time" id="droits_heure" name="droits_heure" disabled />
+            </div>
+        </div>
+
+        <div class="switches-row">
+            <div class="switch-container">
+                <p class="switch-label">Avocat</p>
+                <label class="switch">
+                    <input type="checkbox" id="avocat_intervention" name="avocat_intervention" disabled>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="switch-container">
+                <p class="switch-label">EMS</p>
+                <label class="switch">
+                    <input type="checkbox" id="ems_intervention" name="ems_intervention" disabled>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="switch-container">
+                <p class="switch-label">Nourriture</p>
+                <label class="switch">
+                    <input type="checkbox" id="nourriture_demandee" name="nourriture_demandee" disabled>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div>
+            <label for="heure_cellule">Heure d'entrée en cellule</label>
+            <input type="time" id="heure_cellule" name="heure_cellule" disabled />
+        </div>
+
+        <div>
+            <label for="objets_confisques">Objets confisqués</label>
+            <textarea id="objets_confisques" name="objets_confisques" style="height: 100px;" disabled></textarea>
+        </div>
+
+        <label for="recit">Récit des faits</label>
+        <div class="recit-spellcheck-wrapper">
+          <textarea id="recit" name="recit" disabled></textarea>
+        </div>
+
+        <div>
+            <label for="charges_image_url">Chef d'inculpation (Lien image)</label>
+            <input type="url" id="charges_image_url" name="charges_image_url" disabled />
+            <div id="chargesPreview" class="attachments-preview"></div>
+        </div>
+
+        <!-- Partie Agent Impliqué -->
+        <h3 class="section-title">Agents Impliqués</h3>
+        <div id="selectedAgents" class="selected-list"></div>
+
+        <!-- Partie Civil Impliqué -->
+        <h3 class="section-title">Civils Impliqués</h3>
+        <div id="selectedCivils" class="selected-list"></div>
+
+        <!-- Partie Suspects Impliqué -->
+        <h3 class="section-title">Suspects Impliqués</h3>
+        <div id="selectedSuspects" class="selected-list"></div>
+
+        <!-- Partie Photos -->
+        <h3 class="section-title">Photos / Preuves</h3>
+        <div class="attachments-preview" id="attachmentsPreview"></div>
+
+      </form>
+      <div class="image-container">
+        <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo" />
+      </div>
+    </div>
+  </div>
+  <div class="loader-overlay" id="loaderOverlay">
+    <div class="loader-spinner"></div>
+  </div>
+  </div>
+  <script src="scripts/custom-notifications.js"></script>
+  <script src="scripts/view-rapport-arrestation.js"></script>
+  <script src="scripts/loadSidebar.js"></script>
+</body>
+
+</html>
