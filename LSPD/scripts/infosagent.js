@@ -476,7 +476,7 @@ async function saveProfile(event) {
 // Initialisation de la page
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // Formatage automatique du champ téléphone (parenthèses, espaces, limite)
+    // Formatage automatique du champ téléphone (format 555-xxxx)
     const telephoneInput = document.getElementById('telephone');
     if (telephoneInput) {
         telephoneInput.addEventListener('input', function (e) {

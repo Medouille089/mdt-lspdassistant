@@ -158,7 +158,9 @@ router.post("/api/arrestation", upload.any(), async (req, res) => {
 
 router.get('/api/getArrestation', async (req, res) => {
     try {
-        const result = await pool.query(`
+        const { id, includeImages } = req.query;
+
+        let query = `
             SELECT
                 name,
                 date_arrestation,
@@ -187,33 +189,46 @@ router.get('/api/getArrestation', async (req, res) => {
                 arrestation_id,
                 rapports_lies
             FROM lspd_arrestations
-            ORDER BY date_arrestation DESC
-        `);
+        `;
 
-        const bot = getBot(); // Assure-toi que le bot est prêt
+        const params = [];
+        if (id) {
+            query += ' WHERE arrestation_id = $1';
+            params.push(id);
+        }
+        query += ' ORDER BY date_arrestation DESC';
+
+        // Limiter à 200 si pas d'ID spécifique
+        if (!id) {
+            query += ' LIMIT 200';
+        }
+
+        const result = await pool.query(query, params);
+        const bot = getBot();
 
         const withImages = await Promise.all(result.rows.map(async row => {
             let images = [];
 
-            try {
-                const thread = await bot.channels.fetch(row.discord_thread_id);
+            // Ne charger les images que si explicitement demandé
+            if (includeImages === 'true' && row.discord_thread_id) {
+                try {
+                    const thread = await bot.channels.fetch(row.discord_thread_id);
 
-                if (thread?.isThread()) {
-                    const messages = await thread.messages.fetch({ limit: 100 });
-                    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
-                    // messages.fetch returns messages usually newest-first; sort by timestamp ascending
-                    const orderedMessages = Array.from(messages.values()).sort((a, b) => a.createdTimestamp - b.createdTimestamp);
-                    orderedMessages.forEach(msg => {
-                        msg.attachments.forEach(att => {
-                            if (att.contentType?.startsWith("image/")) {
-                                images.push(att.url);
-                            }
+                    if (thread?.isThread()) {
+                        const messages = await thread.messages.fetch({ limit: 100 });
+                        const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+                        const orderedMessages = Array.from(messages.values()).sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+                        orderedMessages.forEach(msg => {
+                            msg.attachments.forEach(att => {
+                                if (att.contentType?.startsWith("image/")) {
+                                    images.push(att.url);
+                                }
+                            });
                         });
-                        const links = msg.content.match(urlRegex);
-                    });
+                    }
+                } catch (err) {
+                    console.error(`Erreur lors de la récupération des images du thread ${row.discord_thread_id}:`, err);
                 }
-            } catch (err) {
-                console.error(`Erreur lors de la récupération des images du thread ${row.discord_thread_id}:`, err);
             }
 
             return {
