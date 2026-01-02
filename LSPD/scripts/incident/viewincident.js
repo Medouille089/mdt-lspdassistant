@@ -101,10 +101,10 @@ async function loadIncidentDetail() {
     const loader = document.getElementById('loaderOverlay');
     loader.style.display = 'flex';
     try {
-        const res = await fetch('/api/getIncident');
+        const res = await fetch(`/api/getIncident?id=${id}&includeImages=true`);
         if (!res.ok) throw new Error('Erreur chargement');
         const incidents = await res.json();
-        const incident = incidents.find(i => i.id == id);
+        const incident = incidents[0];
         if (!incident) throw new Error('Incident non trouvé');
 
         officierInput.value = incident.officier || '';

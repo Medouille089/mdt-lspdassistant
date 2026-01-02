@@ -30,12 +30,15 @@ if (sendButton) {
 
   const dateInput = document.getElementById('date-input');
   const heureInput = document.getElementById('heure-input');
+  const motifInput = document.getElementById('motif-input');
 
   const dateFormatted = document.createElement('span');
   const heureFormatted = document.createElement('span');
+  const motifFormatted = document.createElement('div');
 
   dateFormatted.classList.add('content-input-replacement');
   heureFormatted.classList.add('content-input-replacement');
+  motifFormatted.classList.add('content-input-replacement');
 
   if (dateInput.value) {
     const [yyyy, mm, dd] = dateInput.value.split("-");
@@ -51,9 +54,15 @@ if (sendButton) {
     heureFormatted.textContent = "—";
   }
 
+  // Remplacer le textarea par un div avec le contenu
+  motifFormatted.textContent = motifInput.value || "";
+  motifFormatted.style.whiteSpace = 'pre-wrap';
+  motifFormatted.style.wordWrap = 'break-word';
+
   // Remplacement temporaire
   dateInput.parentNode.replaceChild(dateFormatted, dateInput);
   heureInput.parentNode.replaceChild(heureFormatted, heureInput);
+  motifInput.parentNode.replaceChild(motifFormatted, motifInput);
 
   // Forcer la largeur de la convocation-container
   const originalWidth = container.style.width;
@@ -85,6 +94,8 @@ if (sendButton) {
   dateFormatted.style.textAlign = 'left';
   heureFormatted.style.color = '#000';
   heureFormatted.style.textAlign = 'left';
+  motifFormatted.style.color = '#000';
+  motifFormatted.style.textAlign = 'left';
 
   const canvas = await html2canvas(container, { scale: 2 });
 
@@ -99,6 +110,7 @@ if (sendButton) {
   // Rétablir les inputs
   dateFormatted.parentNode.replaceChild(dateInput, dateFormatted);
   heureFormatted.parentNode.replaceChild(heureInput, heureFormatted);
+  motifFormatted.parentNode.replaceChild(motifInput, motifFormatted);
 
   const nom = document.getElementById('nom-input').value.trim();
   const prenom = document.getElementById('prenom-input').value.trim();

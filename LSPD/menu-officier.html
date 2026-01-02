@@ -11,9 +11,9 @@
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/genMenu.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <title>Menu officer - LSPD Assistant</title>
     <style>
-        /* Force le bouton retour à gauche pour cette page */
         .backlink-row { display: flex; justify-content: flex-start; }
         .backlink-row .backlink-btn { margin-left: 0 !important; margin-right: auto !important; }
     </style>
@@ -22,7 +22,8 @@
 <body>
     <script src="scripts/annonce-popup.js"></script>
     <script src="scripts/context-menu.js"></script>
-    <div id="sidebar-container"></div>    <script src="scripts/instant-sidebar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
 
     <div class="main-container">
         <h1 id="agent-name">Menu officer</h1>
@@ -31,9 +32,18 @@
         </div>
         <div class="grid-wrapper">
             <div class="button-grid">
-                <a href="/infos-agent" class="send-button" id="info-btn">Informations</a>
-                <a href="#" class="send-button" id="sanctions-btn">Sanctions</a>
-                <a href="#" class="send-button" id="convocations-btn">Convocations</a>
+                <a href="/infos-agent" class="send-button" id="info-btn">
+                    <div class="icon-wrapper"><i data-lucide="user" class="icon"></i></div>
+                    <span class="label">Informations</span>
+                </a>
+                <a href="#" class="send-button" id="sanctions-btn">
+                    <div class="icon-wrapper"><i data-lucide="ban" class="icon"></i></div>
+                    <span class="label">Sanctions</span>
+                </a>
+                <a href="#" class="send-button" id="convocations-btn">
+                    <div class="icon-wrapper"><i data-lucide="mail" class="icon"></i></div>
+                    <span class="label">Convocations</span>
+                </a>
             </div>
         </div>
 
@@ -42,18 +52,18 @@
 
     <script src="scripts/loadSidebar.js"></script>
     <script>
+        lucide.createIcons();
+
         const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('userId'); // ID Discord de l'agent
+        const userId = urlParams.get('userId');
         const agentNameH1 = document.getElementById('agent-name');
 
-        // Supprime les boutons sans id
         document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll('.send-button').forEach(btn => {
                 if (!btn.id) btn.remove();
             });
         });
 
-        // Fetch du displayName du membre Discord
         async function fetchAgentDisplayName() {
             if (!userId) return;
 
@@ -71,24 +81,18 @@
 
         document.addEventListener("DOMContentLoaded", fetchAgentDisplayName);
 
-        // Redirection vers la page des sanctions
         document.getElementById('sanctions-btn').addEventListener('click', (e) => {
             e.preventDefault();
             if (!userId) return;
-
-            // on ne passe que l'ID, le displayName sera récupéré côté getOfficerSanctions
             window.location.href = `/liste-sanctions-agent?userId=${userId}`;
         });
 
-        // Redirection vers la page des informations de l'agent
         document.getElementById('info-btn').addEventListener('click', (e) => {
             e.preventDefault();
             if (!userId) return;
-
             window.location.href = `/infos-agent?userId=${userId}`;
         });
 
-        // Redirection vers la page des convocations reçues
         document.getElementById('convocations-btn').addEventListener('click', (e) => {
             e.preventDefault();
             if (!userId) return;

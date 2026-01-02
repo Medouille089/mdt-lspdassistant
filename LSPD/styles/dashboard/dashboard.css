@@ -44,7 +44,7 @@ body::before {
   inset: 0;
   width: 100vw;
   height: 100vh;
-  transform: scale(1.3333);
+  transform: scale(1);
   transform-origin: top left;
   overflow: hidden;
   background-color: var(--main-color);
@@ -62,6 +62,11 @@ body::before {
   text-align: center;
 }
 
+/* Scale pour iframe (compense le zoom 75%) */
+body.in-iframe #overlay {
+  transform: scale(1.3333);
+}
+
 #overlay.show {
   opacity: 1;
   pointer-events: all;
@@ -69,11 +74,25 @@ body::before {
 
 #overlay.hide {
   animation: curtainUp 1s forwards;
-  /* On garde le scale pendant l'anim */
-  transform: scale(1.3333);
 }
 
+/* Animation pour site normal */
 @keyframes curtainUp {
+  from {
+    transform: scale(1) translateY(0);
+  }
+
+  to {
+    transform: scale(1) translateY(-100%);
+  }
+}
+
+/* Animation pour iframe */
+body.in-iframe #overlay.hide {
+  animation: curtainUpIframe 1s forwards;
+}
+
+@keyframes curtainUpIframe {
   from {
     transform: scale(1.3333) translateY(0);
   }

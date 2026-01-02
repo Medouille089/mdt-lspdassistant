@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Détection iframe pour ajuster le scale de l'overlay
+  if (window.self !== window.top) {
+    document.body.classList.add('in-iframe');
+  }
+
   const loader = document.getElementById('loaderOverlay');
   if (loader) loader.style.display = 'flex';
 

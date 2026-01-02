@@ -191,6 +191,12 @@ async function loadCitoyenProfile() {
         // Charger les véhicules en parallèle (ne pas attendre)
         loadVehicules().catch(err => console.error('Erreur chargement véhicules:', err));
 
+        // Charger les rapports d'arrestation
+        loadCitizenReports(citoyenId).catch(err => console.error('Erreur chargement rapports:', err));
+
+        // Charger le casier judiciaire
+        loadCriminalRecord(citoyenId).catch(err => console.error('Erreur chargement casier:', err));
+
     } catch (err) {
         console.error('Erreur chargement profil:', err);
         showAnimation('error', `Erreur de chargement du profil: ${err.message}`);
@@ -476,7 +482,7 @@ async function displayProfile(profile) {
                 });
             }
      * @param {boolean} newState - Nouvel état (true pour En règle, false pour Suspendu / Non-acquis).
-     * @returns {Promise<boolean>} Succès ou échec de la mise à jour.
+     * @returns {Promise<boolean>}
      */
     async function updatePermisStatus(permisKey, newState) {
         if (!citoyenId) {
@@ -1319,6 +1325,196 @@ function showAllVehiclesModal(vehicules) {
         document.head.appendChild(style);
     }
 }
+
+// Fonction pour charger les rapports impliquant le citoyen
+async function loadCitizenReports(citizenId) {
+    const suspectContainer = document.getElementById('rapports-suspect-list');
+    const autreContainer = document.getElementById('rapports-autre-list');
+    
+    if (!suspectContainer || !autreContainer) return;
+
+    suspectContainer.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>';
+    autreContainer.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>';
+
+    try {
+        // Charger les rapports où le citoyen est suspect
+        const resSuspect = await fetch(`/api/rapports-arrestation?suspectId=${citizenId}&limit=5`);
+        if (resSuspect.ok) {
+            const data = await resSuspect.json();
+            renderReports(suspectContainer, data.reports, 'suspect');
+        }
+
+        // Charger les rapports où le citoyen est impliqué (victime/témoin)
+        const resAutre = await fetch(`/api/rapports-arrestation?civilId=${citizenId}&limit=5`);
+        if (resAutre.ok) {
+            const data = await resAutre.json();
+            renderReports(autreContainer, data.reports, 'autre');
+        }
+
+    } catch (err) {
+        console.error("Erreur loadCitizenReports:", err);
+        suspectContainer.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur.</p>';
+        autreContainer.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur.</p>';
+    }
+}
+
+function renderReports(container, reports, type) {
+    if (!reports || reports.length === 0) {
+        container.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Aucun rapport trouvé.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    
+    // Créer une liste groupée
+    const list = document.createElement('div');
+    list.style.display = 'flex';
+    list.style.flexDirection = 'column';
+    list.style.border = '1px solid #e0e0e0';
+    list.style.borderRadius = '8px';
+    list.style.overflow = 'hidden';
+    list.style.background = '#fff';
+
+    reports.forEach((report, idx) => {
+        const dateObj = new Date(report.date_arrestation);
+        const dateStr = dateObj.toLocaleDateString('fr-FR');
+        
+        const item = document.createElement('div');
+        item.className = 'equipment-item';
+        item.style.cursor = 'pointer';
+        item.style.padding = '10px 12px';
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        if (idx !== 0) item.style.borderTop = '1px solid #e0e0e0';
+        
+        item.onclick = () => window.location.href = `/view-rapport-arrestation?id=${report.id}`;
+        
+        let detailText = '';
+        if (report.titre_rapport && report.titre_rapport.trim() !== '') {
+            detailText = report.titre_rapport;
+        } else if (type === 'suspect') {
+            detailText = `Rapport #${report.id}`;
+        } else {
+            detailText = `Rapport #${report.id} (Impliqué)`;
+        }
+
+        item.innerHTML = `
+            <div style="display:flex; flex-direction:column;">
+                <span style="font-weight:600; color:var(--text-dark);">${detailText}</span>
+                <span style="font-size:12px; color:#7f8c8d;">${dateStr}</span>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--lspd-gold); font-size: 20px;">chevron_right</span>
+        `;
+        list.appendChild(item);
+    });
+    
+    container.appendChild(list);
+}
+
+async function loadCriminalRecord(citizenId) {
+    const container = document.getElementById('casier-list');
+    if (!container) return;
+    
+    container.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>';
+    
+    try {
+        const res = await fetch(`/api/calcul-peine?citizen_id=${citizenId}`);
+        if (!res.ok) throw new Error('Erreur chargement casier');
+        
+        const records = await res.json();
+        
+        if (records.length === 0) {
+            container.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Casier vierge.</p>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        const list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        list.style.border = '1px solid #e0e0e0';
+        list.style.borderRadius = '8px';
+        list.style.overflow = 'hidden';
+        list.style.background = '#fff';
+        
+        records.forEach((record, idx) => {
+            const dateStr = new Date(record.date).toLocaleDateString('fr-FR', {
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+            
+            const item = document.createElement('div');
+            item.className = 'equipment-item';
+            item.style.padding = '15px';
+            item.style.cursor = 'default';
+            if (idx !== 0) item.style.borderTop = '1px solid #e0e0e0';
+            
+            // Parse details to show summary
+            let detailsHtml = '';
+            try {
+                const details = typeof record.details === 'string' ? JSON.parse(record.details) : record.details;
+                if (Array.isArray(details)) {
+                    detailsHtml = '<ul style="margin: 8px 0 8px 20px; font-size: 13px; color: #555; list-style-type: disc;">';
+                    details.forEach(d => {
+                        detailsHtml += `<li>${d.qte}x ${d.nom} (${d.peines} / ${d.amendes})</li>`;
+                    });
+                    detailsHtml += '</ul>';
+                }
+            } catch (e) {
+                detailsHtml = '<p style="font-size: 12px; color: red;">Erreur lecture détails</p>';
+            }
+            
+            // Delete button for Command Staff (using isSupervisor as proxy for now, or check specific role if available)
+            let deleteBtn = '';
+            if (currentUserInfo && currentUserInfo.isSupervisor) {
+                deleteBtn = `<button class="btn btn-danger" onclick="deleteCriminalRecord(${record.id})" style="margin-left: auto; padding: 4px 8px; font-size: 12px;">Supprimer</button>`;
+            }
+            
+            item.innerHTML = `
+                <div style="display:flex; align-items:flex-start; width:100%;">
+                    <div style="flex:1;">
+                        <div style="font-weight:600; color:var(--text-dark); display:flex; align-items:center; gap:8px;">
+                            <span class="material-symbols-rounded" style="font-size:18px; color:var(--lspd-blue);">gavel</span>
+                            Enregistrement du ${dateStr}
+                        </div>
+                        <div style="font-size:13px; color:#7f8c8d; margin-top:4px; margin-bottom:4px;">
+                            Total: <strong style="color:#e74c3c;">${record.total_peine}</strong> de prison / <strong style="color:#2ecc71;">$${record.total_amende}</strong> d'amende
+                        </div>
+                        ${detailsHtml}
+                        <div style="font-size:12px; color:#999;">Enregistré par: ${record.officer_id}</div>
+                    </div>
+                    ${deleteBtn}
+                </div>
+            `;
+            
+            list.appendChild(item);
+        });
+        
+        container.appendChild(list);
+        
+    } catch (err) {
+        console.error('Erreur chargement casier:', err);
+        container.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur de chargement.</p>';
+    }
+}
+
+window.deleteCriminalRecord = async function(id) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette entrée du casier judiciaire ?')) return;
+    
+    try {
+        const res = await fetch(`/api/calcul-peine/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Erreur suppression');
+        }
+        
+        showAnimation('success', 'Entrée supprimée');
+        loadCriminalRecord(citoyenId); // Reload
+    } catch (err) {
+        console.error(err);
+        showAnimation('error', err.message || 'Erreur lors de la suppression');
+    }
+};
 
 // Formatage automatique du téléphone
 function setupPhoneFormatting() {

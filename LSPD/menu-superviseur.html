@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/genMenu.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <title>Superviseur - LSPD Assistant</title>
 </head>
 
@@ -26,17 +27,38 @@
 
         <div class="grid-wrapper">
             <div class="button-grid">
-                <a href="/menu-sanctions" class="send-button">Sanction</a>
-                <a href="/admin-absences" class="send-button">Gestion absences</a>
-                <a href="/menu-convocation-agent" class="send-button">Convocation agent</a>
-                <a href="/liste-officiers" class="send-button">Gestion des agents</a>
-                <a href="/supervisorcs-ceremonie.html" class="send-button">Fiche cérémonie</a>
-                <a href="/admin-trello.html" class="send-button">Logs Trello</a>
+                <a href="/menu-sanctions" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="ban" class="icon"></i></div>
+                    <span class="label">Sanction</span>
+                </a>
+                <a href="/admin-absences" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="calendar-x" class="icon"></i></div>
+                    <span class="label">Gestion absences</span>
+                </a>
+                <a href="/menu-convocation-agent" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="mail" class="icon"></i></div>
+                    <span class="label">Convocation agent</span>
+                </a>
+                <a href="/liste-officiers" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="users" class="icon"></i></div>
+                    <span class="label">Gestion des agents</span>
+                </a>
+                <a href="/supervisorcs-ceremonie.html" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="award" class="icon"></i></div>
+                    <span class="label">Fiche cérémonie</span>
+                </a>
+                <a href="/admin-trello.html" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="trello" class="icon"></i></div>
+                    <span class="label">Logs Trello</span>
+                </a>
             </div>
         </div>
     </div>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/genMenu.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 
 </html>

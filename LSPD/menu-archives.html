@@ -12,9 +12,9 @@
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/genMenu.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <title>Anciens documents - LSPD Assistant</title>
     <style>
-        /* Force le bouton retour à gauche pour cette page */
         .backlink-row { display: flex; justify-content: flex-start; }
         .backlink-row .backlink-btn { margin-left: 0 !important; margin-right: auto !important; }
     </style>
@@ -23,7 +23,8 @@
 <body>
     <script src="scripts/annonce-popup.js"></script>
     <script src="scripts/context-menu.js"></script>
-    <div id="sidebar-container"></div>    <script src="scripts/instant-sidebar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
 
     <div class="main-container">
         <h1>Anciens documents</h1>
@@ -32,22 +33,38 @@
         </div>
         <div class="grid-wrapper">
             <div class="button-grid">
-                <a href="/archivesViewer?url=https%3A%2F%2Fpointeuse.fantasticrp.fr%2Flspd%2Flogin"
-                    class="send-button">Pointeuse</a>
-                <a target="_blank" href="https://trello.com/b/Fiz10NxM/lspd-wl" class="send-button">Trello</a>
-                <a href="/archivesViewer?url=https%3A%2F%2Fdocs.google.com%2Fdocument%2Fd%2F10Y-e8XA8DCsmU2z0chLzLM44-_fzqCr4ygaKz7hbZ48%2Fedit%3Fusp%3Dsharing"
-                    class="send-button">Convocation</a>
-                <a href="/archivesViewer?url=https%3A%2F%2Fdocs.google.com%2Fpresentation%2Fd%2F1vrajLqr1Qk7xFQYFvg2ZuhhwXh-g5yL5koU0mOEbzHA%2Fedit%3Fusp%3Dsharing"
-                    class="send-button">MODOP</a>
-                <a href="/archivesViewer?url=https%3A%2F%2Fdocs.google.com%2Fpresentation%2Fd%2F10d83C1BD8MXEQlh1gq-Azt2d8TMDvk9-rHp1By41VhQ%2Fedit%3Fusp%3Dsharing"
-                    class="send-button">Carnet de l'agent</a>
-                <a href="menu-dossier-arrestation" class="send-button">Dossier d'arrestation</a>
+                <a href="/archivesViewer?url=https%3A%2F%2Fpointeuse.fantasticrp.fr%2Flspd%2Flogin" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="clock" class="icon"></i></div>
+                    <span class="label">Pointeuse</span>
+                </a>
+                <a target="_blank" href="https://trello.com/b/Fiz10NxM/lspd-wl" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="trello" class="icon"></i></div>
+                    <span class="label">Trello</span>
+                </a>
+                <a href="/archivesViewer?url=https%3A%2F%2Fdocs.google.com%2Fdocument%2Fd%2F10Y-e8XA8DCsmU2z0chLzLM44-_fzqCr4ygaKz7hbZ48%2Fedit%3Fusp%3Dsharing" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="mail" class="icon"></i></div>
+                    <span class="label">Convocation</span>
+                </a>
+                <a href="/archivesViewer?url=https%3A%2F%2Fdocs.google.com%2Fpresentation%2Fd%2F1vrajLqr1Qk7xFQYFvg2ZuhhwXh-g5yL5koU0mOEbzHA%2Fedit%3Fusp%3Dsharing" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="book" class="icon"></i></div>
+                    <span class="label">MODOP</span>
+                </a>
+                <a href="/archivesViewer?url=https%3A%2F%2Fdocs.google.com%2Fpresentation%2Fd%2F10d83C1BD8MXEQlh1gq-Azt2d8TMDvk9-rHp1By41VhQ%2Fedit%3Fusp%3Dsharing" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="notebook" class="icon"></i></div>
+                    <span class="label">Carnet de l'agent</span>
+                </a>
+                <a href="menu-dossier-arrestation" class="send-button">
+                    <div class="icon-wrapper"><i data-lucide="folder" class="icon"></i></div>
+                    <span class="label">Dossier d'arrestation</span>
+                </a>
             </div>
         </div>
     </div>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/genMenu.js"></script>
     <script>
+        lucide.createIcons();
+
         (function () {
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
