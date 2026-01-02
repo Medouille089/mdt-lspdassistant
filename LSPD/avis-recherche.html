@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Avis de recherche - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/incident/incident.css" />
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <link rel="stylesheet" href="styles/custom-notifications.css" />
+    <link rel="stylesheet" href="styles/context-menu.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/generic-selector.css" />
+    <link rel="stylesheet" href="styles/avis-recherche.css" />
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <script src="scripts/context-menu.js"></script>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <script src="scripts/instant-sidebar.js"></script>
+
+        <h1>Nouvel avis de recherche</h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
+
+        <div class="incident-container">
+            <div class="header">
+                <img src="data/images/lspd.png" alt="Logo LSPD" />
+                <div class="header-title">
+                    <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+                    <h3>AVIS DE RECHERCHE</h3>
+                </div>
+                <div style="width: 60px;"></div>
+            </div>
+
+            <form id="avisRechercheForm">
+                <!-- Sélection du citoyen -->
+                <div class="form-group">
+                    <label for="citoyenSearch">Personne recherchée *</label>
+                    <div class="personne-selector">
+                        <input type="text" id="personne" name="personne" readonly
+                            placeholder="Aucun propriétaire sélectionné">
+                        <input type="hidden" id="personne_id" name="personne_id">
+                        <button type="button" id="selectPersonneBtn">Choisir</button>
+                    </div>
+                    <div id="selectedCitoyen" class="selected-list"></div>
+                    <input type="hidden" id="citoyen_id" name="citoyen_id" />
+                    <input type="hidden" id="citoyen_nom" name="citoyen_nom" />
+                    <input type="hidden" id="citoyen_prenom" name="citoyen_prenom" />
+                </div>
+
+                <!-- Niveau de dangerosité -->
+                <div class="form-group">
+                    <label for="dangerosite">Niveau de dangerosité *</label>
+                    <select id="dangerosite" name="dangerosite" required>
+                        <option value="">-- Sélectionner --</option>
+                        <option value="faible">🟢 Faible - À appréhender avec prudence</option>
+                        <option value="modere">🟠 Modéré - Potentiellement dangereux</option>
+                        <option value="eleve">🔴 Élevé - Extrêmement dangereux</option>
+                        <option value="critique">⚫ Most wanted - Armé et dangereux</option>
+                    </select>
+                </div>
+
+                <!-- Motif de recherche -->
+                <div class="form-group">
+                    <label for="motif">Motif de la recherche *</label>
+                    <textarea id="motif" name="motif" placeholder="Ex: Recherché pour braquage de banque..."
+                        required></textarea>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label for="description">Description / Informations complémentaires</label>
+                    <textarea id="description" name="description"
+                        placeholder="Description physique, dernière position connue, véhicule utilisé..."></textarea>
+                </div>
+
+                <!-- Récompense -->
+                <div class="form-group">
+                    <label for="recompense">Récompense (optionnel)</label>
+                    <input type="text" id="recompense" name="recompense" placeholder="Ex: 50 000$" />
+                </div>
+
+                <!-- Photo -->
+                <div class="form-group">
+                    <label for="photoUrl">Photo (URL)</label>
+                    <input type="url" id="photoUrl" name="photoUrl"
+                        placeholder="https://cdn.discordapp.com/attachments/..." />
+                    <div class="photo-preview-container" style="margin-top: 10px;">
+                        <img id="photoPreview" src="" alt="Aperçu"
+                            style="display: none; max-width: 200px; border-radius: 8px;" />
+                    </div>
+                </div>
+
+                <!-- Agent rédacteur -->
+                <div class="user-info-row">
+                    <div class="user-info-field">
+                        <label for="officier">Agent rédacteur</label>
+                        <input type="text" id="officier" name="officier" readonly />
+                    </div>
+                    <div class="user-info-field">
+                        <label for="grade">Grade</label>
+                        <input type="text" id="grade" name="grade" readonly />
+                    </div>
+                </div>
+
+                <div class="button-container">
+                    <button type="submit" class="send-button">Publier l'avis de recherche</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+
+    <script src="scripts/custom-notifications.js"></script>
+    <script src="scripts/generic-selector.js"></script>
+    <script src="scripts/avis-recherche.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+    <script>
+        document.getElementById('backlinkBtn').addEventListener('click', () => {
+            window.history.back();
+        });
+    </script>
+    <script src="scripts/liveUserHeartbeat.js"></script>
+</body>
+
+</html>
