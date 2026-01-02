@@ -20,6 +20,7 @@ const { getBot, getConfig } = require("../config/config");
                 droits_heure TEXT,
                 droits_cites BOOLEAN,
                 avocat_intervention BOOLEAN,
+                nom_avocat TEXT,
                 ems_intervention BOOLEAN,
                 nourriture_demandee BOOLEAN,
                 heure_cellule TEXT,
@@ -30,6 +31,7 @@ const { getBot, getConfig } = require("../config/config");
                 civils_impliques JSONB,
                 suspects_impliques JSONB,
                 photos_urls JSONB,
+                calcul_peine_id INTEGER,
                 created_at TIMESTAMP DEFAULT NOW()
             )
         `);
@@ -46,6 +48,7 @@ router.post("/api/rapport-arrestation", checkAuth, upload.any(), async (req, res
             date, heure, officier, grade,
             droits_heure, droits_cites,
             avocat_intervention, ems_intervention, nourriture_demandee,
+            nom_avocat,
             heure_cellule, objets_confisques, recit,
             agents_impliques, civils_impliques, suspects_impliques,
             charges_image_url, calcul_peine_id // Nouveau champ
@@ -111,8 +114,8 @@ router.post("/api/rapport-arrestation", checkAuth, upload.any(), async (req, res
             (titre_rapport, date_arrestation, officier_redacteur, grade, droits_heure, droits_cites, 
             avocat_intervention, ems_intervention, nourriture_demandee, heure_cellule, 
             objets_confisques, recit, charges_image_url, agents_impliques, 
-            civils_impliques, suspects_impliques, photos_urls, calcul_peine_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+            civils_impliques, suspects_impliques, photos_urls, calcul_peine_id, nom_avocat)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
             RETURNING id
         `;
 
@@ -147,7 +150,8 @@ router.post("/api/rapport-arrestation", checkAuth, upload.any(), async (req, res
             safeJson(civils_impliques),
             safeJson(suspects_impliques),
             JSON.stringify(photosUrls),
-            calcul_peine_id || null
+            calcul_peine_id || null,
+            nom_avocat || null
         ];
 
         const result = await pool.query(query, values);
@@ -352,8 +356,9 @@ router.put("/api/rapports-arrestation/:id", checkAuth, upload.any(), async (req,
             civils_impliques = $15,
             suspects_impliques = $16,
             photos_urls = $17,
-            calcul_peine_id = $18
-            WHERE id = $19
+            calcul_peine_id = $18,
+            nom_avocat = $19
+            WHERE id = $20
         `;
 
         const values = [
@@ -375,6 +380,7 @@ router.put("/api/rapports-arrestation/:id", checkAuth, upload.any(), async (req,
             suspects_impliques,
             JSON.stringify(photosUrls),
             calcul_peine_id || null,
+            req.body.nom_avocat || null,
             id
         ];
 

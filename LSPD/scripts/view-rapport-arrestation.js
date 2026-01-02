@@ -30,11 +30,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         populateView(data);
 
         // Afficher bouton modifier si autorisé
-        if (currentUser) {
-            // Autoriser si créateur ou command staff ou superviseur
-            document.getElementById('editLink').href = `/modifier-rapport-arrestation.html?id=${reportId}`;
-            document.getElementById('editLink').style.display = 'flex';
-        }
+        // if (currentUser) {
+        //     // Autoriser si créateur ou command staff ou superviseur
+        //     document.getElementById('editLink').href = `/modifier-rapport-arrestation.html?id=${reportId}`;
+        //     document.getElementById('editLink').style.display = 'flex';
+        // }
 
     } catch (err) {
         console.error(err);
@@ -73,6 +73,17 @@ function populateView(data) {
 
     // Switches
     document.getElementById('avocat_intervention').checked = data.avocat_intervention || false;
+    if (data.avocat_intervention && data.nom_avocat) {
+        const avocatPut = document.getElementById("avocatPut");
+        if (avocatPut) {
+            const div = document.createElement("div");
+            div.innerHTML = `
+                <label for="nom_avocat">Nom de l'avocat</label>
+                <input type="text" id="nom_avocat" value="${data.nom_avocat}" disabled />
+            `;
+            avocatPut.appendChild(div);
+        }
+    }
     document.getElementById('ems_intervention').checked = data.ems_intervention || false;
     document.getElementById('nourriture_demandee').checked = data.nourriture_demandee || false;
 
@@ -100,8 +111,9 @@ function populateView(data) {
 
     // Photos / Preuves
     const attachmentsContainer = document.getElementById('attachmentsPreview');
-    if (data.attachments && data.attachments.length > 0) {
-        data.attachments.forEach(url => {
+    const photos = data.photos_urls || data.attachments || [];
+    if (photos.length > 0) {
+        photos.forEach(url => {
             const div = document.createElement('div');
             div.className = 'attachment-item';
             const img = document.createElement('img');

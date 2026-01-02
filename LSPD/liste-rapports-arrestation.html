@@ -22,36 +22,38 @@
     <div class="main-container">
         <h1>Liste des rapports d'arrestation</h1>
         
-        <div class="controls-container">
-            <div class="search-box">
-                <span class="material-symbols-rounded">search</span>
-                <input type="text" id="searchInput" placeholder="Rechercher (officier, suspect, civil...)" autocomplete="off" />
+        <div class="content-wrapper">
+            <div class="controls-container">
+                <div class="search-box">
+                    <span class="material-symbols-rounded">search</span>
+                    <input type="text" id="searchInput" placeholder="Rechercher (officier, suspect, civil...)" autocomplete="off" />
+                </div>
+                <!-- Future tags filter -->
+                <div class="filters" id="tagFilters">
+                    <!-- Tags will be injected here -->
+                </div>
             </div>
-            <!-- Future tags filter -->
-            <div class="filters" id="tagFilters">
-                <!-- Tags will be injected here -->
+
+            <div class="table-container">
+                <table id="reportsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Officier</th>
+                            <th>Suspects</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
             </div>
-        </div>
 
-        <div class="table-container">
-            <table id="reportsTable">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Date</th>
-                        <th>Officier</th>
-                        <th>Suspects</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Rows injected by JS -->
-                </tbody>
-            </table>
-        </div>
-
-        <div class="pagination" id="pagination">
-            <!-- Pagination buttons -->
+            <div class="pagination" id="pagination">
+                <!-- Pagination buttons -->
+            </div>
         </div>
     </div>
 

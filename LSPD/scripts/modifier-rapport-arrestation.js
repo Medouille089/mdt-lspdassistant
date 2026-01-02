@@ -20,12 +20,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('backlinkBtn').addEventListener('click', () => window.history.back());
     document.getElementById('saveBtn').addEventListener('click', saveReport);
 
+    // Gestion de l'affichage du nom de l'avocat
+    const avocatCheckbox = document.getElementById("avocat_intervention");
+    if (avocatCheckbox) {
+        avocatCheckbox.addEventListener("change", () => toggleAvocatField(avocatCheckbox.checked));
+    }
+
     // Initialiser les sélecteurs
     initSelectors();
 
     // Charger le rapport
     await loadReport();
 });
+
+function toggleAvocatField(show, value = "") {
+    const avocatPut = document.getElementById("avocatPut");
+    if (!avocatPut) return;
+
+    if (show) {
+        if (!document.getElementById("nom_avocat_container")) {
+            const div = document.createElement("div");
+            div.id = "nom_avocat_container";
+            div.innerHTML = `
+                <label for="nom_avocat">Nom de l'avocat</label>
+                <input type="text" id="nom_avocat" name="nom_avocat" placeholder="Nom de l'avocat" required />
+            `;
+            avocatPut.appendChild(div);
+            if (value) {
+                document.getElementById("nom_avocat").value = value;
+            }
+        }
+    } else {
+        const container = document.getElementById("nom_avocat_container");
+        if (container) {
+            container.remove();
+        }
+    }
+}
 
 function initSelectors() {
     // Agents
@@ -118,6 +149,9 @@ function populateForm(data) {
     document.getElementById('droits_heure').value = data.droits_heure || '';
 
     document.getElementById('avocat_intervention').checked = data.avocat_intervention || false;
+    if (data.avocat_intervention) {
+        toggleAvocatField(true, data.nom_avocat);
+    }
     document.getElementById('ems_intervention').checked = data.ems_intervention || false;
     document.getElementById('nourriture_demandee').checked = data.nourriture_demandee || false;
 
@@ -212,6 +246,12 @@ async function saveReport() {
         formData.append('droits_heure', document.getElementById('droits_heure').value);
         
         formData.append('avocat_intervention', document.getElementById('avocat_intervention').checked);
+        if (document.getElementById('avocat_intervention').checked) {
+            const nomAvocat = document.getElementById('nom_avocat');
+            if (nomAvocat) {
+                formData.append('nom_avocat', nomAvocat.value);
+            }
+        }
         formData.append('ems_intervention', document.getElementById('ems_intervention').checked);
         formData.append('nourriture_demandee', document.getElementById('nourriture_demandee').checked);
         

@@ -565,7 +565,6 @@ input:checked + .slider:before {
   align-items: center;
   gap: 20px;
   margin-top: 20px;
-  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
