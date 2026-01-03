@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.23.0](https://github.com/Medouille089/lspdassistant/compare/v1.22.0...v1.23.0) (2026-01-03)
+
+
+### Features
+
+* **tags:** Implement tag management system with CRUD operations ([37b0300](https://github.com/Medouille089/lspdassistant/commit/37b0300a61990f43fe124f531277f8a08cf19429))
+
+
+### Bug Fixes
+
+* Remove grade from agent item label in selector ([f51d12e](https://github.com/Medouille089/lspdassistant/commit/f51d12ef5abf9772201992234e2f33fc449247b6))
+
 ## [1.22.0](https://github.com/Medouille089/lspdassistant/compare/v1.21.4...v1.22.0) (2026-01-03)
 
 
@@ -10,6 +22,9 @@ All notable changes to this project will be documented in this file. See [standa
 * Add arrest report functionality with frontend and backend integration ([a1cff4c](https://github.com/Medouille089/lspdassistant/commit/a1cff4c33007ef46eb6cb51ddccfd24a4e4a76c2))
 * add contract feature ([e88f116](https://github.com/Medouille089/lspdassistant/commit/e88f116819f831eedfa39e0e238f3614b10f7c11))
 * add RA and link ([70f5aa1](https://github.com/Medouille089/lspdassistant/commit/70f5aa11fe3fb3318a57fd4930dacbd9ff8d851e))
+* Enhance citizen profile view with criminal record export functionality and UI improvements ([14cfa87](https://github.com/Medouille089/lspdassistant/commit/14cfa87be9c60a55cc6e3a98786adfe4b41d1ca0))
+* Implement management for code penal with CRUD functionality and UI enhancements ([74473b3](https://github.com/Medouille089/lspdassistant/commit/74473b352d042b8a304941be6ab09fcba09a5c12))
+* Refactor agent and civil selection to handle unknown names and remove charges image fields ([4bc5c8b](https://github.com/Medouille089/lspdassistant/commit/4bc5c8b164ab2a93d14be440e9373a27bb3c1ac2))
 
 
 ### Bug Fixes
@@ -29,6 +44,7 @@ All notable changes to this project will be documented in this file. See [standa
 * separate css/js/html ([2f179fc](https://github.com/Medouille089/lspdassistant/commit/2f179fcde30f023cf533ae9f066bc33c7817f73e))
 * textarea in convocation image ([da95499](https://github.com/Medouille089/lspdassistant/commit/da954998229ffdd9e5ac1e009af469c7832dbf7c))
 * update .gitignore ([6036ea9](https://github.com/Medouille089/lspdassistant/commit/6036ea92a93cc9dc1450e3f398fbf1561550b912))
+* Update cancel button styling and add new CSS for improved UI ([e322d81](https://github.com/Medouille089/lspdassistant/commit/e322d8149fe40a4ce599d8c2edf0497921be07ed))
 
 ### [1.21.4](https://github.com/Medouille089/lspdassistant/compare/v1.21.3...v1.21.4) (2025-11-27)
 

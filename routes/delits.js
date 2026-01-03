@@ -5,7 +5,39 @@ const pool = require("../config/db");
 const config = require("../config/config");
 const { getBot } = require("../config/config");
 const { AttachmentBuilder, EmbedBuilder, ChannelType } = require("discord.js");
+const { GUILD_ID } = require('../config/env');
+const bot = require("../config/bot");
+const { checkAuth } = require("../config/middleware");
 const upload = multer({ storage: multer.memoryStorage() });
+
+// Middleware pour vérifier si l'utilisateur est Command Staff
+async function checkCommandStaff(req, res, next) {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    try {
+        const conf = await config.getConfig();
+        const commandStaffRoleId = conf.commandstaff_id?.trim();
+        const id_superadmin = conf.id_superadmin?.trim();
+
+        const guild = await bot.guilds.fetch(GUILD_ID);
+        const member = await guild.members.fetch(req.user.id);
+        const roleIds = member.roles.cache.map(role => role.id);
+
+        const isCommandStaff = (commandStaffRoleId && roleIds.includes(commandStaffRoleId)) || 
+                               (id_superadmin && roleIds.includes(id_superadmin));
+
+        if (!isCommandStaff) {
+            return res.status(403).json({ error: 'Accès refusé : Réservé au Command Staff' });
+        }
+
+        next();
+    } catch (err) {
+        console.error('Erreur checkCommandStaff :', err);
+        res.status(500).json({ error: 'Erreur serveur lors de la vérification des permissions' });
+    }
+}
 
 // router.post("/api/arrestation", upload.any(), async (req, res) => {
 //     const bot = getBot();
@@ -115,7 +147,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 //     }
 // });
 
-router.get('/api/getDelits', async (req, res) => {
+router.get('/api/getDelits', checkAuth, async (req, res) => {
     try {
         const result = await pool.query(`
       SELECT
@@ -151,7 +183,7 @@ router.get('/api/getDelits', async (req, res) => {
 });
 
 // POST - Ajouter un nouveau délit
-router.post('/api/delits', async (req, res) => {
+router.post('/api/delits', checkCommandStaff, async (req, res) => {
     try {
         const { chef_accusation, code_article, type, amende, peine, commentaire } = req.body;
 
@@ -173,7 +205,7 @@ router.post('/api/delits', async (req, res) => {
 });
 
 // PUT - Modifier un délit existant
-router.put('/api/delits/:id', async (req, res) => {
+router.put('/api/delits/:id', checkCommandStaff, async (req, res) => {
     try {
         const { id } = req.params;
         const { chef_accusation, code_article, type, amende, peine, commentaire } = req.body;
@@ -197,7 +229,7 @@ router.put('/api/delits/:id', async (req, res) => {
 });
 
 // DELETE - Supprimer un délit
-router.delete('/api/delits/:id', async (req, res) => {
+router.delete('/api/delits/:id', checkCommandStaff, async (req, res) => {
     try {
         const { id } = req.params;
 

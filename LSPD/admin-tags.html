@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="styles/admin/admin.css" />
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/tags.css" />
+    <link rel="stylesheet" href="styles/custom-notifications.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <title>Gestion des Tags - LSPD Assistant</title>
+    <style>
+        .admin-tags-container {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-top: 20px;
+        }
+        .tag-management-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 768px) {
+            .tag-management-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .tag-form-section {
+            border-right: 1px solid #eee;
+            padding-right: 30px;
+        }
+        @media (max-width: 768px) {
+            .tag-form-section {
+                border-right: none;
+                padding-right: 0;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 30px;
+            }
+        }
+        .tag-list-section h3 {
+            margin-top: 0;
+            color: var(--main-color);
+        }
+        .admin-tag-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .admin-tag-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        .admin-tag-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .tag-color-preview {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 1px #ddd;
+        }
+        .tag-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .tag-type-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #e9ecef;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .btn-delete-tag {
+            color: #e74c3c;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-delete-tag:hover {
+            transform: scale(1.2);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #555;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        .color-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .color-input-wrapper input[type="color"] {
+            width: 50px;
+            height: 40px;
+            padding: 2px;
+            cursor: pointer;
+        }
+        .btn-create-admin {
+            width: 100%;
+            padding: 12px;
+            background: var(--main-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+        .btn-create-admin:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
+
+    <div class="main-container">
+        <h1>Gestion des Tags</h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
+
+        <div class="admin-tags-container">
+            <div class="tag-management-grid">
+                <!-- Formulaire de création -->
+                <div class="tag-form-section">
+                    <h3>Créer un nouveau tag</h3>
+                    <form id="createTagForm">
+                        <div class="form-group">
+                            <label for="tagName">Nom du tag</label>
+                            <input type="text" id="tagName" placeholder="Ex: VIP, Dangereux, Témoin..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tagType">Type de tag</label>
+                            <select id="tagType" required>
+                                <option value="citoyen">Citoyen</option>
+                                <option value="rapport">Rapport d'arrestation</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tagColor">Couleur du tag</label>
+                            <div class="color-input-wrapper">
+                                <input type="color" id="tagColor" value="#3498db">
+                                <span id="colorHex">#3498db</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-create-admin">Créer le tag</button>
+                    </form>
+                </div>
+
+                <!-- Liste des tags -->
+                <div class="tag-list-section">
+                    <h3>Tags existants</h3>
+                    <div class="form-group">
+                        <input type="text" id="searchTags" placeholder="Filtrer les tags...">
+                    </div>
+                    <div id="adminTagList" class="admin-tag-list">
+                        <!-- Tags will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <div id="feedbackAnimation" style="display: none;"></div>
+
+    <script src="scripts/custom-notifications.js"></script>
+    <script src="scripts/admin-tags.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/context-menu.js"></script>
+    <script>
+        document.getElementById('backlinkBtn').addEventListener('click', () => window.location.href = '/menu-admin.html');
+        document.getElementById('tagColor').addEventListener('input', (e) => {
+            document.getElementById('colorHex').textContent = e.target.value.toUpperCase();
+        });
+    </script>
+</body>
+
+</html>

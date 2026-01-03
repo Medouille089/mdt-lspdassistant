@@ -65,9 +65,15 @@ document.addEventListener("DOMContentLoaded", () => {
         modalTitle: 'Sélectionner un agent',
         searchPlaceholder: 'Rechercher un agent (nom, matricule)...',
         apiEndpoint: '/api/officers',
-        itemLabelKey: 'displayName', // ou une fonction
+        itemLabelKey: (item) => {
+            const name = item.displayName || item.name || 'Inconnu';
+            return `${item.grade ? item.grade + ' ' : ''}${name}`;
+        },
         itemValueKey: 'id',
-        renderItem: (item) => `${item.grade} ${item.displayName}`,
+        renderItem: (item) => {
+            const name = item.displayName || item.name || 'Inconnu';
+            return `${item.grade ? item.grade + ' ' : ''}${name}`;
+        },
         transformData: (data) => data // L'API renvoie directement un tableau
     });
 
@@ -79,9 +85,15 @@ document.addEventListener("DOMContentLoaded", () => {
         modalTitle: 'Sélectionner un civil',
         searchPlaceholder: 'Rechercher un civil (nom, prénom)...',
         apiEndpoint: '/api/citoyens',
-        itemLabelKey: (item) => `${item.nom} ${item.prenom}`,
+        itemLabelKey: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom}`;
+            return item.name || 'Inconnu';
+        },
         itemValueKey: 'id',
-        renderItem: (item) => `${item.nom} ${item.prenom} (${item.date_naissance})`,
+        renderItem: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom} (${item.date_naissance || '?'})`;
+            return item.name || 'Inconnu';
+        },
         transformData: (data) => data.citoyens || [] // L'API renvoie { citoyens: [...] }
     });
 
@@ -93,9 +105,15 @@ document.addEventListener("DOMContentLoaded", () => {
         modalTitle: 'Sélectionner un suspect',
         searchPlaceholder: 'Rechercher un suspect (nom, prénom)...',
         apiEndpoint: '/api/citoyens',
-        itemLabelKey: (item) => `${item.nom} ${item.prenom}`,
+        itemLabelKey: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom}`;
+            return item.name || 'Inconnu';
+        },
         itemValueKey: 'id',
-        renderItem: (item) => `${item.nom} ${item.prenom} (${item.date_naissance})`,
+        renderItem: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom} (${item.date_naissance || '?'})`;
+            return item.name || 'Inconnu';
+        },
         transformData: (data) => data.citoyens || []
     });
 

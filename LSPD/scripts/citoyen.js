@@ -68,6 +68,127 @@
     return true;
   }
 
+  // --- Gestion des Tags ---
+  let allAvailableTags = [];
+  let selectedTags = [];
+
+  async function loadAvailableTags() {
+    try {
+      const res = await fetch('/api/tags?type=citoyen');
+      allAvailableTags = await res.json();
+      renderTags();
+    } catch (err) {
+      console.error("Erreur chargement tags:", err);
+    }
+  }
+
+  function renderTags() {
+    const container = document.getElementById('tagsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    selectedTags.forEach(tag => {
+      const tagEl = document.createElement('div');
+      tagEl.className = 'tag-item';
+      tagEl.style.backgroundColor = tag.color;
+      tagEl.innerHTML = `
+        <span>${tag.name}</span>
+        <span class="material-symbols-rounded remove-tag" onclick="removeTag(${tag.id})">close</span>
+      `;
+      container.appendChild(tagEl);
+    });
+    
+    const addBtn = document.createElement('div');
+    addBtn.className = 'add-tag-btn';
+    addBtn.innerHTML = '<span class="material-symbols-rounded">add</span> Ajouter';
+    addBtn.onclick = showTagSelector;
+    container.appendChild(addBtn);
+  }
+
+  window.removeTag = function(tagId) {
+    selectedTags = selectedTags.filter(t => t.id !== tagId);
+    renderTags();
+  };
+
+  function showTagSelector() {
+    const modal = document.createElement('div');
+    modal.className = 'tag-selector-modal';
+    
+    let tagsHtml = allAvailableTags
+      .filter(t => !selectedTags.find(ct => ct.id === t.id))
+      .map(t => `
+        <div class="tag-option" onclick="addTag(${t.id})">
+          <span class="tag-dot" style="background-color: ${t.color}"></span>
+          <span>${t.name}</span>
+        </div>
+      `).join('');
+        
+    modal.innerHTML = `
+      <div class="tag-selector-content">
+        <h3>Ajouter un tag</h3>
+        <div class="tag-options-list">
+          ${tagsHtml || '<p>Aucun autre tag disponible</p>'}
+        </div>
+        <hr>
+        <h4>Créer un nouveau tag</h4>
+        <input type="text" id="newTagName" placeholder="Nom du tag" class="modern-input">
+        <div class="color-picker" id="tagColorPicker">
+          ${['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22', '#34495e', '#1abc9c'].map(c => `
+            <div class="color-option" style="background-color: ${c}" data-color="${c}"></div>
+          `).join('')}
+        </div>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+          <button class="btn-confirm" onclick="createNewTag()">Créer</button>
+          <button class="btn-cancel" onclick="this.closest('.tag-selector-modal').remove()">Annuler</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Color picker logic
+    const colors = modal.querySelectorAll('.color-option');
+    colors.forEach(c => c.onclick = () => {
+      colors.forEach(opt => opt.classList.remove('selected'));
+      c.classList.add('selected');
+    });
+    if (colors.length > 0) colors[0].click();
+  }
+
+  window.addTag = function(tagId) {
+    const tag = allAvailableTags.find(t => t.id === tagId);
+    if (tag) selectedTags.push(tag);
+    renderTags();
+    const modal = document.querySelector('.tag-selector-modal');
+    if (modal) modal.remove();
+  };
+
+  window.createNewTag = async function() {
+    const name = document.getElementById('newTagName').value;
+    const color = document.querySelector('.color-option.selected').dataset.color;
+    
+    if (!name) return alert("Nom requis");
+    
+    try {
+      const res = await fetch('/api/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, color, type: 'citoyen' })
+      });
+      const newTag = await res.json();
+      allAvailableTags.push(newTag);
+      addTag(newTag.id);
+      document.querySelector('.tag-selector-modal').remove();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  function setupTagsHandlers() {
+    loadAvailableTags();
+  }
+
   async function submitForm(event) {
     event.preventDefault();
 
@@ -112,7 +233,8 @@
         permis_PPA: document.getElementById('permis_PPA').checked,
         permis_BRAVO: document.getElementById('permis_BRAVO').checked,
         permis_ASD: document.getElementById('permis_ASD').checked,
-        created_by: user.username
+        created_by: user.username,
+        tags: selectedTags.map(t => t.id)
       };
 
       const response = await fetch('/api/citoyens', {
@@ -152,6 +274,9 @@
 
     // Form submission
     form.addEventListener('submit', submitForm);
+
+    // Initialiser les tags
+    setupTagsHandlers();
 
     // Formatage automatique du téléphone
     const telInput = document.getElementById('telephone');

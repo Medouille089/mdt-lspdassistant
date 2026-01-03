@@ -48,7 +48,7 @@ async function loadCitoyens() {
         updateStats();
         applyFilters();
     } catch (e) {
-        tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#f66;">Erreur de chargement.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#f66;">Erreur de chargement.</td></tr>`;
         console.error(e);
         showNotification('Erreur lors du chargement des citoyens', 'error');
     } finally {
@@ -97,7 +97,7 @@ function renderTable() {
     tableBody.innerHTML = '';
 
     if (filteredCitoyens.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Aucun citoyen trouvé.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">Aucun citoyen trouvé.</td></tr>`;
         return;
     }
 
@@ -119,6 +119,10 @@ function renderTable() {
             ? '<span class="badge-mandat actif">OUI</span>'
             : '<span class="badge-mandat inactif">NON</span>';
 
+        const tagsHtml = `<div class="mini-tags">` + (item.tags || []).map(tag => 
+            `<span class="mini-tag-pill" style="background: ${tag.color};" title="${tag.name}">${tag.name}</span>`
+        ).join('') + `</div>`;
+
         tr.innerHTML = `
             ${photoCell}
             <td>${item.nom}</td>
@@ -127,6 +131,7 @@ function renderTable() {
             <td>${item.nationalite}</td>
             <td>${item.telephone || '-'}</td>
             <td>${item.emploi || '-'}</td>
+            <td>${tagsHtml}</td>
             <td>${mandatBadge}</td>
         `;
         

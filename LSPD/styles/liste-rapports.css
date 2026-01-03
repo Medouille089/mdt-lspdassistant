@@ -49,6 +49,21 @@ h1 {
     box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
 }
 
+/* Mini Tags Styles */
+.mini-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.tag-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
 .search-box .material-symbols-rounded {
     color: var(--text-muted);
     margin-right: 10px;

@@ -175,19 +175,28 @@ router.get("/api/rapports-arrestation", checkAuth, async (req, res) => {
         const civilId = req.query.civilId;
         const suspectId = req.query.suspectId;
 
-        let query = `SELECT * FROM lspd_rapports_arrestation`;
-        let countQuery = `SELECT COUNT(*) FROM lspd_rapports_arrestation`;
+        let query = `
+            SELECT r.*, 
+            COALESCE(
+                (SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'color', t.color))
+                 FROM lspd_entity_tags et
+                 JOIN lspd_tags t ON et.tag_id = t.id
+                 WHERE et.entity_id = r.id::TEXT AND et.entity_type = 'rapport'),
+                '[]'
+            ) as tags
+            FROM lspd_rapports_arrestation r`;
+        let countQuery = `SELECT COUNT(*) FROM lspd_rapports_arrestation r`;
         let params = [];
         let whereClauses = [];
 
         if (search) {
             params.push(`%${search}%`);
             whereClauses.push(`(
-                officier_redacteur ILIKE $${params.length} OR 
-                suspects_impliques::text ILIKE $${params.length} OR 
-                civils_impliques::text ILIKE $${params.length} OR
-                agents_impliques::text ILIKE $${params.length} OR
-                recit ILIKE $${params.length}
+                r.officier_redacteur ILIKE $${params.length} OR 
+                r.suspects_impliques::text ILIKE $${params.length} OR 
+                r.civils_impliques::text ILIKE $${params.length} OR
+                r.agents_impliques::text ILIKE $${params.length} OR
+                r.recit ILIKE $${params.length}
             )`);
         }
 
@@ -195,19 +204,19 @@ router.get("/api/rapports-arrestation", checkAuth, async (req, res) => {
             // Recherche dans le JSONB agents_impliques où un élément a l'id donné
             // L'ID agent est un Discord ID (string)
             params.push(`[{"id": "${agentId}"}]`); 
-            whereClauses.push(`agents_impliques @> $${params.length}::jsonb`);
+            whereClauses.push(`r.agents_impliques @> $${params.length}::jsonb`);
         }
 
         if (civilId) {
             // L'ID civil est un int
             params.push(`[{"id": ${civilId}}]`);
-            whereClauses.push(`civils_impliques @> $${params.length}::jsonb`);
+            whereClauses.push(`r.civils_impliques @> $${params.length}::jsonb`);
         }
 
         if (suspectId) {
             // L'ID suspect est un int
             params.push(`[{"id": ${suspectId}}]`);
-            whereClauses.push(`suspects_impliques @> $${params.length}::jsonb`);
+            whereClauses.push(`r.suspects_impliques @> $${params.length}::jsonb`);
         }
 
         if (whereClauses.length > 0) {
@@ -215,7 +224,7 @@ router.get("/api/rapports-arrestation", checkAuth, async (req, res) => {
             countQuery += ` WHERE ` + whereClauses.join(' AND ');
         }
 
-        query += ` ORDER BY date_arrestation DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        query += ` ORDER BY r.date_arrestation DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
         
         const reports = await pool.query(query, [...params, limit, offset]);
         const countRes = await pool.query(countQuery, params);
@@ -237,7 +246,17 @@ router.get("/api/rapports-arrestation", checkAuth, async (req, res) => {
 router.get("/api/rapports-arrestation/:id", checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query("SELECT * FROM lspd_rapports_arrestation WHERE id = $1", [id]);
+        const result = await pool.query(`
+            SELECT r.*, 
+            COALESCE(
+                (SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'color', t.color))
+                 FROM lspd_entity_tags et
+                 JOIN lspd_tags t ON et.tag_id = t.id
+                 WHERE et.entity_id = r.id::TEXT AND et.entity_type = 'rapport'),
+                '[]'
+            ) as tags
+            FROM lspd_rapports_arrestation r 
+            WHERE r.id = $1`, [id]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Rapport non trouvé" });
