@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.22.0](https://github.com/Medouille089/lspdassistant/compare/v1.21.4...v1.22.0) (2026-01-03)
+
+
+### Features
+
+* Add arrest report functionality with frontend and backend integration ([a1cff4c](https://github.com/Medouille089/lspdassistant/commit/a1cff4c33007ef46eb6cb51ddccfd24a4e4a76c2))
+* add contract feature ([e88f116](https://github.com/Medouille089/lspdassistant/commit/e88f116819f831eedfa39e0e238f3614b10f7c11))
+* add RA and link ([70f5aa1](https://github.com/Medouille089/lspdassistant/commit/70f5aa11fe3fb3318a57fd4930dacbd9ff8d851e))
+
+
+### Bug Fixes
+
+* add limit ([39e5086](https://github.com/Medouille089/lspdassistant/commit/39e50868bf9a076632a9aeed73eefa374857fa51))
+* add temporary reload button ([3c79811](https://github.com/Medouille089/lspdassistant/commit/3c7981139ca440f8f2d1a5fb04cb1e0ba1601b70))
+* adjust time zone handling for session duration calculation ([27df0b7](https://github.com/Medouille089/lspdassistant/commit/27df0b77c2d41c2aec7381e64dd19d79a9d42fae))
+* Admin-absence ([61605ed](https://github.com/Medouille089/lspdassistant/commit/61605eda478e19259e208c98bf4a77992be87a1b))
+* change phone format + optimisation rap incidents ([fd1787f](https://github.com/Medouille089/lspdassistant/commit/fd1787f393adf7bc785c43a8c56d7287c943f2b2))
+* change to mdt ([f661ee0](https://github.com/Medouille089/lspdassistant/commit/f661ee0d254f56c337e3d399172d5702a3080f57))
+* Css ([1cdbb5e](https://github.com/Medouille089/lspdassistant/commit/1cdbb5eb17981cd538e23bc3ac8c9697d83a6587))
+* fix de l'overlay ([568f6cb](https://github.com/Medouille089/lspdassistant/commit/568f6cbed653f415acc8570b9f5a4fd1ccb5b479))
+* fix overlay ([d6fbc4a](https://github.com/Medouille089/lspdassistant/commit/d6fbc4a2fcc2d12d58e14b00068cf7b9bbdc9358))
+* New format numéro ([8dcbe17](https://github.com/Medouille089/lspdassistant/commit/8dcbe17dbcf6d2aec1e0ee19054916daf697e367))
+* number format in citoyen and infos-agent ([0b7fd29](https://github.com/Medouille089/lspdassistant/commit/0b7fd2911224d5ea7103d3e71761d73be14222fa))
+* removed button ([851d06c](https://github.com/Medouille089/lspdassistant/commit/851d06c1baa12af6be544c88e74e238b8cccbf12))
+* separate css/js/html ([2f179fc](https://github.com/Medouille089/lspdassistant/commit/2f179fcde30f023cf533ae9f066bc33c7817f73e))
+* textarea in convocation image ([da95499](https://github.com/Medouille089/lspdassistant/commit/da954998229ffdd9e5ac1e009af469c7832dbf7c))
+* update .gitignore ([6036ea9](https://github.com/Medouille089/lspdassistant/commit/6036ea92a93cc9dc1450e3f398fbf1561550b912))
+
 ### [1.21.4](https://github.com/Medouille089/lspdassistant/compare/v1.21.3...v1.21.4) (2025-11-27)
 
 
