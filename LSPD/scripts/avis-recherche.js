@@ -11,57 +11,106 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Erreur chargement utilisateur:', err);
     }
 
-    // Sélecteur de citoyen
-    const selectCitoyenBtn = document.getElementById('selectCitoyenBtn');
-    const selectedCitoyenDiv = document.getElementById('selectedCitoyen');
-    const citoyenIdInput = document.getElementById('citoyen_id');
-    const citoyenNomInput = document.getElementById('citoyen_nom');
-    const citoyenPrenomInput = document.getElementById('citoyen_prenom');
+    // Gestion de l'affichage conditionnel selon le type d'avis
+    const typeAvisSelect = document.getElementById('typeAvis');
+    const champsDisparu = document.getElementById('champsDisparu');
+    const champsMostWanted = document.getElementById('champsMostWanted');
 
-    // Initialiser le sélecteur de citoyen
-    new GenericSelectorModal({
-        triggerBtnId: 'selectCitoyenBtn',
-        modalTitle: 'Sélectionner une personne',
-        searchPlaceholder: 'Rechercher par nom ou prénom...',
-        apiEndpoint: '/api/citoyens?limit=100',
-        displayField: (item) => `${item.prenom} ${item.nom}`,
-        valueField: 'id',
-        renderItem: (item) => {
-            const photo = item.photo ? `<img src="${item.photo}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover;">` : '<span style="width:30px;height:30px;border-radius:50%;margin-right:10px;background:#ccc;display:inline-block;"></span>';
-            return `<div style="display:flex;align-items:center;">${photo}<span>${item.prenom} ${item.nom}</span></div>`;
-        },
-        transformData: (data) => data.citoyens || data || [],
-        filterFn: (item, query) => {
-            const q = query.toLowerCase();
-            return item.nom.toLowerCase().includes(q) || item.prenom.toLowerCase().includes(q);
-        },
-        onSelect: (item) => {
-            citoyenIdInput.value = item.id;
-            citoyenNomInput.value = item.nom;
-            citoyenPrenomInput.value = item.prenom;
-
-            selectedCitoyenDiv.innerHTML = `
-                <div class="selected-item" style="display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--main-color-light); border-radius: 8px; margin-top: 10px;">
-                    ${item.photo ? `<img src="${item.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : '<span style="width:40px;height:40px;border-radius:50%;background:#ccc;display:inline-block;"></span>'}
-                    <span><strong>${item.prenom} ${item.nom}</strong></span>
-                    <button type="button" class="remove-btn" style="margin-left: auto; background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">✕</button>
-                </div>
-            `;
-
-            // Pré-remplir la photo si disponible
-            if (item.photo && !document.getElementById('photoUrl').value) {
-                document.getElementById('photoUrl').value = item.photo;
-                updatePhotoPreview(item.photo);
+    if (typeAvisSelect) {
+        typeAvisSelect.addEventListener('change', () => {
+            const type = typeAvisSelect.value;
+            
+            // Cacher tous les champs conditionnels
+            if (champsDisparu) champsDisparu.style.display = 'none';
+            if (champsMostWanted) champsMostWanted.style.display = 'none';
+            
+            // Afficher les champs selon le type
+            if (type === 'disparu' && champsDisparu) {
+                champsDisparu.style.display = 'block';
+            } else if (type === 'most_wanted' && champsMostWanted) {
+                champsMostWanted.style.display = 'block';
             }
+        });
+    }
 
-            selectedCitoyenDiv.querySelector('.remove-btn').addEventListener('click', () => {
-                citoyenIdInput.value = '';
-                citoyenNomInput.value = '';
-                citoyenPrenomInput.value = '';
-                selectedCitoyenDiv.innerHTML = '';
+    // Sélecteur de citoyen - Les éléments sont récupérés directement dans les callbacks pour éviter les null
+
+    // Bouton "Choisir" - ouvrir le sélecteur
+    const selectPersonneBtn = document.getElementById('selectPersonneBtn');
+    if (selectPersonneBtn) {
+        selectPersonneBtn.addEventListener('click', () => {
+            GenericSelector.open({
+                type: 'citizen',
+                apiEndpoint: '/api/citoyens?limit=100',
+                title: 'Sélectionner une personne',
+                searchPlaceholder: 'Rechercher par nom ou prénom...',
+                renderItem: (item) => {
+                    const photo = item.photo ? `<img src="${item.photo}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover;">` : '<span style="width:30px;height:30px;border-radius:50%;margin-right:10px;background:#ccc;display:inline-block;"></span>';
+                    return `<div style="display:flex;align-items:center;">${photo}<span>${item.prenom} ${item.nom}</span></div>`;
+                },
+                onSelect: (item) => {
+                    // Récupérer les éléments directement pour éviter les erreurs de null
+                    const nonRecense = document.getElementById('non_recense');
+                    const champsNonRecenseDiv = document.getElementById('champsNonRecense');
+                    const personne = document.getElementById('personne');
+                    const personneId = document.getElementById('personne_id');
+                    const citoyenId = document.getElementById('citoyen_id');
+                    const citoyenNom = document.getElementById('citoyen_nom');
+                    const citoyenPrenom = document.getElementById('citoyen_prenom');
+                    
+                    // Réinitialiser le mode non recensé
+                    if (nonRecense) nonRecense.value = 'false';
+                    if (champsNonRecenseDiv) champsNonRecenseDiv.style.display = 'none';
+                    
+                    // Mettre à jour les inputs visibles
+                    if (personne) personne.value = `${item.prenom} ${item.nom}`;
+                    if (personneId) personneId.value = item.id;
+                    
+                    // Mettre à jour les inputs cachés
+                    if (citoyenId) citoyenId.value = item.id;
+                    if (citoyenNom) citoyenNom.value = item.nom;
+                    if (citoyenPrenom) citoyenPrenom.value = item.prenom;
+
+                    // Pré-remplir la photo si disponible
+                    const photoUrl = document.getElementById('photoUrl');
+                    if (item.photo && photoUrl && !photoUrl.value) {
+                        photoUrl.value = item.photo;
+                        updatePhotoPreview(item.photo);
+                    }
+                }
             });
-        }
-    });
+        });
+    }
+
+    // Bouton "Non recensé"
+    const nonRecenseBtn = document.getElementById('nonRecenseBtn');
+    if (nonRecenseBtn) {
+        nonRecenseBtn.addEventListener('click', () => {
+            // Récupérer les éléments directement
+            const nonRecense = document.getElementById('non_recense');
+            const champsNonRecenseDiv = document.getElementById('champsNonRecense');
+            const personne = document.getElementById('personne');
+            const personneId = document.getElementById('personne_id');
+            const citoyenId = document.getElementById('citoyen_id');
+            const citoyenNom = document.getElementById('citoyen_nom');
+            const citoyenPrenom = document.getElementById('citoyen_prenom');
+            
+            // Activer le mode non recensé
+            if (nonRecense) nonRecense.value = 'true';
+            if (champsNonRecenseDiv) champsNonRecenseDiv.style.display = 'block';
+            
+            // Réinitialiser les champs citoyen
+            if (personne) personne.value = '⚠️ Personne non recensée';
+            if (personneId) personneId.value = '';
+            if (citoyenId) citoyenId.value = '';
+            if (citoyenNom) citoyenNom.value = '';
+            if (citoyenPrenom) citoyenPrenom.value = '';
+            
+            // Focus sur le champ nom
+            const nomManuel = document.getElementById('nomManuel');
+            if (nomManuel) nomManuel.focus();
+        });
+    }
 
     // Prévisualisation de la photo
     const photoUrlInput = document.getElementById('photoUrl');
@@ -88,39 +137,66 @@ document.addEventListener('DOMContentLoaded', async () => {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        const isNonRecense = nonRecenseInput.value === 'true';
         const citoyenId = citoyenIdInput.value;
-        if (!citoyenId) {
+        
+        // Validation de la personne
+        if (!isNonRecense && !citoyenId) {
             showNotification('Veuillez sélectionner une personne recherchée', 'warning');
             return;
         }
+        
+        // Si non recensé, vérifier les champs manuels
+        if (isNonRecense) {
+            const nomManuel = document.getElementById('nomManuel').value.trim();
+            const prenomManuel = document.getElementById('prenomManuel').value.trim();
+            if (!nomManuel || !prenomManuel) {
+                showNotification('Veuillez saisir le nom et prénom de la personne', 'warning');
+                return;
+            }
+        }
 
-        const dangerosite = document.getElementById('dangerosite').value;
-        if (!dangerosite) {
-            showNotification('Veuillez sélectionner un niveau de dangerosité', 'warning');
+        const typeAvis = document.getElementById('typeAvis').value;
+        if (!typeAvis) {
+            showNotification('Veuillez sélectionner un type d\'avis', 'warning');
             return;
         }
 
-        const motif = document.getElementById('motif').value;
-        if (!motif.trim()) {
-            showNotification('Veuillez saisir un motif de recherche', 'warning');
-            return;
+        // Validation spécifique au type
+        if (typeAvis === 'most_wanted') {
+            const faits = document.getElementById('faitsReproches').value;
+            if (!faits.trim()) {
+                showNotification('Veuillez saisir les faits reprochés', 'warning');
+                return;
+            }
         }
 
         const loader = document.getElementById('loaderOverlay');
         loader.style.display = 'flex';
 
+        // Construire les données selon le type d'avis
         const data = {
-            citoyen_id: citoyenId,
-            citoyen_nom: citoyenNomInput.value,
-            citoyen_prenom: citoyenPrenomInput.value,
-            dangerosite: dangerosite,
-            motif: motif,
-            description: document.getElementById('description').value,
-            recompense: document.getElementById('recompense').value,
+            citoyen_id: isNonRecense ? null : citoyenId,
+            citoyen_nom: isNonRecense ? document.getElementById('nomManuel').value : citoyenNomInput.value,
+            citoyen_prenom: isNonRecense ? document.getElementById('prenomManuel').value : citoyenPrenomInput.value,
+            non_recense: isNonRecense,
+            type_avis: typeAvis,
+            alias: document.getElementById('alias').value,
             photo: document.getElementById('photoUrl').value,
             officier: document.getElementById('officier').value,
             grade: document.getElementById('grade').value
         };
+
+        // Ajouter les champs spécifiques au type
+        if (typeAvis === 'disparu') {
+            data.derniere_localisation = document.getElementById('derniereLocalisation').value;
+            data.infractions_reprochees = document.getElementById('infractionsReprochees').value;
+            data.niveau_dangerosite = document.getElementById('niveauDangerosite').value;
+        } else if (typeAvis === 'most_wanted') {
+            data.recompense = document.getElementById('recompense').value;
+            data.faits_reproches = document.getElementById('faitsReproches').value;
+            data.avertissement = document.getElementById('avertissement').value;
+        }
 
         try {
             const res = await fetch('/api/avis-recherche', {
@@ -136,7 +212,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (res.ok) {
                 showNotification('Avis de recherche publié avec succès !', 'success');
                 setTimeout(() => {
-                    window.location.href = '/liste-avis-recherche';
+                    window.location.href = '/menu-mdt';
                 }, 1500);
             } else {
                 showNotification(result.error || 'Erreur lors de la publication', 'error');

@@ -187,11 +187,12 @@
     position: relative;
     width: 100%;
     display: flex;
+    gap: 8px;
 }
 
 .personne-selector input[type="text"] {
-    width: 100%;
-    padding: 10px 130px 10px 10px;
+    flex: 1;
+    padding: 10px;
     cursor: pointer;
     background-color: #f8f9fa;
     box-sizing: border-box;
@@ -212,11 +213,21 @@
     font-size: 1rem;
     margin-top: 0;
     transition: all 0.2s ease;
-    width: 25%;
+    padding: 10px 15px;
+    white-space: nowrap;
 }
 
 .personne-selector button:hover {
     background-color: #003366;
+}
+
+.personne-selector button.btn-secondary {
+    background-color: #6c757d;
+    margin-left: 8px;
+}
+
+.personne-selector button.btn-secondary:hover {
+    background-color: #545b62;
 }
 
 
