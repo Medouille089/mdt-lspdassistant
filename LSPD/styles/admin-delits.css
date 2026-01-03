@@ -1,0 +1,194 @@
+/* LSPD/styles/admin-delits.css */
+
+.delits-container {
+    padding: 0;
+}
+
+.delit-form {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--main-color);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 12px;
+    border: 1px solid var(--border-input);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--main-color);
+    box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
+    outline: none;
+}
+
+.btn-add {
+    background: var(--success-color, #2ecc71);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-add:hover {
+    background: #27ae60;
+    transform: translateY(-1px);
+}
+
+.btn-cancel {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #c0392b;
+    transform: translateY(-1px);
+}
+
+.type-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.type-contravention {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.type-delit-mineur {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.type-delit-majeur {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.type-crime {
+    background: #343a40;
+    color: #fff;
+}
+
+/* Actions styling to match liste-rapports */
+.td-actions {
+    text-align: right;
+}
+
+.actions-container {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.btn-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f5f5f5;
+    color: var(--text-dark);
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+}
+
+.btn-action.edit:hover {
+    background: var(--main-color);
+    color: white;
+}
+
+.btn-action.delete:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-action .material-symbols-rounded {
+    font-size: 20px;
+}
+
+.controls-container {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-box {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid var(--border-input);
+    border-radius: 8px;
+    padding: 0 15px;
+    transition: all 0.2s;
+    min-width: 200px;
+}
+
+.filter-box:focus-within {
+    border-color: var(--main-color);
+    box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
+}
+
+.filter-box select {
+    border: none;
+    background: transparent;
+    padding: 12px 0;
+    width: 100%;
+    font-size: 15px;
+    color: var(--text-dark);
+    outline: none;
+    cursor: pointer;
+}
+
+.filter-box .material-symbols-rounded {
+    color: var(--text-muted);
+    margin-right: 10px;
+}

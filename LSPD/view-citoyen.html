@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="styles/context-menu.css" />
   <link rel="stylesheet" href="styles/custom-notifications.css" />
   <link rel="stylesheet" href="styles/view-citoyen.css" />
+  <link rel="stylesheet" href="styles/tags.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
 </head>
@@ -106,6 +107,18 @@
             </div>
           </div>
 
+          <!-- Tags Section -->
+          <div class="tags-section">
+            <label>Tags / Catégories</label>
+            <div class="tags-container" id="tagsContainer">
+              <!-- Tags will be injected here -->
+              <button type="button" class="add-tag-btn" id="addTagBtn">
+                <span class="material-symbols-rounded">add</span>
+                Ajouter un tag
+              </button>
+            </div>
+          </div>
+
           <div class="form-row">
             <div class="form-group" style="grid-column: span 5; max-width: 100%; width: 100%;">
               <label for="note_interne">Note interne</label>
@@ -185,9 +198,9 @@
             <span class="material-symbols-rounded">gavel</span>
             Casier Judiciaire
           </h3>
-          <div class="equipment-grid">
-            <div class="equipment-category" style="width: 100%;">
-              <h4>Historique des peines</h4>
+          <div style="width: 100%;">
+            <div style="width: 100%;">
+              <h4 style="color: var(--text-light); font-size: 1.1rem; font-weight: 600; margin: 0 0 15px 0;">Historique des peines</h4>
               <div id="casier-list" class="equipment-list">
                 <p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>
               </div>
@@ -248,6 +261,19 @@
       <div class="photo-modal-actions">
         <button type="button" class="btn-cancel" id="cancelPhotoBtn">Annuler</button>
         <button type="button" class="btn-confirm" id="savePhotoBtn">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de sélection de tags -->
+  <div id="tagSelectorModal" class="tag-selector-modal">
+    <div class="tag-selector-content">
+      <h3>Gérer les tags</h3>
+      <div id="modalTagList" class="tag-options-list">
+        <!-- Available tags will be injected here -->
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="closeTagModal" class="btn-tag-close">Fermer</button>
       </div>
     </div>
   </div>

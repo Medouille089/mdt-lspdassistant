@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="styles/generic-selector.css" />
   <link rel="stylesheet" href="styles/context-menu.css" />
   <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <link rel="stylesheet" href="styles/tags.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <style>
       /* Read-only specific styles */
@@ -88,6 +89,14 @@
       </div>
 
       <form id="viewReportForm">
+        <!-- Tags Section -->
+        <div class="tags-section">
+          <label>Tags du rapport</label>
+          <div id="tagsContainer" class="tags-container">
+            <!-- Tags will be injected here -->
+          </div>
+        </div>
+
         <!-- Partie Récit -->
         <h3 class="section-title">Partie Récit</h3>
         
@@ -152,6 +161,8 @@
             </div>
         </div>
 
+        <div class="inline-fields" id="avocatPut"></div>
+
         <div>
             <label for="heure_cellule">Heure d'entrée en cellule</label>
             <input type="time" id="heure_cellule" name="heure_cellule" disabled />
@@ -165,12 +176,6 @@
         <label for="recit">Récit des faits</label>
         <div class="recit-spellcheck-wrapper">
           <textarea id="recit" name="recit" disabled></textarea>
-        </div>
-
-        <div>
-            <label for="charges_image_url">Chef d'inculpation (Lien image)</label>
-            <input type="url" id="charges_image_url" name="charges_image_url" disabled />
-            <div id="chargesPreview" class="attachments-preview"></div>
         </div>
 
         <!-- Partie Agent Impliqué -->
