@@ -202,7 +202,7 @@ function initSelectors() {
         searchPlaceholder: 'Rechercher un agent...',
         itemLabelKey: (item) => {
             const name = item.displayName || item.name || 'Inconnu';
-            return `${item.grade ? item.grade + ' ' : ''}${name}`;
+            return `${name}`;
         },
         itemValueKey: 'id',
         renderItem: (item) => {

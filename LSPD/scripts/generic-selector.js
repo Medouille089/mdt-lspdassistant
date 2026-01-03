@@ -238,7 +238,6 @@ class GenericSelectorModal {
             id: this.getItemValue(item),
             name: this.getItemLabel(item),
             // On peut ajouter d'autres champs si nécessaire
-            grade: item.grade, // Pour les agents
             date_naissance: item.date_naissance // Pour les civils
         }));
 
