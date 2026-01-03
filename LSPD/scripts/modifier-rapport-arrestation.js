@@ -67,13 +67,15 @@ function initSelectors() {
         modalTitle: 'Sélectionner un agent',
         apiEndpoint: '/api/officers',
         searchPlaceholder: 'Rechercher un agent...',
-        itemLabelKey: (item) => `${item.grade ? item.grade + ' ' : ''}${item.displayName}`,
+        itemLabelKey: (item) => {
+            const name = item.displayName || item.name || 'Inconnu';
+            return `${item.grade ? item.grade + ' ' : ''}${name}`;
+        },
         itemValueKey: 'id',
-        renderItem: (item) => `
-            <div class="agent-item">
-                <span class="agent-name">${item.grade ? item.grade + ' ' : ''}${item.displayName}</span>
-            </div>
-        `
+        renderItem: (item) => {
+            const name = item.displayName || item.name || 'Inconnu';
+            return `${name}`;
+        }
     });
 
     // Civils
@@ -83,20 +85,20 @@ function initSelectors() {
         hiddenInputId: 'civils_impliques',
         modalTitle: 'Sélectionner un civil',
         apiEndpoint: async () => {
-            // On charge une liste vide au départ, la recherche fera le travail via filterItems si on adapte GenericSelector
-            // Mais GenericSelector charge tout au début. Pour les civils c'est lourd.
-            // On va utiliser une endpoint qui renvoie les derniers ou vide.
-            // Pour l'instant on fetch tout ou on limite.
-            // TODO: Adapter GenericSelector pour recherche serveur.
-            // Ici on va fetcher une liste limitée ou vide et laisser la recherche locale si possible, 
-            // ou juste fetcher '/api/citoyens' si c'est pas trop gros.
             const res = await fetch('/api/citoyens?limit=100'); 
             return await res.json();
         },
         transformData: (data) => data.citoyens || [],
         searchPlaceholder: 'Rechercher un citoyen...',
-        itemLabelKey: (item) => `${item.prenom} ${item.nom}`,
-        itemValueKey: 'id'
+        itemLabelKey: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom}`;
+            return item.name || 'Inconnu';
+        },
+        itemValueKey: 'id',
+        renderItem: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom}`;
+            return item.name || 'Inconnu';
+        }
     });
 
     // Suspects
@@ -111,8 +113,15 @@ function initSelectors() {
         },
         transformData: (data) => data.citoyens || [],
         searchPlaceholder: 'Rechercher un suspect...',
-        itemLabelKey: (item) => `${item.prenom} ${item.nom}`,
-        itemValueKey: 'id'
+        itemLabelKey: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom}`;
+            return item.name || 'Inconnu';
+        },
+        itemValueKey: 'id',
+        renderItem: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom}`;
+            return item.name || 'Inconnu';
+        }
     });
 }
 
@@ -142,8 +151,8 @@ function populateForm(data) {
         document.getElementById('heure').value = d.toTimeString().slice(0, 5);
     }
 
-    document.getElementById('officier').value = data.agent_redacteur_nom || data.agent_redacteur_id || '';
-    document.getElementById('grade').value = data.agent_redacteur_grade || '';
+    document.getElementById('officier').value = data.officier_redacteur || '';
+    document.getElementById('grade').value = data.grade || '';
 
     document.getElementById('droits_cites').checked = data.droits_cites || false;
     document.getElementById('droits_heure').value = data.droits_heure || '';
@@ -158,16 +167,6 @@ function populateForm(data) {
     document.getElementById('heure_cellule').value = data.heure_cellule || '';
     document.getElementById('objets_confisques').value = data.objets_confisques || '';
     document.getElementById('recit').value = data.recit || '';
-    document.getElementById('charges_image_url').value = data.charges_image_url || '';
-
-    // Preview charges image
-    if (data.charges_image_url) {
-        const img = document.createElement('img');
-        img.src = data.charges_image_url;
-        img.style.maxWidth = '100%';
-        img.style.marginTop = '10px';
-        document.getElementById('chargesPreview').appendChild(img);
-    }
 
     // Populate Selectors
     if (data.agents_impliques) {
@@ -258,7 +257,6 @@ async function saveReport() {
         formData.append('heure_cellule', document.getElementById('heure_cellule').value);
         formData.append('objets_confisques', document.getElementById('objets_confisques').value);
         formData.append('recit', document.getElementById('recit').value);
-        formData.append('charges_image_url', document.getElementById('charges_image_url').value);
 
         // Selectors data (JSON strings)
         formData.append('agents_impliques', document.getElementById('agents_impliques').value);

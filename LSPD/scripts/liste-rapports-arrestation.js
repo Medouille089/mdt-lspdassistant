@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             tr.innerHTML = `
                 <td>#${report.id}</td>
                 <td>${dateStr}</td>
-                <td>${report.grade} ${report.officier_redacteur}</td>
+                <td>${report.officier_redacteur}</td>
                 <td>${suspects}</td>
                 <td class="actions-cell">
                     <button class="btn-action view" title="Voir" onclick="window.location.href='/view-rapport-arrestation?id=${report.id}'">

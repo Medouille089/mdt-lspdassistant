@@ -64,26 +64,31 @@ function populateView(data) {
     // Agent rédacteur
     // Si on a le nom de l'agent dans les données jointes, on l'affiche, sinon l'ID
     // Idéalement le backend devrait renvoyer le nom de l'agent rédacteur
-    document.getElementById('officier').value = data.agent_redacteur_nom || data.agent_redacteur_id || 'Inconnu';
-    document.getElementById('grade').value = data.agent_redacteur_grade || '';
+    document.getElementById('officier').value = data.officier_redacteur || 'Inconnu';
+    document.getElementById('grade').value = data.grade || '';
 
     // Droits
     document.getElementById('droits_cites').checked = data.droits_cites || false;
     document.getElementById('droits_heure').value = data.droits_heure || '';
 
     // Switches
-    document.getElementById('avocat_intervention').checked = data.avocat_intervention || false;
-    if (data.avocat_intervention && data.nom_avocat) {
-        const avocatPut = document.getElementById("avocatPut");
-        if (avocatPut) {
+    const hasAvocat = data.avocat_intervention === true || data.avocat_intervention === 'true' || data.avocat_intervention === 't';
+    document.getElementById('avocat_intervention').checked = hasAvocat;
+    
+    const avocatPut = document.getElementById("avocatPut");
+    if (avocatPut) {
+        avocatPut.innerHTML = ''; // Clear first
+        if (hasAvocat) {
             const div = document.createElement("div");
+            div.id = "nom_avocat_container";
             div.innerHTML = `
                 <label for="nom_avocat">Nom de l'avocat</label>
-                <input type="text" id="nom_avocat" value="${data.nom_avocat}" disabled />
+                <input type="text" id="nom_avocat" value="${data.nom_avocat || ''}" disabled />
             `;
             avocatPut.appendChild(div);
         }
     }
+    
     document.getElementById('ems_intervention').checked = data.ems_intervention || false;
     document.getElementById('nourriture_demandee').checked = data.nourriture_demandee || false;
 
@@ -93,16 +98,6 @@ function populateView(data) {
     // Textareas
     document.getElementById('objets_confisques').value = data.objets_confisques || '';
     document.getElementById('recit').value = data.recit || '';
-
-    // Charges Image
-    document.getElementById('charges_image_url').value = data.charges_image_url || '';
-    if (data.charges_image_url) {
-        const img = document.createElement('img');
-        img.src = data.charges_image_url;
-        img.style.maxWidth = '100%';
-        img.style.marginTop = '10px';
-        document.getElementById('chargesPreview').appendChild(img);
-    }
 
     // Listes (Agents, Civils, Suspects)
     renderList('selectedAgents', data.agents_impliques);
