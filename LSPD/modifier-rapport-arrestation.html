@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="styles/generic-selector.css" />
   <link rel="stylesheet" href="styles/context-menu.css" />
   <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <link rel="stylesheet" href="styles/tags.css" />
 </head>
 
 <body>
@@ -46,6 +47,18 @@
 
       <form id="editReportForm">
         <input type="hidden" id="reportId" name="reportId" />
+
+        <!-- Tags Section -->
+        <div class="tags-section">
+          <label>Tags du rapport</label>
+          <div id="tagsContainer" class="tags-container">
+            <!-- Tags will be injected here -->
+            <div id="addTagBtn" class="add-tag-btn">
+              <span class="material-symbols-rounded">add</span>
+              <span>Ajouter</span>
+            </div>
+          </div>
+        </div>
         
         <!-- Partie Récit -->
         <h3 class="section-title">Partie Récit</h3>
@@ -177,6 +190,20 @@
       <button type="button" id="saveBtn" class="send-button">Sauvegarder les modifications</button>
     </div>
   </div>
+
+  <!-- Modal de sélection de tags -->
+  <div id="tagSelectorModal" class="tag-selector-modal">
+    <div class="tag-selector-content">
+      <h3>Gérer les tags</h3>
+      <div id="modalTagList" class="tag-options-list">
+        <!-- Available tags will be injected here -->
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="closeTagModal" class="btn-tag-close">Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <div class="loader-overlay" id="loaderOverlay">
     <div class="loader-spinner"></div>
   </div>

@@ -31,7 +31,140 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Charger le rapport
     await loadReport();
+    
+    // Initialiser les tags
+    setupTagsHandlers();
 });
+
+// --- Gestion des Tags ---
+let availableTags = [];
+let currentEntityTags = [];
+
+async function loadAvailableTags() {
+    try {
+        const res = await fetch('/api/tags?type=rapport');
+        if (res.ok) {
+            availableTags = await res.json();
+        }
+    } catch (err) {
+        console.error("Erreur chargement tags:", err);
+    }
+}
+
+function renderTags() {
+    const container = document.getElementById('tagsContainer');
+    if (!container) return;
+    const addBtn = document.getElementById('addTagBtn');
+    
+    // Supprimer les tags existants (sauf le bouton d'ajout)
+    const existingTags = container.querySelectorAll('.tag-item');
+    existingTags.forEach(t => t.remove());
+    
+    currentEntityTags.forEach(tag => {
+        const tagEl = document.createElement('div');
+        tagEl.className = 'tag-item';
+        tagEl.style.backgroundColor = tag.color;
+        tagEl.innerHTML = `
+            <span>${tag.name}</span>
+            <span class="material-symbols-rounded remove-tag" data-id="${tag.id}">close</span>
+        `;
+        
+        tagEl.querySelector('.remove-tag').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeTagFromEntity(tag.id);
+        });
+        
+        container.insertBefore(tagEl, addBtn);
+    });
+}
+
+function setupTagsHandlers() {
+    const addTagBtn = document.getElementById('addTagBtn');
+    const tagModal = document.getElementById('tagSelectorModal');
+    const closeTagModal = document.getElementById('closeTagModal');
+
+    if (addTagBtn) {
+        addTagBtn.addEventListener('click', async () => {
+            await loadAvailableTags();
+            renderModalTagList();
+            tagModal.style.display = 'flex';
+        });
+    }
+
+    if (closeTagModal) {
+        closeTagModal.addEventListener('click', () => {
+            tagModal.style.display = 'none';
+        });
+    }
+}
+
+function renderModalTagList() {
+    const list = document.getElementById('modalTagList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    availableTags.forEach(tag => {
+        const isAlreadyAdded = currentEntityTags.some(t => t.id === tag.id);
+        if (isAlreadyAdded) return;
+
+        const item = document.createElement('div');
+        item.className = 'tag-option';
+        item.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${tag.color};"></div>
+                <span>${tag.name}</span>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--success-color, #2ecc71);">add_circle</span>
+        `;
+        
+        item.addEventListener('click', () => addTagToEntity(tag.id));
+        list.appendChild(item);
+    });
+    
+    if (list.innerHTML === '') {
+        list.innerHTML = '<p style="text-align: center; color: #666; font-size: 14px; margin: 0;">Aucun autre tag disponible</p>';
+    }
+}
+
+async function addTagToEntity(tagId) {
+    try {
+        const res = await fetch('/api/tags/entity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tag_id: tagId,
+                entity_id: reportId,
+                entity_type: 'rapport'
+            })
+        });
+
+        if (res.ok) {
+            const tag = availableTags.find(t => t.id === tagId);
+            if (tag && !currentEntityTags.some(t => t.id === tag.id)) {
+                currentEntityTags.push(tag);
+            }
+            renderTags();
+            renderModalTagList();
+        }
+    } catch (err) {
+        console.error('Erreur ajout tag:', err);
+    }
+}
+
+async function removeTagFromEntity(tagId) {
+    try {
+        const res = await fetch(`/api/tags/entity?tag_id=${tagId}&entity_id=${reportId}&entity_type=rapport`, {
+            method: 'DELETE'
+        });
+        
+        if (res.ok) {
+            currentEntityTags = currentEntityTags.filter(t => t.id !== tagId);
+            renderTags();
+        }
+    } catch (err) {
+        console.error('Erreur suppression tag:', err);
+    }
+}
 
 function toggleAvocatField(show, value = "") {
     const avocatPut = document.getElementById("avocatPut");
@@ -133,6 +266,11 @@ async function loadReport() {
         if (!res.ok) throw new Error("Rapport introuvable");
         
         currentReport = await res.json();
+        
+        // Set tags
+        currentEntityTags = currentReport.tags || [];
+        renderTags();
+
         populateForm(currentReport);
 
     } catch (err) {

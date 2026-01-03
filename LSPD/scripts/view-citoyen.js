@@ -199,6 +199,9 @@ async function loadCitoyenProfile() {
         // Charger le casier judiciaire
         loadCriminalRecord(citoyenId).catch(err => console.error('Erreur chargement casier:', err));
 
+        // Charger les tags
+        loadCitizenTags().catch(err => console.error('Erreur chargement tags:', err));
+
     } catch (err) {
         console.error('Erreur chargement profil:', err);
         showAnimation('error', `Erreur de chargement du profil: ${err.message}`);
@@ -825,6 +828,9 @@ function activateEditMode() {
     // Refresh weapons list so delete buttons appear when in edit mode
     try { loadWeaponsForCitizen(citoyenId); } catch (e) { /* ignore */ }
 
+    // Refresh tags to show remove buttons
+    renderTags();
+
     showAnimation('success', 'Mode édition activé');
 }
 
@@ -853,6 +859,9 @@ function deactivateEditMode() {
     disableFormFields();
     // Refresh weapons list to hide delete buttons
     try { loadWeaponsForCitizen(citoyenId); } catch (e) { /* ignore */ }
+
+    // Refresh tags to hide remove buttons and add button
+    renderTags();
 }
 
 // Fonction pour annuler les modifications
@@ -1897,6 +1906,174 @@ function generateAndDownloadPNG(delitTypeMap) {
     }, 100);
 }
 
+// --- GESTION DES TAGS ---
+let availableTags = [];
+let citizenTags = [];
+
+async function loadCitizenTags() {
+    try {
+        const res = await fetch(`/api/tags/entity/citoyen/${citoyenId}`);
+        if (res.ok) {
+            citizenTags = await res.json();
+            renderTags();
+        }
+    } catch (err) {
+        console.error('Erreur chargement tags citoyen:', err);
+    }
+}
+
+function renderTags() {
+    const container = document.getElementById('tagsContainer');
+    if (!container) return;
+    const addBtn = document.getElementById('addTagBtn');
+    
+    // Supprimer les tags existants (sauf le bouton d'ajout)
+    const existingTags = container.querySelectorAll('.tag-item');
+    existingTags.forEach(t => t.remove());
+    
+    citizenTags.forEach(tag => {
+        const tagEl = document.createElement('div');
+        tagEl.className = 'tag-item';
+        tagEl.style.backgroundColor = tag.color;
+        tagEl.style.display = 'flex';
+        tagEl.style.alignItems = 'center';
+        tagEl.style.gap = '6px';
+        tagEl.style.padding = '4px 12px';
+        tagEl.style.borderRadius = '20px';
+        tagEl.style.fontSize = '13px';
+        tagEl.style.fontWeight = '600';
+        tagEl.style.color = 'white';
+        tagEl.innerHTML = `
+            <span>${tag.name}</span>
+            <span class="material-symbols-rounded remove-tag" data-id="${tag.id}" style="cursor: pointer; font-size: 16px; opacity: 0.7;">close</span>
+        `;
+        
+        // Cacher la croix si pas en mode édition
+        const removeBtn = tagEl.querySelector('.remove-tag');
+        removeBtn.style.display = isEditMode ? 'block' : 'none';
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeTagFromCitizen(tag.id);
+        });
+        
+        container.insertBefore(tagEl, addBtn);
+    });
+    
+    // Cacher le bouton d'ajout si pas en mode édition
+    if (addBtn) {
+        addBtn.style.display = isEditMode ? 'flex' : 'none';
+    }
+}
+
+async function removeTagFromCitizen(tagId) {
+    try {
+        const res = await fetch(`/api/tags/entity?tag_id=${tagId}&entity_id=${citoyenId}&entity_type=citoyen`, {
+            method: 'DELETE'
+        });
+        
+        if (res.ok) {
+            citizenTags = citizenTags.filter(t => t.id !== tagId);
+            renderTags();
+        }
+    } catch (err) {
+        console.error('Erreur suppression tag:', err);
+    }
+}
+
+function setupTagsHandlers() {
+    const addTagBtn = document.getElementById('addTagBtn');
+    const tagModal = document.getElementById('tagSelectorModal');
+    const closeTagModal = document.getElementById('closeTagModal');
+
+    if (addTagBtn) {
+        addTagBtn.addEventListener('click', async () => {
+            await loadAvailableTags();
+            renderModalTagList();
+            tagModal.style.display = 'flex';
+        });
+    }
+
+    if (closeTagModal) {
+        closeTagModal.addEventListener('click', () => {
+            tagModal.style.display = 'none';
+        });
+    }
+}
+
+async function loadAvailableTags() {
+    try {
+        const res = await fetch('/api/tags?type=citoyen');
+        if (res.ok) {
+            availableTags = await res.json();
+        }
+    } catch (err) {
+        console.error('Erreur chargement tags disponibles:', err);
+    }
+}
+
+function renderModalTagList() {
+    const list = document.getElementById('modalTagList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    availableTags.forEach(tag => {
+        const isAlreadyAdded = citizenTags.some(t => t.id === tag.id);
+        if (isAlreadyAdded) return;
+
+        const item = document.createElement('div');
+        item.className = 'tag-option';
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.justifyContent = 'space-between';
+        item.style.padding = '8px 12px';
+        item.style.borderRadius = '8px';
+        item.style.cursor = 'pointer';
+        item.style.transition = 'background 0.2s';
+        
+        item.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${tag.color};"></div>
+                <span>${tag.name}</span>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--success-color, #2ecc71);">add_circle</span>
+        `;
+        
+        item.addEventListener('mouseover', () => item.style.background = '#f0f2f5');
+        item.addEventListener('mouseout', () => item.style.background = 'transparent');
+        item.addEventListener('click', () => addTagToCitizen(tag.id));
+        list.appendChild(item);
+    });
+    
+    if (list.innerHTML === '') {
+        list.innerHTML = '<p style="text-align: center; color: #666; font-size: 14px;">Aucun autre tag disponible</p>';
+    }
+}
+
+async function addTagToCitizen(tagId) {
+    try {
+        const res = await fetch('/api/tags/entity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tag_id: tagId,
+                entity_id: citoyenId,
+                entity_type: 'citoyen'
+            })
+        });
+
+        if (res.ok) {
+            const tag = availableTags.find(t => t.id === tagId);
+            if (tag && !citizenTags.some(t => t.id === tag.id)) {
+                citizenTags.push(tag);
+            }
+            renderTags();
+            renderModalTagList();
+        }
+    } catch (err) {
+        console.error('Erreur ajout tag au citoyen:', err);
+    }
+}
+
 // Formatage automatique du téléphone
 function setupPhoneFormatting() {
     const telephoneInput = document.getElementById('telephone');
@@ -1947,6 +2124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         setupPhotoModal();
         setupPhoneFormatting();
+        setupTagsHandlers();
 
         // Boutons d'action
         document.getElementById('edit-mode-btn').addEventListener('click', activateEditMode);

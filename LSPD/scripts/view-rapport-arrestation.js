@@ -51,6 +51,22 @@ function populateView(data) {
     } else {
         document.getElementById('displayId').textContent = data.id;
     }
+
+    // Tags
+    const tagsContainer = document.getElementById('tagsContainer');
+    if (tagsContainer && data.tags) {
+        tagsContainer.innerHTML = '';
+        data.tags.forEach(tag => {
+            const tagEl = document.createElement('div');
+            tagEl.className = 'tag-item';
+            tagEl.style.backgroundColor = tag.color;
+            tagEl.innerHTML = `<span>${tag.name}</span>`;
+            tagsContainer.appendChild(tagEl);
+        });
+        if (data.tags.length === 0) {
+            tagsContainer.innerHTML = '<span style="color:#888; font-style:italic; font-size:13px; margin-left: 5px;">Aucun tag</span>';
+        }
+    }
     
     // Dates
     if (data.date_arrestation) {

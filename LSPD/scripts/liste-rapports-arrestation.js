@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (err) {
             console.error(err);
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erreur de chargement</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Erreur de chargement</td></tr>';
         } finally {
             loader.style.display = 'none';
         }
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderTable(reports) {
         tableBody.innerHTML = '';
         if (reports.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aucun rapport trouvé</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Aucun rapport trouvé</td></tr>';
             return;
         }
 
@@ -74,11 +74,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             } catch (e) {}
 
+            // Tags formatting
+            let tagsHtml = '<div class="mini-tags">';
+            if (report.tags && report.tags.length > 0) {
+                report.tags.forEach(tag => {
+                    tagsHtml += `<span class="mini-tag-pill" style="background-color: ${tag.color}" title="${tag.name}">${tag.name}</span>`;
+                });
+            }
+            tagsHtml += '</div>';
+
             tr.innerHTML = `
                 <td>#${report.id}</td>
                 <td>${dateStr}</td>
                 <td>${report.officier_redacteur}</td>
                 <td>${suspects}</td>
+                <td>${tagsHtml}</td>
                 <td class="actions-cell">
                     <button class="btn-action view" title="Voir" onclick="window.location.href='/view-rapport-arrestation?id=${report.id}'">
                         <span class="material-symbols-rounded">visibility</span>
