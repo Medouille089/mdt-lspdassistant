@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.23.0](https://github.com/Medouille089/lspdassistant/compare/v1.22.0...v1.23.0) (2026-01-03)
+
+
+### Features
+
+* **tags:** Implement tag management system with CRUD operations ([37b0300](https://github.com/Medouille089/lspdassistant/commit/37b0300a61990f43fe124f531277f8a08cf19429))
+
+
+### Bug Fixes
+
+* Remove grade from agent item label in selector ([f51d12e](https://github.com/Medouille089/lspdassistant/commit/f51d12ef5abf9772201992234e2f33fc449247b6))
+
 ## [1.22.0](https://github.com/Medouille089/lspdassistant/compare/v1.21.4...v1.22.0) (2026-01-03)
 
 
