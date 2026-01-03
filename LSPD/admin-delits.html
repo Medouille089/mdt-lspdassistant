@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <meta charset="UTF-8" />
+    <title>Gestion des délits - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/sidebar.css">
+    <link rel="stylesheet" href="styles/colors.css">
+    <link rel="stylesheet" href="styles/loader.css">
+    <link rel="stylesheet" href="styles/context-menu.css" />
+    <link rel="stylesheet" href="styles/popup.css" />
+    <link rel="stylesheet" href="styles/admin-accounts.css" />
+    <link rel="stylesheet" href="styles/liste-rapports.css" />
+    <link rel="stylesheet" href="styles/admin-delits.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <script src="scripts/instant-sidebar.js"></script>
+        <h1>Gestion des délits (DA)</h1>
+
+        <div class="content-wrapper">
+            <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour" style="margin-bottom: 10px; width: fit-content;">
+                ← Retour
+            </button>
+
+            <div class="delit-form" id="delitForm">
+                <h3 id="formTitle" style="margin-top: 0; margin-bottom: 20px; color: var(--main-color);">Ajouter un nouveau délit</h3>
+                <input type="hidden" id="delitId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="chef_accusation">Chef d'accusation</label>
+                        <input type="text" id="chef_accusation" placeholder="Ex: Excès de vitesse" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="code_article">Code Article</label>
+                        <input type="text" id="code_article" placeholder="Ex: CP-101">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type">Type</label>
+                        <select id="type">
+                            <option value="Contravention">Contravention</option>
+                            <option value="Délit mineur">Délit mineur</option>
+                            <option value="Délit majeur">Délit majeur</option>
+                            <option value="Crime">Crime</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="amende">Amende</label>
+                        <input type="text" id="amende" placeholder="Ex: $500">
+                    </div>
+                    <div class="form-group">
+                        <label for="peine">Peine (HH:MM)</label>
+                        <input type="text" id="peine" placeholder="Ex: 00:15">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="commentaire">Commentaire / Détails</label>
+                    <textarea id="commentaire" rows="2" placeholder="Détails supplémentaires..."></textarea>
+                </div>
+                <div style="margin-top: 10px; display: flex; gap: 10px;">
+                    <button id="saveDelitBtn" class="btn-add">Enregistrer</button>
+                    <button id="cancelEditBtn" class="btn btn-red" style="display: none;">Annuler</button>
+                </div>
+            </div>
+
+            <div class="controls-container">
+                <div class="search-box" style="flex: 1;">
+                    <span class="material-symbols-rounded">search</span>
+                    <input type="text" id="searchInput" placeholder="Rechercher un délit (nom, code, type...)" autocomplete="off" />
+                </div>
+                <div class="filter-box">
+                    <span class="material-symbols-rounded">filter_list</span>
+                    <select id="typeFilter">
+                        <option value="all">Tous les types</option>
+                        <option value="Contravention">Contravention</option>
+                        <option value="Délit mineur">Délit mineur</option>
+                        <option value="Délit majeur">Délit majeur</option>
+                        <option value="Crime">Crime</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="delitsTable">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Chef d'accusation</th>
+                            <th>Type</th>
+                            <th>Amende</th>
+                            <th>Peine</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="delitsTbody">
+                        <!-- Dynamique -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Popup de confirmation -->
+    <div class="custom-confirm-overlay" id="confirmPopup">
+        <div class="custom-confirm-box">
+            <p id="confirmMessage">Êtes-vous sûr de vouloir supprimer ce délit ?</p>
+            <div class="custom-confirm-buttons">
+                <button class="btn btn-red" id="confirmDeleteBtn">Supprimer</button>
+                <button class="btn btn-blue" id="cancelDeleteBtn">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/loadSidebar.js"></script>
+    <script src="scripts/context-menu.js"></script>
+    <script src="scripts/admin-delits.js"></script>
+</body>
+
+</html>
