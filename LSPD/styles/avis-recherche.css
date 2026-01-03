@@ -5,6 +5,16 @@
     margin: 0 auto;
 }
 
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.form-row .form-group.half {
+    margin-bottom: 0;
+}
+
 .form-group {
     margin-bottom: 20px;
 }

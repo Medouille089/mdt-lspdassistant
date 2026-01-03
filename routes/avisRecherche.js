@@ -13,7 +13,9 @@ const { EmbedBuilder } = require("discord.js");
                 citoyen_id INTEGER REFERENCES citoyens(id),
                 citoyen_nom VARCHAR(100),
                 citoyen_prenom VARCHAR(100),
-                dangerosite VARCHAR(50) NOT NULL,
+                alias VARCHAR(100),
+                non_recense BOOLEAN DEFAULT FALSE,
+                type_avis VARCHAR(50) NOT NULL,
                 motif TEXT NOT NULL,
                 description TEXT,
                 recompense VARCHAR(100),
@@ -33,15 +35,13 @@ const { EmbedBuilder } = require("discord.js");
     }
 })();
 
-// Helper pour formater la dangerosité
-function formatDangerosite(level) {
-    const levels = {
-        'faible': { emoji: '🟢', label: 'Faible', color: 0x27ae60 },
-        'modere': { emoji: '🟠', label: 'Modéré', color: 0xf39c12 },
-        'eleve': { emoji: '🔴', label: 'Élevé', color: 0xe74c3c },
-        'critique': { emoji: '⚫', label: 'Critique - ARMÉ ET DANGEREUX', color: 0x2c3e50 }
+// Helper pour formater le type d'avis
+function formatTypeAvis(type) {
+    const types = {
+        'disparu': { emoji: '🔍', label: 'Personne disparue', color: 0x3498db },
+        'most_wanted': { emoji: '🚨', label: 'Most Wanted', color: 0xe74c3c }
     };
-    return levels[level] || { emoji: '⚪', label: 'Inconnu', color: 0x95a5a6 };
+    return types[type] || { emoji: '❓', label: 'Inconnu', color: 0x95a5a6 };
 }
 
 // POST /api/avis-recherche - Créer un nouvel avis
@@ -51,7 +51,9 @@ router.post('/api/avis-recherche', async (req, res) => {
             citoyen_id,
             citoyen_nom,
             citoyen_prenom,
-            dangerosite,
+            alias,
+            non_recense,
+            type_avis,
             motif,
             description,
             recompense,
@@ -60,8 +62,17 @@ router.post('/api/avis-recherche', async (req, res) => {
             grade
         } = req.body;
 
-        if (!citoyen_id || !dangerosite || !motif) {
-            return res.status(400).json({ error: 'Champs requis manquants' });
+        // Validation : soit un citoyen_id, soit non_recense avec nom/prenom
+        if (!non_recense && !citoyen_id) {
+            return res.status(400).json({ error: 'Veuillez sélectionner une personne ou utiliser le mode non recensé' });
+        }
+        
+        if (non_recense && (!citoyen_nom || !citoyen_prenom)) {
+            return res.status(400).json({ error: 'Nom et prénom requis pour une personne non recensée' });
+        }
+        
+        if (!type_avis || !motif) {
+            return res.status(400).json({ error: 'Type d\'avis et motif requis' });
         }
 
         const user = req.user;
@@ -70,23 +81,25 @@ router.post('/api/avis-recherche', async (req, res) => {
         // Insertion en BDD
         const { rows } = await pool.query(
             `INSERT INTO lspd_avis_recherche 
-            (citoyen_id, citoyen_nom, citoyen_prenom, dangerosite, motif, description, recompense, photo, officier, grade, created_by)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            (citoyen_id, citoyen_nom, citoyen_prenom, alias, non_recense, type_avis, motif, description, recompense, photo, officier, grade, created_by)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             RETURNING *`,
-            [citoyen_id, citoyen_nom, citoyen_prenom, dangerosite, motif, description || null, recompense || null, photo || null, officier, grade, createdBy]
+            [citoyen_id || null, citoyen_nom, citoyen_prenom, alias || null, non_recense || false, type_avis, motif, description || null, recompense || null, photo || null, officier, grade, createdBy]
         );
 
         const avisRecherche = rows[0];
 
-        // Activer le mandat sur le citoyen (si la colonne existe)
-        try {
-            await pool.query(
-                `UPDATE citoyens SET mandat_actif = true, updated_at = NOW() WHERE id = $1`,
-                [citoyen_id]
-            );
-        } catch (mandatErr) {
-            // La colonne mandat_actif n'existe peut-être pas encore, ignorer
-            console.log('Note: colonne mandat_actif non mise à jour (peut-être inexistante)');
+        // Activer le mandat sur le citoyen (seulement si recensé)
+        if (citoyen_id && !non_recense) {
+            try {
+                await pool.query(
+                    `UPDATE citoyens SET mandat_actif = true, updated_at = NOW() WHERE id = $1`,
+                    [citoyen_id]
+                );
+            } catch (mandatErr) {
+                // La colonne mandat_actif n'existe peut-être pas encore, ignorer
+                console.log('Note: colonne mandat_actif non mise à jour (peut-être inexistante)');
+            }
         }
 
         // Envoi sur Discord
@@ -98,15 +111,17 @@ router.post('/api/avis-recherche', async (req, res) => {
             try {
                 const channel = await bot.channels.fetch(channelId);
                 if (channel?.isTextBased()) {
-                    const danger = formatDangerosite(dangerosite);
+                    const typeInfo = formatTypeAvis(type_avis);
 
+                    const identite = alias ? `${citoyen_prenom} ${citoyen_nom} (alias: ${alias})` : `${citoyen_prenom} ${citoyen_nom}`;
+                    const nonRecenseTag = non_recense ? ' ⚠️ Non recensé' : '';
+                    
                     const embed = new EmbedBuilder()
-                        .setTitle(`🚨 AVIS DE RECHERCHE`)
-                        .setDescription(`**${citoyen_prenom} ${citoyen_nom}**`)
-                        .setColor(danger.color)
+                        .setTitle(`${typeInfo.emoji} ${typeInfo.label.toUpperCase()}`)
+                        .setDescription(`**${identite}**${nonRecenseTag}`)
+                        .setColor(typeInfo.color)
                         .addFields(
-                            { name: '👤 Identité', value: `${citoyen_prenom} ${citoyen_nom}`, inline: true },
-                            { name: `${danger.emoji} Dangerosité`, value: danger.label, inline: true },
+                            { name: '👤 Identité', value: identite, inline: true },
                             { name: '📋 Motif', value: motif, inline: false }
                         )
                         .setFooter({

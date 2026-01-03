@@ -44,25 +44,42 @@
                     <label for="citoyenSearch">Personne recherchée *</label>
                     <div class="personne-selector">
                         <input type="text" id="personne" name="personne" readonly
-                            placeholder="Aucun propriétaire sélectionné">
+                            placeholder="Aucune personne sélectionnée">
                         <input type="hidden" id="personne_id" name="personne_id">
                         <button type="button" id="selectPersonneBtn">Choisir</button>
+                        <button type="button" id="nonRecenseBtn" class="btn-secondary">Non recensé</button>
                     </div>
-                    <div id="selectedCitoyen" class="selected-list"></div>
                     <input type="hidden" id="citoyen_id" name="citoyen_id" />
                     <input type="hidden" id="citoyen_nom" name="citoyen_nom" />
                     <input type="hidden" id="citoyen_prenom" name="citoyen_prenom" />
+                    <input type="hidden" id="non_recense" name="non_recense" value="false" />
                 </div>
 
-                <!-- Niveau de dangerosité -->
+                <!-- Champs pour personne non recensée -->
+                <div id="champsNonRecense" class="champs-conditionnels" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="nomManuel">Nom *</label>
+                            <input type="text" id="nomManuel" name="nomManuel" placeholder="Ex: Dupont" />
+                        </div>
+                        <div class="form-group half">
+                            <label for="prenomManuel">Prénom *</label>
+                            <input type="text" id="prenomManuel" name="prenomManuel" placeholder="Ex: Jean" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="aliasManuel">Alias / Surnom (optionnel)</label>
+                        <input type="text" id="aliasManuel" name="aliasManuel" placeholder="Ex: Le Fantôme" />
+                    </div>
+                </div>
+
+                <!-- Type d'avis -->
                 <div class="form-group">
-                    <label for="dangerosite">Niveau de dangerosité *</label>
-                    <select id="dangerosite" name="dangerosite" required>
+                    <label for="typeAvis">Type d'avis *</label>
+                    <select id="typeAvis" name="typeAvis" required>
                         <option value="">-- Sélectionner --</option>
-                        <option value="faible">🟢 Faible - À appréhender avec prudence</option>
-                        <option value="modere">🟠 Modéré - Potentiellement dangereux</option>
-                        <option value="eleve">🔴 Élevé - Extrêmement dangereux</option>
-                        <option value="critique">⚫ Most wanted - Armé et dangereux</option>
+                        <option value="disparu">🔍 Personne disparue</option>
+                        <option value="most_wanted">🚨 Most Wanted</option>
                     </select>
                 </div>
 
