@@ -85,6 +85,20 @@ body {
   background: none;
 }
 
+.main-container {
+  display: flex;
+  flex-direction: column;
+  margin-left: 270px;
+  width: calc(100% - 270px);
+  max-width: none;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+h1 {
+  border-radius: 8px;
+}
+
 body::before {
   content: "";
   position: fixed;
@@ -293,7 +307,7 @@ form textarea {
 }
 
 .situation-container {
-  max-width: 900px;
+  max-width: 100%;
   width: 100%;
   margin: 20px auto;
   background: var(--white);

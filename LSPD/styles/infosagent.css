@@ -532,7 +532,7 @@ body:not(.edit-mode) .agent-profile-container .form-group select {
   gap: 30px;
 }
 
-.equipment-category h4 {
+h4 {
   color: var(--text-light);
   font-size: 1.1rem;
   font-weight: 600;
@@ -542,7 +542,7 @@ body:not(.edit-mode) .agent-profile-container .form-group select {
   gap: 8px;
 }
 
-.equipment-category h4::before {
+h4::before {
   content: "";
   width: 4px;
   height: 20px;
@@ -815,6 +815,21 @@ body:not(.edit-mode) .agent-profile-container .form-group select {
 .equipment-list.vehicules-grid .equipment-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.equipment-item {
+  margin-bottom: 0;
+  border: 1px solid var(--border-input) !important;
+  border-radius: 8px !important;
+}
+
+.equipment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.reports-list .equipment-item {
+  margin-bottom: 12px;
 }
 
 .equipment-list.vehicules-grid-compact {
@@ -1451,7 +1466,7 @@ body:not(.edit-mode) textarea:focus {
 /* Titres & labels (retour en texte sombre) */
 .agent-profile-container .section-title,
 .agent-profile-container .form-group label,
-.agent-profile-container .equipment-category h4,
+.agent-profile-container h4,
 .agent-profile-container .info-item label {
   color: var(--text-dark) !important;
 }

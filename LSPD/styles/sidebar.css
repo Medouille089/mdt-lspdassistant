@@ -37,17 +37,19 @@ html {
   height: 100%;
 }
 
-body.collapsed .main-container {
-  margin-left: -270px;
-  margin-left: 85px;
-}
-
 .main-container {
   display: flex;
   flex-direction: column;
   margin-left: 270px;
+  width: calc(100% - 270px);
+  max-width: none;
   padding: 2rem;
   transition: all 0.3s ease;
+}
+
+body.collapsed .main-container {
+  margin-left: 85px;
+  width: calc(100% - 85px);
 }
 
 .main-container h1 {
