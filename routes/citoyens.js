@@ -44,6 +44,16 @@ router.get('/api/citoyens', checkAuth, cacheCitoyens(), async (req, res) => {
 
         const { rows } = await pool.query(query, params);
 
+        // Récupérer les tags pour chaque citoyen
+        const citoyensWithTags = await Promise.all(rows.map(async (citoyen) => {
+            const { rows: tags } = await pool.query(`
+                SELECT t.* FROM lspd_tags t
+                JOIN lspd_entity_tags et ON t.id = et.tag_id
+                WHERE et.entity_type = 'citoyen' AND et.entity_id = $1::TEXT
+            `, [citoyen.id]);
+            return { ...citoyen, tags };
+        }));
+
         // Compter le total pour la pagination
         let countQuery = 'SELECT COUNT(*) FROM citoyens WHERE 1=1';
         const countParams = [];
@@ -64,7 +74,7 @@ router.get('/api/citoyens', checkAuth, cacheCitoyens(), async (req, res) => {
         const total = parseInt(countRows[0].count);
 
         res.json({
-            citoyens: rows,
+            citoyens: citoyensWithTags,
             total,
             limit: parseInt(limit),
             offset: parseInt(offset)
@@ -95,6 +105,15 @@ router.get('/api/citoyens/:id', checkAuth, cacheCitoyenDetail(), async (req, res
         citoyen.permis_PPA = !!citoyen.permis_PPA;
         citoyen.permis_BRAVO = !!citoyen.permis_BRAVO;
         citoyen.permis_ASD = !!citoyen.permis_ASD;
+
+        // Récupérer les tags
+        const { rows: tags } = await pool.query(`
+            SELECT t.* FROM lspd_tags t
+            JOIN lspd_entity_tags et ON t.id = et.tag_id
+            WHERE et.entity_type = 'citoyen' AND et.entity_id = $1::TEXT
+        `, [id]);
+        citoyen.tags = tags;
+
         res.json(citoyen);
     } catch (error) {
         console.error('Erreur lors de la récupération du citoyen:', error);
@@ -125,7 +144,8 @@ router.post('/api/citoyens', checkAuth, async (req, res) => {
             permis_PPA,
             permis_BRAVO,
             permis_ASD,
-            note
+            note,
+            tags // Nouveau champ
         } = req.body;
 
         // Validation des champs requis
@@ -167,6 +187,16 @@ router.post('/api/citoyens', checkAuth, async (req, res) => {
         );
 
         const newCitoyen = rows[0];
+
+        // Ajouter les tags si présents
+        if (tags && Array.isArray(tags)) {
+            for (const tagId of tags) {
+                await pool.query(
+                    `INSERT INTO lspd_entity_tags (tag_id, entity_id, entity_type) VALUES ($1, $2, 'citoyen')`,
+                    [tagId, newCitoyen.id]
+                );
+            }
+        }
 
         // Logs Discord
         const conf = await config.getConfig();

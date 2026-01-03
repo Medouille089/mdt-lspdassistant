@@ -30,11 +30,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         populateView(data);
 
         // Afficher bouton modifier si autorisé
-        if (currentUser) {
-            // Autoriser si créateur ou command staff ou superviseur
-            document.getElementById('editLink').href = `/modifier-rapport-arrestation.html?id=${reportId}`;
-            document.getElementById('editLink').style.display = 'flex';
-        }
+        // if (currentUser) {
+        //     // Autoriser si créateur ou command staff ou superviseur
+        //     document.getElementById('editLink').href = `/modifier-rapport-arrestation.html?id=${reportId}`;
+        //     document.getElementById('editLink').style.display = 'flex';
+        // }
 
     } catch (err) {
         console.error(err);
@@ -51,6 +51,22 @@ function populateView(data) {
     } else {
         document.getElementById('displayId').textContent = data.id;
     }
+
+    // Tags
+    const tagsContainer = document.getElementById('tagsContainer');
+    if (tagsContainer && data.tags) {
+        tagsContainer.innerHTML = '';
+        data.tags.forEach(tag => {
+            const tagEl = document.createElement('div');
+            tagEl.className = 'tag-item';
+            tagEl.style.backgroundColor = tag.color;
+            tagEl.innerHTML = `<span>${tag.name}</span>`;
+            tagsContainer.appendChild(tagEl);
+        });
+        if (data.tags.length === 0) {
+            tagsContainer.innerHTML = '<span style="color:#888; font-style:italic; font-size:13px; margin-left: 5px;">Aucun tag</span>';
+        }
+    }
     
     // Dates
     if (data.date_arrestation) {
@@ -64,15 +80,31 @@ function populateView(data) {
     // Agent rédacteur
     // Si on a le nom de l'agent dans les données jointes, on l'affiche, sinon l'ID
     // Idéalement le backend devrait renvoyer le nom de l'agent rédacteur
-    document.getElementById('officier').value = data.agent_redacteur_nom || data.agent_redacteur_id || 'Inconnu';
-    document.getElementById('grade').value = data.agent_redacteur_grade || '';
+    document.getElementById('officier').value = data.officier_redacteur || 'Inconnu';
+    document.getElementById('grade').value = data.grade || '';
 
     // Droits
     document.getElementById('droits_cites').checked = data.droits_cites || false;
     document.getElementById('droits_heure').value = data.droits_heure || '';
 
     // Switches
-    document.getElementById('avocat_intervention').checked = data.avocat_intervention || false;
+    const hasAvocat = data.avocat_intervention === true || data.avocat_intervention === 'true' || data.avocat_intervention === 't';
+    document.getElementById('avocat_intervention').checked = hasAvocat;
+    
+    const avocatPut = document.getElementById("avocatPut");
+    if (avocatPut) {
+        avocatPut.innerHTML = ''; // Clear first
+        if (hasAvocat) {
+            const div = document.createElement("div");
+            div.id = "nom_avocat_container";
+            div.innerHTML = `
+                <label for="nom_avocat">Nom de l'avocat</label>
+                <input type="text" id="nom_avocat" value="${data.nom_avocat || ''}" disabled />
+            `;
+            avocatPut.appendChild(div);
+        }
+    }
+    
     document.getElementById('ems_intervention').checked = data.ems_intervention || false;
     document.getElementById('nourriture_demandee').checked = data.nourriture_demandee || false;
 
@@ -83,16 +115,6 @@ function populateView(data) {
     document.getElementById('objets_confisques').value = data.objets_confisques || '';
     document.getElementById('recit').value = data.recit || '';
 
-    // Charges Image
-    document.getElementById('charges_image_url').value = data.charges_image_url || '';
-    if (data.charges_image_url) {
-        const img = document.createElement('img');
-        img.src = data.charges_image_url;
-        img.style.maxWidth = '100%';
-        img.style.marginTop = '10px';
-        document.getElementById('chargesPreview').appendChild(img);
-    }
-
     // Listes (Agents, Civils, Suspects)
     renderList('selectedAgents', data.agents_impliques);
     renderList('selectedCivils', data.civils_impliques);
@@ -100,8 +122,9 @@ function populateView(data) {
 
     // Photos / Preuves
     const attachmentsContainer = document.getElementById('attachmentsPreview');
-    if (data.attachments && data.attachments.length > 0) {
-        data.attachments.forEach(url => {
+    const photos = data.photos_urls || data.attachments || [];
+    if (photos.length > 0) {
+        photos.forEach(url => {
             const div = document.createElement('div');
             div.className = 'attachment-item';
             const img = document.createElement('img');

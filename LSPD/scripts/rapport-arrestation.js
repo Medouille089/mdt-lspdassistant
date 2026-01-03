@@ -30,6 +30,31 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("officier").value = "Erreur de chargement";
         });
 
+    // Gestion de l'affichage du nom de l'avocat
+    const avocatCheckbox = document.getElementById("avocat_intervention");
+    const avocatPut = document.getElementById("avocatPut");
+
+    if (avocatCheckbox && avocatPut) {
+        avocatCheckbox.addEventListener("change", () => {
+            if (avocatCheckbox.checked) {
+                if (!document.getElementById("nom_avocat_container")) {
+                    const div = document.createElement("div");
+                    div.id = "nom_avocat_container";
+                    div.innerHTML = `
+                        <label for="nom_avocat">Nom de l'avocat</label>
+                        <input type="text" id="nom_avocat" name="nom_avocat" placeholder="Nom de l'avocat" required />
+                    `;
+                    avocatPut.appendChild(div);
+                }
+            } else {
+                const container = document.getElementById("nom_avocat_container");
+                if (container) {
+                    container.remove();
+                }
+            }
+        });
+    }
+
     // --- Initialisation des sélecteurs ---
 
     // 1. Agents Impliqués
@@ -40,9 +65,15 @@ document.addEventListener("DOMContentLoaded", () => {
         modalTitle: 'Sélectionner un agent',
         searchPlaceholder: 'Rechercher un agent (nom, matricule)...',
         apiEndpoint: '/api/officers',
-        itemLabelKey: 'displayName', // ou une fonction
+        itemLabelKey: (item) => {
+            const name = item.displayName || item.name || 'Inconnu';
+            return `${item.grade ? item.grade + ' ' : ''}${name}`;
+        },
         itemValueKey: 'id',
-        renderItem: (item) => `${item.grade} ${item.displayName}`,
+        renderItem: (item) => {
+            const name = item.displayName || item.name || 'Inconnu';
+            return `${item.grade ? item.grade + ' ' : ''}${name}`;
+        },
         transformData: (data) => data // L'API renvoie directement un tableau
     });
 
@@ -54,9 +85,15 @@ document.addEventListener("DOMContentLoaded", () => {
         modalTitle: 'Sélectionner un civil',
         searchPlaceholder: 'Rechercher un civil (nom, prénom)...',
         apiEndpoint: '/api/citoyens',
-        itemLabelKey: (item) => `${item.nom} ${item.prenom}`,
+        itemLabelKey: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom}`;
+            return item.name || 'Inconnu';
+        },
         itemValueKey: 'id',
-        renderItem: (item) => `${item.nom} ${item.prenom} (${item.date_naissance})`,
+        renderItem: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom} (${item.date_naissance || '?'})`;
+            return item.name || 'Inconnu';
+        },
         transformData: (data) => data.citoyens || [] // L'API renvoie { citoyens: [...] }
     });
 
@@ -68,9 +105,15 @@ document.addEventListener("DOMContentLoaded", () => {
         modalTitle: 'Sélectionner un suspect',
         searchPlaceholder: 'Rechercher un suspect (nom, prénom)...',
         apiEndpoint: '/api/citoyens',
-        itemLabelKey: (item) => `${item.nom} ${item.prenom}`,
+        itemLabelKey: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom}`;
+            return item.name || 'Inconnu';
+        },
         itemValueKey: 'id',
-        renderItem: (item) => `${item.nom} ${item.prenom} (${item.date_naissance})`,
+        renderItem: (item) => {
+            if (item.prenom && item.nom) return `${item.prenom} ${item.nom} (${item.date_naissance || '?'})`;
+            return item.name || 'Inconnu';
+        },
         transformData: (data) => data.citoyens || []
     });
 
@@ -100,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     display.innerHTML = `
                         <div class="selected-item">
                             <span>Calcul du ${new Date(item.date).toLocaleDateString()} - ${item.nom} ${item.prenom}</span>
-                            <button type="button" class="remove-btn" onclick="removeCalculPeine()">×</button>
+                            <span type="button" class="remove-btn" onclick="removeCalculPeine()">×</button>
                         </div>
                     `;
                     input.value = item.id;

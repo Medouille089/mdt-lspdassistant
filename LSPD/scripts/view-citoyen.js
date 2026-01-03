@@ -5,6 +5,8 @@ let isEditMode = false;
 let originalData = {};
 // Weapons marked for deletion during edit session (actual DELETE occurs on Save)
 let pendingWeaponDeletions = new Set();
+// Store criminal records for export
+let criminalRecords = [];
 
 // Fonction pour afficher les animations de feedback
 function showAnimation(type = 'success', message = '') {
@@ -197,6 +199,9 @@ async function loadCitoyenProfile() {
         // Charger le casier judiciaire
         loadCriminalRecord(citoyenId).catch(err => console.error('Erreur chargement casier:', err));
 
+        // Charger les tags
+        loadCitizenTags().catch(err => console.error('Erreur chargement tags:', err));
+
     } catch (err) {
         console.error('Erreur chargement profil:', err);
         showAnimation('error', `Erreur de chargement du profil: ${err.message}`);
@@ -224,8 +229,6 @@ async function displayProfile(profile) {
         const list = document.createElement('div');
         list.style.display = 'flex';
         list.style.flexDirection = 'column';
-        list.style.border = '1px solid #e0e0e0';
-        list.style.borderRadius = '8px';
         list.style.overflow = 'hidden';
         list.style.background = '#fff';
 
@@ -825,6 +828,9 @@ function activateEditMode() {
     // Refresh weapons list so delete buttons appear when in edit mode
     try { loadWeaponsForCitizen(citoyenId); } catch (e) { /* ignore */ }
 
+    // Refresh tags to show remove buttons
+    renderTags();
+
     showAnimation('success', 'Mode édition activé');
 }
 
@@ -853,6 +859,9 @@ function deactivateEditMode() {
     disableFormFields();
     // Refresh weapons list to hide delete buttons
     try { loadWeaponsForCitizen(citoyenId); } catch (e) { /* ignore */ }
+
+    // Refresh tags to hide remove buttons and add button
+    renderTags();
 }
 
 // Fonction pour annuler les modifications
@@ -1337,15 +1346,15 @@ async function loadCitizenReports(citizenId) {
     autreContainer.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>';
 
     try {
-        // Charger les rapports où le citoyen est suspect
-        const resSuspect = await fetch(`/api/rapports-arrestation?suspectId=${citizenId}&limit=5`);
+        // Charger les rapports où le citoyen est suspect (on en prend plus pour le "Voir plus")
+        const resSuspect = await fetch(`/api/rapports-arrestation?suspectId=${citizenId}&limit=100`);
         if (resSuspect.ok) {
             const data = await resSuspect.json();
             renderReports(suspectContainer, data.reports, 'suspect');
         }
 
         // Charger les rapports où le citoyen est impliqué (victime/témoin)
-        const resAutre = await fetch(`/api/rapports-arrestation?civilId=${citizenId}&limit=5`);
+        const resAutre = await fetch(`/api/rapports-arrestation?civilId=${citizenId}&limit=100`);
         if (resAutre.ok) {
             const data = await resAutre.json();
             renderReports(autreContainer, data.reports, 'autre');
@@ -1366,50 +1375,193 @@ function renderReports(container, reports, type) {
 
     container.innerHTML = '';
     
+    const maxDisplay = 5;
+    const count = reports.length;
+    const displayReports = reports.slice(0, maxDisplay);
+
     // Créer une liste groupée
     const list = document.createElement('div');
     list.style.display = 'flex';
     list.style.flexDirection = 'column';
-    list.style.border = '1px solid #e0e0e0';
-    list.style.borderRadius = '8px';
     list.style.overflow = 'hidden';
     list.style.background = '#fff';
 
-    reports.forEach((report, idx) => {
-        const dateObj = new Date(report.date_arrestation);
-        const dateStr = dateObj.toLocaleDateString('fr-FR');
-        
-        const item = document.createElement('div');
-        item.className = 'equipment-item';
-        item.style.cursor = 'pointer';
-        item.style.padding = '10px 12px';
-        item.style.display = 'flex';
-        item.style.justifyContent = 'space-between';
-        item.style.alignItems = 'center';
+    displayReports.forEach((report, idx) => {
+        const item = createReportItem(report, type);
         if (idx !== 0) item.style.borderTop = '1px solid #e0e0e0';
-        
-        item.onclick = () => window.location.href = `/view-rapport-arrestation?id=${report.id}`;
-        
-        let detailText = '';
-        if (report.titre_rapport && report.titre_rapport.trim() !== '') {
-            detailText = report.titre_rapport;
-        } else if (type === 'suspect') {
-            detailText = `Rapport #${report.id}`;
-        } else {
-            detailText = `Rapport #${report.id} (Impliqué)`;
-        }
-
-        item.innerHTML = `
-            <div style="display:flex; flex-direction:column;">
-                <span style="font-weight:600; color:var(--text-dark);">${detailText}</span>
-                <span style="font-size:12px; color:#7f8c8d;">${dateStr}</span>
-            </div>
-            <span class="material-symbols-rounded" style="color: var(--lspd-gold); font-size: 20px;">chevron_right</span>
-        `;
         list.appendChild(item);
     });
     
     container.appendChild(list);
+
+    // Si plus de rapports que la limite, ajouter un bouton "Voir tous"
+    if (count > maxDisplay) {
+        const seeAllBtn = document.createElement('div');
+        seeAllBtn.className = 'see-all-reports-btn';
+        seeAllBtn.innerHTML = `
+            <span class="material-symbols-rounded">expand_more</span>
+            Voir les ${count - maxDisplay} autres rapports (${type === 'suspect' ? 'suspect' : 'autres'})
+        `;
+        seeAllBtn.style.cssText = `
+            margin-top: 8px;
+            padding: 10px;
+            background: rgba(11, 27, 90, 0.05);
+            border: 1px dashed var(--lspd-blue);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--lspd-blue);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+        `;
+
+        seeAllBtn.addEventListener('mouseenter', () => {
+            seeAllBtn.style.background = 'rgba(11, 27, 90, 0.1)';
+            seeAllBtn.style.borderColor = 'var(--lspd-gold)';
+        });
+
+        seeAllBtn.addEventListener('mouseleave', () => {
+            seeAllBtn.style.background = 'rgba(11, 27, 90, 0.05)';
+            seeAllBtn.style.borderColor = 'var(--lspd-blue)';
+        });
+
+        seeAllBtn.addEventListener('click', () => {
+            showAllReportsModal(reports, type);
+        });
+
+        container.appendChild(seeAllBtn);
+    }
+}
+
+function createReportItem(report, type) {
+    const dateObj = new Date(report.date_arrestation);
+    const dateStr = dateObj.toLocaleDateString('fr-FR');
+    
+    const item = document.createElement('div');
+    item.className = 'equipment-item';
+    item.style.cursor = 'pointer';
+    item.style.padding = '10px 12px';
+    item.style.display = 'flex';
+    item.style.justifyContent = 'space-between';
+    item.style.alignItems = 'center';
+    item.style.transition = 'all 0.3s ease';
+    
+    item.onclick = () => window.location.href = `/view-rapport-arrestation?id=${report.id}`;
+    
+    let detailText = '';
+    if (report.titre_rapport && report.titre_rapport.trim() !== '') {
+        detailText = report.titre_rapport;
+    } else if (type === 'suspect') {
+        detailText = `Rapport #${report.id}`;
+    } else {
+        detailText = `Rapport #${report.id} (Impliqué)`;
+    }
+
+    item.innerHTML = `
+        <div style="display:flex; flex-direction:column;">
+            <span style="font-weight:600; color:var(--text-dark);">${detailText}</span>
+            <span style="font-size:12px; color:#7f8c8d;">${dateStr}</span>
+        </div>
+        <span class="material-symbols-rounded" style="color: var(--lspd-gold); font-size: 20px;">chevron_right</span>
+    `;
+
+    item.addEventListener('mouseenter', () => {
+        item.style.background = 'rgba(0, 0, 0, 0.02)';
+    });
+
+    item.addEventListener('mouseleave', () => {
+        item.style.background = 'transparent';
+    });
+
+    return item;
+}
+
+function showAllReportsModal(reports, type) {
+    const title = type === 'suspect' ? 'Rapports (Suspect)' : 'Rapports (Autre)';
+    const icon = type === 'suspect' ? 'gavel' : 'folder_shared';
+
+    const modal = document.createElement('div');
+    modal.className = 'reports-modal-overlay';
+    modal.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: fadeIn 0.2s ease;
+    `;
+
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    `;
+
+    const modalHeader = document.createElement('div');
+    modalHeader.style.cssText = `
+        padding: 20px 24px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    `;
+    modalHeader.innerHTML = `
+        <h3 style="margin: 0; color: var(--lspd-blue); display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-rounded">${icon}</span>
+            ${title} (${reports.length})
+        </h3>
+        <button class="modal-close-btn" style="background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.2s;">
+            <span class="material-symbols-rounded" style="font-size: 24px; color: #666;">close</span>
+        </button>
+    `;
+
+    const modalBody = document.createElement('div');
+    modalBody.style.cssText = `
+        padding: 16px 24px;
+        overflow-y: auto;
+        flex: 1;
+    `;
+
+    const list = document.createElement('div');
+    list.className = 'reports-list';
+
+    reports.forEach((report, idx) => {
+        const item = createReportItem(report, type);
+        if (idx !== 0) item.style.borderTop = '1px solid #e0e0e0';
+        list.appendChild(item);
+    });
+
+    modalBody.appendChild(list);
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    const closeBtn = modalHeader.querySelector('.modal-close-btn');
+    const closeModal = () => {
+        modal.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => modal.remove(), 200);
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
 }
 
 async function loadCriminalRecord(citizenId) {
@@ -1424,19 +1576,34 @@ async function loadCriminalRecord(citizenId) {
         
         const records = await res.json();
         
+        // Store records for export
+        criminalRecords = records;
+        
         if (records.length === 0) {
             container.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Casier vierge.</p>';
             return;
         }
         
+        // Add export button if records exist
         container.innerHTML = '';
+        
+        const exportBtn = document.createElement('button');
+        exportBtn.type = 'button';  // Important: évite la soumission du formulaire
+        exportBtn.className = 'btn btn-secondary';
+        exportBtn.style.cssText = 'margin-bottom: 12px; display: inline-flex; align-items: center; gap: 8px;';
+        exportBtn.innerHTML = '<span class="material-symbols-rounded">download</span>Exporter en PNG';
+        exportBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            exportCriminalRecordToPNG();
+        });
+        container.appendChild(exportBtn);
+        
         const list = document.createElement('div');
-        list.style.display = 'flex';
-        list.style.flexDirection = 'column';
-        list.style.border = '1px solid #e0e0e0';
-        list.style.borderRadius = '8px';
-        list.style.overflow = 'hidden';
-        list.style.background = '#fff';
+        list.style.display = 'grid';
+        list.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        list.style.gap = '16px';
+        list.style.width = '100%';
         
         records.forEach((record, idx) => {
             const dateStr = new Date(record.date).toLocaleDateString('fr-FR', {
@@ -1447,7 +1614,9 @@ async function loadCriminalRecord(citizenId) {
             item.className = 'equipment-item';
             item.style.padding = '15px';
             item.style.cursor = 'default';
-            if (idx !== 0) item.style.borderTop = '1px solid #e0e0e0';
+            item.style.border = '1px solid #e0e0e0';
+            item.style.borderRadius = '8px';
+            item.style.background = '#fff';
             
             // Parse details to show summary
             let detailsHtml = '';
@@ -1516,6 +1685,395 @@ window.deleteCriminalRecord = async function(id) {
     }
 };
 
+// Function to export criminal record to PNG
+async function exportCriminalRecordToPNG() {
+    if (!criminalRecords || criminalRecords.length === 0) {
+        showAnimation('error', 'Aucun casier à exporter');
+        return;
+    }
+    
+    if (!citoyenProfile) {
+        showAnimation('error', 'Profil citoyen non chargé');
+        return;
+    }
+    
+    const loader = document.getElementById('loaderOverlay');
+    if (loader) loader.style.display = 'flex';
+    
+    // Load delits data to get proper categorization
+    try {
+        const delitsRes = await fetch('/api/getDelits');
+        if (!delitsRes.ok) throw new Error('Erreur chargement délits');
+        const delitsData = await delitsRes.json();
+        
+        // Create a map of delit name to type
+        const delitTypeMap = {};
+        delitsData.forEach(delit => {
+            delitTypeMap[delit.chef_accusation.toLowerCase()] = delit.type;
+        });
+        
+        // Load html2canvas if not already loaded
+        if (typeof html2canvas === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+            script.onload = () => {
+                if (loader) loader.style.display = 'none';
+                generateAndDownloadPNG(delitTypeMap);
+            };
+            script.onerror = () => {
+                if (loader) loader.style.display = 'none';
+                showAnimation('error', 'Erreur de chargement de la bibliothèque');
+            };
+            document.head.appendChild(script);
+        } else {
+            if (loader) loader.style.display = 'none';
+            generateAndDownloadPNG(delitTypeMap);
+        }
+    } catch (err) {
+        console.error('Erreur chargement délits:', err);
+        if (loader) loader.style.display = 'none';
+        showAnimation('error', 'Erreur lors du chargement des types de délits');
+    }
+}
+
+function generateAndDownloadPNG(delitTypeMap) {
+    console.log('generateAndDownloadPNG appelée', delitTypeMap);
+    
+    const loader = document.getElementById('loaderOverlay');
+    if (loader) loader.style.display = 'flex';
+    
+    const fullName = `${citoyenProfile.prenom} ${citoyenProfile.nom}`.trim();
+    
+    // Create a hidden container for the document
+    const container = document.createElement('div');
+    container.style.cssText = `
+        position: fixed;
+        left: -9999px;
+        top: 0;
+        width: 794px;
+        background: white;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        padding: 0;
+        box-sizing: border-box;
+    `;
+    
+    // Build criminal charges lists based on delit type from database
+    let criminalCharges = [];      // Crime
+    let correctionalCharges = [];  // Délit mineur + Délit majeur
+    let policeCharges = [];        // Contravention
+    
+    criminalRecords.forEach(record => {
+        try {
+            const details = typeof record.details === 'string' ? JSON.parse(record.details) : record.details;
+            if (Array.isArray(details)) {
+                details.forEach(d => {
+                    const delitName = d.nom;
+                    const delitType = delitTypeMap[delitName.toLowerCase()];
+                    
+                    console.log(`Délit: "${delitName}", Type trouvé: "${delitType}"`);
+                    
+                    // Categorize based on type from database (case-insensitive and trim whitespace)
+                    const normalizedType = delitType ? delitType.toLowerCase().trim() : '';
+                    
+                    if (normalizedType === 'crime') {
+                        criminalCharges.push(delitName);
+                    } else if (normalizedType === 'delit mineur' || normalizedType === 'délit mineur' || 
+                               normalizedType === 'delit majeur' || normalizedType === 'délit majeur') {
+                        correctionalCharges.push(delitName);
+                    } else if (normalizedType === 'contravention') {
+                        policeCharges.push(delitName);
+                    } else {
+                        // If type not found or unknown, default to police charges
+                        console.warn(`Type non reconnu pour "${delitName}": "${delitType}" (normalisé: "${normalizedType}")`);
+                        policeCharges.push(delitName);
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('Error parsing record details:', e);
+        }
+    });
+    
+    // Remove duplicates
+    criminalCharges = [...new Set(criminalCharges)];
+    correctionalCharges = [...new Set(correctionalCharges)];
+    policeCharges = [...new Set(policeCharges)];
+    
+    // Build HTML content
+    container.innerHTML = `
+        <div style="padding: 40px; background: #f5f5f5;">
+            <!-- Header with LSPD logo -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="width: 150px; height: 150px; margin: 0 auto 20px; background: #003366; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 8px solid #c9b037;">
+                    <div style="color: white; font-weight: bold; font-size: 48px;">LSPD</div>
+                </div>
+                <div style="font-size: 11px; color: #666; letter-spacing: 3px; margin-bottom: 5px;">⭐⭐⭐⭐⭐</div>
+                <div style="font-size: 11px; color: #666; letter-spacing: 1px;">LOS SANTOS POLICE DEPARTMENT</div>
+                <div style="font-size: 9px; color: #999; margin-top: 3px;">• TO PROTECT AND TO SERVE •</div>
+            </div>
+            
+            <!-- Title -->
+            <h1 style="text-align: center; font-size: 24px; font-weight: 700; color: #000; margin: 30px 0; letter-spacing: 2px; text-transform: uppercase; border-bottom: 3px solid #003366; padding-bottom: 10px;">
+                EXTRAIT DE CASIER JUDICIAIRE
+            </h1>
+            
+            <!-- Citizen name -->
+            <div style="text-align: center; font-size: 18px; font-weight: 600; color: #003366; margin-bottom: 40px;">
+                ${fullName}
+            </div>
+            
+            <!-- Criminal Charges Section -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 14px; font-weight: 700; color: #000; margin-bottom: 10px; text-transform: uppercase;">
+                    Condamnation criminelles :
+                </h3>
+                <ul style="margin: 0; padding-left: 25px; font-size: 13px; color: #333; line-height: 1.8;">
+                    ${criminalCharges.length > 0 ? criminalCharges.map(c => `<li>Auteur de ${c}</li>`).join('') : '<li style="color: #999; font-style: italic;">Aucune</li>'}
+                </ul>
+            </div>
+            
+            <!-- Correctional Charges Section -->
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 14px; font-weight: 700; color: #000; margin-bottom: 10px; text-transform: uppercase;">
+                    Condamnation correctionnelles :
+                </h3>
+                <ul style="margin: 0; padding-left: 25px; font-size: 13px; color: #333; line-height: 1.8;">
+                    ${correctionalCharges.length > 0 ? correctionalCharges.map(c => `<li>Auteur de ${c}</li>`).join('') : '<li style="color: #999; font-style: italic;">Aucune</li>'}
+                </ul>
+            </div>
+            
+            <!-- Police Charges Section -->
+            <div style="margin-bottom: 35px;">
+                <h3 style="font-size: 14px; font-weight: 700; color: #000; margin-bottom: 10px; text-transform: uppercase;">
+                    Condamnation de police :
+                </h3>
+                <ul style="margin: 0; padding-left: 25px; font-size: 13px; color: #333; line-height: 1.8;">
+                    ${policeCharges.length > 0 ? policeCharges.map(c => `<li>${c}</li>`).join('') : '<li style="color: #999; font-style: italic;">Aucune</li>'}
+                </ul>
+            </div>
+            
+            <!-- Footer with second logo -->
+            <div style="margin-top: 50px; text-align: center; padding-top: 30px; border-top: 2px solid #ddd;">
+                <div style="width: 120px; height: 120px; margin: 0 auto 15px; background: #003366; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; border: 6px solid #c9b037;">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 14px; text-align: center; line-height: 1.3;">
+                        <div>LOS SANTOS</div>
+                        <div>POLICE</div>
+                        <div>DEPARTMENT</div>
+                    </div>
+                </div>
+                <div style="font-size: 9px; color: #666; letter-spacing: 2px; margin-bottom: 3px;">⭐⭐⭐</div>
+                <div style="font-size: 9px; color: #666; margin-top: 5px; line-height: 1.5;">
+                    LOS SANTOS POLICE DEPARTMENT - 2026 OFFICIAL REPORT<br>
+                    MISSION ROW BOULEVARD, SAN ANDREAS AVENUE, LOS SANTOS 5782
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(container);
+    
+    // Generate PNG with html2canvas
+    setTimeout(() => {
+        html2canvas(container, {
+            scale: 2,
+            backgroundColor: '#f5f5f5',
+            logging: false,
+            width: 794,
+            windowWidth: 794
+        }).then(canvas => {
+            // Convert to blob and download
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const filename = `Casier_Judiciaire_${fullName.replace(/\s+/g, '_')}_${new Date().getTime()}.png`;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                // Remove the container
+                document.body.removeChild(container);
+                
+                if (loader) loader.style.display = 'none';
+                showAnimation('success', 'Casier exporté avec succès');
+            }, 'image/png');
+        }).catch(err => {
+            console.error('Error generating PNG:', err);
+            document.body.removeChild(container);
+            if (loader) loader.style.display = 'none';
+            showAnimation('error', 'Erreur lors de la génération du PNG');
+        });
+    }, 100);
+}
+
+// --- GESTION DES TAGS ---
+let availableTags = [];
+let citizenTags = [];
+
+async function loadCitizenTags() {
+    try {
+        const res = await fetch(`/api/tags/entity/citoyen/${citoyenId}`);
+        if (res.ok) {
+            citizenTags = await res.json();
+            renderTags();
+        }
+    } catch (err) {
+        console.error('Erreur chargement tags citoyen:', err);
+    }
+}
+
+function renderTags() {
+    const container = document.getElementById('tagsContainer');
+    if (!container) return;
+    const addBtn = document.getElementById('addTagBtn');
+    
+    // Supprimer les tags existants (sauf le bouton d'ajout)
+    const existingTags = container.querySelectorAll('.tag-item');
+    existingTags.forEach(t => t.remove());
+    
+    citizenTags.forEach(tag => {
+        const tagEl = document.createElement('div');
+        tagEl.className = 'tag-item';
+        tagEl.style.backgroundColor = tag.color;
+        tagEl.style.display = 'flex';
+        tagEl.style.alignItems = 'center';
+        tagEl.style.gap = '6px';
+        tagEl.style.padding = '4px 12px';
+        tagEl.style.borderRadius = '20px';
+        tagEl.style.fontSize = '13px';
+        tagEl.style.fontWeight = '600';
+        tagEl.style.color = 'white';
+        tagEl.innerHTML = `
+            <span>${tag.name}</span>
+            <span class="material-symbols-rounded remove-tag" data-id="${tag.id}" style="cursor: pointer; font-size: 16px; opacity: 0.7;">close</span>
+        `;
+        
+        // Cacher la croix si pas en mode édition
+        const removeBtn = tagEl.querySelector('.remove-tag');
+        removeBtn.style.display = isEditMode ? 'block' : 'none';
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeTagFromCitizen(tag.id);
+        });
+        
+        container.insertBefore(tagEl, addBtn);
+    });
+    
+    // Cacher le bouton d'ajout si pas en mode édition
+    if (addBtn) {
+        addBtn.style.display = isEditMode ? 'flex' : 'none';
+    }
+}
+
+async function removeTagFromCitizen(tagId) {
+    try {
+        const res = await fetch(`/api/tags/entity?tag_id=${tagId}&entity_id=${citoyenId}&entity_type=citoyen`, {
+            method: 'DELETE'
+        });
+        
+        if (res.ok) {
+            citizenTags = citizenTags.filter(t => t.id !== tagId);
+            renderTags();
+        }
+    } catch (err) {
+        console.error('Erreur suppression tag:', err);
+    }
+}
+
+function setupTagsHandlers() {
+    const addTagBtn = document.getElementById('addTagBtn');
+    const tagModal = document.getElementById('tagSelectorModal');
+    const closeTagModal = document.getElementById('closeTagModal');
+
+    if (addTagBtn) {
+        addTagBtn.addEventListener('click', async () => {
+            await loadAvailableTags();
+            renderModalTagList();
+            tagModal.style.display = 'flex';
+        });
+    }
+
+    if (closeTagModal) {
+        closeTagModal.addEventListener('click', () => {
+            tagModal.style.display = 'none';
+        });
+    }
+}
+
+async function loadAvailableTags() {
+    try {
+        const res = await fetch('/api/tags?type=citoyen');
+        if (res.ok) {
+            availableTags = await res.json();
+        }
+    } catch (err) {
+        console.error('Erreur chargement tags disponibles:', err);
+    }
+}
+
+function renderModalTagList() {
+    const list = document.getElementById('modalTagList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    availableTags.forEach(tag => {
+        const isAlreadyAdded = citizenTags.some(t => t.id === tag.id);
+        if (isAlreadyAdded) return;
+
+        const item = document.createElement('div');
+        item.className = 'tag-option';
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.justifyContent = 'space-between';
+        item.style.padding = '8px 12px';
+        item.style.borderRadius = '8px';
+        item.style.cursor = 'pointer';
+        item.style.transition = 'background 0.2s';
+        
+        item.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${tag.color};"></div>
+                <span>${tag.name}</span>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--success-color, #2ecc71);">add_circle</span>
+        `;
+        
+        item.addEventListener('mouseover', () => item.style.background = '#f0f2f5');
+        item.addEventListener('mouseout', () => item.style.background = 'transparent');
+        item.addEventListener('click', () => addTagToCitizen(tag.id));
+        list.appendChild(item);
+    });
+    
+    if (list.innerHTML === '') {
+        list.innerHTML = '<p style="text-align: center; color: #666; font-size: 14px;">Aucun autre tag disponible</p>';
+    }
+}
+
+async function addTagToCitizen(tagId) {
+    try {
+        const res = await fetch('/api/tags/entity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tag_id: tagId,
+                entity_id: citoyenId,
+                entity_type: 'citoyen'
+            })
+        });
+
+        if (res.ok) {
+            const tag = availableTags.find(t => t.id === tagId);
+            if (tag && !citizenTags.some(t => t.id === tag.id)) {
+                citizenTags.push(tag);
+            }
+            renderTags();
+            renderModalTagList();
+        }
+    } catch (err) {
+        console.error('Erreur ajout tag au citoyen:', err);
+    }
+}
+
 // Formatage automatique du téléphone
 function setupPhoneFormatting() {
     const telephoneInput = document.getElementById('telephone');
@@ -1566,6 +2124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         setupPhotoModal();
         setupPhoneFormatting();
+        setupTagsHandlers();
 
         // Boutons d'action
         document.getElementById('edit-mode-btn').addEventListener('click', activateEditMode);

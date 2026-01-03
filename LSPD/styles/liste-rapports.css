@@ -1,32 +1,43 @@
 /* Styles pour la liste des rapports */
 
 .main-container {
-    padding: 20px 40px;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 0;
+    width: 100% - 270px;
+    max-width: none;
+    margin: 0;
+    margin-left: 270px;
+}
+
+.main-container h1 {
+    margin-bottom: 0;
 }
 
 h1 {
-    color: var(--text-dark);
-    margin-bottom: 30px;
-    font-size: 28px;
+    margin: 20px;
+    border-radius: 8px;
+}
+
+.content-wrapper {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .controls-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    margin-bottom: 25px;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 0; /* Géré par le gap du wrapper */
+    background: transparent; /* On laisse le fond du wrapper */
+    padding: 0;
+    box-shadow: none;
 }
 
 .search-box {
     display: flex;
     align-items: center;
-    background: var(--input-bg);
+    background: white;
     border: 1px solid var(--border-input);
     border-radius: 8px;
     padding: 0 15px;
@@ -36,6 +47,21 @@ h1 {
 .search-box:focus-within {
     border-color: var(--main-color);
     box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
+}
+
+/* Mini Tags Styles */
+.mini-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.tag-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(0,0,0,0.1);
 }
 
 .search-box .material-symbols-rounded {
@@ -56,7 +82,7 @@ h1 {
 .table-container {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     overflow: hidden;
 }
 
@@ -78,7 +104,7 @@ th {
 
 td {
     padding: 15px 20px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #eee;
     color: var(--text-dark);
     font-size: 15px;
 }
@@ -88,7 +114,7 @@ tr:last-child td {
 }
 
 tr:hover td {
-    background-color: var(--input-bg);
+    background-color: #f8f9fa;
 }
 
 .actions-cell {
@@ -120,21 +146,20 @@ tr:hover td {
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin-top: 25px;
 }
 
 .page-btn {
     background: white;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255,255,255,0.1);
     padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
-    color: var(--text-dark);
+    color: rgb(0, 0, 0);
 }
 
 .page-btn:hover {
-    background: var(--input-bg);
+    background: rgba(255,255,255,0.2);
 }
 
 .page-btn.active {

@@ -20,6 +20,7 @@ const { getBot, getConfig } = require("../config/config");
                 droits_heure TEXT,
                 droits_cites BOOLEAN,
                 avocat_intervention BOOLEAN,
+                nom_avocat TEXT,
                 ems_intervention BOOLEAN,
                 nourriture_demandee BOOLEAN,
                 heure_cellule TEXT,
@@ -30,6 +31,7 @@ const { getBot, getConfig } = require("../config/config");
                 civils_impliques JSONB,
                 suspects_impliques JSONB,
                 photos_urls JSONB,
+                calcul_peine_id INTEGER,
                 created_at TIMESTAMP DEFAULT NOW()
             )
         `);
@@ -46,6 +48,7 @@ router.post("/api/rapport-arrestation", checkAuth, upload.any(), async (req, res
             date, heure, officier, grade,
             droits_heure, droits_cites,
             avocat_intervention, ems_intervention, nourriture_demandee,
+            nom_avocat,
             heure_cellule, objets_confisques, recit,
             agents_impliques, civils_impliques, suspects_impliques,
             charges_image_url, calcul_peine_id // Nouveau champ
@@ -111,8 +114,8 @@ router.post("/api/rapport-arrestation", checkAuth, upload.any(), async (req, res
             (titre_rapport, date_arrestation, officier_redacteur, grade, droits_heure, droits_cites, 
             avocat_intervention, ems_intervention, nourriture_demandee, heure_cellule, 
             objets_confisques, recit, charges_image_url, agents_impliques, 
-            civils_impliques, suspects_impliques, photos_urls, calcul_peine_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+            civils_impliques, suspects_impliques, photos_urls, calcul_peine_id, nom_avocat)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
             RETURNING id
         `;
 
@@ -147,7 +150,8 @@ router.post("/api/rapport-arrestation", checkAuth, upload.any(), async (req, res
             safeJson(civils_impliques),
             safeJson(suspects_impliques),
             JSON.stringify(photosUrls),
-            calcul_peine_id || null
+            calcul_peine_id || null,
+            nom_avocat || null
         ];
 
         const result = await pool.query(query, values);
@@ -171,19 +175,28 @@ router.get("/api/rapports-arrestation", checkAuth, async (req, res) => {
         const civilId = req.query.civilId;
         const suspectId = req.query.suspectId;
 
-        let query = `SELECT * FROM lspd_rapports_arrestation`;
-        let countQuery = `SELECT COUNT(*) FROM lspd_rapports_arrestation`;
+        let query = `
+            SELECT r.*, 
+            COALESCE(
+                (SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'color', t.color))
+                 FROM lspd_entity_tags et
+                 JOIN lspd_tags t ON et.tag_id = t.id
+                 WHERE et.entity_id = r.id::TEXT AND et.entity_type = 'rapport'),
+                '[]'
+            ) as tags
+            FROM lspd_rapports_arrestation r`;
+        let countQuery = `SELECT COUNT(*) FROM lspd_rapports_arrestation r`;
         let params = [];
         let whereClauses = [];
 
         if (search) {
             params.push(`%${search}%`);
             whereClauses.push(`(
-                officier_redacteur ILIKE $${params.length} OR 
-                suspects_impliques::text ILIKE $${params.length} OR 
-                civils_impliques::text ILIKE $${params.length} OR
-                agents_impliques::text ILIKE $${params.length} OR
-                recit ILIKE $${params.length}
+                r.officier_redacteur ILIKE $${params.length} OR 
+                r.suspects_impliques::text ILIKE $${params.length} OR 
+                r.civils_impliques::text ILIKE $${params.length} OR
+                r.agents_impliques::text ILIKE $${params.length} OR
+                r.recit ILIKE $${params.length}
             )`);
         }
 
@@ -191,19 +204,19 @@ router.get("/api/rapports-arrestation", checkAuth, async (req, res) => {
             // Recherche dans le JSONB agents_impliques où un élément a l'id donné
             // L'ID agent est un Discord ID (string)
             params.push(`[{"id": "${agentId}"}]`); 
-            whereClauses.push(`agents_impliques @> $${params.length}::jsonb`);
+            whereClauses.push(`r.agents_impliques @> $${params.length}::jsonb`);
         }
 
         if (civilId) {
             // L'ID civil est un int
             params.push(`[{"id": ${civilId}}]`);
-            whereClauses.push(`civils_impliques @> $${params.length}::jsonb`);
+            whereClauses.push(`r.civils_impliques @> $${params.length}::jsonb`);
         }
 
         if (suspectId) {
             // L'ID suspect est un int
             params.push(`[{"id": ${suspectId}}]`);
-            whereClauses.push(`suspects_impliques @> $${params.length}::jsonb`);
+            whereClauses.push(`r.suspects_impliques @> $${params.length}::jsonb`);
         }
 
         if (whereClauses.length > 0) {
@@ -211,7 +224,7 @@ router.get("/api/rapports-arrestation", checkAuth, async (req, res) => {
             countQuery += ` WHERE ` + whereClauses.join(' AND ');
         }
 
-        query += ` ORDER BY date_arrestation DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        query += ` ORDER BY r.date_arrestation DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
         
         const reports = await pool.query(query, [...params, limit, offset]);
         const countRes = await pool.query(countQuery, params);
@@ -233,7 +246,17 @@ router.get("/api/rapports-arrestation", checkAuth, async (req, res) => {
 router.get("/api/rapports-arrestation/:id", checkAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query("SELECT * FROM lspd_rapports_arrestation WHERE id = $1", [id]);
+        const result = await pool.query(`
+            SELECT r.*, 
+            COALESCE(
+                (SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'color', t.color))
+                 FROM lspd_entity_tags et
+                 JOIN lspd_tags t ON et.tag_id = t.id
+                 WHERE et.entity_id = r.id::TEXT AND et.entity_type = 'rapport'),
+                '[]'
+            ) as tags
+            FROM lspd_rapports_arrestation r 
+            WHERE r.id = $1`, [id]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Rapport non trouvé" });
@@ -352,8 +375,9 @@ router.put("/api/rapports-arrestation/:id", checkAuth, upload.any(), async (req,
             civils_impliques = $15,
             suspects_impliques = $16,
             photos_urls = $17,
-            calcul_peine_id = $18
-            WHERE id = $19
+            calcul_peine_id = $18,
+            nom_avocat = $19
+            WHERE id = $20
         `;
 
         const values = [
@@ -375,6 +399,7 @@ router.put("/api/rapports-arrestation/:id", checkAuth, upload.any(), async (req,
             suspects_impliques,
             JSON.stringify(photosUrls),
             calcul_peine_id || null,
+            req.body.nom_avocat || null,
             id
         ];
 

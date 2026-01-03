@@ -1,0 +1,278 @@
+/* Tags System Styles */
+
+:root {
+    --tag-bg-light: #f8f9fa;
+    --tag-border: #e0e0e0;
+    --tag-text-muted: #666;
+    --tag-add-bg: #eee;
+    --tag-add-border: #ccc;
+}
+
+/* Tags Section Container */
+.tags-section {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: var(--tag-bg-light);
+    border-radius: 12px;
+    border: 1px solid var(--tag-border);
+}
+
+/* Fix for when tags section is at the top of a form or container */
+.tags-section:first-of-type {
+    margin-top: 10px;
+}
+
+.tags-section label {
+    font-weight: 600;
+    color: var(--main-color);
+    font-size: 12px;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 0;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Individual Tag Item */
+.tag-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.tag-item:hover {
+    transform: translateY(-1px);
+}
+
+.tag-item .remove-tag {
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.tag-item .remove-tag:hover {
+    opacity: 1;
+}
+
+/* Add Tag Button */
+.add-tag-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--tag-add-bg);
+    color: var(--tag-text-muted);
+    border: 1px dashed var(--tag-add-border);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-tag-btn:hover {
+    background: #e0e0e0;
+    border-color: #bbb;
+    color: #333;
+}
+
+/* Tag Selector Modal */
+.tag-selector-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10001;
+    background: rgba(0,0,0,0.5);
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.tag-selector-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 380px;
+    max-width: 90vw;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tag-selector-content h3 {
+    margin: 0 0 15px 0;
+    color: var(--main-color-dark);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.tag-selector-content h4 {
+    margin: 20px 0 10px 0;
+    color: #555;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.tag-options-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    padding-right: 5px;
+}
+
+.tag-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+}
+
+.tag-option:hover {
+    background: #f0f2f5;
+    border-color: #e0e0e0;
+}
+
+.tag-option .tag-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tag-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.tag-option .add-icon {
+    color: #2ecc71;
+    font-size: 20px;
+}
+
+/* New Tag Creation */
+.new-tag-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.new-tag-input:focus {
+    outline: none;
+    border-color: var(--main-color);
+}
+
+.color-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.color-option {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.color-option:hover {
+    transform: scale(1.15);
+}
+
+.color-option.selected {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px #333;
+}
+
+/* Modal Buttons */
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-tag-create {
+    flex: 2;
+    background: linear-gradient(45deg, #ff9800, #f57c00);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-tag-create:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.btn-tag-close {
+    flex: 1;
+    background: #f0f2f5;
+    color: #555;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-tag-close:hover {
+    background: #e4e6e9;
+}
+
+/* Mini Tags for Lists */
+.mini-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.mini-tag-pill {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    white-space: nowrap;
+}

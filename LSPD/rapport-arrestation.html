@@ -85,14 +85,16 @@
           </div>
         </div>
 
+        <div style="display: flex; align-items: center;">
+            <!-- <label for="droits_cites" style="margin: 0 10px 0 0;">Droits cités ?</label> -->
+            <input type="checkbox" id="droits_cites" name="droits_cites" style="width: 20px; height: 20px;" checked hidden />
+        </div>
+
         <div class="inline-fields">
-            <div style="display: flex; align-items: center; margin-top: 30px;">
-                <label for="droits_cites" style="margin: 0 10px 0 0;">Droits cités ?</label>
-                <input type="checkbox" id="droits_cites" name="droits_cites" style="width: 20px; height: 20px;" />
-            </div>
+            
             <div>
                 <label for="droits_heure">Droits cités (Heure)</label>
-                <input type="time" id="droits_heure" name="droits_heure" />
+                <input type="time" id="droits_heure" name="droits_heure"/>
             </div>
         </div>
 
@@ -122,9 +124,11 @@
             </div>
         </div>
 
-        <div>
-            <label for="heure_cellule">Heure d'entrée en cellule</label>
-            <input type="time" id="heure_cellule" name="heure_cellule" />
+        <div class="inline-fields" id="avocatPut">
+          <div>
+              <label for="heure_cellule">Heure d'entrée en cellule</label>
+              <input type="time" id="heure_cellule" name="heure_cellule" />
+          </div>
         </div>
 
         <div>

@@ -69,12 +69,12 @@
 
             try {
                 const res = await fetch(`/api/discord/member/${userId}`);
-                if (!res.ok) throw new Error('Impossible de récupérer le nom de l'agent');
+                if (!res.ok) throw new Error('Impossible de récupérer le nom de l\'agent');
 
                 const data = await res.json();
                 agentNameH1.textContent = `Menu officer de l'agent ${data.displayName}`;
             } catch (err) {
-                console.warn('Impossible de récupérer le nom de l'agent:', err);
+                console.warn('Impossible de récupérer le nom de l\'agent:', err);
                 agentNameH1.textContent = `Menu officer - Utilisateur inconnu`;
             }
         }

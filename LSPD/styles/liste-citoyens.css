@@ -50,6 +50,21 @@
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
+/* Mini Tags Styles */
+.mini-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.tag-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
 .add-btn {
     padding: 12px 24px;
     background: #27ae60;
