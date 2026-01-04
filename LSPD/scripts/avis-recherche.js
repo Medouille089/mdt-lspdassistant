@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 apiEndpoint: '/api/citoyens?limit=100',
                 title: 'Sélectionner une personne',
                 searchPlaceholder: 'Rechercher par nom ou prénom...',
+                allowUnregistered: true,
                 renderItem: (item) => {
                     const photo = item.photo ? `<img src="${item.photo}" style="width:30px;height:30px;border-radius:50%;margin-right:10px;object-fit:cover;">` : '<span style="width:30px;height:30px;border-radius:50%;margin-right:10px;background:#ccc;display:inline-block;"></span>';
                     return `<div style="display:flex;align-items:center;">${photo}<span>${item.prenom} ${item.nom}</span></div>`;
@@ -49,37 +50,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                         photoUrl.value = item.photo;
                         updatePhotoPreview(item.photo);
                     }
+                },
+                onUnregistered: () => {
+                    const personne = document.getElementById('personne');
+                    const personneId = document.getElementById('personne_id');
+                    const citoyenId = document.getElementById('citoyen_id');
+                    const citoyenNom = document.getElementById('citoyen_nom');
+                    const citoyenPrenom = document.getElementById('citoyen_prenom');
+                    const nonRecense = document.getElementById('non_recense');
+                    const champsNonRecense = document.getElementById('champsNonRecense');
+                    
+                    // Activer le mode non recensé
+                    if (nonRecense) nonRecense.value = 'true';
+                    if (champsNonRecense) champsNonRecense.style.display = 'block';
+                    
+                    // Réinitialiser les champs citoyen
+                    if (personne) personne.value = 'Personne non recensée';
+                    if (personneId) personneId.value = '';
+                    if (citoyenId) citoyenId.value = '';
+                    if (citoyenNom) citoyenNom.value = '';
+                    if (citoyenPrenom) citoyenPrenom.value = '';
+                    
+                    // Focus sur le champ nom
+                    const nomManuel = document.getElementById('nomManuel');
+                    if (nomManuel) nomManuel.focus();
                 }
             });
-        });
-    }
-
-    // Bouton "Non recensé"
-    const nonRecenseBtn = document.getElementById('nonRecenseBtn');
-    if (nonRecenseBtn) {
-        nonRecenseBtn.addEventListener('click', () => {
-            const personne = document.getElementById('personne');
-            const personneId = document.getElementById('personne_id');
-            const citoyenId = document.getElementById('citoyen_id');
-            const citoyenNom = document.getElementById('citoyen_nom');
-            const citoyenPrenom = document.getElementById('citoyen_prenom');
-            const nonRecense = document.getElementById('non_recense');
-            const champsNonRecense = document.getElementById('champsNonRecense');
-            
-            // Activer le mode non recensé
-            if (nonRecense) nonRecense.value = 'true';
-            if (champsNonRecense) champsNonRecense.style.display = 'block';
-            
-            // Réinitialiser les champs citoyen
-            if (personne) personne.value = '⚠️ Personne non recensée';
-            if (personneId) personneId.value = '';
-            if (citoyenId) citoyenId.value = '';
-            if (citoyenNom) citoyenNom.value = '';
-            if (citoyenPrenom) citoyenPrenom.value = '';
-            
-            // Focus sur le champ nom
-            const nomManuel = document.getElementById('nomManuel');
-            if (nomManuel) nomManuel.focus();
         });
     }
 

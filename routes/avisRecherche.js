@@ -38,10 +38,10 @@ const { EmbedBuilder } = require("discord.js");
 // Helper pour formater le type d'avis
 function formatTypeAvis(type) {
     const types = {
-        'disparu': { emoji: '🔍', label: 'Personne disparue', color: 0x3498db },
-        'most_wanted': { emoji: '🚨', label: 'Most Wanted', color: 0xe74c3c }
+        'disparu': { label: 'Personne disparue', color: 0x3498db },
+        'most_wanted': { label: 'Most Wanted', color: 0xe74c3c }
     };
-    return types[type] || { emoji: '❓', label: 'Inconnu', color: 0x95a5a6 };
+    return types[type] || { label: 'Inconnu', color: 0x95a5a6 };
 }
 
 // POST /api/avis-recherche - Créer un nouvel avis
