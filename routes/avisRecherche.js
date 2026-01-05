@@ -62,13 +62,13 @@ router.post('/api/avis-recherche', async (req, res) => {
             grade
         } = req.body;
 
-        // Validation : soit un citoyen_id, soit non_recense avec nom/prenom
+        // Validation : soit un citoyen_id, soit non_recense avec alias
         if (!non_recense && !citoyen_id) {
             return res.status(400).json({ error: 'Veuillez sélectionner une personne ou utiliser le mode non recensé' });
         }
         
-        if (non_recense && (!citoyen_nom || !citoyen_prenom)) {
-            return res.status(400).json({ error: 'Nom et prénom requis pour une personne non recensée' });
+        if (non_recense && !alias) {
+            return res.status(400).json({ error: 'Alias ou surnom requis pour une personne non recensée' });
         }
         
         if (!type_avis || !motif) {

@@ -1,5 +1,19 @@
 /* Styles spécifiques pour la page avis de recherche */
 
+.main-container > h1 {
+    text-align: center;
+}
+
+/* Centrer le header */
+.header {
+    justify-content: center !important;
+}
+
+.header .header-title {
+    flex: none !important;
+    margin: 0 20px;
+}
+
 .incident-container {
     max-width: 800px;
     margin: 0 auto;
@@ -50,9 +64,16 @@
 }
 
 .form-group textarea {
-    min-height: 100px;
+    min-height: 120px;
+    height: auto !important;
     resize: vertical;
     font-family: inherit;
+}
+
+/* Override incident.css pour les textareas */
+#avisRechercheForm textarea {
+    height: 70px !important;
+    resize: vertical !important;
 }
 
 .form-group select {
