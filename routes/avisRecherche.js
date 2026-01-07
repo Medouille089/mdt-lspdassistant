@@ -24,11 +24,19 @@ const { EmbedBuilder } = require("discord.js");
                 grade VARCHAR(100),
                 statut VARCHAR(50) DEFAULT 'actif',
                 discord_message_id VARCHAR(50),
+                discord_thread_id VARCHAR(50),
                 created_by VARCHAR(100),
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             )
         `);
+        
+        // Ajouter la colonne discord_thread_id si elle n'existe pas
+        await pool.query(`
+            ALTER TABLE lspd_avis_recherche 
+            ADD COLUMN IF NOT EXISTS discord_thread_id VARCHAR(50)
+        `).catch(() => {});
+        
         console.log("✅ Table lspd_avis_recherche vérifiée/créée.");
     } catch (err) {
         console.error("❌ Erreur création table lspd_avis_recherche:", err);
@@ -292,6 +300,90 @@ router.delete('/api/avis-recherche/:id', async (req, res) => {
     } catch (error) {
         console.error('Erreur suppression avis:', error);
         res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// POST /api/avis-recherche/post-image - Poster l'image générée sur Discord
+router.post('/api/avis-recherche/post-image', async (req, res) => {
+    try {
+        const { imageBase64, avisId, nomPersonne, typeAvis } = req.body;
+
+        if (!imageBase64) {
+            return res.status(400).json({ error: 'Image manquante' });
+        }
+
+        const bot = getBot();
+        const conf = await getConfig();
+        
+        // Utiliser le même channel que les arrestations/rapports
+        const channelId = conf?.arrestation_thread_id;
+        
+        if (!bot || !channelId) {
+            return res.status(400).json({ error: 'Configuration Discord manquante (arrestation_thread_id)' });
+        }
+
+        const channel = await bot.channels.fetch(channelId);
+        if (!channel) {
+            return res.status(400).json({ error: 'Channel Discord non trouvé' });
+        }
+
+        // Convertir base64 en buffer
+        const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+
+        // Créer un nom pour le thread
+        const typeLabel = typeAvis === 'disparu' ? 'DISPARU' : 'WANTED';
+        const threadName = `${typeLabel} - ${nomPersonne || 'Inconnu'}`;
+
+        let thread;
+        
+        // Si c'est un forum channel, créer un post
+        if (channel.type === 15) { // 15 = GuildForum
+            thread = await channel.threads.create({
+                name: threadName,
+                message: {
+                    content: `📋 **Avis de recherche publié**\n> Type: ${typeLabel}\n> Personne: ${nomPersonne || 'Inconnu'}`,
+                    files: [{
+                        attachment: imageBuffer,
+                        name: `avis-recherche-${avisId || Date.now()}.png`
+                    }]
+                },
+                autoArchiveDuration: 10080,
+                reason: 'Avis de recherche généré'
+            });
+        } else {
+            // Sinon créer un thread classique
+            thread = await channel.threads.create({
+                name: threadName,
+                autoArchiveDuration: 10080,
+                reason: 'Avis de recherche généré'
+            });
+
+            await thread.send({
+                content: `📋 **Avis de recherche publié**\n> Type: ${typeLabel}\n> Personne: ${nomPersonne || 'Inconnu'}`,
+                files: [{
+                    attachment: imageBuffer,
+                    name: `avis-recherche-${avisId || Date.now()}.png`
+                }]
+            });
+        }
+
+        // Mettre à jour l'avis avec l'ID du thread si on a un avisId
+        if (avisId) {
+            await pool.query(
+                `UPDATE lspd_avis_recherche SET discord_thread_id = $1 WHERE id = $2`,
+                [thread.id, avisId]
+            );
+        }
+
+        res.json({ 
+            success: true, 
+            threadId: thread.id,
+            message: 'Image postée dans le thread Discord'
+        });
+    } catch (error) {
+        console.error('Erreur post image Discord:', error);
+        res.status(500).json({ error: 'Erreur serveur lors de l\'envoi sur Discord' });
     }
 });
 

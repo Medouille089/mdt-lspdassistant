@@ -46,11 +46,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (citoyenPrenom) citoyenPrenom.value = item.prenom;
                     if (citoyenDdn) citoyenDdn.value = item.date_naissance || '';
 
-                    // Pré-remplir la photo si disponible
+                    // Mettre à jour la photo avec celle du citoyen
                     const photoUrl = document.getElementById('photoUrl');
-                    if (item.photo && photoUrl && !photoUrl.value) {
-                        photoUrl.value = item.photo;
-                        updatePhotoPreview(item.photo);
+                    if (photoUrl) {
+                        photoUrl.value = item.photo || '';
+                        updatePhotoPreview(item.photo || '');
                     }
                 },
                 onUnregistered: () => {
@@ -75,7 +75,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (citoyenPrenom) citoyenPrenom.value = '';
                     if (citoyenDdn) citoyenDdn.value = '';
                     
-                    // Focus sur le champ nom
+                    // Vider la photo
+                    const photoUrl = document.getElementById('photoUrl');
+                    if (photoUrl) {
+                        photoUrl.value = '';
+                        updatePhotoPreview('');
+                    }
+                    
+                    // Focus sur le champ alias
                     const nomManuel = document.getElementById('nomManuel');
                     if (nomManuel) nomManuel.focus();
                 }
@@ -183,8 +190,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (res.ok) {
                     showNotification('Avis de recherche publié avec succès !', 'success');
                     
-                    // Générer l'image
-                    await generateAvisImage(data);
+                    // Générer l'image et poster sur Discord
+                    await generateAvisImage(data, result.id);
                 } else {
                     showNotification(result.error || 'Erreur lors de la publication', 'error');
                 }
@@ -197,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Fonction pour générer l'image d'avis de recherche
-    async function generateAvisImage(data) {
+    async function generateAvisImage(data, avisId) {
         const template = document.getElementById('avisCard');
         
         // Nom complet - si non recensé, utiliser l'alias, sinon nom prénom
@@ -339,47 +346,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const imageUrl = canvas.toDataURL('image/png');
             
-            // Afficher la modal avec l'image
-            const modal = document.getElementById('imageResultModal');
-            const generatedImg = document.getElementById('generatedImage');
-            generatedImg.src = imageUrl;
-            modal.style.display = 'flex';
+            // Poster l'image sur Discord
+            const nomPersonne = data.non_recense 
+                ? (data.alias || 'Inconnu') 
+                : `${data.citoyen_prenom} ${data.citoyen_nom}`.trim() || 'Inconnu';
             
-            // Bouton télécharger
-            document.getElementById('downloadImageBtn').onclick = () => {
-                const link = document.createElement('a');
-                link.download = `avis-recherche-${data.citoyen_nom}-${data.citoyen_prenom}.png`;
-                link.href = imageUrl;
-                link.click();
-            };
-            
-            // Bouton copier
-            document.getElementById('copyImageBtn').onclick = async () => {
-                try {
-                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                    await navigator.clipboard.write([
-                        new ClipboardItem({ 'image/png': blob })
-                    ]);
-                    showNotification('Image copiée dans le presse-papier !', 'success');
-                } catch (err) {
-                    console.error('Erreur copie:', err);
-                    showNotification('Impossible de copier l\'image', 'error');
+            try {
+                const discordRes = await fetch('/api/avis-recherche/post-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        imageBase64: imageUrl,
+                        avisId: avisId,
+                        nomPersonne: nomPersonne,
+                        typeAvis: data.type_avis
+                    })
+                });
+                
+                if (discordRes.ok) {
+                    showNotification('Image publiée sur Discord !', 'success');
+                } else {
+                    const err = await discordRes.json();
+                    console.error('Erreur Discord:', err);
+                    showNotification('Image générée mais erreur Discord', 'warning');
                 }
-            };
+            } catch (discordErr) {
+                console.error('Erreur envoi Discord:', discordErr);
+            }
             
-            // Bouton fermer
-            document.getElementById('closeImageModal').onclick = () => {
-                modal.style.display = 'none';
+            // Rediriger vers le menu MDT
+            setTimeout(() => {
                 window.location.href = '/menu-mdt';
-            };
-            
-            // Fermer en cliquant à l'extérieur
-            modal.onclick = (e) => {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
-                    window.location.href = '/menu-mdt';
-                }
-            };
+            }, 1500);
             
         } catch (err) {
             console.error('Erreur génération image:', err);
