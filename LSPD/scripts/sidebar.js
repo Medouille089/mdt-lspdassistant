@@ -131,6 +131,26 @@ document.querySelectorAll('.sidebar-toggler, .sidebar-menu-button').forEach((but
 
 async function fetchUser() {
   try {
+    // Si le profil est déjà pré-chargé depuis le cache (dans sidebar.html), on initialise juste les listeners
+    if (window.__profilePreloaded) {
+      initProfileListeners();
+      
+      // Mettre à jour les permissions en arrière-plan si nécessaire (sans bloquer)
+      if (!window.__permsAppliedFromCache) {
+        // Fetch en arrière-plan pour mettre à jour le cache
+        fetch('/api/user').then(res => res.json()).then(user => {
+          if (window.clientCache) {
+            window.clientCache.set('user-permissions', {
+              isSupervisor: user.isSupervisor,
+              isCommandStaff: user.isCommandStaff,
+              isSuperAdmin: user.isSuperAdmin
+            }, 1800);
+          }
+        }).catch(() => {});
+      }
+      return;
+    }
+    
     let user;
     
     // TTL augmenté à 30 minutes pour garder les données en cache pendant toute la session
@@ -216,16 +236,10 @@ async function fetchUser() {
       initProfileListeners();
     }
 
-    // Ensuite gérer les permissions pour afficher les boutons
-    // Vérifier d'abord si déjà affichés par instant-sidebar.js
-    const supervisorBtn = document.querySelector('.onlySupervisor');
-    const adminBtn = document.querySelector('.onlyCommandStaff');
-    const alreadyDisplayed = window.__profileLoadedFromCache && 
-                             ((supervisorBtn && supervisorBtn.style.display === 'block') || 
-                              (adminBtn && adminBtn.style.display === 'block'));
-    
-    if (!alreadyDisplayed) {
-      // Afficher les boutons selon les permissions
+    // Les permissions sont maintenant gérées par le CSS dynamique injecté dans sidebar.html
+    // On vérifie seulement si le CSS n'a pas été appliqué (première connexion ou cache expiré)
+    if (!window.__permsAppliedFromCache) {
+      // Afficher les boutons selon les permissions (première connexion uniquement)
       document.querySelectorAll('.onlySupervisor').forEach(el => {
         if (user.isSupervisor || user.isCommandStaff || user.isSuperAdmin) {
           el.style.display = 'block';
@@ -271,30 +285,10 @@ async function fetchUser() {
   }
 }
 
-// Pré-charger les permissions depuis le cache si disponibles pour afficher immédiatement
+// Pré-charger le profil depuis le cache (les permissions sont gérées par le CSS dynamique)
 function preloadFromCache() {
-  if (!window.clientCache) return;
-  
-  // Si déjà chargé par instant-sidebar.js, ne rien faire pour les permissions
-  if (!window.__profileLoadedFromCache) {
-    const cachedPermissions = window.clientCache.get('user-permissions');
-    if (cachedPermissions) {
-      // Afficher immédiatement les boutons selon les permissions en cache
-      document.querySelectorAll('.onlySupervisor').forEach(el => {
-        if (cachedPermissions.isSupervisor || cachedPermissions.isCommandStaff || cachedPermissions.isSuperAdmin) {
-          el.style.display = 'block';
-        }
-      });
-
-      document.querySelectorAll('.onlyCommandStaff').forEach(el => {
-        if (cachedPermissions.isCommandStaff || cachedPermissions.isSuperAdmin) {
-          el.style.display = 'block';
-        }
-      });
-    }
-  }
-  
-  // Initialiser les event listeners du profil s'il est déjà affiché
+  // Les permissions sont maintenant gérées par le CSS injecté dans le head de sidebar.html
+  // On ne fait que initialiser les event listeners du profil ici
   initProfileListeners();
 }
 

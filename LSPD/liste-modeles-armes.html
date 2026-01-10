@@ -6,23 +6,25 @@
     <meta charset="UTF-8" />
     <title>Modèles d'armes - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
-    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
     <link rel="stylesheet" href="styles/custom-notifications.css" />
     <link rel="stylesheet" href="styles/liste-modeles-armes.css" />
+    <link rel="stylesheet" href="styles/liste-rapports.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 
 <body>
     <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
+
     <div class="main-container">
-        <div id="sidebar-container"></div>
-        <script src="scripts/instant-sidebar.js"></script>
         <h1>Modèles d'armes</h1>
 
-        <div class="container">
+        <div class="content-wrapper">
             <!-- Statistiques (optionnel) -->
             <div class="stats" style="display:none">
                 <div class="stat-card">
@@ -35,22 +37,28 @@
                 </div>
             </div>
 
-            <div class="filters">
-                <input type="text" id="searchInput" placeholder="Rechercher (modèle, id)" autocomplete="off" />
-                <button class="add-btn" id="openAddModel">Ajouter un modèle</button>
+            <div class="controls-container">
+                <div class="search-box">
+                    <span class="material-symbols-rounded">search</span>
+                    <input type="text" id="searchInput" placeholder="Rechercher (modèle, id)" autocomplete="off" />
+                </div>
+                <div class="filters">
+                    <button class="add-btn" id="openAddModel">Ajouter un modèle</button>
+                </div>
             </div>
 
-            <table id="armesTable" aria-label="Liste des modèles d'armes">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th class="photo-cell">Photo</th>
-                        <th>Modèle</th>
-                        <th>Calibre</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
+            <div class="table-container">
+                <table id="armesTable" aria-label="Liste des modèles d'armes">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th class="photo-cell">Photo</th>
+                            <th>Modèle</th>
+                            <th>Calibre</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
                     <!-- Les lignes seront générées dynamiquement, structure :
                     <tr>
                         <td><div class="cell-inner">123</div></td>

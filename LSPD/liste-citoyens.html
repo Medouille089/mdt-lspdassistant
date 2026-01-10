@@ -6,7 +6,6 @@
     <meta charset="UTF-8" />
     <title>Liste des citoyens - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
-    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/loader.css">
@@ -14,16 +13,19 @@
     <link rel="stylesheet" href="styles/custom-notifications.css" />
     <link rel="stylesheet" href="styles/liste-citoyens.css" />
     <link rel="stylesheet" href="styles/tags.css" />
+    <link rel="stylesheet" href="styles/liste-rapports.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 
 <body>
     <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
+
     <div class="main-container">
-        <div id="sidebar-container"></div>
-        <script src="scripts/instant-sidebar.js"></script>
         <h1>Liste des citoyens</h1>
 
-        <div class="container">
+        <div class="content-wrapper">
             <!-- Statistiques -->
             <div class="stats">
                 <div class="stat-card">
@@ -36,39 +38,43 @@
                 </div>
             </div>
 
-            <!-- Filtres et bouton ajout -->
-            <div class="filters">
-                <input type="text" id="searchInput" placeholder="Rechercher (nom, prénom, téléphone)"
-                    autocomplete="off" />
-                <select id="mandatFilter">
-                    <option value="">Tous les mandats</option>
-                    <option value="true">Mandat actif</option>
-                    <option value="false">Pas de mandat</option>
-                </select>
-                <button class="add-btn" id="addCitoyenBtn">Ajouter un citoyen</button>
+            <div class="controls-container">
+                <div class="search-box">
+                    <span class="material-symbols-rounded">search</span>
+                    <input type="text" id="searchInput" placeholder="Rechercher (nom, prénom, téléphone)"
+                        autocomplete="off" />
+                </div>
+                <div class="filters">
+                    <select id="mandatFilter">
+                        <option value="">Tous les mandats</option>
+                        <option value="true">Mandat actif</option>
+                        <option value="false">Pas de mandat</option>
+                    </select>
+                    <button class="add-btn" id="addCitoyenBtn">Ajouter un citoyen</button>
+                </div>
             </div>
 
-            <!-- Table -->
-            <table id="citoyenTable" aria-label="Liste des citoyens">
-                <thead>
-                    <tr>
-                        <th class="photo-cell">Photo</th>
-                        <th>Nom</th>
-                        <th>Prénom</th>
-                        <th>Date de naissance</th>
-                        <th>Nationalité</th>
-                        <th>Téléphone</th>
-                        <th>Emploi</th>
-                        <th>Tags</th>
-                        <th>Mandat</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Dynamique -->
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table id="citoyenTable" aria-label="Liste des citoyens">
+                    <thead>
+                        <tr>
+                            <th class="photo-cell">Photo</th>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Date de naissance</th>
+                            <th>Nationalité</th>
+                            <th>Téléphone</th>
+                            <th>Emploi</th>
+                            <th>Tags</th>
+                            <th>Mandat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamique -->
+                    </tbody>
+                </table>
+            </div>
 
-            <!-- Pagination -->
             <div class="pagination" id="pagination">
                 <!-- Pagination buttons -->
             </div>
@@ -80,9 +86,9 @@
     </div>
 
     <script src="scripts/custom-notifications.js"></script>
-    <script src="scripts/liste-citoyens.js"></script>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/context-menu.js"></script>
+    <script src="scripts/liste-citoyens.js"></script>
 </body>
 
 </html>
