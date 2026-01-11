@@ -5,7 +5,8 @@
       "Bash(git commit:*)",
       "Bash(git pull:*)",
       "Bash(dir:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(node --check:*)"
     ]
   }
 }

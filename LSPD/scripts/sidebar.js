@@ -131,24 +131,15 @@ document.querySelectorAll('.sidebar-toggler, .sidebar-menu-button').forEach((but
 
 async function fetchUser() {
   try {
-    // Si le profil est déjà pré-chargé depuis le cache (dans sidebar.html), on initialise juste les listeners
-    if (window.__profilePreloaded) {
+    // Vérifier si le profil est réellement affiché (pas juste le flag)
+    const container = document.getElementById('userProfile');
+    const profileAlreadyDisplayed = container && container.querySelector('.profile-avatar');
+
+    // Si le profil est déjà pré-chargé ET réellement affiché, on initialise juste les listeners
+    // mais on doit quand même charger les permissions depuis l'API
+    if (window.__profilePreloaded && profileAlreadyDisplayed) {
       initProfileListeners();
-      
-      // Mettre à jour les permissions en arrière-plan si nécessaire (sans bloquer)
-      if (!window.__permsAppliedFromCache) {
-        // Fetch en arrière-plan pour mettre à jour le cache
-        fetch('/api/user').then(res => res.json()).then(user => {
-          if (window.clientCache) {
-            window.clientCache.set('user-permissions', {
-              isSupervisor: user.isSupervisor,
-              isCommandStaff: user.isCommandStaff,
-              isSuperAdmin: user.isSuperAdmin
-            }, 1800);
-          }
-        }).catch(() => {});
-      }
-      return;
+      // Continuer pour charger les permissions (ne pas return)
     }
     
     let user;
@@ -210,7 +201,7 @@ async function fetchUser() {
     if (length > 20) fontSize = '11px';
 
     // Affichage profil
-    const container = document.getElementById('userProfile');
+    // container est déjà défini en haut de la fonction (ligne 135)
     
     // Vérifier si le profil est déjà affiché par instant-sidebar.js
     const existingAvatar = container.querySelector('.profile-avatar');
@@ -236,31 +227,14 @@ async function fetchUser() {
       initProfileListeners();
     }
 
-    // Les permissions sont maintenant gérées par le CSS dynamique injecté dans sidebar.html
-    // On vérifie seulement si le CSS n'a pas été appliqué (première connexion ou cache expiré)
-    if (!window.__permsAppliedFromCache) {
-      // Afficher les boutons selon les permissions (première connexion uniquement)
-      document.querySelectorAll('.onlySupervisor').forEach(el => {
-        if (user.isSupervisor || user.isCommandStaff || user.isSuperAdmin) {
-          el.style.display = 'block';
-        }
-      });
+    // Appliquer les permissions depuis l'API (toujours, pas de cache)
+    document.querySelectorAll('.onlySupervisor').forEach(el => {
+      el.style.display = (user.isSupervisor || user.isCommandStaff || user.isSuperAdmin) ? 'block' : 'none';
+    });
 
-      document.querySelectorAll('.onlyCommandStaff').forEach(el => {
-        if (user.isCommandStaff || user.isSuperAdmin) {
-          el.style.display = 'block';
-        }
-      });
-    }
-    
-    // Mettre les permissions en cache pour les réutiliser rapidement
-    if (window.clientCache) {
-      window.clientCache.set('user-permissions', {
-        isSupervisor: user.isSupervisor,
-        isCommandStaff: user.isCommandStaff,
-        isSuperAdmin: user.isSuperAdmin
-      }, 1800); // 30 minutes
-    }
+    document.querySelectorAll('.onlyCommandStaff').forEach(el => {
+      el.style.display = (user.isCommandStaff || user.isSuperAdmin) ? 'block' : 'none';
+    });
 
   } catch (error) {
     console.error('An error occurred while processing the user profile:', error);
@@ -285,10 +259,8 @@ async function fetchUser() {
   }
 }
 
-// Pré-charger le profil depuis le cache (les permissions sont gérées par le CSS dynamique)
+// Initialiser les event listeners du profil si déjà affiché
 function preloadFromCache() {
-  // Les permissions sont maintenant gérées par le CSS injecté dans le head de sidebar.html
-  // On ne fait que initialiser les event listeners du profil ici
   initProfileListeners();
 }
 
@@ -311,22 +283,12 @@ function initProfileListeners() {
         window.location.href = `/infos-agent?userId=${userId}`;
       });
 
-      const BLUE = '#0b1b5a';
+      // Hover effect: légère opacité au lieu de changer la couleur du texte
       navLinkAnchor.addEventListener('mouseenter', () => {
-        const usernameEl = navLinkAnchor.querySelector('.profile-username');
-        const gradeEl = navLinkAnchor.querySelector('.profile-grade');
-        const avatarEl = navLinkAnchor.querySelector('.profile-avatar');
-        if (usernameEl) usernameEl.style.color = BLUE;
-        if (gradeEl) gradeEl.style.color = BLUE;
-        if (avatarEl) avatarEl.style.borderColor = BLUE;
+        navLinkAnchor.style.opacity = '0.8';
       });
       navLinkAnchor.addEventListener('mouseleave', () => {
-        const usernameEl = navLinkAnchor.querySelector('.profile-username');
-        const gradeEl = navLinkAnchor.querySelector('.profile-grade');
-        const avatarEl = navLinkAnchor.querySelector('.profile-avatar');
-        if (usernameEl) usernameEl.style.color = '#FFFFFF';
-        if (gradeEl) gradeEl.style.color = '#CCCCCC';
-        if (avatarEl) avatarEl.style.borderColor = '#FFFFFF';
+        navLinkAnchor.style.opacity = '1';
       });
     }
   }

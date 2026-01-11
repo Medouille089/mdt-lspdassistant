@@ -13,33 +13,13 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <script>
-        // Vérifier les permissions en cache AVANT le rendu pour éviter le flash
-        (function() {
-            var style = document.createElement('style');
-            var showSupervisor = false;
-            var showAdmin = false;
-            
-            try {
-                var permsCache = localStorage.getItem('lspd_cache_user-permissions');
-                if (permsCache) {
-                    var permsData = JSON.parse(permsCache);
-                    if (permsData && permsData.value && Date.now() <= permsData.expiry) {
-                        var perms = permsData.value;
-                        showSupervisor = perms.isSupervisor || perms.isCommandStaff || perms.isSuperAdmin;
-                        showAdmin = perms.isCommandStaff || perms.isSuperAdmin;
-                    }
-                }
-            } catch (e) {}
-            
-            var css = '.onlySupervisor { display: ' + (showSupervisor ? 'block' : 'none') + ' !important; }\n' +
-                      '.onlyCommandStaff { display: ' + (showAdmin ? 'block' : 'none') + ' !important; }';
-            style.textContent = css;
-            document.head.appendChild(style);
-            
-            window.__permsAppliedFromCache = showSupervisor || showAdmin;
-        })();
-    </script>
+    <style>
+        /* Cacher les menus admin par défaut, ils seront affichés par JS si l'utilisateur a les permissions */
+        .onlySupervisor,
+        .onlyCommandStaff {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
