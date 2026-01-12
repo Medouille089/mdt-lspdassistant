@@ -50,8 +50,13 @@ function applyFilters() {
     const dateEnd = dateEndInput.value;
     filteredConvocations = convocations.filter(item => {
         const textMatch =
-            (item.officer?.toLowerCase().includes(search)) ||
-            (item.type?.toLowerCase().includes(search));
+            (!search) ||
+            (item.id?.toString().toLowerCase().includes(search)) ||
+            (`CVC${item.id}`.toLowerCase().includes(search)) ||
+            (item.nom?.toLowerCase().includes(search)) ||
+            (item.prenom?.toLowerCase().includes(search)) ||
+            (`${item.nom} ${item.prenom}`.toLowerCase().includes(search)) ||
+            (item.officer?.toLowerCase().includes(search));
 
         const startOk = dateStart ? item.date >= dateStart : true;
         const endOk = dateEnd ? item.date <= dateEnd : true;
