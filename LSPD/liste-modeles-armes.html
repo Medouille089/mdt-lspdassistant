@@ -11,9 +11,10 @@
     <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
     <link rel="stylesheet" href="styles/custom-notifications.css" />
-    <link rel="stylesheet" href="styles/liste-modeles-armes.css" />
     <link rel="stylesheet" href="styles/liste-rapports.css" />
+    <link rel="stylesheet" href="styles/liste-modeles-armes.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
@@ -25,25 +26,16 @@
         <h1>Modèles d'armes</h1>
 
         <div class="content-wrapper">
-            <!-- Statistiques (optionnel) -->
-            <div class="stats" style="display:none">
-                <div class="stat-card">
-                    <h3>Total modèles</h3>
-                    <div class="value" id="totalArmes">-</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Autre stat</h3>
-                    <div class="value" id="otherStat" style="color: #e74c3c;">-</div>
-                </div>
-            </div>
-
             <div class="controls-container">
                 <div class="search-box">
                     <span class="material-symbols-rounded">search</span>
                     <input type="text" id="searchInput" placeholder="Rechercher (modèle, id)" autocomplete="off" />
                 </div>
                 <div class="filters">
-                    <button class="add-btn" id="openAddModel">Ajouter un modèle</button>
+                    <button class="add-btn" id="openAddModel">
+                        <i data-lucide="plus"></i>
+                        Ajouter un modèle
+                    </button>
                 </div>
             </div>
 
@@ -51,123 +43,73 @@
                 <table id="armesTable" aria-label="Liste des modèles d'armes">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th class="photo-cell">Photo</th>
-                            <th>Modèle</th>
-                            <th>Calibre</th>
-                            <th></th>
+                            <th class="col-id">ID</th>
+                            <th class="col-photo">Photo</th>
+                            <th class="col-calibre">Calibre</th>
+                            <th class="col-model">Modèle</th>
+                            <th class="col-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                    <!-- Les lignes seront générées dynamiquement, structure :
-                    <tr>
-                        <td><div class="cell-inner">123</div></td>
-                        <td class="photo-cell"><div class="cell-inner"><img src="..." /></div></td>
-                        <td><div class="cell-inner">Nom du modèle</div></td>
-                        <td><div class="cell-inner"><button>Modifier</button> <button>Supprimer</button></div></td>
-                    </tr>
-                    -->
-                </tbody>
-            </table>
-
-            <div class="pagination" id="pagination">
-                <!-- Pagination buttons -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-
-
-        <div id="weaponModelModal" class="modal" style="display:none;">
-            <div class="modal-content" style="background:#fff; border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.12); max-width:520px; width:100%; border:4px solid #e6e6e6; padding:0;">
-                <div class="modal-header" style="padding:24px 28px 0 28px; border-bottom:none; align-items:center;">
-                    <img src="data/images/lspd.png" alt="Logo LSPD" style="height:40px; margin-right:16px;" />
-                    <div style="flex:1;">
-                        <h2 style="margin:0; font-size:20px; font-weight:700; color:#222;">Catalogue : Modèle</h2>
-                        <h3 id="modalTitle" style="margin:4px 0 0; font-size:14px; color:#7f8c8d; font-weight:500;">Ajouter un modèle</h3>
+    <!-- Modal ajout/modification -->
+    <div id="weaponModelModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <img src="data/images/lspd.png" alt="Logo LSPD" class="modal-logo" />
+                    <div class="modal-titles">
+                        <h2>Catalogue : Modèle</h2>
+                        <h3 id="modalTitle">Ajouter un modèle</h3>
                     </div>
-                    <span class="close" id="modalClose" style="cursor:pointer; font-size:28px; margin-left:12px;">&times;</span>
                 </div>
-                <div class="modal-body" style="padding:24px 28px 0 28px;">
-                    <form id="modalForm" style="display:flex; flex-direction:column; gap:18px;">
-                        <div style="display:flex; flex-direction:column; gap:6px;">
-                            <label for="model_name_modal" style="font-weight:600; color:#222; font-size:15px;">Nom du modèle</label>
-                            <input type="text" id="model_name_modal" required style="padding:12px 16px; border:2px solid #e6e6e6; border-radius:8px; font-size:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.04);" />
-                        </div>
-                        <div style="display:flex; flex-direction:column; gap:6px;">
-                            <label for="calibre_modal" style="font-weight:600; color:#222; font-size:15px;">Calibre</label>
-                            <input type="text" id="calibre_modal" required placeholder="Calibre" style="padding:12px 16px; border:2px solid #e6e6e6; border-radius:8px; font-size:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.04);" />
-                        </div>
-                        <div style="display:flex; flex-direction:column; gap:6px;">
-                            <label for="image_url_modal" style="font-weight:600; color:#222; font-size:15px;">URL de l'image</label>
-                            <input type="url" id="image_url_modal" placeholder="https://..." style="padding:12px 16px; border:2px solid #e6e6e6; border-radius:8px; font-size:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.04);" />
-                            <div id="imagePreviewContainer" style="margin-top:10px; text-align:center;">
-                                <img id="imagePreviewModal" src="" alt="Aperçu" style="max-width:180px; max-height:120px; display:none; border-radius:8px; border:1px solid #e0e0e0; background:#f8f9fa;">
-                            </div>
-                        </div>
-                        <input type="hidden" id="model_id_modal" />
-                    </form>
-                </div>
-                <div class="modal-footer" style="padding:24px 28px 24px 28px; border-top:none; display:flex; gap:12px; justify-content:flex-end;">
-                    <button type="button" id="cancelModelBtn" class="btn btn-secondary" style="min-width:110px;">Annuler</button>
-                    <button type="button" id="saveModelBtn" class="send-button" style="min-width:110px; background:#27ae60; color:#fff; border-radius:8px; font-weight:600; font-size:15px; border:none; box-shadow:0 2px 8px rgba(39,174,96,0.08);">Enregistrer</button>
-                </div>
-                <span class="close" id="modalClose"
-                    style="cursor:pointer; font-size:28px; margin-left:12px;">&times;</span>
+                <span class="close" id="modalClose">&times;</span>
             </div>
-            <div class="modal-body" style="padding:24px 28px 0 28px;">
-                <form id="modalForm" style="display:flex; flex-direction:column; gap:18px;">
-                    <div style="display:flex; flex-direction:column; gap:6px;">
-                        <label for="model_name_modal" style="font-weight:600; color:#222; font-size:15px;">Nom du
-                            modèle</label>
-                        <input type="text" id="model_name_modal" required
-                            style="padding:12px 16px; border:2px solid #e6e6e6; border-radius:8px; font-size:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.04);" />
+            <div class="modal-body">
+                <form id="modalForm">
+                    <div class="form-group">
+                        <label for="model_name_modal">Nom du modèle</label>
+                        <input type="text" id="model_name_modal" required />
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:6px;">
-                        <label for="calibre_modal" style="font-weight:600; color:#222; font-size:15px;">Calibre</label>
-                        <input type="text" id="calibre_modal" required placeholder="Calibre"
-                            style="padding:12px 16px; border:2px solid #e6e6e6; border-radius:8px; font-size:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.04);" />
+                    <div class="form-group">
+                        <label for="calibre_modal">Calibre</label>
+                        <input type="text" id="calibre_modal" required placeholder="Calibre" />
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:6px;">
-                        <label for="image_url_modal" style="font-weight:600; color:#222; font-size:15px;">URL de
-                            l'image</label>
-                        <input type="url" id="image_url_modal" placeholder="https://..."
-                            style="padding:12px 16px; border:2px solid #e6e6e6; border-radius:8px; font-size:15px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.04);" />
+                    <div class="form-group">
+                        <label for="image_url_modal">URL de l'image</label>
+                        <input type="url" id="image_url_modal" placeholder="https://..." />
+                        <div id="imagePreviewContainer" class="image-preview-container">
+                            <img id="imagePreviewModal" src="" alt="Aperçu" />
+                        </div>
                     </div>
                     <input type="hidden" id="model_id_modal" />
                 </form>
             </div>
-            <div class="modal-footer"
-                style="padding:24px 28px 24px 28px; border-top:none; display:flex; gap:12px; justify-content:flex-end;">
-                <button type="button" id="cancelModelBtn" class="btn btn-secondary"
-                    style="min-width:110px;">Annuler</button>
-                <button type="button" id="saveModelBtn" class="send-button"
-                    style="min-width:110px; background:#27ae60; color:#fff; border-radius:8px; font-weight:600; font-size:15px; border:none; box-shadow:0 2px 8px rgba(39,174,96,0.08);">Enregistrer</button>
+            <div class="modal-footer">
+                <button type="button" id="cancelModelBtn" class="btn btn-secondary">Annuler</button>
+                <button type="button" id="saveModelBtn" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>
 
     <!-- Modale de confirmation suppression -->
-    <div id="deleteConfirmModal" class="modal" style="display:none;">
-        <div class="modal-content"
-            style="background:#fff; border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.12); max-width:400px; width:100%; border:4px solid #e6e6e6; padding:0;">
-            <div class="modal-header" style="padding:24px 28px 0 28px; border-bottom:none; align-items:center;">
-                <div style="flex:1;">
-                    <h2 style="margin:0; font-size:18px; font-weight:700; color:#222;">Confirmation</h2>
-                </div>
-                <span class="close" id="deleteModalClose"
-                    style="cursor:pointer; font-size:28px; margin-left:12px;">&times;</span>
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content modal-confirm">
+            <div class="modal-header">
+                <h2>Confirmation</h2>
+                <span class="close" id="deleteModalClose">&times;</span>
             </div>
-            <div class="modal-body" style="padding:24px 28px 0 28px;">
-                <div id="deleteConfirmText" style="font-size:16px; color:#222;">Voulez-vous vraiment supprimer ce modèle
-                    ?</div>
+            <div class="modal-body">
+                <p id="deleteConfirmText">Voulez-vous vraiment supprimer ce modèle ?</p>
             </div>
-            <div class="modal-footer"
-                style="padding:24px 28px 24px 28px; border-top:none; display:flex; gap:12px; justify-content:flex-end;">
-                <button type="button" id="cancelDeleteBtn" class="btn btn-secondary"
-                    style="min-width:110px;">Annuler</button>
-                <button type="button" id="confirmDeleteBtn" class="btn btn-danger"
-                    style="min-width:110px;">Supprimer</button>
+            <div class="modal-footer">
+                <button type="button" id="cancelDeleteBtn" class="btn btn-secondary">Annuler</button>
+                <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Supprimer</button>
             </div>
         </div>
     </div>
@@ -180,6 +122,7 @@
     <script src="scripts/weapon-models.js"></script>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/context-menu.js"></script>
+    <script>lucide.createIcons();</script>
 </body>
 
 </html>

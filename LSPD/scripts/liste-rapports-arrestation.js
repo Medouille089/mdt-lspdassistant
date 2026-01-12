@@ -90,25 +90,45 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td>${suspects}</td>
                 <td>${tagsHtml}</td>
                 <td class="actions-cell">
-                    <button class="btn-action view" title="Voir" onclick="window.location.href='/view-rapport-arrestation?id=${report.id}'">
-                        <span class="material-symbols-rounded">visibility</span>
-                    </button>
-                    <button class="btn-action edit" title="Modifier" onclick="window.location.href='/modifier-rapport-arrestation?id=${report.id}'">
-                        <span class="material-symbols-rounded">edit</span>
+                    <button class="btn-action edit" title="Modifier" data-id="${report.id}">
+                        <i data-lucide="pencil"></i>
                     </button>
                     ${(currentUser && currentUser.isCommandStaff) ? `
                     <button class="btn-action delete" title="Supprimer" data-id="${report.id}">
-                        <span class="material-symbols-rounded">delete</span>
+                        <i data-lucide="trash-2"></i>
                     </button>` : ''}
                 </td>
             `;
 
+            // Make row clickable to view report
+            tr.style.cursor = 'pointer';
+            tr.addEventListener('click', (e) => {
+                // Ignore if clicking on action buttons
+                if (e.target.closest('.btn-action')) return;
+                window.location.href = `/view-rapport-arrestation?id=${report.id}`;
+            });
+
             tableBody.appendChild(tr);
+        });
+
+        // Refresh Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Attach edit listeners
+        document.querySelectorAll('.btn-action.edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = e.currentTarget.dataset.id;
+                window.location.href = `/modifier-rapport-arrestation?id=${id}`;
+            });
         });
 
         // Attach delete listeners
         document.querySelectorAll('.btn-action.delete').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const id = e.currentTarget.dataset.id;
                 if (confirm('Êtes-vous sûr de vouloir supprimer ce rapport ? Cette action est irréversible.')) {
                     deleteReport(id);
