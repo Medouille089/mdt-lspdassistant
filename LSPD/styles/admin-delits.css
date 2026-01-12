@@ -192,3 +192,16 @@
     color: var(--text-muted);
     margin-right: 10px;
 }
+
+/* Remove hover flash effect on table rows */
+#delitsTable tbody tr {
+    transition: background-color 0.2s ease !important;
+}
+
+#delitsTable tbody tr:hover {
+    background: #f8f9fa !important;
+}
+
+#delitsTable tbody tr:hover td {
+    background-color: #f8f9fa !important;
+}

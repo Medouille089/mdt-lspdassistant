@@ -91,7 +91,7 @@ function displayAccounts() {
         const statusText = isActive ? 'Actif' : 'Inactif';
 
         return `
-            <tr data-account-id="${account.id}" data-discord-id="${account.discord_id}" onclick="goToAgentProfile(event, '${account.discord_id}')">
+            <tr data-account-id="${account.id}" data-discord-id="${account.discord_id}">
                 <td><img src="${avatarUrl}" alt="Avatar" class="avatar-img" onerror="this.src='https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc='"></td>
                 <td><strong>${escapeHtml(account.username)}</strong></td>
                 <td>${escapeHtml(account.displayName || account.username)}</td>
@@ -99,25 +99,54 @@ function displayAccounts() {
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td class="date-cell">${createdDate}</td>
                 <td class="date-cell">${lastLogin}</td>
-                <td>
-                    <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${account.id}, '${escapeHtml(account.username).replace(/'/g, "\\'")}')">
-                        Supprimer
+                <td class="actions-cell">
+                    <button class="btn-action view" title="Voir le profil" data-discord-id="${account.discord_id}">
+                        <i data-lucide="eye"></i>
+                    </button>
+                    <button class="btn-action delete" title="Supprimer" data-id="${account.id}" data-username="${escapeHtml(account.username)}">
+                        <i data-lucide="trash-2"></i>
                     </button>
                 </td>
             </tr>
         `;
     }).join('');
 
+    // Refresh Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    // Add click handlers on rows
+    document.querySelectorAll('#accountsTable tbody tr').forEach(row => {
+        row.addEventListener('click', (e) => {
+            // Ignore clicks on action buttons
+            if (e.target.closest('.actions-cell') || e.target.closest('.btn-action')) return;
+            const discordId = row.dataset.discordId;
+            window.location.href = `/infos-agent?userId=${discordId}`;
+        });
+    });
+
+    // Add click handlers on action buttons
+    document.querySelectorAll('.btn-action.view').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const discordId = btn.dataset.discordId;
+            window.location.href = `/infos-agent?userId=${discordId}`;
+        });
+    });
+
+    document.querySelectorAll('.btn-action.delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            const username = btn.dataset.username;
+            confirmDelete(id, username);
+        });
+    });
+
     updatePagination();
 }
 
-function goToAgentProfile(event, discordId) {
-    // Ne pas rediriger si on clique sur le bouton supprimer
-    if (event.target.closest('.delete-btn')) {
-        return;
-    }
-    window.location.href = `/infos-agent?userId=${discordId}`;
-}
 
 function updatePagination() {
     const pagination = document.getElementById('pagination');
@@ -237,6 +266,14 @@ document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
 document.getElementById('notificationOkBtn').addEventListener('click', () => {
     document.getElementById('notificationPopup').style.display = 'none';
 });
+
+// Bouton retour
+const backlinkBtn = document.getElementById('backlinkBtn');
+if (backlinkBtn) {
+    backlinkBtn.addEventListener('click', () => {
+        window.history.back();
+    });
+}
 
 // Recherche
 document.getElementById('searchInput').addEventListener('input', (e) => {

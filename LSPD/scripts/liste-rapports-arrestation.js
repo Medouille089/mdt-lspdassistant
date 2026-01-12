@@ -1,11 +1,15 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const searchInput = document.getElementById('searchInput');
+    const dateStartInput = document.getElementById('dateStart');
+    const dateEndInput = document.getElementById('dateEnd');
     const tableBody = document.querySelector('#reportsTable tbody');
     const paginationContainer = document.getElementById('pagination');
     const loader = document.getElementById('loaderOverlay');
 
     let currentPage = 1;
     let currentSearch = '';
+    let currentDateStart = '';
+    let currentDateEnd = '';
     let currentUser = null;
 
     // Charger l'utilisateur pour les permissions
@@ -27,6 +31,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 300);
     });
 
+    // Date filters
+    dateStartInput.addEventListener('change', () => {
+        currentDateStart = dateStartInput.value;
+        currentPage = 1;
+        loadReports();
+    });
+
+    dateEndInput.addEventListener('change', () => {
+        currentDateEnd = dateEndInput.value;
+        currentPage = 1;
+        loadReports();
+    });
+
     async function loadReports() {
         loader.style.display = 'flex';
         try {
@@ -35,6 +52,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 limit: 10,
                 search: currentSearch
             });
+
+            if (currentDateStart) {
+                params.append('dateStart', currentDateStart);
+            }
+            if (currentDateEnd) {
+                params.append('dateEnd', currentDateEnd);
+            }
 
             const res = await fetch(`/api/rapports-arrestation?${params}`);
             if (!res.ok) throw new Error('Erreur chargement rapports');
