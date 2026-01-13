@@ -179,16 +179,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         paginationContainer.innerHTML = '';
         if (totalPages <= 1) return;
 
-        for (let i = 1; i <= totalPages; i++) {
+        // Bouton précédent
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '‹';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                loadReports();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+        paginationContainer.appendChild(prevBtn);
+
+        // Afficher au maximum 5 pages
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+        if (endPage - startPage < maxPagesToShow - 1) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
             const btn = document.createElement('button');
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
             btn.textContent = i;
+            if (i === currentPage) {
+                btn.classList.add('active');
+            }
             btn.addEventListener('click', () => {
                 currentPage = i;
                 loadReports();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
             paginationContainer.appendChild(btn);
         }
+
+        // Bouton suivant
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = '›';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadReports();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+        paginationContainer.appendChild(nextBtn);
     }
 
     loadReports();

@@ -9,101 +9,503 @@
   <link rel="stylesheet" href="styles/sidebar.css" />
   <link rel="stylesheet" href="styles/colors.css" />
   <link rel="stylesheet" href="styles/loader.css" />
-  <link rel="stylesheet" href="styles/checkmark.css" />
-  <link rel="stylesheet" href="styles/warning.css" />
-  <link rel="stylesheet" href="styles/popup.css" />
-  <link rel="stylesheet" href="styles/admin/adminPointeuse.css" />
+  <link rel="stylesheet" href="styles/liste-rapports.css" />
   <link rel="stylesheet" href="styles/context-menu.css" />
   <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    /* Modal styles */
+    .user-sessions-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .user-sessions-modal {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      max-width: 90vw;
+      width: 1000px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-sessions-modal .modal-header {
+      background: var(--main-color);
+      padding: 15px 20px;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+
+    .user-sessions-modal .modal-header h2 {
+      margin: 0;
+      font-size: 20px;
+      background: none;
+      padding: 0;
+      color: white;
+    }
+
+    .user-sessions-modal .modal-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .user-sessions-modal .modal-close:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .user-sessions-modal .modal-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      color: var(--text-dark);
+    }
+
+    .sessions-container h3 {
+      color: var(--text-dark);
+      margin: 20px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 2px solid var(--main-color);
+    }
+
+    .sessions-container h3:first-child {
+      margin-top: 0;
+    }
+
+    .sessions-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .sessions-table th {
+      background: var(--main-color);
+      color: white;
+      padding: 12px 8px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .sessions-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #eee;
+      color: var(--text-dark);
+    }
+
+    .sessions-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .sessions-table input {
+      background: white;
+      border: 1px solid var(--border-input);
+      border-radius: 4px;
+      padding: 6px 8px;
+      color: var(--text-dark);
+      font-size: 13px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .sessions-table input:focus {
+      outline: none;
+      border-color: var(--main-color);
+      box-shadow: 0 0 0 2px rgba(11, 27, 90, 0.1);
+    }
+
+    .sessions-table input[type="number"] {
+      width: 80px;
+    }
+
+    .sessions-table input[type="datetime-local"] {
+      width: 150px;
+    }
+
+    .session-duration {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+    }
+
+    .user-sessions-modal .modal-actions {
+      padding: 15px 20px;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      background: #f8f9fa;
+      border-radius: 0 0 12px 12px;
+    }
+
+    .user-sessions-modal .btn-cancel,
+    .user-sessions-modal .btn-save {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .user-sessions-modal .btn-cancel {
+      background: #e0e0e0;
+      color: var(--text-dark);
+    }
+
+    .user-sessions-modal .btn-cancel:hover {
+      background: #d0d0d0;
+    }
+
+    .user-sessions-modal .btn-save {
+      background: #27ae60;
+      color: white;
+    }
+
+    .user-sessions-modal .btn-save:hover {
+      background: #229954;
+      box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+    }
+
+    /* Form styling */
+    #add-role-form {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+
+    #add-role-form input {
+      flex: 1;
+      min-width: 150px;
+      padding: 10px 14px;
+      border: 1px solid var(--border-input);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text-dark);
+      transition: all 0.2s;
+    }
+
+    #add-role-form input:focus {
+      outline: none;
+      border-color: var(--main-color);
+      box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
+    }
+
+    #add-role-form button {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #add-role-form button i,
+    #add-role-form button svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .alert-time-section {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .alert-time-section input[type="time"] {
+      padding: 10px 14px;
+      border: 1px solid var(--border-input);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text-dark);
+      transition: all 0.2s;
+    }
+
+    .alert-time-section input[type="time"]:focus {
+      outline: none;
+      border-color: var(--main-color);
+      box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
+    }
+
+    .alert-time-section button {
+      padding: 10px 20px;
+      background: var(--main-color);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert-time-section button i,
+    .alert-time-section button svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .alert-time-section button:hover {
+      background: var(--main-color-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(11, 27, 90, 0.3);
+    }
+
+    #alertTimeStatus {
+      color: #27ae60;
+      font-weight: 600;
+    }
+
+    section {
+      margin-bottom: 40px;
+    }
+
+    section h2 {
+      margin: 0 0 20px 0;
+      padding: 0;
+      color: var(--text-dark);
+      background: none;
+      font-size: 1.5em;
+      font-weight: 600;
+    }
+
+    /* Table input styles */
+    table td input[type="text"],
+    table td input[type="number"] {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border-input);
+      border-radius: 6px;
+      font-size: 14px;
+      color: var(--text-dark);
+      background: white;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+
+    table td input[type="text"]:focus,
+    table td input[type="number"]:focus {
+      outline: none;
+      border-color: var(--main-color);
+      box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
+    }
+
+    /* Actions cell */
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    /* Action buttons */
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-action i,
+    .btn-action svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+    }
+
+    .btn-action.edit {
+      background: rgba(241, 196, 15, 0.1);
+      color: #f39c12;
+    }
+
+    .btn-action.edit:hover {
+      background: #f39c12;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+    }
+
+    .btn-action.delete {
+      background: rgba(231, 76, 60, 0.1);
+      color: #e74c3c;
+    }
+
+    .btn-action.delete:hover {
+      background: #e74c3c;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+    }
+
+    /* Remove default button hover from liste-rapports.css for action buttons */
+    table tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    /* Make action cell not trigger row hover effect */
+    .actions-cell:hover {
+      background-color: transparent;
+    }
+  </style>
 </head>
 
 <body>
+  <script src="scripts/annonce-popup.js"></script>
+  <div id="sidebar-container"></div>
+  <script src="scripts/instant-sidebar.js"></script>
+
+  <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+    ← Retour
+  </button>
+
   <div class="main-container">
-    <div id="sidebar-container"></div>
     <h1>Configuration pointeuse</h1>
-    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
-      ← Retour
-    </button>
 
-    <h2 style="margin-top: 0 !important">Rôles & Salaires</h2>
-    <form id="add-role-form" style="margin-bottom: 20px">
-      <input type="text" id="role_id" placeholder="ID du rôle Discord" required />
-      <input type="text" id="role_name" placeholder="Nom du rôle" required />
-      <input type="number" id="salary_rate" placeholder="Salaire $/h" step="0.01" required />
-      <input type="number" id="rank" placeholder="Rang (plus petit = + haut)" required />
-      <button type="submit">Ajouter</button>
-    </form>
+    <div class="content-wrapper">
+      <!-- Rôles & Salaires -->
+      <section>
+        <h2>Rôles & Salaires</h2>
+        <form id="add-role-form">
+          <input type="text" id="role_id" placeholder="ID du rôle Discord" required />
+          <input type="text" id="role_name" placeholder="Nom du rôle" required />
+          <input type="number" id="salary_rate" placeholder="Salaire $/h" step="0.01" required />
+          <input type="number" id="rank" placeholder="Rang (plus petit = + haut)" required />
+          <button type="submit" class="add-btn">
+            <i data-lucide="plus-circle"></i>
+            <span>Ajouter</span>
+          </button>
+        </form>
 
-    <table>
-      <thead>
-        <tr>
-          <th>ID Rôle</th>
-          <th>Nom</th>
-          <th>Salaire $/h</th>
-          <th>Rang</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="roles-body"></tbody>
-    </table>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID Rôle</th>
+                <th>Nom</th>
+                <th>Salaire $/h</th>
+                <th>Rang</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="roles-body"></tbody>
+          </table>
+        </div>
+      </section>
 
-    <h2>Salaires par Utilisateur</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Nom Discord</th>
-          <th>ID</th>
-          <th>Salaire cette semaine ($)</th>
-          <th>Heures cette semaine</th>
-          <th>Salaire semaine dernière ($)</th>
-          <th>Heures semaine dernière</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="users-salary-body"></tbody>
-    </table>
+      <!-- Salaires par utilisateur -->
+      <section>
+        <h2>Salaires par Utilisateur</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom Discord</th>
+                <th>ID</th>
+                <th>Salaire cette semaine ($)</th>
+                <th>Heures cette semaine</th>
+                <th>Salaire semaine dernière ($)</th>
+                <th>Heures semaine dernière</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-salary-body"></tbody>
+          </table>
+        </div>
+      </section>
 
-    <h2>Pointeuses actives</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Nom Discord</th>
-          <th>ID</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="active-pointeuses-body"></tbody>
-    </table>
+      <!-- Pointeuses actives -->
+      <section>
+        <h2>Pointeuses actives</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom Discord</th>
+                <th>ID</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="active-pointeuses-body"></tbody>
+          </table>
+        </div>
+      </section>
 
-    <h2>Heure d'alerte pointeuse</h2>
-    <div style="margin-bottom: 1em">
-      <input type="time" id="alertTime" />
-      <button id="saveAlertTimeBtn" style="margin-left: 0.5em">
-        Sauvegarder
-      </button>
-      <span id="alertTimeStatus" style="margin-left: 1em; color: green; display: none">✔️ Sauvegardé</span>
+      <!-- Heure d'alerte -->
+      <section>
+        <h2>Heure d'alerte pointeuse</h2>
+        <div class="alert-time-section">
+          <input type="time" id="alertTime" />
+          <button id="saveAlertTimeBtn">
+            <i data-lucide="save"></i>
+            <span>Sauvegarder</span>
+          </button>
+          <span id="alertTimeStatus" style="display: none">✔️ Sauvegardé</span>
+        </div>
+      </section>
     </div>
   </div>
+
   <div class="loader-overlay" id="loaderOverlay">
     <div class="loader-spinner"></div>
   </div>
-  <div id="customConfirmSend" class="custom-confirm-overlay" style="display: none">
-    <div class="custom-confirm-box">
-      <p>Confirmer l'envoi de cette sanction ?</p>
-      <div class="custom-confirm-buttons">
-        <button class="btn btn-blue">Annuler</button>
-        <button class="btn btn-red">Confirmer</button>
-      </div>
-    </div>
-  </div>
 
-  <div id="feedbackAnimation" style="display: none; text-align: center"></div>
   <script src="scripts/loadSidebar.js"></script>
   <script src="scripts/adminPointeuse.js"></script>
-  <script src="scripts/annonce-popup.js"></script>
   <script src="scripts/context-menu.js"></script>
   <script src="scripts/liveUserHeartbeat.js"></script>
-  <script src="scripts/instant-sidebar.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    // Initialize Lucide icons after page load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    });
+  </script>
 </body>
 
 </html>
