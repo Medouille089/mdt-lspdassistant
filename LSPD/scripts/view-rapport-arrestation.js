@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loader = document.getElementById('loaderOverlay');
 
     if (!reportId) {
-        alert("ID manquant");
+        showNotification("ID manquant", 'error');
         window.location.href = '/liste-rapports-arrestation.html';
         return;
     }
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (err) {
         console.error(err);
-        alert("Erreur chargement rapport");
+        showNotification("Erreur chargement rapport", 'error');
     } finally {
         loader.style.display = 'none';
     }

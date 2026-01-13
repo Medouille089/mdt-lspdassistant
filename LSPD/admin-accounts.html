@@ -46,6 +46,15 @@
                     <span class="material-symbols-rounded">search</span>
                     <input type="text" id="searchInput" placeholder="Rechercher par nom ou Discord ID" autocomplete="off" />
                 </div>
+                <div class="filters-row">
+                    <select id="statusFilter">
+                        <option value="">Tous les statuts</option>
+                        <option value="active">Actifs</option>
+                        <option value="inactive">Inactifs</option>
+                    </select>
+                    <input type="date" id="dateStart" title="Date de début" />
+                    <input type="date" id="dateEnd" title="Date de fin" />
+                </div>
             </div>
 
             <div class="table-container">

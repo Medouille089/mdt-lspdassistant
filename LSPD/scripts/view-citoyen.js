@@ -981,12 +981,18 @@ async function deleteCitoyen() {
     const nom = document.getElementById('nom').value.trim();
     const prenom = document.getElementById('prenom').value.trim();
 
-    const confirmed = confirm(
-        `Êtes-vous sûr de vouloir supprimer le citoyen ${prenom} ${nom} ?\n\nCette action est irréversible.`
+    showConfirm(
+        `Êtes-vous sûr de vouloir supprimer le citoyen ${prenom} ${nom} ?\n\nCette action est irréversible.`,
+        (result) => {
+            if (!result) return;
+
+            deleteCitoyenConfirmed();
+        },
+        { yesText: 'Supprimer', noText: 'Annuler' }
     );
+}
 
-    if (!confirmed) return;
-
+async function deleteCitoyenConfirmed() {
     const loader = document.getElementById('loaderOverlay');
     loader.style.display = 'flex';
 
@@ -1668,8 +1674,14 @@ async function loadCriminalRecord(citizenId) {
 }
 
 window.deleteCriminalRecord = async function(id) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette entrée du casier judiciaire ?')) return;
-    
+    showConfirm('Êtes-vous sûr de vouloir supprimer cette entrée du casier judiciaire ?', (result) => {
+        if (!result) return;
+
+        deleteCriminalRecordConfirmed(id);
+    }, { yesText: 'Supprimer', noText: 'Annuler' });
+};
+
+async function deleteCriminalRecordConfirmed(id) {
     try {
         const res = await fetch(`/api/calcul-peine/${id}`, { method: 'DELETE' });
         if (!res.ok) {

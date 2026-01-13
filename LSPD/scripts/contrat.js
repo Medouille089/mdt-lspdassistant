@@ -166,7 +166,7 @@ async function loadContrat(id) {
 
     } catch (error) {
         console.error('Erreur lors du chargement du contrat:', error);
-        alert('Erreur lors du chargement du contrat: ' + error.message);
+        showNotification('Erreur lors du chargement du contrat: ' + error.message, 'error');
     } finally {
         loaderOverlay.style.display = 'none';
     }
@@ -174,10 +174,14 @@ async function loadContrat(id) {
 
 // Résilier un contrat
 async function terminateContrat(id) {
-    if (!confirm('Êtes-vous sûr de vouloir résilier ce contrat ? Cette action est irréversible.')) {
-        return;
-    }
+    showConfirm('Êtes-vous sûr de vouloir résilier ce contrat ? Cette action est irréversible.', (result) => {
+        if (!result) return;
 
+        terminateContratConfirmed(id);
+    }, { yesText: 'Résilier', noText: 'Annuler' });
+}
+
+async function terminateContratConfirmed(id) {
     const loaderOverlay = document.getElementById('loaderOverlay');
     loaderOverlay.style.display = 'flex';
 
@@ -190,11 +194,11 @@ async function terminateContrat(id) {
             throw new Error('Erreur lors de la résiliation');
         }
 
-        alert('Contrat résilié avec succès');
+        showNotification('Contrat résilié avec succès', 'success');
         window.location.reload();
     } catch (error) {
         console.error('Erreur:', error);
-        alert('Erreur lors de la résiliation: ' + error.message);
+        showNotification('Erreur lors de la résiliation: ' + error.message, 'error');
     } finally {
         loaderOverlay.style.display = 'none';
     }
@@ -203,7 +207,7 @@ async function terminateContrat(id) {
 // Exporter en PNG
 async function exportPNG() {
     if (!currentContratId) {
-        alert('Aucun contrat sélectionné');
+        showNotification('Aucun contrat sélectionné', 'error');
         return;
     }
 
@@ -314,7 +318,7 @@ async function exportPNG() {
 
     } catch (error) {
         console.error('Erreur lors de l\'export PNG:', error);
-        alert('Erreur lors de l\'export: ' + error.message);
+        showNotification('Erreur lors de l\'export: ' + error.message, 'error');
     } finally {
         loaderOverlay.style.display = 'none';
     }
@@ -459,13 +463,13 @@ document.getElementById('contratForm').addEventListener('submit', async (e) => {
         }
 
         // Afficher un message de succès
-        alert(editMode ? 'Contrat modifié avec succès!' : 'Contrat créé avec succès!');
+        showNotification(editMode ? 'Contrat modifié avec succès!' : 'Contrat créé avec succès!', 'success');
 
         // Rediriger vers la liste des contrats
         window.location.href = '/liste-contrats';
     } catch (error) {
         console.error('Erreur:', error);
-        alert('Erreur lors de la sauvegarde du contrat');
+        showNotification('Erreur lors de la sauvegarde du contrat', 'error');
     } finally {
         loaderOverlay.style.display = 'none';
     }

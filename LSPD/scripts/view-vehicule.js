@@ -257,10 +257,18 @@
     }
 
     async function deleteVehicle() {
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer ce véhicule (${vehicleData.modele} - ${vehicleData.plaque}) ?\n\nCette action est irréversible.`)) {
-            return;
-        }
+        showConfirm(
+            `Êtes-vous sûr de vouloir supprimer ce véhicule (${vehicleData.modele} - ${vehicleData.plaque}) ?\n\nCette action est irréversible.`,
+            (result) => {
+                if (!result) return;
 
+                deleteVehicleConfirmed();
+            },
+            { yesText: 'Supprimer', noText: 'Annuler' }
+        );
+    }
+
+    async function deleteVehicleConfirmed() {
         const loader = document.getElementById('loaderOverlay');
         loader.style.display = 'flex';
 

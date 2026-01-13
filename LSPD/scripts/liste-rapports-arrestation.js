@@ -154,9 +154,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = e.currentTarget.dataset.id;
-                if (confirm('Êtes-vous sûr de vouloir supprimer ce rapport ? Cette action est irréversible.')) {
-                    deleteReport(id);
-                }
+                showConfirm('Êtes-vous sûr de vouloir supprimer ce rapport ? Cette action est irréversible.', (result) => {
+                    if (result) {
+                        deleteReport(id);
+                    }
+                }, { yesText: 'Supprimer', noText: 'Annuler' });
             });
         });
     }
@@ -165,13 +167,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch(`/api/rapports-arrestation/${id}`, { method: 'DELETE' });
             if (res.ok) {
+                showNotification('Rapport supprimé avec succès', 'success');
                 loadReports();
             } else {
-                alert('Erreur lors de la suppression');
+                showNotification('Erreur lors de la suppression', 'error');
             }
         } catch (e) {
             console.error(e);
-            alert('Erreur serveur');
+            showNotification('Erreur serveur', 'error');
         }
     }
 

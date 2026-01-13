@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             filterAndRender();
         } catch (err) {
             console.error(err);
-            alert('Erreur lors du chargement des délits');
+            showNotification('Erreur lors du chargement des délits', 'error');
         } finally {
             loader.style.display = 'none';
         }
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         if (!payload.chef_accusation || !payload.type) {
-            alert('Le chef d\'accusation et le type sont obligatoires');
+            showNotification('Le chef d\'accusation et le type sont obligatoires', 'error');
             return;
         }
 
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await loadDelits();
         } catch (err) {
             console.error(err);
-            alert('Erreur lors de l\'enregistrement');
+            showNotification('Erreur lors de l\'enregistrement', 'error');
         } finally {
             loader.style.display = 'none';
         }
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await loadDelits();
         } catch (err) {
             console.error(err);
-            alert('Erreur lors de la suppression');
+            showNotification('Erreur lors de la suppression', 'error');
         } finally {
             loader.style.display = 'none';
             delitToDelete = null;

@@ -1,3 +1,47 @@
+/* Override controls layout for admin-accounts */
+.controls-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.controls-container .search-box {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filters-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 12px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.filters-row select,
+.filters-row input[type="date"] {
+    height: 44px;
+    margin: 0;
+    padding: 10px 14px;
+    border: 1px solid var(--border-input);
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    color: var(--text-dark);
+    box-sizing: border-box;
+}
+
+.filters-row select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
 .avatar-img {
     width: 32px;
     height: 32px;

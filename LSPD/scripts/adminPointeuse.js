@@ -114,8 +114,14 @@ async function updateRole(button) {
 }
 
 async function deleteRole(roleId) {
-  if (!confirm("Supprimer ce rôle ?")) return;
+  showConfirm("Supprimer ce rôle ?", (result) => {
+    if (!result) return;
 
+    deleteRoleConfirmed(roleId);
+  }, { yesText: 'Supprimer', noText: 'Annuler' });
+}
+
+async function deleteRoleConfirmed(roleId) {
   showLoader(true);
   const res = await fetch(`/config/pointeuse/${roleId}`, {
     method: "DELETE",
@@ -198,8 +204,14 @@ async function loadUsersWithSalary() {
 }
 
 async function deleteUser(userId) {
-  if (!confirm("Supprimer toutes les données de cet utilisateur ?")) return;
+  showConfirm("Supprimer toutes les données de cet utilisateur ?", (result) => {
+    if (!result) return;
 
+    deleteUserConfirmed(userId);
+  }, { yesText: 'Supprimer', noText: 'Annuler' });
+}
+
+async function deleteUserConfirmed(userId) {
   showLoader(true);
   const res = await fetch("/admin/pointeuse/users/" + userId, {
     method: "DELETE",
@@ -609,9 +621,14 @@ async function loadActivePointeuses() {
 }
 
 async function forceStopPointeuse(discordId) {
-  if (!confirm("Êtes-vous sûr de vouloir forcer l'arrêt de cette pointeuse ?"))
-    return;
+  showConfirm("Êtes-vous sûr de vouloir forcer l'arrêt de cette pointeuse ?", (result) => {
+    if (!result) return;
 
+    forceStopPointeuseConfirmed(discordId);
+  }, { yesText: 'Confirmer', noText: 'Annuler' });
+}
+
+async function forceStopPointeuseConfirmed(discordId) {
   showLoader(true);
   const res = await fetch(`/admin/pointeuse/stop/${discordId}`, {
     method: "POST",

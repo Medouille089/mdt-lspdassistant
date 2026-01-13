@@ -167,9 +167,9 @@
   window.createNewTag = async function() {
     const name = document.getElementById('newTagName').value;
     const color = document.querySelector('.color-option.selected').dataset.color;
-    
-    if (!name) return alert("Nom requis");
-    
+
+    if (!name) return showNotification("Nom requis", 'error');
+
     try {
       const res = await fetch('/api/tags', {
         method: 'POST',

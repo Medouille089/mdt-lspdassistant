@@ -100,9 +100,6 @@ function displayAccounts() {
                 <td class="date-cell">${createdDate}</td>
                 <td class="date-cell">${lastLogin}</td>
                 <td class="actions-cell">
-                    <button class="btn-action view" title="Voir le profil" data-discord-id="${account.discord_id}">
-                        <i data-lucide="eye"></i>
-                    </button>
                     <button class="btn-action delete" title="Supprimer" data-id="${account.id}" data-username="${escapeHtml(account.username)}">
                         <i data-lucide="trash-2"></i>
                     </button>
@@ -126,15 +123,7 @@ function displayAccounts() {
         });
     });
 
-    // Add click handlers on action buttons
-    document.querySelectorAll('.btn-action.view').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const discordId = btn.dataset.discordId;
-            window.location.href = `/infos-agent?userId=${discordId}`;
-        });
-    });
-
+    // Add click handlers on delete buttons
     document.querySelectorAll('.btn-action.delete').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -275,23 +264,65 @@ if (backlinkBtn) {
     });
 }
 
-// Recherche
-document.getElementById('searchInput').addEventListener('input', (e) => {
-    const search = e.target.value.toLowerCase().trim();
+// Fonction pour appliquer les filtres de recherche, statut et date
+function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const dateStart = document.getElementById('dateStart').value;
+    const dateEnd = document.getElementById('dateEnd').value;
 
-    if (!search) {
-        filteredAccounts = [...allAccounts];
-    } else {
-        filteredAccounts = allAccounts.filter(account =>
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    filteredAccounts = allAccounts.filter(account => {
+        // Filtre de recherche
+        const textMatch = !search ||
             account.username.toLowerCase().includes(search) ||
             account.discord_id.toLowerCase().includes(search) ||
-            (account.email && account.email.toLowerCase().includes(search))
-        );
-    }
+            (account.email && account.email.toLowerCase().includes(search));
+
+        // Filtre de statut
+        let statusMatch = true;
+        if (statusFilter) {
+            const lastLoginDate = account.last_login ? new Date(account.last_login) : null;
+            const isActive = lastLoginDate && lastLoginDate >= oneWeekAgo;
+
+            if (statusFilter === 'active') {
+                statusMatch = isActive;
+            } else if (statusFilter === 'inactive') {
+                statusMatch = !isActive;
+            }
+        }
+
+        // Filtre de date sur created_at
+        let dateMatch = true;
+        if (dateStart || dateEnd) {
+            const accountDate = account.created_at ? account.created_at.split('T')[0] : null;
+            if (accountDate) {
+                const startOk = dateStart ? accountDate >= dateStart : true;
+                const endOk = dateEnd ? accountDate <= dateEnd : true;
+                dateMatch = startOk && endOk;
+            } else {
+                dateMatch = false;
+            }
+        }
+
+        return textMatch && statusMatch && dateMatch;
+    });
 
     currentPage = 1;
     displayAccounts();
-});
+}
+
+// Recherche
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+// Filtre de statut
+document.getElementById('statusFilter').addEventListener('change', applyFilters);
+
+// Filtres de dates
+document.getElementById('dateStart').addEventListener('change', applyFilters);
+document.getElementById('dateEnd').addEventListener('change', applyFilters);
 
 // Charger les comptes au chargement de la page
 loadAccounts();
