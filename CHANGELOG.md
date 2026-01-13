@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.24.0](https://github.com/Medouille089/lspdassistant/compare/v1.23.0...v1.24.0) (2026-01-13)
+
+
+### Features
+
+* enhance admin accounts and reports pages with improved UI, added date filters, and refined action buttons ([e56ccbc](https://github.com/Medouille089/lspdassistant/commit/e56ccbcac20b75b697b5dc64427ad2ba0096ad8f))
+* enhance admin pages with new filters, improved UI, and custom notification handling ([a52d211](https://github.com/Medouille089/lspdassistant/commit/a52d211b21d888bcfd8628874334826a24f47b8a))
+* enhance admin pointeuse and vehicle list pages with improved UI, added modal styles, and pagination controls ([36ecfb3](https://github.com/Medouille089/lspdassistant/commit/36ecfb3182d39a3445a9ce00bc907e136f087e38))
+* enhance convocation filtering with additional search criteria for improved user experience ([8eb96cd](https://github.com/Medouille089/lspdassistant/commit/8eb96cd567f73e13e1ea23519aff38a64607fe99))
+* enhance dashboard and absence pages with new data metrics and improved styling ([87a8eab](https://github.com/Medouille089/lspdassistant/commit/87a8eab0a8db87251b63af46969264fde2d58e19))
+* enhance pagination buttons and improve permission handling in sidebar ([38872b0](https://github.com/Medouille089/lspdassistant/commit/38872b03264231d5a144228a746c3e88faa0196f))
+* enhance weapon models and arrest reports pages with improved UI, dynamic icons, and better user interaction ([6de2a10](https://github.com/Medouille089/lspdassistant/commit/6de2a10a22c407aac28922105aa4ae44f7ebc2e4))
+* implement full avis de recherche (wanted notice) functionality with UI, API, and database schema ([bab16fe](https://github.com/Medouille089/lspdassistant/commit/bab16fe0144856de64127e75b8d196808df93316))
+* Implement rookie patrol tracking with versioning, including database migration, state management, and UI. ([6292262](https://github.com/Medouille089/lspdassistant/commit/62922628b5ea1d63682ebf5746402443d9e91f19))
+* remove image uploader link from sidebar navigation ([70e9b02](https://github.com/Medouille089/lspdassistant/commit/70e9b029da00ee22eec88c8074b4f86ab6e60403))
+* update permission handling and improve sidebar functionality with dynamic CSS and route management ([3cb7158](https://github.com/Medouille089/lspdassistant/commit/3cb71589fc474436fc66973e63a52e47a49f344c))
+
 ## [1.23.0](https://github.com/Medouille089/lspdassistant/compare/v1.22.0...v1.23.0) (2026-01-03)
 
 
