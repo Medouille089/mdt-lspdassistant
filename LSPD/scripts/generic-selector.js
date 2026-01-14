@@ -247,10 +247,13 @@ class GenericSelectorModal {
 
 const GenericSelector = {
     open: function(options) {
-        // options: type, apiEndpoint, title, searchPlaceholder, renderItem, onSelect
+        // options: type, apiEndpoint, title, searchPlaceholder, renderItem, onSelect, allowUnregistered, onUnregistered
         
         // Create modal HTML
         const modalId = 'generic-selector-modal-' + Math.random().toString(36).substr(2, 9);
+        const unregisteredBtn = options.allowUnregistered ? 
+            `<button class="btn-unregistered" id="unregistered-${modalId}">Personne non recensée</button>` : '';
+        
         const modalHTML = `
             <div id="${modalId}" class="selector-modal" style="display: flex;">
                 <div class="selector-modal-content">
@@ -265,6 +268,7 @@ const GenericSelector = {
                         </div>
                     </div>
                     <div class="selector-modal-footer">
+                        ${unregisteredBtn}
                         <button class="btn-secondary" onclick="document.getElementById('${modalId}').remove()">Annuler</button>
                     </div>
                 </div>
@@ -275,6 +279,17 @@ const GenericSelector = {
         const modal = document.getElementById(modalId);
         const listContainer = modal.querySelector('.selector-list');
         const searchInput = modal.querySelector('.selector-search-input');
+        
+        // Handle unregistered button
+        if (options.allowUnregistered) {
+            const unregBtn = document.getElementById(`unregistered-${modalId}`);
+            if (unregBtn) {
+                unregBtn.onclick = () => {
+                    if (options.onUnregistered) options.onUnregistered();
+                    modal.remove();
+                };
+            }
+        }
         
         let items = [];
         

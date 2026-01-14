@@ -26,7 +26,7 @@ async function loadContrats() {
         updatePagination(data.total);
     } catch (error) {
         console.error('Erreur:', error);
-        alert('Erreur lors du chargement des contrats');
+        showNotification('Erreur lors du chargement des contrats', 'error');
     } finally {
         loaderOverlay.style.display = 'none';
     }
@@ -130,10 +130,14 @@ window.viewContrat = function (id) {
 };
 
 window.deleteContrat = async function (id, numero) {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer le contrat ${numero} ?`)) {
-        return;
-    }
+    showConfirm(`Êtes-vous sûr de vouloir supprimer le contrat ${numero} ?`, (result) => {
+        if (!result) return;
 
+        deleteContratConfirmed(id);
+    }, { yesText: 'Supprimer', noText: 'Annuler' });
+};
+
+async function deleteContratConfirmed(id) {
     const loaderOverlay = document.getElementById('loaderOverlay');
     loaderOverlay.style.display = 'flex';
 
@@ -146,16 +150,16 @@ window.deleteContrat = async function (id, numero) {
             throw new Error('Erreur lors de la suppression');
         }
 
-        alert('Contrat supprimé avec succès');
+        showNotification('Contrat supprimé avec succès', 'success');
         loadContrats();
         loadAllStats();
     } catch (error) {
         console.error('Erreur:', error);
-        alert('Erreur lors de la suppression du contrat');
+        showNotification('Erreur lors de la suppression du contrat', 'error');
     } finally {
         loaderOverlay.style.display = 'none';
     }
-};
+}
 
 // Event listeners
 document.getElementById('searchInput').addEventListener('input', (e) => {

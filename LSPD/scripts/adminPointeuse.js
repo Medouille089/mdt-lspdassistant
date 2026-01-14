@@ -59,13 +59,22 @@ async function loadRoles() {
       <td><input type="text" value="${role.role_name}"></td>
       <td><input type="number" step="0.01" value="${role.salary_rate}"></td>
       <td><input type="number" value="${role.rank}"></td>
-      <td>
-        <button onclick="updateRole(this)">Modifier</button>
-        <button onclick="deleteRole('${role.id}')">Supprimer</button>
+      <td class="actions-cell">
+        <button class="btn-action edit" onclick="updateRole(this)" title="Modifier">
+          <i data-lucide="pencil"></i>
+        </button>
+        <button class="btn-action delete" onclick="deleteRole('${role.id}')" title="Supprimer">
+          <i data-lucide="trash-2"></i>
+        </button>
       </td>
     `;
     tbody.appendChild(tr);
   });
+
+  // Refresh Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 }
 
 async function updateRole(button) {
@@ -105,8 +114,14 @@ async function updateRole(button) {
 }
 
 async function deleteRole(roleId) {
-  if (!confirm("Supprimer ce rôle ?")) return;
+  showConfirm("Supprimer ce rôle ?", (result) => {
+    if (!result) return;
 
+    deleteRoleConfirmed(roleId);
+  }, { yesText: 'Supprimer', noText: 'Annuler' });
+}
+
+async function deleteRoleConfirmed(roleId) {
   showLoader(true);
   const res = await fetch(`/config/pointeuse/${roleId}`, {
     method: "DELETE",
@@ -170,18 +185,33 @@ async function loadUsersWithSalary() {
       <td>${user.hoursThisWeek.toFixed(2)} h</td>
       <td>${user.salaryLastWeek.toFixed(2)} $</td>
       <td>${user.hoursLastWeek.toFixed(2)} h</td>
-      <td id="actionsBtns">
-        <button onclick="modifyUser('${user.discordId}')">✏️</button>
-        <button onclick="deleteUser('${user.discordId}')">🗑️</button>
+      <td class="actions-cell">
+        <button class="btn-action edit" onclick="modifyUser('${user.discordId}')" title="Modifier les sessions">
+          <i data-lucide="pencil"></i>
+        </button>
+        <button class="btn-action delete" onclick="deleteUser('${user.discordId}')" title="Supprimer l'utilisateur">
+          <i data-lucide="trash-2"></i>
+        </button>
       </td>
     `;
     tbody.appendChild(tr);
   });
+
+  // Refresh Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 }
 
 async function deleteUser(userId) {
-  if (!confirm("Supprimer toutes les données de cet utilisateur ?")) return;
+  showConfirm("Supprimer toutes les données de cet utilisateur ?", (result) => {
+    if (!result) return;
 
+    deleteUserConfirmed(userId);
+  }, { yesText: 'Supprimer', noText: 'Annuler' });
+}
+
+async function deleteUserConfirmed(userId) {
   showLoader(true);
   const res = await fetch("/admin/pointeuse/users/" + userId, {
     method: "DELETE",
@@ -574,17 +604,31 @@ async function loadActivePointeuses() {
     tr.innerHTML = `
       <td>${user.displayName}</td>
       <td>${user.discord_id}</td>
-      <td><button onclick="forceStopPointeuse('${user.discord_id}')">Forcer arrêt</button></td>
+      <td class="actions-cell">
+        <button class="btn-action delete" onclick="forceStopPointeuse('${user.discord_id}')" title="Forcer l'arrêt de la pointeuse">
+          <i data-lucide="power"></i>
+        </button>
+      </td>
     `;
 
     tbody.appendChild(tr);
   });
+
+  // Refresh Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 }
 
 async function forceStopPointeuse(discordId) {
-  if (!confirm("Êtes-vous sûr de vouloir forcer l'arrêt de cette pointeuse ?"))
-    return;
+  showConfirm("Êtes-vous sûr de vouloir forcer l'arrêt de cette pointeuse ?", (result) => {
+    if (!result) return;
 
+    forceStopPointeuseConfirmed(discordId);
+  }, { yesText: 'Confirmer', noText: 'Annuler' });
+}
+
+async function forceStopPointeuseConfirmed(discordId) {
   showLoader(true);
   const res = await fetch(`/admin/pointeuse/stop/${discordId}`, {
     method: "POST",

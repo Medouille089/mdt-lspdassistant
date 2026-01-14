@@ -1,11 +1,15 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const searchInput = document.getElementById('searchInput');
+    const dateStartInput = document.getElementById('dateStart');
+    const dateEndInput = document.getElementById('dateEnd');
     const tableBody = document.querySelector('#reportsTable tbody');
     const paginationContainer = document.getElementById('pagination');
     const loader = document.getElementById('loaderOverlay');
 
     let currentPage = 1;
     let currentSearch = '';
+    let currentDateStart = '';
+    let currentDateEnd = '';
     let currentUser = null;
 
     // Charger l'utilisateur pour les permissions
@@ -27,6 +31,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 300);
     });
 
+    // Date filters
+    dateStartInput.addEventListener('change', () => {
+        currentDateStart = dateStartInput.value;
+        currentPage = 1;
+        loadReports();
+    });
+
+    dateEndInput.addEventListener('change', () => {
+        currentDateEnd = dateEndInput.value;
+        currentPage = 1;
+        loadReports();
+    });
+
     async function loadReports() {
         loader.style.display = 'flex';
         try {
@@ -35,6 +52,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 limit: 10,
                 search: currentSearch
             });
+
+            if (currentDateStart) {
+                params.append('dateStart', currentDateStart);
+            }
+            if (currentDateEnd) {
+                params.append('dateEnd', currentDateEnd);
+            }
 
             const res = await fetch(`/api/rapports-arrestation?${params}`);
             if (!res.ok) throw new Error('Erreur chargement rapports');
@@ -90,29 +114,51 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td>${suspects}</td>
                 <td>${tagsHtml}</td>
                 <td class="actions-cell">
-                    <button class="btn-action view" title="Voir" onclick="window.location.href='/view-rapport-arrestation?id=${report.id}'">
-                        <span class="material-symbols-rounded">visibility</span>
-                    </button>
-                    <button class="btn-action edit" title="Modifier" onclick="window.location.href='/modifier-rapport-arrestation?id=${report.id}'">
-                        <span class="material-symbols-rounded">edit</span>
+                    <button class="btn-action edit" title="Modifier" data-id="${report.id}">
+                        <i data-lucide="pencil"></i>
                     </button>
                     ${(currentUser && currentUser.isCommandStaff) ? `
                     <button class="btn-action delete" title="Supprimer" data-id="${report.id}">
-                        <span class="material-symbols-rounded">delete</span>
+                        <i data-lucide="trash-2"></i>
                     </button>` : ''}
                 </td>
             `;
 
+            // Make row clickable to view report
+            tr.style.cursor = 'pointer';
+            tr.addEventListener('click', (e) => {
+                // Ignore if clicking on action buttons
+                if (e.target.closest('.btn-action')) return;
+                window.location.href = `/view-rapport-arrestation?id=${report.id}`;
+            });
+
             tableBody.appendChild(tr);
+        });
+
+        // Refresh Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Attach edit listeners
+        document.querySelectorAll('.btn-action.edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = e.currentTarget.dataset.id;
+                window.location.href = `/modifier-rapport-arrestation?id=${id}`;
+            });
         });
 
         // Attach delete listeners
         document.querySelectorAll('.btn-action.delete').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const id = e.currentTarget.dataset.id;
-                if (confirm('Êtes-vous sûr de vouloir supprimer ce rapport ? Cette action est irréversible.')) {
-                    deleteReport(id);
-                }
+                showConfirm('Êtes-vous sûr de vouloir supprimer ce rapport ? Cette action est irréversible.', (result) => {
+                    if (result) {
+                        deleteReport(id);
+                    }
+                }, { yesText: 'Supprimer', noText: 'Annuler' });
             });
         });
     }
@@ -121,13 +167,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch(`/api/rapports-arrestation/${id}`, { method: 'DELETE' });
             if (res.ok) {
+                showNotification('Rapport supprimé avec succès', 'success');
                 loadReports();
             } else {
-                alert('Erreur lors de la suppression');
+                showNotification('Erreur lors de la suppression', 'error');
             }
         } catch (e) {
             console.error(e);
-            alert('Erreur serveur');
+            showNotification('Erreur serveur', 'error');
         }
     }
 
@@ -135,16 +182,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         paginationContainer.innerHTML = '';
         if (totalPages <= 1) return;
 
-        for (let i = 1; i <= totalPages; i++) {
+        // Bouton précédent
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '‹';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                loadReports();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+        paginationContainer.appendChild(prevBtn);
+
+        // Afficher au maximum 5 pages
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+        if (endPage - startPage < maxPagesToShow - 1) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
             const btn = document.createElement('button');
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
             btn.textContent = i;
+            if (i === currentPage) {
+                btn.classList.add('active');
+            }
             btn.addEventListener('click', () => {
                 currentPage = i;
                 loadReports();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
             paginationContainer.appendChild(btn);
         }
+
+        // Bouton suivant
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = '›';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadReports();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+        paginationContainer.appendChild(nextBtn);
     }
 
     loadReports();

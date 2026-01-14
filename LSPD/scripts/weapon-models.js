@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadModels(){
         // show loading in table body
-        if(tableBody) tableBody.innerHTML = '<tr><td colspan="3" style="color:#7f8c8d">Chargement...</td></tr>';
+        if(tableBody) tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#7f8c8d;padding:40px;">Chargement...</td></tr>';
         try{
             const res = await fetch('/api/weapon_models');
             if(!res.ok) throw new Error('Erreur');
@@ -51,13 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const models = data.models || [];
             modelsCache = models;
             if(models.length === 0){
-                if(tableBody) tableBody.innerHTML = '<tr><td colspan="3" style="color:#7f8c8d">Aucun modèle</td></tr>';
+                if(tableBody) tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#7f8c8d;padding:40px;">Aucun modèle</td></tr>';
                 return;
             }
             renderModels(models);
         }catch(err){
             console.error('Erreur chargement modèles', err);
-            if(tableBody) tableBody.innerHTML = '<tr><td colspan="3" style="color:#e74c3c">Erreur chargement</td></tr>';
+            if(tableBody) tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#e74c3c;padding:40px;">Erreur chargement</td></tr>';
         }
     }
 
@@ -69,63 +69,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // ID cell
             const idTd = document.createElement('td');
-            const idInner = document.createElement('div');
-            idInner.className = 'cell-inner';
-            idInner.textContent = m.id;
-            idTd.appendChild(idInner);
-            idTd.style.textAlign = 'center';
+            idTd.textContent = m.id;
 
             // Photo cell
             const photoTd = document.createElement('td');
-            photoTd.className = 'photo-cell';
-            const photoInner = document.createElement('div');
-            photoInner.className = 'cell-inner';
             if (m.image_url) {
                 const img = document.createElement('img');
                 img.src = m.image_url;
                 img.alt = m.model_name;
-                img.style.width = '72px';
-                img.style.height = '54px';
-                img.style.objectFit = 'contain';
-                img.style.borderRadius = '6px';
-                img.style.background = '#f7fafb';
-                img.style.padding = '6px';
-                img.style.boxSizing = 'border-box';
-                img.style.border = '1px solid #ecf0f1';
-                photoInner.appendChild(img);
+                photoTd.appendChild(img);
             } else {
-                photoInner.textContent = '🔫';
+                const noPhoto = document.createElement('span');
+                noPhoto.className = 'no-photo';
+                noPhoto.textContent = '🔫';
+                photoTd.appendChild(noPhoto);
             }
-            photoTd.appendChild(photoInner);
 
             // Model cell
             const modelTd = document.createElement('td');
-            const modelInner = document.createElement('div');
-            modelInner.className = 'cell-inner';
-            modelInner.style.gap = '12px';
-            const nameSpan = document.createElement('span');
-            nameSpan.style.fontWeight = 'bold';
-            nameSpan.textContent = m.model_name;
-            modelInner.appendChild(nameSpan);
-            modelTd.appendChild(modelInner);
+            modelTd.textContent = m.model_name;
 
             // Calibre cell
             const calibreTd = document.createElement('td');
-            const calibreInner = document.createElement('div');
-            calibreInner.className = 'cell-inner';
-            calibreInner.textContent = m.calibre || '';
-            calibreTd.appendChild(calibreInner);
+            calibreTd.textContent = m.calibre || '-';
 
             // Actions cell
             const actionsTd = document.createElement('td');
-            const actionsInner = document.createElement('div');
-            actionsInner.className = 'cell-inner';
-            actionsInner.style.gap = '12px';
-            actionsInner.style.justifyContent = 'flex-end';
-
             const delBtn = document.createElement('button');
-            delBtn.className = 'btn btn-danger';
-            delBtn.textContent = 'Supprimer';
+            delBtn.className = 'btn-icon btn-danger';
+            delBtn.title = 'Supprimer';
+            delBtn.innerHTML = '<i data-lucide="trash-2"></i>';
             delBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 // Ouvre la modale de confirmation suppression
@@ -161,19 +134,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeBtn.onclick = () => { deleteModal.style.display = 'none'; };
             });
 
-            actionsInner.appendChild(delBtn);
-            actionsTd.appendChild(actionsInner);
+            actionsTd.appendChild(delBtn);
 
             tr.appendChild(idTd);
             tr.appendChild(photoTd);
-            tr.appendChild(modelTd);
             tr.appendChild(calibreTd);
+            tr.appendChild(modelTd);
             tr.appendChild(actionsTd);
 
             // Clic sur la ligne = modifier
             tr.addEventListener('click', (e) => {
                 // Ignore si clic sur le bouton supprimer
-                if (e.target === delBtn) return;
+                if (e.target === delBtn || e.target.closest('.btn-icon')) return;
                 modelIdInput.value = m.id;
                 modelNameInput.value = m.model_name || '';
                 imageUrlInput.value = m.image_url || '';
@@ -191,6 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             tableBody.appendChild(tr);
         });
+        // Refresh Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     }
 
     function escapeHtml(text){

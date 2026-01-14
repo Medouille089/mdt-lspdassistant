@@ -188,17 +188,23 @@ thead th {
 
 
 .pointeuse .card.full-width table tbody tr,
-.pointeuse .card.full-width table tbody tr:nth-child(even),
-.pointeuse .card.full-width table tbody tr:hover {
-  background: var(--table-bg) !important;
+.pointeuse .card.full-width table tbody tr:nth-child(even) {
+  background: white !important;
   cursor: default;
-  transition: none !important;
+}
+
+.pointeuse .card.full-width table tbody tr:hover {
+  background: #f8f9fa !important;
 }
 
 tbody td {
   padding: 12px 20px;
   vertical-align: middle;
   color: var(--white);
+}
+
+.pointeuse .card.full-width table tbody td {
+  color: var(--text-dark);
 }
 
 .live-timer-cell {

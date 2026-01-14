@@ -386,7 +386,7 @@ function renderPagination(paginationData) {
     // Séparer Précédent
     const prevWrapper = document.createElement('div');
     prevWrapper.style.marginRight = '1.5rem';
-    const prevBtn = createPaginationButton('‹ Précédent', page === 1, () => {
+    const prevBtn = createPaginationButton('‹', page === 1, () => {
         currentPage--;
         loadLogs();
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -456,7 +456,7 @@ function renderPagination(paginationData) {
     // Séparer Suivant
     const nextWrapper = document.createElement('div');
     nextWrapper.style.marginLeft = '1.5rem';
-    const nextBtn = createPaginationButton('Suivant ›', page === totalPages, () => {
+    const nextBtn = createPaginationButton('›', page === totalPages, () => {
         currentPage++;
         loadLogs();
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -478,7 +478,7 @@ function createPaginationButton(text, disabled, onClick, isActive = false) {
     // borderRadius param
     let borderRadius = arguments[4] || '0';
     // Même radius sur les 4 coins pour Précédent/Suivant
-    if (text === '‹ Précédent' || text === 'Suivant ›') borderRadius = '8px';
+    if (text === '‹' || text === '›') borderRadius = '8px';
     btn.style.borderRadius = borderRadius;
     btn.style.fontWeight = '600';
     btn.style.fontSize = '0.95rem';

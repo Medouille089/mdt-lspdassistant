@@ -185,7 +185,14 @@
     }
 
     async function deleteArme() {
-        if (!confirm('Supprimer cette arme ?')) return;
+        showConfirm('Supprimer cette arme ?', (result) => {
+            if (!result) return;
+
+            deleteArmeConfirmed();
+        }, { yesText: 'Supprimer', noText: 'Annuler' });
+    }
+
+    async function deleteArmeConfirmed() {
         const loader = document.getElementById('loaderOverlay');
         loader.style.display = 'flex';
         try {

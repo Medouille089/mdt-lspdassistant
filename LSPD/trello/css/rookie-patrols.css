@@ -242,6 +242,47 @@
     font-weight: 700;
 }
 
+/* === VERSIONING STYLES === */
+
+/* Style pour les anciennes versions (superseded) */
+.rookie-patrols-list .card.patrol-superseded {
+    opacity: 0.5;
+    background: var(--tertiary-bg);
+    border: 1px dashed rgba(255, 193, 7, 0.3);
+}
+
+.rookie-patrols-list .card.patrol-superseded:hover {
+    opacity: 0.7;
+}
+
+.rookie-patrols-list .card.patrol-superseded .card-title {
+    color: var(--text-secondary);
+}
+
+/* Badge de version */
+.patrol-badge.version-badge {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.25), rgba(63, 81, 181, 0.25));
+    color: #64b5f6;
+    border: 1px solid rgba(33, 150, 243, 0.4);
+    font-weight: 700;
+    font-size: 10px;
+}
+
+/* Badge ancienne version */
+.patrol-badge.superseded-badge {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.35);
+    font-size: 10px;
+}
+
+.patrol-badge.duration-badge {
+    background: rgba(139, 195, 74, 0.2);
+    color: #8bc34a;
+    border: 1px solid rgba(139, 195, 74, 0.4);
+}
+
+
 .rookie-patrols-footer {
     padding: var(--spacing-sm) var(--spacing-md);
     text-align: center;

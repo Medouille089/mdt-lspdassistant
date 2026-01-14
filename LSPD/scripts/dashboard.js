@@ -99,7 +99,12 @@ async function loadDashboardStats() {
         if (report.type === 'Arrestation') {
           return `/viewArrestation?id=${report.id}`;
         }
-        // Ajouter d'autres types ici si besoin
+        if (report.type === 'Avis de recherche (Disparu)' || report.type === 'Avis de recherche (Most Wanted)' || report.type === 'Avis de recherche') {
+          return `/voir-avis-recherche?id=${report.id}`;
+        }
+        if (report.type === 'Rapport d\'arrestation') {
+          return `/voir-rapport-arrestation?id=${report.id}`;
+        }
         return '#';
       }
 
@@ -193,6 +198,8 @@ async function loadActivityChart() {
   const arrestations = data.map(d => d.arrestations);
   const bracelets = data.map(d => d.bracelets);
   const convocations = data.map(d => d.convocations);
+  const avisRecherche = data.map(d => d.avisRecherche);
+  const rapportsArrestation = data.map(d => d.rapportsArrestation);
 
   const ctx = document.getElementById('activityChart').getContext('2d');
   new Chart(ctx, {
@@ -225,7 +232,21 @@ async function loadActivityChart() {
           label: 'Convocations',
           data: convocations,
           borderColor: 'rgba(136, 207, 88, 1)',
-          backgroundColor: 'rgba(255, 206, 86, 0.2)',
+          backgroundColor: 'rgba(136, 207, 88, 0.2)',
+          tension: 0.3
+        },
+        {
+          label: 'Avis de recherche',
+          data: avisRecherche,
+          borderColor: 'rgba(155, 89, 182, 1)',
+          backgroundColor: 'rgba(155, 89, 182, 0.2)',
+          tension: 0.3
+        },
+        {
+          label: 'Rapports d\'arrestation',
+          data: rapportsArrestation,
+          borderColor: 'rgba(230, 126, 34, 1)',
+          backgroundColor: 'rgba(230, 126, 34, 0.2)',
           tension: 0.3
         }
       ]

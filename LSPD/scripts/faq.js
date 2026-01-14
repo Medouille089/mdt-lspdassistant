@@ -346,36 +346,45 @@ function copyCodeBlock(btn) {
     } catch (e) {}
 }
 
-// Reusable confirm popup using the existing .custom-confirm-overlay markup
+// Reusable confirm popup using the custom-notifications system
 // returns a Promise<boolean> that resolves true if user confirms
-function showConfirm(message) {
+function showConfirmFAQ(message) {
     return new Promise(resolve => {
-        let overlay = document.getElementById('customConfirmSend');
-        if (!overlay) {
-            // fallback to window.confirm if overlay not found
-            resolve(window.confirm(message));
-            return;
+        // Use global showConfirm if available
+        if (typeof window.showConfirm === 'function') {
+            window.showConfirm(message, (result) => {
+                resolve(result);
+            }, { yesText: 'Confirmer', noText: 'Annuler' });
+        } else {
+            // Fallback to existing implementation
+            let overlay = document.getElementById('customConfirmSend');
+            if (!overlay) {
+                // Error: custom notifications system not loaded
+                console.error('Custom notifications system not loaded. Cannot show confirm dialog.');
+                resolve(false);
+                return;
+            }
+            const box = overlay.querySelector('.custom-confirm-box');
+            const text = box.querySelector('p');
+            const btns = overlay.querySelectorAll('.custom-confirm-buttons .btn');
+            text.textContent = message;
+            overlay.style.display = 'flex';
+            const onCancel = () => {
+                cleanup();
+                resolve(false);
+            };
+            const onConfirm = () => {
+                cleanup();
+                resolve(true);
+            };
+            function cleanup() {
+                overlay.style.display = 'none';
+                btns[0].removeEventListener('click', onCancel);
+                btns[1].removeEventListener('click', onConfirm);
+            }
+            btns[0].addEventListener('click', onCancel);
+            btns[1].addEventListener('click', onConfirm);
         }
-        const box = overlay.querySelector('.custom-confirm-box');
-        const text = box.querySelector('p');
-        const btns = overlay.querySelectorAll('.custom-confirm-buttons .btn');
-        text.textContent = message;
-        overlay.style.display = 'flex';
-        const onCancel = () => {
-            cleanup();
-            resolve(false);
-        };
-        const onConfirm = () => {
-            cleanup();
-            resolve(true);
-        };
-        function cleanup() {
-            overlay.style.display = 'none';
-            btns[0].removeEventListener('click', onCancel);
-            btns[1].removeEventListener('click', onConfirm);
-        }
-        btns[0].addEventListener('click', onCancel);
-        btns[1].addEventListener('click', onConfirm);
     });
 }
 
@@ -720,7 +729,7 @@ async function renderFAQ() {
             delCatBtn.textContent = 'delete';
             delCatBtn.onclick = async (e) => {
                 e.stopPropagation();
-                if (await showConfirm('Supprimer cette catégorie et toutes ses questions ?')) {
+                if (await showConfirmFAQ('Supprimer cette catégorie et toutes ses questions ?')) {
                     const anchor = saveViewAnchor();
                     await fetch(`/api/faq/category/${cat.id}`, { method: 'DELETE' });
                     await renderFAQ();
@@ -805,7 +814,7 @@ async function renderFAQ() {
                 delBtn.textContent = 'delete';
                 delBtn.onclick = async (e) => {
                     e.stopPropagation();
-                        if (await showConfirm('Supprimer cette élément ?')) {
+                        if (await showConfirmFAQ('Supprimer cette élément ?')) {
                         const anchor = saveViewAnchor();
                         await fetch(`/api/faq/${entry.id}`, { method: 'DELETE' });
                         await renderFAQ();

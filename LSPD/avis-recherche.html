@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Avis de recherche - LSPD Assistant</title>
+    <link rel="icon" href="data/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="styles/colors.css" />
+    <link rel="stylesheet" href="styles/sidebar.css" />
+    <link rel="stylesheet" href="styles/incident/incident.css" />
+    <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <link rel="stylesheet" href="styles/custom-notifications.css" />
+    <link rel="stylesheet" href="styles/context-menu.css" />
+    <link rel="stylesheet" href="styles/loader.css" />
+    <link rel="stylesheet" href="styles/generic-selector.css" />
+    <link rel="stylesheet" href="styles/avis-recherche.css" />
+</head>
+
+<body>
+    <script src="scripts/annonce-popup.js"></script>
+    <script src="scripts/context-menu.js"></script>
+    <div class="main-container">
+        <div id="sidebar-container"></div>
+        <script src="scripts/instant-sidebar.js"></script>
+
+        <h1>Nouvel avis de recherche</h1>
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+            ← Retour
+        </button>
+
+        <div class="incident-container">
+            <div class="header">
+                <img src="data/images/lspd.png" alt="Logo LSPD" />
+                <div class="header-title">
+                    <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+                    <h3>AVIS DE RECHERCHE</h3>
+                </div>
+                <div style="width: 60px;"></div>
+            </div>
+
+            <form id="avisRechercheForm">
+                <!-- Sélection du citoyen -->
+                <div class="form-group">
+                    <label for="citoyenSearch">Personne recherchée *</label>
+                    <div class="personne-selector">
+                        <input type="text" id="personne" name="personne" readonly
+                            placeholder="Aucune personne sélectionnée">
+                        <input type="hidden" id="personne_id" name="personne_id">
+                        <button type="button" id="selectPersonneBtn">Choisir</button>
+                    </div>
+                    <input type="hidden" id="citoyen_id" name="citoyen_id" />
+                    <input type="hidden" id="citoyen_nom" name="citoyen_nom" />
+                    <input type="hidden" id="citoyen_prenom" name="citoyen_prenom" />
+                    <input type="hidden" id="citoyen_ddn" name="citoyen_ddn" />
+                    <input type="hidden" id="non_recense" name="non_recense" value="false" />
+                </div>
+
+                <!-- Champs pour personne non recensée -->
+                <div id="champsNonRecense" class="champs-conditionnels" style="display: none;">
+                    <div class="form-group">
+                        <label for="aliasManuel">Alias / Surnom *</label>
+                        <input type="text" id="aliasManuel" name="aliasManuel" placeholder="Ex: Le Fantôme, L'Homme masqué..." />
+                    </div>
+                </div>
+
+                <!-- Type d'avis -->
+                <div class="form-group">
+                    <label for="typeAvis">Type d'avis *</label>
+                    <select id="typeAvis" name="typeAvis" required>
+                        <option value="">-- Sélectionner --</option>
+                        <option value="disparu">Personne disparue</option>
+                        <option value="most_wanted">Most Wanted</option>
+                    </select>
+                </div>
+
+                <!-- Motif de recherche -->
+                <div class="form-group">
+                    <label for="motif">Motif de la recherche *</label>
+                    <textarea id="motif" name="motif" placeholder="Ex: Recherché pour braquage de banque..."
+                        required></textarea>
+                </div>
+
+                <!-- Particularités physiques -->
+                <div class="form-group">
+                    <label for="particularites">Particularités physiques (optionnel)</label>
+                    <textarea id="particularites" name="particularites"
+                        placeholder="Ex: Cicatrice au visage, tatouage sur le bras gauche, boiterie..."></textarea>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label for="description">Informations complémentaires</label>
+                    <textarea id="description" name="description"
+                        placeholder="Dernière position connue, véhicule utilisé..."></textarea>
+                </div>
+
+                <!-- Récompense -->
+                <div class="form-group">
+                    <label for="recompense">Récompense (optionnel)</label>
+                    <input type="text" id="recompense" name="recompense" placeholder="Ex: 50 000$" />
+                </div>
+
+                <!-- Photo -->
+                <div class="form-group">
+                    <label for="photoUrl">Photo (URL)</label>
+                    <input type="url" id="photoUrl" name="photoUrl"
+                        placeholder="https://cdn.discordapp.com/attachments/..." />
+                    <div class="photo-preview-container" style="margin-top: 10px;">
+                        <img id="photoPreview" src="" alt="Aperçu"
+                            style="display: none; max-width: 200px; border-radius: 8px;" />
+                    </div>
+                </div>
+
+                <!-- Agent rédacteur -->
+                <div class="user-info-row">
+                    <div class="user-info-field">
+                        <label for="officier">Agent rédacteur</label>
+                        <input type="text" id="officier" name="officier" readonly />
+                    </div>
+                    <div class="user-info-field">
+                        <label for="grade">Grade</label>
+                        <input type="text" id="grade" name="grade" readonly />
+                    </div>
+                </div>
+
+                <div class="button-container">
+                    <button type="submit" class="send-button">Publier l'avis de recherche</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <div id="feedbackAnimation" style="display: none; text-align: center;"></div>
+
+    <!-- Template pour générer l'image d'avis de recherche -->
+    <div id="avisRechercheTemplate" style="position: fixed; left: -9999px; top: 0; pointer-events: none;">
+        <div id="avisCard" style="width: 1800px; height: 2700px; background: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; position: relative; box-sizing: border-box;">
+            
+            <!-- Header -->
+            <div style="padding: 50px 80px; border-bottom: 4px solid #e0e0e0; text-align: center; position: relative;">
+                <img src="data/images/lspd.png" alt="Logo LSPD" style="height: 150px; position: absolute; left: 80px; top: 50%; transform: translateY(-50%);" crossorigin="anonymous" />
+                <div style="font-size: 72px; font-weight: bold; color: #0b1b5a; letter-spacing: 2px;">LOS SANTOS POLICE DEPARTMENT</div>
+                <div style="font-size: 40px; color: #c0392b; text-transform: uppercase; margin-top: 15px; font-weight: bold;">Avis de Recherche</div>
+            </div>
+
+            <!-- Zone photo centrale -->
+            <div style="padding: 60px 80px; text-align: center;">
+                <div style="display: inline-block; position: relative;">
+                    <div id="tpl-photo-container" style="width: 750px; height: 750px; background: #f5f5f5; border: 4px solid #ccc; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <img id="tpl-photo" src="" style="width: 100%; height: 100%; object-fit: cover; display: block;" crossorigin="anonymous" />
+                        <span id="tpl-no-photo" style="color: #999; font-size: 36px; display: none;">Photo non disponible</span>
+                    </div>
+                    <!-- Watermark -->
+                    <div id="tpl-watermark" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-20deg); font-size: 160px; font-weight: 900; color: rgba(192, 57, 43, 0.5); text-transform: uppercase; letter-spacing: 15px; pointer-events: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">WANTED</div>
+                </div>
+                
+                <!-- Nom sous la photo -->
+                <div style="margin-top: 45px; text-align: center;">
+                    <div style="font-size: 52px; color: #333; font-weight: bold;" id="tpl-nom-complet"></div>
+                    <div id="tpl-ddn-line" style="font-size: 34px; color: #666; margin-top: 10px;"></div>
+                    <div id="tpl-recompense-line" style="font-size: 40px; color: #27ae60; font-weight: bold; margin-top: 15px;"></div>
+                </div>
+            </div>
+
+            <!-- Section avec bordure bleue -->
+            <div style="margin: 0 80px; padding: 45px 55px; border-left: 6px solid #0b1b5a; background: #fafafa;">
+                <div style="font-size: 36px; color: #333; line-height: 1.7; margin-bottom: 25px;">
+                    Le <span style="font-weight: bold; color: #0b1b5a;">Los Santos Police Department</span> est à la recherche de cet individu pour les faits suivants :
+                </div>
+                
+                <!-- Motifs en liste -->
+                <div style="padding-left: 30px; margin-bottom: 35px;" id="tpl-motif-list"></div>
+                
+                <!-- Particularités physiques -->
+                <div id="tpl-particularites-block" style="font-size: 34px; color: #333; line-height: 1.6; margin-bottom: 25px;"></div>
+                
+                <!-- Description / Avertissement -->
+                <div id="tpl-description-block" style="font-size: 34px; color: #333; line-height: 1.6; font-weight: bold;"></div>
+            </div>
+
+            <!-- Bandeau d'avertissement - positionné en bas -->
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 40px 80px; background: #0b1b5a;">
+                <div style="font-size: 32px; color: #fff; font-weight: bold; margin-bottom: 15px;">
+                    ⚠️ SI VOUS AVEZ DES INFORMATIONS, CONTACTEZ IMMÉDIATEMENT LE LSPD AU 555-911 OU RENDEZ-VOUS AU POSTE DE MISSION ROW.
+                </div>
+                <div style="font-size: 30px; color: rgba(255,255,255,0.8);">
+                    ✅ Les informations peuvent être transmises de manière anonyme.
+                </div>
+                <div style="font-size: 26px; color: rgba(255,255,255,0.6); margin-top: 20px; text-align: right;" id="tpl-date"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="scripts/custom-notifications.js"></script>
+    <script src="scripts/generic-selector.js"></script>
+    <script src="scripts/avis-recherche.js"></script>
+    <script src="scripts/loadSidebar.js"></script>
+    <script>
+        document.getElementById('backlinkBtn').addEventListener('click', () => {
+            window.history.back();
+        });
+    </script>
+    <script src="scripts/liveUserHeartbeat.js"></script>
+</body>
+
+</html>

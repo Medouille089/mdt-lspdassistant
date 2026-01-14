@@ -100,15 +100,16 @@ export async function loadRookiePatrolsFromDB() {
         const response = await fetch('/api/rookie-patrols', {
             credentials: 'include'
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const patrols = await response.json();
-        
-        // Convertir le format BDD au format JS
+
+        // Convertir le format BDD au format JS (avec versioning)
         rookiePatrols = patrols.map(p => ({
+            id: p.id,
             cardId: p.card_id,
             patrolName: p.patrol_name,
             listName: p.list_name,
@@ -123,10 +124,14 @@ export async function loadRookiePatrolsFromDB() {
             deletedAt: p.deleted_at,
             activeDuration: p.active_duration,
             reportCompleted: p.report_completed,
-            reportCompletedAt: p.report_completed_at
+            reportCompletedAt: p.report_completed_at,
+            // Champs de versioning
+            version: p.computed_version || p.version || 1,
+            supersededAt: p.superseded_at,
+            supersededById: p.superseded_by_id
         }));
         sortRookiePatrolsInPlace(rookiePatrols);
-        
+
         return rookiePatrols;
     } catch (error) {
         console.error('Erreur lors du chargement des patrouilles:', error);
@@ -135,26 +140,65 @@ export async function loadRookiePatrolsFromDB() {
     }
 }
 
+/**
+ * Compare si les rookies ont changé entre deux patrouilles
+ */
+function haveMembersChanged(existingRookies, newRookies) {
+    if (!existingRookies || !newRookies) return true;
+
+    const existingBadges = (Array.isArray(existingRookies) ? existingRookies : [])
+        .map(r => r.badge)
+        .sort();
+    const newBadges = (Array.isArray(newRookies) ? newRookies : [])
+        .map(r => r.badge)
+        .sort();
+
+    if (existingBadges.length !== newBadges.length) return true;
+    return existingBadges.some((badge, i) => badge !== newBadges[i]);
+}
+
 export function addRookiePatrol(patrol) {
-    // Éviter les doublons - ne pas ajouter si la même carte a déjà été enregistrée
-    const existingIndex = rookiePatrols.findIndex(p => p.cardId === patrol.cardId);
-    
-    if (existingIndex === -1) {
-        // Nouvelle patrouille
+    // Trouver la version active existante (non superseded)
+    const existingActive = rookiePatrols.find(p => p.cardId === patrol.cardId && !p.supersededAt);
+
+    if (!existingActive) {
+        // Nouvelle patrouille - ajouter version 1
         rookiePatrols.push({
             ...patrol,
             timestamp: new Date().toISOString(),
+            version: 1,
             reportCompleted: Boolean(patrol.reportCompleted),
             reportCompletedAt: patrol.reportCompletedAt ?? null
         });
-    } else {
-        // Mise à jour de la patrouille existante (si les données ont changé)
+    } else if (haveMembersChanged(existingActive.rookies, patrol.rookies)) {
+        // Membres ont changé - marquer l'ancienne comme superseded et ajouter nouvelle version
+        const existingIndex = rookiePatrols.indexOf(existingActive);
+        const newVersion = (existingActive.version || 1) + 1;
+
+        // Marquer l'ancienne version comme superseded
         rookiePatrols[existingIndex] = {
+            ...existingActive,
+            supersededAt: new Date().toISOString()
+        };
+
+        // Ajouter la nouvelle version
+        rookiePatrols.push({
             ...patrol,
-            timestamp: rookiePatrols[existingIndex].timestamp, // Garder l'heure originale
-            updatedAt: new Date().toISOString(),
-            reportCompleted: patrol.reportCompleted ?? rookiePatrols[existingIndex].reportCompleted ?? false,
-            reportCompletedAt: patrol.reportCompletedAt ?? rookiePatrols[existingIndex].reportCompletedAt ?? null
+            timestamp: new Date().toISOString(),
+            version: newVersion,
+            reportCompleted: false,
+            reportCompletedAt: null
+        });
+    } else {
+        // Membres identiques - mettre à jour les métadonnées seulement
+        const existingIndex = rookiePatrols.indexOf(existingActive);
+        rookiePatrols[existingIndex] = {
+            ...existingActive,
+            patrolName: patrol.patrolName,
+            listName: patrol.listName,
+            listId: patrol.listId,
+            badges: patrol.badges,
+            updatedAt: new Date().toISOString()
         };
     }
 

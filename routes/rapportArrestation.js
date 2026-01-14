@@ -171,6 +171,8 @@ router.get("/api/rapports-arrestation", checkAuth, async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const offset = (page - 1) * limit;
         const search = req.query.search || '';
+        const dateStart = req.query.dateStart;
+        const dateEnd = req.query.dateEnd;
         const agentId = req.query.agentId;
         const civilId = req.query.civilId;
         const suspectId = req.query.suspectId;
@@ -192,12 +194,22 @@ router.get("/api/rapports-arrestation", checkAuth, async (req, res) => {
         if (search) {
             params.push(`%${search}%`);
             whereClauses.push(`(
-                r.officier_redacteur ILIKE $${params.length} OR 
-                r.suspects_impliques::text ILIKE $${params.length} OR 
+                r.officier_redacteur ILIKE $${params.length} OR
+                r.suspects_impliques::text ILIKE $${params.length} OR
                 r.civils_impliques::text ILIKE $${params.length} OR
                 r.agents_impliques::text ILIKE $${params.length} OR
                 r.recit ILIKE $${params.length}
             )`);
+        }
+
+        if (dateStart) {
+            params.push(dateStart);
+            whereClauses.push(`DATE(r.date_arrestation) >= $${params.length}`);
+        }
+
+        if (dateEnd) {
+            params.push(dateEnd);
+            whereClauses.push(`DATE(r.date_arrestation) <= $${params.length}`);
         }
 
         if (agentId) {

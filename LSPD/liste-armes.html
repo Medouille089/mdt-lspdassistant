@@ -6,22 +6,25 @@
     <meta charset="UTF-8" />
     <title>Liste des armes - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
-    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
     <link rel="stylesheet" href="styles/custom-notifications.css" />
     <link rel="stylesheet" href="styles/liste-armes.css" />
+    <link rel="stylesheet" href="styles/liste-rapports.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 
 <body>
     <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
+
     <div class="main-container">
-        <div id="sidebar-container"></div>
-        <script src="scripts/instant-sidebar.js"></script>
         <h1>Liste des armes</h1>
-        <div class="container">
+
+        <div class="content-wrapper">
             <!-- Statistiques -->
             <div class="stats">
                 <div class="stat-card">
@@ -33,39 +36,51 @@
                     <div class="value" id="totalModeles" style="color: #2980b9;">-</div>
                 </div>
             </div>
-            <div class="filters">
-                <input type="text" id="searchInput" placeholder="Rechercher (modèle, S/N)" autocomplete="off" />
-                <select id="modeleFilter">
-                    <option value="">Tous les modèles</option>
-                </select>
-                <button class="add-btn" id="addArmeBtn">Ajouter une arme</button>
+
+            <div class="controls-container">
+                <div class="search-box">
+                    <span class="material-symbols-rounded">search</span>
+                    <input type="text" id="searchInput" placeholder="Rechercher (modèle, S/N)" autocomplete="off" />
+                </div>
+                <div class="filters">
+                    <select id="modeleFilter">
+                        <option value="">Tous les modèles</option>
+                    </select>
+                    <button class="add-btn" id="addArmeBtn">Ajouter une arme</button>
+                </div>
             </div>
-            <table id="armeTable" aria-label="Liste des armes">
-                <thead>
-                    <tr>
-                        <th class="photo-cell">Photo</th>
-                        <th>Modèle</th>
-                        <th>S/N</th>
-                        <th>Propriétaire</th>
-                        <th>Date d'ajout</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Dynamique -->
-                </tbody>
-            </table>
+
+            <div class="table-container">
+                <table id="armeTable" aria-label="Liste des armes">
+                    <thead>
+                        <tr>
+                            <th class="photo-cell">Photo</th>
+                            <th>Modèle</th>
+                            <th>S/N</th>
+                            <th>Propriétaire</th>
+                            <th>Date d'ajout</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamique -->
+                    </tbody>
+                </table>
+            </div>
+
             <div class="pagination" id="pagination">
                 <!-- Pagination buttons -->
             </div>
         </div>
     </div>
+
     <div class="loader-overlay" id="loaderOverlay">
         <div class="loader-spinner"></div>
     </div>
+
     <script src="scripts/custom-notifications.js"></script>
-    <script src="scripts/liste-armes.js"></script>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/context-menu.js"></script>
+    <script src="scripts/liste-armes.js"></script>
 </body>
 
 </html>

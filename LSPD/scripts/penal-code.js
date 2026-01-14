@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             filterAndRender();
         } catch (err) {
             console.error(err);
-            alert('Erreur lors du chargement des délits');
+            showNotification('Erreur lors du chargement des délits', 'error');
         } finally {
             loader.style.display = 'none';
         }
