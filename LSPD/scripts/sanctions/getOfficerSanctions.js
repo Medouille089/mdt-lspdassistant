@@ -137,7 +137,7 @@ function renderPagination() {
     if (totalPages <= 1) return;
 
     const prevBtn = document.createElement('button');
-    prevBtn.textContent = '‹ Précédent';
+    prevBtn.textContent = '‹';
     prevBtn.disabled = currentPage === 1;
     prevBtn.addEventListener('click', () => {
         currentPage--;
@@ -159,7 +159,7 @@ function renderPagination() {
     }
 
     const nextBtn = document.createElement('button');
-    nextBtn.textContent = 'Suivant ›';
+    nextBtn.textContent = '›';
     nextBtn.disabled = currentPage === totalPages;
     nextBtn.addEventListener('click', () => {
         currentPage++;

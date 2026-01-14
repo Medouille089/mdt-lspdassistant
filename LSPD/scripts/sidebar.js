@@ -131,6 +131,17 @@ document.querySelectorAll('.sidebar-toggler, .sidebar-menu-button').forEach((but
 
 async function fetchUser() {
   try {
+    // Vérifier si le profil est réellement affiché (pas juste le flag)
+    const container = document.getElementById('userProfile');
+    const profileAlreadyDisplayed = container && container.querySelector('.profile-avatar');
+
+    // Si le profil est déjà pré-chargé ET réellement affiché, on initialise juste les listeners
+    // mais on doit quand même charger les permissions depuis l'API
+    if (window.__profilePreloaded && profileAlreadyDisplayed) {
+      initProfileListeners();
+      // Continuer pour charger les permissions (ne pas return)
+    }
+    
     let user;
     
     // TTL augmenté à 30 minutes pour garder les données en cache pendant toute la session
@@ -190,7 +201,7 @@ async function fetchUser() {
     if (length > 20) fontSize = '11px';
 
     // Affichage profil
-    const container = document.getElementById('userProfile');
+    // container est déjà défini en haut de la fonction (ligne 135)
     
     // Vérifier si le profil est déjà affiché par instant-sidebar.js
     const existingAvatar = container.querySelector('.profile-avatar');
@@ -216,37 +227,14 @@ async function fetchUser() {
       initProfileListeners();
     }
 
-    // Ensuite gérer les permissions pour afficher les boutons
-    // Vérifier d'abord si déjà affichés par instant-sidebar.js
-    const supervisorBtn = document.querySelector('.onlySupervisor');
-    const adminBtn = document.querySelector('.onlyCommandStaff');
-    const alreadyDisplayed = window.__profileLoadedFromCache && 
-                             ((supervisorBtn && supervisorBtn.style.display === 'block') || 
-                              (adminBtn && adminBtn.style.display === 'block'));
-    
-    if (!alreadyDisplayed) {
-      // Afficher les boutons selon les permissions
-      document.querySelectorAll('.onlySupervisor').forEach(el => {
-        if (user.isSupervisor || user.isCommandStaff || user.isSuperAdmin) {
-          el.style.display = 'block';
-        }
-      });
+    // Appliquer les permissions depuis l'API (toujours, pas de cache)
+    document.querySelectorAll('.onlySupervisor').forEach(el => {
+      el.style.display = (user.isSupervisor || user.isCommandStaff || user.isSuperAdmin) ? 'block' : 'none';
+    });
 
-      document.querySelectorAll('.onlyCommandStaff').forEach(el => {
-        if (user.isCommandStaff || user.isSuperAdmin) {
-          el.style.display = 'block';
-        }
-      });
-    }
-    
-    // Mettre les permissions en cache pour les réutiliser rapidement
-    if (window.clientCache) {
-      window.clientCache.set('user-permissions', {
-        isSupervisor: user.isSupervisor,
-        isCommandStaff: user.isCommandStaff,
-        isSuperAdmin: user.isSuperAdmin
-      }, 1800); // 30 minutes
-    }
+    document.querySelectorAll('.onlyCommandStaff').forEach(el => {
+      el.style.display = (user.isCommandStaff || user.isSuperAdmin) ? 'block' : 'none';
+    });
 
   } catch (error) {
     console.error('An error occurred while processing the user profile:', error);
@@ -271,30 +259,8 @@ async function fetchUser() {
   }
 }
 
-// Pré-charger les permissions depuis le cache si disponibles pour afficher immédiatement
+// Initialiser les event listeners du profil si déjà affiché
 function preloadFromCache() {
-  if (!window.clientCache) return;
-  
-  // Si déjà chargé par instant-sidebar.js, ne rien faire pour les permissions
-  if (!window.__profileLoadedFromCache) {
-    const cachedPermissions = window.clientCache.get('user-permissions');
-    if (cachedPermissions) {
-      // Afficher immédiatement les boutons selon les permissions en cache
-      document.querySelectorAll('.onlySupervisor').forEach(el => {
-        if (cachedPermissions.isSupervisor || cachedPermissions.isCommandStaff || cachedPermissions.isSuperAdmin) {
-          el.style.display = 'block';
-        }
-      });
-
-      document.querySelectorAll('.onlyCommandStaff').forEach(el => {
-        if (cachedPermissions.isCommandStaff || cachedPermissions.isSuperAdmin) {
-          el.style.display = 'block';
-        }
-      });
-    }
-  }
-  
-  // Initialiser les event listeners du profil s'il est déjà affiché
   initProfileListeners();
 }
 
@@ -317,22 +283,12 @@ function initProfileListeners() {
         window.location.href = `/infos-agent?userId=${userId}`;
       });
 
-      const BLUE = '#0b1b5a';
+      // Hover effect: légère opacité au lieu de changer la couleur du texte
       navLinkAnchor.addEventListener('mouseenter', () => {
-        const usernameEl = navLinkAnchor.querySelector('.profile-username');
-        const gradeEl = navLinkAnchor.querySelector('.profile-grade');
-        const avatarEl = navLinkAnchor.querySelector('.profile-avatar');
-        if (usernameEl) usernameEl.style.color = BLUE;
-        if (gradeEl) gradeEl.style.color = BLUE;
-        if (avatarEl) avatarEl.style.borderColor = BLUE;
+        navLinkAnchor.style.opacity = '0.8';
       });
       navLinkAnchor.addEventListener('mouseleave', () => {
-        const usernameEl = navLinkAnchor.querySelector('.profile-username');
-        const gradeEl = navLinkAnchor.querySelector('.profile-grade');
-        const avatarEl = navLinkAnchor.querySelector('.profile-avatar');
-        if (usernameEl) usernameEl.style.color = '#FFFFFF';
-        if (gradeEl) gradeEl.style.color = '#CCCCCC';
-        if (avatarEl) avatarEl.style.borderColor = '#FFFFFF';
+        navLinkAnchor.style.opacity = '1';
       });
     }
   }

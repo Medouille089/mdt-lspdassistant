@@ -6,12 +6,13 @@
     <meta charset="UTF-8" />
     <title>Liste des véhicules - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
-    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
     <link rel="stylesheet" href="styles/custom-notifications.css" />
+    <link rel="stylesheet" href="styles/liste-rapports.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <style>
         .stats {
             display: flex;
@@ -24,6 +25,11 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card:hover {
+            transform: none;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
@@ -43,46 +49,55 @@
 
         .filters {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 12px;
             flex-wrap: wrap;
             align-items: center;
         }
 
         .filters input[type="text"] {
-            padding: 12px 15px;
-            border: 2px solid #dfe6e9;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border: 1px solid var(--border-input, #dfe6e9);
+            border-radius: 8px;
             font-size: 14px;
             background: white;
+            color: var(--text-dark, #2c3e50);
+            transition: all 0.2s;
             height: 44px;
             box-sizing: border-box;
         }
 
         .filters input[type="text"]:focus {
             outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            border-color: var(--main-color, #3498db);
+            box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
         }
 
         .add-btn {
-            padding: 12px 24px;
+            padding: 10px 20px;
             background: #27ae60;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s ease;
+            font-size: 14px;
+            transition: all 0.2s;
             height: 44px;
             box-sizing: border-box;
-            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .add-btn:hover {
             background: #229954;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+
+        .add-btn:active {
+            transform: translateY(0);
         }
 
         .badge-mandat {
@@ -104,25 +119,32 @@
         }
 
         .filters select {
-            padding: 12px 15px;
-            border: 2px solid #dfe6e9;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border: 1px solid var(--border-input, #dfe6e9);
+            border-radius: 8px;
             font-size: 14px;
             background: white;
+            color: var(--text-dark, #2c3e50);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             height: 44px;
             box-sizing: border-box;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+            min-width: 180px;
         }
 
         .filters select:hover {
-            border-color: #3498db;
+            border-color: var(--main-color, #3498db);
         }
 
         .filters select:focus {
             outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            border-color: var(--main-color, #3498db);
+            box-shadow: 0 0 0 3px rgba(11, 27, 90, 0.1);
         }
 
         .photo-cell {
@@ -166,12 +188,13 @@
 
 <body>
     <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
+
     <div class="main-container">
-        <div id="sidebar-container"></div>
-        <script src="scripts/instant-sidebar.js"></script>
         <h1>Liste des véhicules</h1>
 
-        <div class="container">
+        <div class="content-wrapper">
             <div class="stats">
                 <div class="stat-card">
                     <h3>Total véhicules</h3>
@@ -183,30 +206,37 @@
                 </div>
             </div>
 
-            <div class="filters">
-                <input type="text" id="searchInput" placeholder="Rechercher (modèle, plaque)" autocomplete="off" />
-                <select id="mandatFilter">
-                    <option value="">Tous les mandats</option>
-                    <option value="true">Mandat actif</option>
-                    <option value="false">Pas de mandat</option>
-                </select>
-                <button class="add-btn" id="addVehiculeBtn">Ajouter un véhicule</button>
+            <div class="controls-container">
+                <div class="search-box">
+                    <span class="material-symbols-rounded">search</span>
+                    <input type="text" id="searchInput" placeholder="Rechercher (modèle, plaque)" autocomplete="off" />
+                </div>
+                <div class="filters">
+                    <select id="mandatFilter">
+                        <option value="">Tous les mandats</option>
+                        <option value="true">Mandat actif</option>
+                        <option value="false">Pas de mandat</option>
+                    </select>
+                    <button class="add-btn" id="addVehiculeBtn">Ajouter un véhicule</button>
+                </div>
             </div>
 
-            <table id="vehiculeTable" aria-label="Liste des véhicules">
-                <thead>
-                    <tr>
-                        <th class="photo-cell">Photo</th>
-                        <th>Modèle</th>
-                        <th>Plaque</th>
-                        <th>Couleur</th>
-                        <th>Propriétaire</th>
-                        <th>Mandat</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table id="vehiculeTable" aria-label="Liste des véhicules">
+                    <thead>
+                        <tr>
+                            <th class="photo-cell">Photo</th>
+                            <th>Modèle</th>
+                            <th>Plaque</th>
+                            <th>Couleur</th>
+                            <th>Propriétaire</th>
+                            <th>Mandat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
 
             <div class="pagination" id="pagination">
             </div>

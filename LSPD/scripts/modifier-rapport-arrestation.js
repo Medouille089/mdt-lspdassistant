@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     reportId = urlParams.get('id');
 
     if (!reportId) {
-        alert("ID manquant");
+        showNotification("ID manquant", 'error');
         window.location.href = '/liste-rapports-arrestation.html';
         return;
     }
@@ -275,7 +275,7 @@ async function loadReport() {
 
     } catch (err) {
         console.error(err);
-        alert("Erreur chargement rapport");
+        showNotification("Erreur chargement rapport", 'error');
     } finally {
         loader.style.display = 'none';
     }

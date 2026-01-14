@@ -20,7 +20,7 @@ router.get('/api/dashboard', async (req, res) => {
     const braceletsRes = await pool.query('SELECT COUNT(*) FROM bracelets');
     const braceletCount = parseInt(braceletsRes.rows[0].count, 10);
 
-    // --- Rapports aujourd’hui ---
+    // --- Rapports aujourd'hui ---
     const incidentsTodayRes = await pool.query(`
       SELECT COUNT(*) AS count FROM incidents
       WHERE date_incident::date BETWEEN $1::date AND $2::date
@@ -31,17 +31,33 @@ router.get('/api/dashboard', async (req, res) => {
       WHERE date_arrestation::date BETWEEN $1::date AND $2::date
     `, [todayStart, todayEnd]);
 
+    const avisRechercheTodayRes = await pool.query(`
+      SELECT COUNT(*) AS count FROM lspd_avis_recherche
+      WHERE created_at::date BETWEEN $1::date AND $2::date
+    `, [todayStart, todayEnd]);
+
+    const rapportsArrestationTodayRes = await pool.query(`
+      SELECT COUNT(*) AS count FROM lspd_rapports_arrestation
+      WHERE created_at::date BETWEEN $1::date AND $2::date
+    `, [todayStart, todayEnd]);
+
     const interventionsToday =
       parseInt(incidentsTodayRes.rows[0].count, 10) +
-      parseInt(arrestationsTodayRes.rows[0].count, 10);
+      parseInt(arrestationsTodayRes.rows[0].count, 10) +
+      parseInt(avisRechercheTodayRes.rows[0].count, 10) +
+      parseInt(rapportsArrestationTodayRes.rows[0].count, 10);
 
     // --- Rapports totaux ---
     const incidentsTotalRes = await pool.query(`SELECT COUNT(*) AS count FROM incidents`);
     const arrestationsTotalRes = await pool.query(`SELECT COUNT(*) AS count FROM lspd_arrestations`);
+    const avisRechercheTotalRes = await pool.query(`SELECT COUNT(*) AS count FROM lspd_avis_recherche`);
+    const rapportsArrestationTotalRes = await pool.query(`SELECT COUNT(*) AS count FROM lspd_rapports_arrestation`);
 
     const totalReports =
       parseInt(incidentsTotalRes.rows[0].count, 10) +
-      parseInt(arrestationsTotalRes.rows[0].count, 10);
+      parseInt(arrestationsTotalRes.rows[0].count, 10) +
+      parseInt(avisRechercheTotalRes.rows[0].count, 10) +
+      parseInt(rapportsArrestationTotalRes.rows[0].count, 10);
 
     // --- Derniers rapports ---
     const lastReportsRes = await pool.query(`
@@ -50,6 +66,17 @@ router.get('/api/dashboard', async (req, res) => {
       UNION ALL
       SELECT arrestation_id AS id, date_arrestation AS date, NULL AS heure, officer AS officier_name, 'Arrestation' AS type
       FROM lspd_arrestations
+      UNION ALL
+      SELECT id::TEXT AS id, created_at AS date, NULL AS heure, officier AS officier_name,
+             CASE
+               WHEN type_avis = 'disparu' THEN 'Avis de recherche (Disparu)'
+               WHEN type_avis = 'most_wanted' THEN 'Avis de recherche (Most Wanted)'
+               ELSE 'Avis de recherche'
+             END AS type
+      FROM lspd_avis_recherche
+      UNION ALL
+      SELECT id::TEXT AS id, date_arrestation AS date, NULL AS heure, officier_redacteur AS officier_name, 'Rapport d''arrestation' AS type
+      FROM lspd_rapports_arrestation
       ORDER BY date DESC, heure DESC NULLS LAST
       LIMIT 5
     `);
@@ -122,7 +149,7 @@ router.get('/api/activity', async (req, res) => {
     const startDate = moment().tz('Europe/Paris').subtract(29, 'days').startOf('day');
     const endDate = moment().tz('Europe/Paris').endOf('day');
 
-    const [incidentsRes, arrestationsRes, braceletsRes, convocationsRes] = await Promise.all([
+    const [incidentsRes, arrestationsRes, braceletsRes, convocationsRes, avisRechercheRes, rapportsArrestationRes] = await Promise.all([
       pool.query(`
         SELECT date_incident::date AS date, COUNT(*) AS count
         FROM incidents
@@ -153,6 +180,22 @@ router.get('/api/activity', async (req, res) => {
         WHERE date::date BETWEEN $1::date AND $2::date
         GROUP BY date
         ORDER BY date
+      `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
+
+      pool.query(`
+        SELECT created_at::date AS date, COUNT(*) AS count
+        FROM lspd_avis_recherche
+        WHERE created_at::date BETWEEN $1::date AND $2::date
+        GROUP BY date
+        ORDER BY date
+      `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
+
+      pool.query(`
+        SELECT date_arrestation::date AS date, COUNT(*) AS count
+        FROM lspd_rapports_arrestation
+        WHERE date_arrestation::date BETWEEN $1::date AND $2::date
+        GROUP BY date
+        ORDER BY date
       `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')])
     ]);
 
@@ -160,7 +203,7 @@ router.get('/api/activity', async (req, res) => {
 
     for (let i = 0; i < 30; i++) {
       const d = startDate.clone().add(i, 'days').format('YYYY-MM-DD');
-      mapByDate[d] = { date: d, incidents: 0, arrestations: 0, bracelets: 0, convocations: 0 };
+      mapByDate[d] = { date: d, incidents: 0, arrestations: 0, bracelets: 0, convocations: 0, avisRecherche: 0, rapportsArrestation: 0 };
     }
 
     incidentsRes.rows.forEach(r => {
@@ -181,6 +224,16 @@ router.get('/api/activity', async (req, res) => {
     convocationsRes.rows.forEach(r => {
       const date = moment(r.date).format('YYYY-MM-DD');
       if (mapByDate[date]) mapByDate[date].convocations = parseInt(r.count, 10);
+    });
+
+    avisRechercheRes.rows.forEach(r => {
+      const date = moment(r.date).format('YYYY-MM-DD');
+      if (mapByDate[date]) mapByDate[date].avisRecherche = parseInt(r.count, 10);
+    });
+
+    rapportsArrestationRes.rows.forEach(r => {
+      const date = moment(r.date).format('YYYY-MM-DD');
+      if (mapByDate[date]) mapByDate[date].rapportsArrestation = parseInt(r.count, 10);
     });
 
     res.json(Object.values(mapByDate));

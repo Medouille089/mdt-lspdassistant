@@ -213,43 +213,76 @@ body.in-iframe #overlay.hide {
   width: 100%;
 }
 
-/* Styles tableau */
-table {
+/* Styles tableau - Style moderne liste-rapports */
+.full-width {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 20px;
+}
+
+.full-width h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--text-dark);
+}
+
+.full-width > table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--table-bg);
-  border-radius: 8px;
+  margin-top: 0;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-  margin-top: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-thead {
-  background: var(--table-header-bg);
-}
-
-thead th {
-  padding: 12px 15px;
+.full-width thead th {
+  background: var(--main-color);
+  color: white;
+  padding: 15px 20px;
   text-align: left;
   font-weight: 600;
-  font-size: 16px;
-  cursor: default;
-  color: var(--white);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-tbody tr {
+.full-width thead th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.full-width thead th:last-child {
+  border-top-right-radius: 12px;
+}
+
+.full-width tbody tr {
   cursor: pointer;
-  transition: background 0.25s;
+  transition: background-color 0.2s;
+  background: white;
 }
 
-tbody tr:hover {
-  background: var(--table-hover-bg);
+.full-width tbody tr:hover td {
+  background-color: #f8f9fa;
 }
 
-tbody td {
-  padding: 12px 15px;
-  border-top: 1px solid var(--border-table);
-  color: var(--white);
+.full-width tbody td {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  color: var(--text-dark);
+  font-size: 15px;
+}
+
+.full-width tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.full-width tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 12px;
+}
+
+.full-width tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 12px;
 }
 
 .connected-agents-list {

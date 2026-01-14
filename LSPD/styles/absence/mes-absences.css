@@ -1,22 +1,30 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 html,
 body {
   height: 100%;
+  margin: 0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #f1f3ff 0%, #cbd4ff 100%);
-  background-attachment: fixed;
-  color: #333;
+  position: relative;
+  z-index: 0;
+  background: none;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: var(--background-gradient);
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .main-container {
   width: calc(100% - 280px);
   margin-left: 280px;
-  padding: 20px;
+  padding: 32px;
   min-height: 100vh;
 }
 

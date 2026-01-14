@@ -228,13 +228,17 @@ router.get("/logout", (req, res) => {
 const protectedPages = [
   'admin-salons.html',
   'admin-pointeuse.html',
-  'menu-admin-salons.html',
+  'menu-admin.html',
   'admin-grades.html',
   'admin-presence.html',
   'admin-annonce.html',
   'admin-logs.html',
   'tickets.html',
-  'admin-delits.html'
+  'admin-delits.html',
+  'admin-accounts.html',
+  'admin-comptabilite.html',
+  'admin-trello.html',
+  'admin-tags.html'
 ];
 
 // Pages protégées Command Staff + Supervisor
@@ -257,6 +261,16 @@ const blockedForRookies = [
   'rapport-rookie.html'
 ];
 
+// Helper: génère les routes avec ET sans extension .html pour chaque page
+const withAndWithoutHtml = (pages) => {
+  const routes = [];
+  pages.forEach(page => {
+    routes.push(`/${page}`); // avec .html
+    routes.push(`/${page.replace('.html', '')}`); // sans .html
+  });
+  return routes;
+};
+
 const whiteListedPagesDOJ = [
   'dashboard.html',
   'viewIncident.html',
@@ -265,15 +279,17 @@ const whiteListedPagesDOJ = [
   'liste-incidents.html',
   'liste-arrestations.html',
   'liste-convocations.html'
-];// Middleware commun (protège toutes les routes listées)
+];
+
+// Middleware commun (protège toutes les routes listées) - avec et sans .html
 router.use(
-  ['/protected', ...protectedPages.map(page => `/${page}`), ...protectedPagesSupervisor.map(page => `/${page}`)],
+  ['/protected', ...withAndWithoutHtml(protectedPages), ...withAndWithoutHtml(protectedPagesSupervisor)],
   checkAuth
 );
 
-// Middleware spécial pour les pages accessibles au DOJ
+// Middleware spécial pour les pages accessibles au DOJ - avec et sans .html
 router.use(
-  whiteListedPagesDOJ.map(page => `/${page}`),
+  withAndWithoutHtml(whiteListedPagesDOJ),
   checkAuthOrDOJ
 );
 
@@ -282,14 +298,15 @@ router.get('/protected', (req, res) => {
   res.sendFile(path.join(__dirname, '../LSPD/dashboard.html'));
 });
 
-// Handler pour les pages accessibles au DOJ
-router.get(whiteListedPagesDOJ.map(page => `/${page}`), (req, res) => {
-  const requestedPage = req.path.slice(1); // Enlever le '/' du début
-  res.sendFile(path.join(__dirname, '../LSPD', requestedPage));
+// Handler pour les pages accessibles au DOJ - avec et sans .html
+router.get(withAndWithoutHtml(whiteListedPagesDOJ), (req, res) => {
+  const requested = req.path.replace(/^\//, '');
+  const fileName = requested.endsWith('.html') ? requested : `${requested}.html`;
+  res.sendFile(path.join(__dirname, '../LSPD', fileName));
 });
 
-// Handler pages Command Staff uniquement
-router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
+// Handler pages Command Staff uniquement - avec et sans .html
+router.get(withAndWithoutHtml(protectedPages), async (req, res) => {
   try {
     if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
@@ -331,8 +348,8 @@ router.get(protectedPages.map(page => `/${page}`), async (req, res) => {
   }
 });
 
-// Handler pages Command Staff + Supervisor
-router.get(protectedPagesSupervisor.map(page => `/${page}`), async (req, res) => {
+// Handler pages Command Staff + Supervisor - avec et sans .html
+router.get(withAndWithoutHtml(protectedPagesSupervisor), async (req, res) => {
   try {
     if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 
@@ -375,8 +392,8 @@ router.get(protectedPagesSupervisor.map(page => `/${page}`), async (req, res) =>
   }
 });
 
-// Middleware blocage rookies
-router.use(blockedForRookies.map(page => `/${page}`), async (req, res, next) => {
+// Middleware blocage rookies - avec et sans .html
+router.use(withAndWithoutHtml(blockedForRookies), async (req, res, next) => {
   try {
     if (!req.user?.id) return res.status(403).send("Utilisateur non authentifié");
 

@@ -6,12 +6,13 @@
     <meta charset="UTF-8" />
     <title>Liste Sanctions - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
-    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
     <link rel="stylesheet" href="styles/custom-notifications.css" />
+    <link rel="stylesheet" href="styles/liste-rapports.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <style>
         #sanctionsTable tr.archived {
             color: #dcdcdc;
@@ -22,37 +23,46 @@
 
 <body>
     <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
+
     <div class="main-container">
-        <div id="sidebar-container"></div>    <script src="scripts/instant-sidebar.js"></script>
         <h1>Liste des sanctions</h1>
         <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
             ← Retour
         </button>
 
-        <div class="container">
-            <div class="filters">
-                <input type="text" id="searchInput" placeholder="Rechercher utilisateur ou agent" />
-                <input type="date" id="dateStart" />
-                <input type="date" id="dateEnd" />
+        <div class="content-wrapper">
+            <div class="controls-container">
+                <div class="search-box">
+                    <span class="material-symbols-rounded">search</span>
+                    <input type="text" id="searchInput" placeholder="Rechercher utilisateur ou agent" />
+                </div>
+                <div class="filters">
+                    <input type="date" id="dateStart" />
+                    <input type="date" id="dateEnd" />
+                </div>
             </div>
 
-            <table id="sanctionsTable">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Agent</th>
-                        <th>Sanctionneur</th>
-                        <th>Type</th>
-                        <th>Raison</th>
-                        <th>Date de</th>
-                        <th>Date à</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Dynamique -->
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table id="sanctionsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Agent</th>
+                            <th>Sanctionneur</th>
+                            <th>Type</th>
+                            <th>Raison</th>
+                            <th>Date de</th>
+                            <th>Date à</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamique -->
+                    </tbody>
+                </table>
+            </div>
 
             <div class="pagination" id="pagination"></div>
         </div>
@@ -61,10 +71,11 @@
     <div id="loaderOverlay" class="loader-overlay">
         <div class="loader-spinner"></div>
     </div>
+
     <script src="scripts/custom-notifications.js"></script>
-    <script src="scripts/sanctions/getSanctions.js"></script>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/context-menu.js"></script>
+    <script src="scripts/sanctions/getSanctions.js"></script>
     <script>
         (function () {
             if (document.readyState === 'loading') {

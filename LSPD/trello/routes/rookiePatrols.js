@@ -5,14 +5,19 @@ const pool = require("../../../config/db");
 
 /**
  * GET /api/rookie-patrols - Récupérer toutes les patrouilles avec rookies
+ * Inclut toutes les versions (actives et superseded) pour afficher l'historique complet
  */
 router.get('/api/rookie-patrols', checkAuth, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT * FROM trello_historiquerookie 
-      ORDER BY timestamp DESC
+      SELECT *, 
+             COALESCE(version, 1) as computed_version,
+             superseded_at,
+             superseded_by_id
+      FROM trello_historiquerookie 
+      ORDER BY card_id, COALESCE(version, 1) DESC, timestamp DESC
     `);
-    
+
     res.json(result.rows);
   } catch (err) {
     console.error('Erreur lors de la récupération des patrouilles rookie:', err);
@@ -20,8 +25,31 @@ router.get('/api/rookie-patrols', checkAuth, async (req, res) => {
   }
 });
 
+
 /**
- * POST /api/rookie-patrols - Ajouter ou mettre à jour une patrouille avec rookie
+ * Helper function to check if rookie members have changed
+ */
+function haveMembersChanged(existingRookies, newRookies) {
+  if (!existingRookies || !newRookies) return true;
+
+  const existingBadges = (Array.isArray(existingRookies) ? existingRookies : [])
+    .map(r => r.badge)
+    .sort();
+  const newBadges = (Array.isArray(newRookies) ? newRookies : [])
+    .map(r => r.badge)
+    .sort();
+
+  if (existingBadges.length !== newBadges.length) return true;
+  return existingBadges.some((badge, i) => badge !== newBadges[i]);
+}
+
+/**
+ * POST /api/rookie-patrols - Ajouter ou créer une nouvelle version si les membres ont changé
+ * 
+ * Logique de versioning:
+ * - Si card_id n'existe pas → créer nouvelle entrée
+ * - Si card_id existe ET membres identiques → mettre à jour les métadonnées seulement
+ * - Si card_id existe ET membres différents → créer nouvelle version + marquer ancienne comme superseded
  */
 router.post('/api/rookie-patrols', checkAuth, async (req, res) => {
   try {
@@ -37,39 +65,68 @@ router.post('/api/rookie-patrols', checkAuth, async (req, res) => {
       totalCount
     } = req.body;
 
-    // Vérifier si la patrouille existe déjà
+    // Chercher la version active existante (non superseded)
     const existing = await pool.query(
-      'SELECT id FROM trello_historiquerookie WHERE card_id = $1',
+      'SELECT * FROM trello_historiquerookie WHERE card_id = $1 AND superseded_at IS NULL ORDER BY version DESC LIMIT 1',
       [cardId]
     );
 
     if (existing.rows.length > 0) {
-      // Mise à jour
-      const result = await pool.query(`
-        UPDATE trello_historiquerookie 
-        SET patrol_name = $1, 
-            list_name = $2, 
-            list_id = $3,
-            badges = $4,
-            rookies = $5,
-            all_members = $6,
-            rookie_count = $7,
-            total_count = $8,
-            updated_at = NOW()
-        WHERE card_id = $9
-        RETURNING *
-      `, [patrolName, listName, listId, JSON.stringify(badges), JSON.stringify(rookies), JSON.stringify(allMembers), rookieCount, totalCount, cardId]);
-      
-      res.json(result.rows[0]);
+      const currentEntry = existing.rows[0];
+      const existingRookies = currentEntry.rookies;
+
+      // Vérifier si les membres rookies ont changé
+      if (haveMembersChanged(existingRookies, rookies)) {
+        // Les membres ont changé → créer une nouvelle version
+        const newVersion = (currentEntry.version || 1) + 1;
+
+        // 1. Créer la nouvelle entrée
+        const insertResult = await pool.query(`
+          INSERT INTO trello_historiquerookie (
+            card_id, patrol_name, list_name, list_id, badges, rookies, all_members, 
+            rookie_count, total_count, timestamp, version
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+          RETURNING *
+        `, [cardId, patrolName, listName, listId, JSON.stringify(badges), JSON.stringify(rookies),
+          JSON.stringify(allMembers), rookieCount, totalCount, newVersion]);
+
+        const newEntry = insertResult.rows[0];
+
+        // 2. Marquer l'ancienne entrée comme superseded
+        await pool.query(`
+          UPDATE trello_historiquerookie 
+          SET superseded_at = NOW(),
+              superseded_by_id = $1
+          WHERE id = $2
+        `, [newEntry.id, currentEntry.id]);
+
+        res.json({ ...newEntry, previousVersion: currentEntry.id });
+      } else {
+        // Membres identiques → mettre à jour les métadonnées seulement (nom patrouille, liste, etc.)
+        const result = await pool.query(`
+          UPDATE trello_historiquerookie 
+          SET patrol_name = $1, 
+              list_name = $2, 
+              list_id = $3,
+              badges = $4,
+              updated_at = NOW()
+          WHERE id = $5
+          RETURNING *
+        `, [patrolName, listName, listId, JSON.stringify(badges), currentEntry.id]);
+
+        res.json(result.rows[0]);
+      }
     } else {
-      // Insertion
+      // Nouvelle patrouille → créer première version
       const result = await pool.query(`
         INSERT INTO trello_historiquerookie (
-          card_id, patrol_name, list_name, list_id, badges, rookies, all_members, rookie_count, total_count, timestamp
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+          card_id, patrol_name, list_name, list_id, badges, rookies, all_members, 
+          rookie_count, total_count, timestamp, version
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), 1)
         RETURNING *
-      `, [cardId, patrolName, listName, listId, JSON.stringify(badges), JSON.stringify(rookies), JSON.stringify(allMembers), rookieCount, totalCount]);
-      
+      `, [cardId, patrolName, listName, listId, JSON.stringify(badges), JSON.stringify(rookies),
+        JSON.stringify(allMembers), rookieCount, totalCount]);
+
       res.json(result.rows[0]);
     }
   } catch (err) {
@@ -80,11 +137,11 @@ router.post('/api/rookie-patrols', checkAuth, async (req, res) => {
 
 /**
  * PUT /api/rookie-patrols/:cardId/mark-deleted - Marquer une patrouille comme supprimée
- */ 
+ */
 router.put('/api/rookie-patrols/:cardId/mark-deleted', checkAuth, async (req, res) => {
   try {
     const { cardId } = req.params;
-    
+
     const result = await pool.query(`
       UPDATE trello_historiquerookie 
       SET deleted_at = NOW(),
@@ -92,7 +149,7 @@ router.put('/api/rookie-patrols/:cardId/mark-deleted', checkAuth, async (req, re
       WHERE card_id = $1 AND deleted_at IS NULL
       RETURNING *
     `, [cardId]);
-    
+
     if (result.rows.length > 0) {
       res.json(result.rows[0]);
     } else {
@@ -110,12 +167,12 @@ router.put('/api/rookie-patrols/:cardId/mark-deleted', checkAuth, async (req, re
 router.delete('/api/rookie-patrols/deleted', checkAuth, async (req, res) => {
   try {
     const { deletedCardIds } = req.body;
-    
+
     const result = await pool.query(
       'DELETE FROM trello_historiquerookie WHERE card_id = ANY($1) RETURNING card_id',
       [deletedCardIds]
     );
-    
+
     res.json({ deleted: result.rows.length, cardIds: result.rows.map(r => r.card_id) });
   } catch (err) {
     console.error('Erreur lors de la suppression des patrouilles:', err);
@@ -129,7 +186,7 @@ router.delete('/api/rookie-patrols/deleted', checkAuth, async (req, res) => {
 router.delete('/api/rookie-patrols', checkAuth, async (req, res) => {
   try {
     const result = await pool.query('DELETE FROM trello_historiquerookie RETURNING card_id');
-    
+
     res.json({ deleted: result.rows.length });
   } catch (err) {
     console.error('Erreur lors de la suppression de l\'historique:', err);

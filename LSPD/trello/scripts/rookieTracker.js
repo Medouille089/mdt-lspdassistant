@@ -115,7 +115,31 @@ function formatDurationFromSeconds(totalSeconds) {
     return `Durée : ${segments.join(' ')}`;
 }
 
-function shouldDisplayPatrol(patrol) {
+function shouldDisplayPatrol(patrol, allPatrols = []) {
+    // Pour les versions superseded (anciennes versions),
+    // afficher seulement si la NOUVELLE version a été active >= 10 min
+    if (patrol.supersededAt) {
+        // Trouver la nouvelle version qui a remplacé celle-ci
+        const newVersion = allPatrols.find(p =>
+            p.cardId === patrol.cardId &&
+            !p.supersededAt &&
+            (p.version || 1) > (patrol.version || 1)
+        );
+
+        if (!newVersion) {
+            // Pas de nouvelle version trouvée, ne pas afficher
+            return false;
+        }
+
+        // Calculer depuis combien de temps la nouvelle version existe
+        const newVersionStart = new Date(newVersion.timestamp);
+        const now = new Date();
+        const newVersionDurationSeconds = Math.floor((now.getTime() - newVersionStart.getTime()) / 1000);
+
+        // Afficher l'ancienne version seulement si la nouvelle est là depuis 10+ min
+        return newVersionDurationSeconds >= MIN_ACTIVE_DURATION_SECONDS;
+    }
+
     if (!patrol.deletedAt) {
         return true;
     }
@@ -133,53 +157,65 @@ function shouldDisplayPatrol(patrol) {
  */
 
 function renderPatrolCard(patrol) {
-    const timestamp = patrol.timestamp 
-        ? new Date(patrol.timestamp).toLocaleString('fr-FR', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            hour: '2-digit', 
-            minute: '2-digit' 
+    const timestamp = patrol.timestamp
+        ? new Date(patrol.timestamp).toLocaleString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
         })
         : '';
-    
+
     // Vérifier si la carte existe encore dans le board
     const cardStillExists = checkIfCardExists(patrol.cardId);
     const reportCompleted = Boolean(patrol.reportCompleted);
+    const isSuperseded = Boolean(patrol.supersededAt);
+
     const deletedClass = cardStillExists ? '' : 'patrol-deleted';
     const reportClass = reportCompleted ? 'patrol-report-completed' : '';
+    const supersededClass = isSuperseded ? 'patrol-superseded' : '';
+
     const deletedBadge = cardStillExists ? '' : '<span class="patrol-badge deleted-badge">🗑️ Supprimée</span>';
     const durationSeconds = getActiveDurationSeconds(patrol);
     const durationLabel = !cardStillExists ? formatDurationFromSeconds(durationSeconds) : '';
     const durationBadge = durationLabel ? `<span class="patrol-badge duration-badge">${durationLabel}</span>` : '';
+
+    // Pas de badges de version affichés (simplifié selon demande utilisateur)
+    const version = patrol.version || 1;
+
     const reportToggleLabel = reportCompleted ? '✅ Rapport' : '☐ Rapport';
     const reportToggleTitle = reportCompleted ? 'Rapport effectué' : 'Marquer le rapport comme effectué';
     const reportCompletedAt = patrol.reportCompletedAt ? new Date(patrol.reportCompletedAt).toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
-    const reportBadge = `
+
+    // Désactiver le bouton de rapport pour les anciennes versions
+    const reportBadge = isSuperseded
+        ? '' // Pas de bouton rapport pour les anciennes versions
+        : `
         <button class="patrol-report-toggle ${reportCompleted ? 'completed' : ''}" data-action="toggle-report" data-patrol-id="${patrol.cardId}" aria-pressed="${reportCompleted}" title="${reportToggleTitle}${reportCompletedAt ? ` • ${reportCompletedAt}` : ''}">
             ${reportToggleLabel}
         </button>
     `;
-    
+
     // Créer la description avec les infos des rookies
     let description = `🎓 Rookie${patrol.rookieCount > 1 ? 's' : ''} en patrouille:\n`;
-    
+
     patrol.rookies.forEach(r => {
-        const fullName = r.name.includes('|') 
-            ? r.name.split('|')[1]?.trim() 
+        const fullName = r.name.includes('|')
+            ? r.name.split('|')[1]?.trim()
             : r.name;
         const nameParts = fullName?.split(' ') || [];
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
-        
+
         description += `\n👮 ${r.badge}\n`;
         description += `   Prénom: ${firstName}\n`;
         if (lastName) {
             description += `   Nom: ${lastName}\n`;
         }
     });
-    
+
     return `
-        <div class="card patrol-rookie-card ${deletedClass} ${reportClass}" data-patrol-id="${patrol.cardId}">
+        <div class="card patrol-rookie-card ${deletedClass} ${reportClass} ${supersededClass}" data-patrol-id="${patrol.cardId}" data-patrol-version="${version}">
             ${timestamp ? `<span class="card-timestamp" title="Heure de détection">${timestamp}</span>` : ''}
             <div class="card-content">
                 <div class="card-title">🚓 ${patrol.patrolName}</div>
@@ -197,6 +233,7 @@ function renderPatrolCard(patrol) {
         </div>
     `;
 }
+
 
 /**
  * Vérifie si une carte existe encore dans le board
@@ -219,10 +256,10 @@ function extractBadgesFromPatrol(patrolText) {
     // Regex pour capturer les numéros après le | et séparés par +
     const match = patrolText.match(/\|\s*(.+)/);
     if (!match) return [];
-    
+
     const badgesPart = match[1];
     const badges = badgesPart.split('+').map(b => b.trim()).filter(b => /^\d+$/.test(b));
-    
+
     return badges;
 }
 
@@ -232,17 +269,17 @@ function extractBadgesFromPatrol(patrolText) {
  */
 function getAgentCards() {
     const agents = [];
-    
+
     boardData.lists.forEach(list => {
         list.cards.forEach(card => {
             // Une carte agent est typiquement juste un numéro (matricule)
             const text = card.text?.trim();
             if (!text) return;
-            
+
             // Vérifier si c'est juste un matricule (nombre simple)
             // ou un format comme "03 | Nom" 
             let badge = null;
-            
+
             // Format: "03 | Shaila Di Martina"
             const nameMatch = text.match(/^(\d+)\s*\|/);
             if (nameMatch) {
@@ -251,21 +288,21 @@ function getAgentCards() {
                 // Juste un numéro
                 badge = text;
             }
-            
+
             if (badge) {
                 const tags = getCardTags(card, availableTags);
                 const tagNames = tags.map(tagId => {
                     const tag = availableTags.find(t => t.id === tagId);
                     return tag ? tag.label : '';
                 }).filter(Boolean);
-                
+
                 agents.push({
                     badge,
                     cardId: card.id,
                     cardText: text,
                     tags: tagNames,
-                    isRookie: tagNames.some(t => 
-                        t.toLowerCase().includes('rookie') || 
+                    isRookie: tagNames.some(t =>
+                        t.toLowerCase().includes('rookie') ||
                         t.toLowerCase().includes('probationary') ||
                         t.toLowerCase().includes('stagiaire')
                     )
@@ -273,7 +310,7 @@ function getAgentCards() {
             }
         });
     });
-    
+
     return agents;
 }
 
@@ -283,20 +320,20 @@ function getAgentCards() {
 export function checkPatrolForRookies(card, listId) {
     const patrolText = card.text?.trim();
     if (!patrolText) return;
-    
+
     // Vérifier si c'est une carte de patrouille (contient des +)
     if (!patrolText.includes('+')) return;
-    
+
     const patrolBadges = extractBadgesFromPatrol(patrolText);
     if (patrolBadges.length === 0) return;
-    
+
     // Récupérer toutes les cartes d'agents
     const agents = getAgentCards();
-    
+
     // Trouver les rookies dans cette patrouille
     const rookiesInPatrol = [];
     const allMembersInPatrol = [];
-    
+
     patrolBadges.forEach(badge => {
         const agent = agents.find(a => a.badge === badge);
         if (agent) {
@@ -305,7 +342,7 @@ export function checkPatrolForRookies(card, listId) {
                 name: agent.cardText,
                 tags: agent.tags
             });
-            
+
             if (agent.isRookie) {
                 rookiesInPatrol.push({
                     badge: agent.badge,
@@ -315,11 +352,11 @@ export function checkPatrolForRookies(card, listId) {
             }
         }
     });
-    
+
     // Si on a trouvé au moins un rookie, enregistrer la patrouille
     if (rookiesInPatrol.length > 0) {
         const list = boardData.lists.find(l => l.id === listId);
-        
+
         const patrolData = {
             cardId: card.id,
             patrolName: patrolText,
@@ -331,10 +368,10 @@ export function checkPatrolForRookies(card, listId) {
             rookieCount: rookiesInPatrol.length,
             totalCount: patrolBadges.length
         };
-        
+
         // Ajouter en mémoire locale
         addRookiePatrol(patrolData);
-        
+
         // Sauvegarder en base de données
         saveRookiePatrol(patrolData).catch(err => {
             console.error('Erreur lors de la sauvegarde en BDD:', err);
@@ -345,9 +382,9 @@ export function checkPatrolForRookies(card, listId) {
 /**
  * Scanne toutes les cartes existantes pour détecter les patrouilles avec rookies
  */
-export function scanAllPatrolsForRookies() {    
+export function scanAllPatrolsForRookies() {
     let foundCount = 0;
-    
+
     boardData.lists.forEach(list => {
         list.cards.forEach(card => {
             if (card.text?.includes('+')) {
@@ -401,17 +438,18 @@ export function showRookiePatrolsModal() {
         existingMenu.remove();
         return;
     }
-    
+
     const patrols = getRookiePatrols();
-    const displayedPatrols = patrols.filter(shouldDisplayPatrol);
+    // Passer le tableau complet des patrouilles pour la comparaison de versions
+    const displayedPatrols = patrols.filter(p => shouldDisplayPatrol(p, patrols));
     const button = document.getElementById('rookiePatrolsBtn');
-    
+
     // Compter les patrouilles actives et supprimées
     const activePatrols = displayedPatrols.filter(p => checkIfCardExists(p.cardId));
     const deletedPatrols = displayedPatrols.filter(p => !checkIfCardExists(p.cardId));
     const deletableDeletedPatrols = deletedPatrols.filter(p => Boolean(p.reportCompleted));
     const canCleanDeleted = canCleanRookiePatrols();
-    
+
     // Créer le menu
     const menu = document.createElement('div');
     menu.className = 'rookie-patrols-menu';
@@ -426,9 +464,9 @@ export function showRookiePatrolsModal() {
             <span class="stat-badge">${displayedPatrols.reduce((sum, p) => sum + p.rookieCount, 0)} rookies</span>
         </div>
         <div class="rookie-patrols-list">
-            ${displayedPatrols.length === 0 ? '<div class="no-patrols">Aucune patrouille détectée</div>' : 
-                displayedPatrols.slice(0, 10).map(patrol => renderPatrolCard(patrol)).join('')
-            }
+            ${displayedPatrols.length === 0 ? '<div class="no-patrols">Aucune patrouille détectée</div>' :
+            displayedPatrols.slice(0, 10).map(patrol => renderPatrolCard(patrol)).join('')
+        }
         </div>
         ${displayedPatrols.length > 10 ? `<div class="rookie-patrols-footer info-footer">Affichage des 10 dernières patrouilles sur ${displayedPatrols.length}</div>` : ''}
         ${displayedPatrols.length > 0 ? `
@@ -439,15 +477,15 @@ export function showRookiePatrolsModal() {
             </div>
         ` : ''}
     `;
-    
+
     // Positionner le menu sous le bouton
     const buttonContainer = button.parentElement;
     buttonContainer.style.position = 'relative';
     buttonContainer.appendChild(menu);
-    
+
     // Animation d'entrée
     setTimeout(() => menu.classList.add('show'), 10);
-    
+
     // Gestionnaire pour nettoyer les patrouilles supprimées
     const cleanDeletedBtn = menu.querySelector('#cleanDeletedPatrolsBtn');
     if (cleanDeletedBtn) {
@@ -464,11 +502,11 @@ export function showRookiePatrolsModal() {
                 try {
                     const deletedCardIds = deletable.map(p => p.cardId);
                     await cleanDeletedPatrolsAPI(deletedCardIds);
-                    
+
                     // Mettre à jour le state local (retirer uniquement les patrouilles nettoyées)
                     const remaining = getRookiePatrols().filter(p => !deletedCardIds.includes(p.cardId));
                     setRookiePatrols(remaining);
-                    
+
                     menu.remove();
                     // Rouvrir le menu pour voir les changements
                     setTimeout(() => showRookiePatrolsModal(), 100);
@@ -527,7 +565,7 @@ export function showRookiePatrolsModal() {
             }
         });
     }, 100);
-    
+
     // Fermer avec Escape
     document.addEventListener('keydown', function escHandler(e) {
         if (e.key === 'Escape') {

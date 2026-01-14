@@ -91,7 +91,7 @@ function displayAccounts() {
         const statusText = isActive ? 'Actif' : 'Inactif';
 
         return `
-            <tr data-account-id="${account.id}" data-discord-id="${account.discord_id}" onclick="goToAgentProfile(event, '${account.discord_id}')">
+            <tr data-account-id="${account.id}" data-discord-id="${account.discord_id}">
                 <td><img src="${avatarUrl}" alt="Avatar" class="avatar-img" onerror="this.src='https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc='"></td>
                 <td><strong>${escapeHtml(account.username)}</strong></td>
                 <td>${escapeHtml(account.displayName || account.username)}</td>
@@ -99,25 +99,43 @@ function displayAccounts() {
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td class="date-cell">${createdDate}</td>
                 <td class="date-cell">${lastLogin}</td>
-                <td>
-                    <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${account.id}, '${escapeHtml(account.username).replace(/'/g, "\\'")}')">
-                        Supprimer
+                <td class="actions-cell">
+                    <button class="btn-action delete" title="Supprimer" data-id="${account.id}" data-username="${escapeHtml(account.username)}">
+                        <i data-lucide="trash-2"></i>
                     </button>
                 </td>
             </tr>
         `;
     }).join('');
 
+    // Refresh Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    // Add click handlers on rows
+    document.querySelectorAll('#accountsTable tbody tr').forEach(row => {
+        row.addEventListener('click', (e) => {
+            // Ignore clicks on action buttons
+            if (e.target.closest('.actions-cell') || e.target.closest('.btn-action')) return;
+            const discordId = row.dataset.discordId;
+            window.location.href = `/infos-agent?userId=${discordId}`;
+        });
+    });
+
+    // Add click handlers on delete buttons
+    document.querySelectorAll('.btn-action.delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            const username = btn.dataset.username;
+            confirmDelete(id, username);
+        });
+    });
+
     updatePagination();
 }
 
-function goToAgentProfile(event, discordId) {
-    // Ne pas rediriger si on clique sur le bouton supprimer
-    if (event.target.closest('.delete-btn')) {
-        return;
-    }
-    window.location.href = `/infos-agent?userId=${discordId}`;
-}
 
 function updatePagination() {
     const pagination = document.getElementById('pagination');
@@ -238,23 +256,73 @@ document.getElementById('notificationOkBtn').addEventListener('click', () => {
     document.getElementById('notificationPopup').style.display = 'none';
 });
 
-// Recherche
-document.getElementById('searchInput').addEventListener('input', (e) => {
-    const search = e.target.value.toLowerCase().trim();
+// Bouton retour
+const backlinkBtn = document.getElementById('backlinkBtn');
+if (backlinkBtn) {
+    backlinkBtn.addEventListener('click', () => {
+        window.history.back();
+    });
+}
 
-    if (!search) {
-        filteredAccounts = [...allAccounts];
-    } else {
-        filteredAccounts = allAccounts.filter(account =>
+// Fonction pour appliquer les filtres de recherche, statut et date
+function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const dateStart = document.getElementById('dateStart').value;
+    const dateEnd = document.getElementById('dateEnd').value;
+
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    filteredAccounts = allAccounts.filter(account => {
+        // Filtre de recherche
+        const textMatch = !search ||
             account.username.toLowerCase().includes(search) ||
             account.discord_id.toLowerCase().includes(search) ||
-            (account.email && account.email.toLowerCase().includes(search))
-        );
-    }
+            (account.email && account.email.toLowerCase().includes(search));
+
+        // Filtre de statut
+        let statusMatch = true;
+        if (statusFilter) {
+            const lastLoginDate = account.last_login ? new Date(account.last_login) : null;
+            const isActive = lastLoginDate && lastLoginDate >= oneWeekAgo;
+
+            if (statusFilter === 'active') {
+                statusMatch = isActive;
+            } else if (statusFilter === 'inactive') {
+                statusMatch = !isActive;
+            }
+        }
+
+        // Filtre de date sur created_at
+        let dateMatch = true;
+        if (dateStart || dateEnd) {
+            const accountDate = account.created_at ? account.created_at.split('T')[0] : null;
+            if (accountDate) {
+                const startOk = dateStart ? accountDate >= dateStart : true;
+                const endOk = dateEnd ? accountDate <= dateEnd : true;
+                dateMatch = startOk && endOk;
+            } else {
+                dateMatch = false;
+            }
+        }
+
+        return textMatch && statusMatch && dateMatch;
+    });
 
     currentPage = 1;
     displayAccounts();
-});
+}
+
+// Recherche
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+// Filtre de statut
+document.getElementById('statusFilter').addEventListener('change', applyFilters);
+
+// Filtres de dates
+document.getElementById('dateStart').addEventListener('change', applyFilters);
+document.getElementById('dateEnd').addEventListener('change', applyFilters);
 
 // Charger les comptes au chargement de la page
 loadAccounts();

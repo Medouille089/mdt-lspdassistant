@@ -13,7 +13,10 @@
     <link rel="stylesheet" href="styles/warning.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
     <link rel="stylesheet" href="styles/popup.css" />
+    <link rel="stylesheet" href="styles/liste-rapports.css" />
     <link rel="stylesheet" href="styles/admin-accounts.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
@@ -22,9 +25,10 @@
 
         <div id="sidebar-container"></div>
         <script src="scripts/instant-sidebar.js"></script>
+
         <h1>Gestion des comptes</h1>
 
-        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+        <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour" style="margin-top: 10px !important;">
             ← Retour
         </button>
 
@@ -36,12 +40,25 @@
                 class="warning-icon-modern" />
         </div>
 
-        <div class="container">
-            <div class="filters">
-                <input type="text" id="searchInput" placeholder="Rechercher par nom ou Discord ID" autocomplete="off" />
+        <div class="content-wrapper">
+            <div class="controls-container">
+                <div class="search-box">
+                    <span class="material-symbols-rounded">search</span>
+                    <input type="text" id="searchInput" placeholder="Rechercher par nom ou Discord ID" autocomplete="off" />
+                </div>
+                <div class="filters-row">
+                    <select id="statusFilter">
+                        <option value="">Tous les statuts</option>
+                        <option value="active">Actifs</option>
+                        <option value="inactive">Inactifs</option>
+                    </select>
+                    <input type="date" id="dateStart" title="Date de début" />
+                    <input type="date" id="dateEnd" title="Date de fin" />
+                </div>
             </div>
 
-            <table id="accountsTable" aria-label="Liste des comptes">
+            <div class="table-container">
+                <table id="accountsTable" aria-label="Liste des comptes">
                 <thead>
                     <tr>
                         <th>Avatar</th>
@@ -58,6 +75,7 @@
                     <!-- Dynamique -->
                 </tbody>
             </table>
+            </div>
 
             <div class="pagination" id="pagination">
                 <!-- Pagination buttons -->
@@ -94,6 +112,7 @@
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/context-menu.js"></script>
     <script src="scripts/admin-accounts.js"></script>
+    <script>lucide.createIcons();</script>
 </body>
 
 </html>

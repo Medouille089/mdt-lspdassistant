@@ -1,3 +1,47 @@
+/* Override controls layout for admin-accounts */
+.controls-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.controls-container .search-box {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filters-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 12px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.filters-row select,
+.filters-row input[type="date"] {
+    height: 44px;
+    margin: 0;
+    padding: 10px 14px;
+    border: 1px solid var(--border-input);
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    color: var(--text-dark);
+    box-sizing: border-box;
+}
+
+.filters-row select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
 .avatar-img {
     width: 32px;
     height: 32px;
@@ -24,43 +68,75 @@
     color: white;
 }
 
-.delete-btn {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.3s;
-}
-
-.delete-btn:hover {
-    background: #c82333;
-}
-
-.delete-btn:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
 .date-cell {
     font-size: 0.9rem;
     white-space: nowrap;
 }
 
-/* Style pour les lignes cliquables */
-tbody tr {
+/* Override getBracelet.css - Style pour les lignes cliquables */
+#accountsTable tbody tr {
     cursor: pointer;
+    transition: background-color 0.2s ease !important;
+    background: white !important;
 }
 
-tbody tr:hover {
-    background: var(--table-hover-bg) !important;
+#accountsTable tbody tr:hover {
+    background: #f8f9fa !important;
 }
 
-/* Empêcher le clic sur le bouton de supprimer de déclencher le clic de la ligne */
-.delete-btn {
-    position: relative;
-    z-index: 10;
+#accountsTable tbody tr:hover td {
+    background-color: #f8f9fa !important;
+}
+
+/* Actions cell styling */
+.actions-cell {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Action button (icon only) - Match liste-rapports style */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-action i,
+.btn-action svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+}
+
+.btn-action.view {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+}
+
+.btn-action.view:hover {
+    background: #3498db;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btn-action.delete {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+}
+
+.btn-action.delete:hover {
+    background: #e74c3c;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }

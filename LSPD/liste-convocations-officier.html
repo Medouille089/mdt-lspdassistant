@@ -5,50 +5,54 @@
     <meta charset="UTF-8">
     <title>Mes Convocations - LSPD Assistant</title>
     <link rel="icon" href="data/images/favicon.png" type="image/png">
-    <link rel="stylesheet" href="styles/bracelet/getBracelet.css">
     <link rel="stylesheet" href="styles/sidebar.css">
     <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/loader.css">
     <link rel="stylesheet" href="styles/context-menu.css" />
-    <style>
-        .filters { margin-bottom: 10px; }
-        .filters input { margin-right: 5px; padding: 5px; }
-        .pagination button { margin: 2px; padding: 5px 10px; }
-    </style>
+    <link rel="stylesheet" href="styles/liste-rapports.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
     <script src="scripts/annonce-popup.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
+
     <div class="main-container">
-        <div id="sidebar-container"></div>    <script src="scripts/instant-sidebar.js"></script>
         <h1>Mes convocations reçues</h1>
         <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
             ← Retour
         </button>
-        <div class="container">
-            <table id="convocationsTable">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Agent convoquant</th>
-                        <th>Grade</th>
-                        <th>Date</th>
-                        <th>Lieu</th>
-                        <!-- <th>Raison</th> -->
-                        <!-- <th>Action</th> -->
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+
+        <div class="content-wrapper">
+            <div class="table-container">
+                <table id="convocationsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Agent convoquant</th>
+                            <th>Grade</th>
+                            <th>Date</th>
+                            <th>Lieu</th>
+                            <!-- <th>Raison</th> -->
+                            <!-- <th>Action</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
             <div class="pagination" id="pagination"></div>
         </div>
     </div>
+
     <div id="loaderOverlay" class="loader-overlay">
         <div class="loader-spinner"></div>
     </div>
+
     <script src="scripts/loadSidebar.js"></script>
-    <script src="scripts/convocation/getOfficerConvocations.js"></script>
     <script src="scripts/context-menu.js"></script>
+    <script src="scripts/convocation/getOfficerConvocations.js"></script>
     <script>
         (function () {
             if (document.readyState === 'loading') {

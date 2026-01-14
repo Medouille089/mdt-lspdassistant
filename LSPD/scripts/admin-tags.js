@@ -103,10 +103,14 @@ function setupEventListeners() {
 }
 
 async function deleteTag(id, name) {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer le tag "${name}" ? Cela le retirera de toutes les entités associées.`)) {
-        return;
-    }
+    showConfirm(`Êtes-vous sûr de vouloir supprimer le tag "${name}" ? Cela le retirera de toutes les entités associées.`, (result) => {
+        if (!result) return;
 
+        deleteTagConfirmed(id);
+    }, { yesText: 'Supprimer', noText: 'Annuler' });
+}
+
+async function deleteTagConfirmed(id) {
     try {
         const res = await fetch(`/api/tags/${id}`, {
             method: 'DELETE'
@@ -126,9 +130,12 @@ async function deleteTag(id, name) {
 }
 
 function showNotification(message, type = 'success') {
-    if (window.showCustomNotification) {
+    if (window.showNotification) {
+        window.showNotification(message, type);
+    } else if (window.showCustomNotification) {
         window.showCustomNotification(message, type);
     } else {
-        alert(message);
+        // Fallback si aucune fonction n'est disponible
+        console.log(message);
     }
 }
