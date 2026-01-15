@@ -282,6 +282,7 @@ const contratsRoutes = require('./routes/contrats');
 const rapportArrestationRoute = require('./routes/rapportArrestation');
 const avisRechercheRoute = require('./routes/avisRecherche');
 const tagsRoute = require('./routes/tags');
+const interrogatoireRoute = require('./routes/interrogatoire');
 
 const githubPushRoute = require('./routes/githubPush');
 
@@ -296,6 +297,7 @@ app.use(contratsRoutes);
 app.use(rapportArrestationRoute);
 app.use(avisRechercheRoute);
 app.use(tagsRoute);
+app.use(interrogatoireRoute);
 app.use(arrestationRoute);
 app.use(convocationRoute);
 app.use(convocationsRoute);

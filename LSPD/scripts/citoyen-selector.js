@@ -46,7 +46,7 @@ class CitoyenSelectorModal {
             </div>
           </div>
           <div class="citoyen-modal-footer">
-            ${this.showClearButton ? `<button id="clearCitoyenSelection-${this.uniqueId}" class="btn-secondary">Aucun propriétaire</button>` : ''}
+            ${this.showClearButton ? `<button id="clearCitoyenSelection-${this.uniqueId}" class="btn-secondary">Non Recensé</button>` : ''}
             <button id="confirmCitoyenSelection-${this.uniqueId}" class="btn-primary">Confirmer</button>
           </div>
         </div>
@@ -134,7 +134,7 @@ class CitoyenSelectorModal {
           <div class="citoyen-name">${citoyen.nom} ${citoyen.prenom}</div>
           <div class="citoyen-details">
             ${age} ans • ${citoyen.nationalite}
-            ${citoyen.telephone ? ` • ${citoyen.telephone}` : ''}
+            ${citoyen.telephone ? ` • ${this.formatPhone(citoyen.telephone)}` : ''}
           </div>
         </div>
       `;
@@ -170,6 +170,17 @@ class CitoyenSelectorModal {
         return age;
     }
 
+    formatPhone(phone) {
+        if (!phone) return '';
+        // Extraire uniquement les chiffres
+        const digits = phone.replace(/\D/g, '');
+        // Format: 555-XXXX (3 premiers chiffres - 4 derniers chiffres)
+        if (digits.length >= 7) {
+            return `${digits.slice(0, 3)}-${digits.slice(3, 7)}`;
+        }
+        return phone; // Retourner le numéro original si format incorrect
+    }
+
     async searchCitoyens(searchTerm) {
         // Debounce : attendre 300ms après la dernière frappe
         if (this.searchTimeout) {
@@ -202,7 +213,15 @@ class CitoyenSelectorModal {
             if (this.selectedCitoyenId && this.onSelectCallback) {
                 const citoyen = this.citoyens.find(c => c.id === this.selectedCitoyenId);
                 console.log('Sélection confirmée:', citoyen);
-                this.onSelectCallback(citoyen.id, `${citoyen.nom || ''} ${citoyen.prenom || ''}`.trim(), citoyen);
+                if (citoyen) {
+                    this.onSelectCallback(citoyen.id, `${citoyen.nom || ''} ${citoyen.prenom || ''}`.trim(), citoyen);
+                } else {
+                    showNotification('Erreur: citoyen non trouvé', 'error');
+                    return;
+                }
+            } else {
+                showNotification('Veuillez sélectionner un citoyen', 'warning');
+                return;
             }
             this.close();
         });
@@ -267,3 +286,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     citoyenSelectorNoClear = new CitoyenSelectorModal({ showClearButton: false });
     await citoyenSelectorNoClear.init();
 });
+
+// Fonction helper pour ouvrir le sélecteur de citoyen (sans bouton "Aucun propriétaire")
+function openCitoyenSelector(callback, currentCitoyenId = null) {
+    if (citoyenSelectorNoClear) {
+        citoyenSelectorNoClear.open(callback, currentCitoyenId);
+    } else {
+        console.error('Le sélecteur de citoyen n\'est pas encore initialisé');
+    }
+}
+
+// Fonction helper pour ouvrir le sélecteur de citoyen (avec bouton "Aucun propriétaire")
+function openCitoyenSelectorWithClear(callback, currentCitoyenId = null) {
+    if (citoyenSelector) {
+        citoyenSelector.open(callback, currentCitoyenId);
+    } else {
+        console.error('Le sélecteur de citoyen n\'est pas encore initialisé');
+    }
+}
