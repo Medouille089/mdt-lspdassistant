@@ -220,7 +220,7 @@ class CitoyenSelectorModal {
                     return;
                 }
             } else {
-                showNotification('Veuillez sélectionner un citoyen', 'warning');
+                //showNotification('Veuillez sélectionner un citoyen', 'warning');
                 return;
             }
             this.close();

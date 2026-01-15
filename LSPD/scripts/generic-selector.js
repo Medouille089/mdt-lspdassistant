@@ -515,3 +515,143 @@ const GenericSelector = {
         }
     }
 };
+// Helper function pour compatibilité avec l'ancien code
+window.openGenericSelector = function(options) {
+    // Créer un modal temporaire
+    const modalId = 'temp-generic-modal-' + Date.now();
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'modal';
+    modal.style.cssText = 'display: flex; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center;';
+    
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalContent.style.cssText = 'background: white; padding: 20px; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80vh; display: flex; flex-direction: column;';
+    
+    const title = document.createElement('h2');
+    title.textContent = options.title || 'Sélectionner';
+    title.style.marginTop = '0';
+    
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = options.searchPlaceholder || 'Rechercher...';
+    searchInput.style.cssText = 'width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px;';
+    
+    const loader = document.createElement('div');
+    loader.textContent = 'Chargement...';
+    loader.style.cssText = 'text-align: center; padding: 20px; display: none;';
+    
+    const listContainer = document.createElement('div');
+    listContainer.style.cssText = 'flex: 1; overflow-y: auto; margin: 10px 0;';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Fermer';
+    closeBtn.className = 'btn-secondary';
+    closeBtn.style.cssText = 'padding: 10px 20px; cursor: pointer;';
+    
+    modalContent.appendChild(title);
+    modalContent.appendChild(searchInput);
+    modalContent.appendChild(loader);
+    modalContent.appendChild(listContainer);
+    modalContent.appendChild(closeBtn);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    const closeModal = () => {
+        modal.remove();
+    };
+    
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    
+    let items = [];
+    let searchTimeout;
+    let isLoading = false;
+    
+    const load = async (searchTerm = '') => {
+        if (isLoading) return;
+        
+        isLoading = true;
+        loader.style.display = 'block';
+        listContainer.innerHTML = '';
+        
+        try {
+            let endpoint = options.endpoint;
+            
+            // Ajouter paramètre de recherche si nécessaire
+            if (searchTerm && searchTerm.trim().length >= 2) {
+                const separator = endpoint.includes('?') ? '&' : '?';
+                endpoint = `${endpoint}${separator}search=${encodeURIComponent(searchTerm.trim())}&limit=100`;
+            } else {
+                const separator = endpoint.includes('?') ? '&' : '?';
+                endpoint = `${endpoint}${separator}limit=100`;
+            }
+            
+            const res = await fetch(endpoint);
+            if (!res.ok) throw new Error('Erreur réseau');
+            const json = await res.json();
+            
+            // Extraire les items selon la structure de réponse
+            items = json.officers || json.citoyens || json.agents || json.data || json;
+            
+            loader.style.display = 'none';
+            render(items);
+            isLoading = false;
+        } catch (e) {
+            console.error(e);
+            listContainer.innerHTML = '<div style="color: #e74c3c; padding: 20px; text-align: center;">Erreur de chargement</div>';
+            loader.style.display = 'none';
+            isLoading = false;
+        }
+    };
+    
+    const render = (list) => {
+        listContainer.innerHTML = '';
+        
+        if (list.length === 0) {
+            listContainer.innerHTML = '<div style="color: #7f8c8d; padding: 20px; text-align: center;">Aucun résultat</div>';
+            return;
+        }
+        
+        list.forEach(item => {
+            const div = document.createElement('div');
+            div.style.cssText = 'padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;';
+            div.addEventListener('mouseenter', () => div.style.background = 'rgba(11, 27, 90, 0.05)');
+            div.addEventListener('mouseleave', () => div.style.background = 'white');
+            
+            if (options.displayField) {
+                if (typeof options.displayField === 'function') {
+                    div.textContent = options.displayField(item);
+                } else {
+                    div.textContent = item[options.displayField] || 'Item';
+                }
+            } else {
+                div.textContent = `${item.prenom || ''} ${item.nom || ''} ${item.grade || ''}`.trim() || 'Item';
+            }
+            
+            div.onclick = () => {
+                if (options.onSelect) options.onSelect(item);
+                closeModal();
+            };
+            
+            listContainer.appendChild(div);
+        });
+    };
+    
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        
+        if (searchTimeout) clearTimeout(searchTimeout);
+        
+        searchTimeout = setTimeout(() => {
+            if (query.trim().length >= 2 || query.trim().length === 0) {
+                load(query);
+            }
+        }, 300);
+    });
+    
+    // Initial load
+    load();
+};
