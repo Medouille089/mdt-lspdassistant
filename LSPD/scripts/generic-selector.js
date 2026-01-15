@@ -6,6 +6,9 @@ class GenericSelectorModal {
         this.items = []; // Liste des items chargés depuis l'API
         this.filteredItems = [];
         this.isLoaded = false;
+        this.searchTimeout = null;
+        this.isLoading = false;
+        this.useServerSearch = false; // Détecté automatiquement
 
         this.init();
     }
@@ -44,9 +47,12 @@ class GenericSelectorModal {
                             type="text" 
                             id="search-${this.uniqueId}" 
                             class="selector-search-input" 
-                            placeholder="${this.config.searchPlaceholder || 'Rechercher...'}"
+                            placeholder="${this.config.searchPlaceholder || 'Rechercher... (Minimum 2 caractères)'}"
                             autocomplete="off"
                         />
+                        <div id="loader-${this.uniqueId}" class="selector-list-loader" style="display: none; text-align: center; padding: 20px; color: #666; font-size: 14px;">
+                            Recherche en cours...
+                        </div>
                         <div id="list-${this.uniqueId}" class="selector-list">
                             <!-- Liste injectée ici -->
                         </div>
@@ -77,7 +83,7 @@ class GenericSelectorModal {
         });
 
         searchInput.addEventListener('input', (e) => {
-            this.filterItems(e.target.value);
+            this.handleSearch(e.target.value);
         });
     }
 
@@ -87,11 +93,48 @@ class GenericSelectorModal {
         searchInput.value = '';
         searchInput.focus();
 
-        if (!this.isLoaded) {
-            await this.loadItems();
+        // Check if we should use server-side search (for /api/citoyens endpoint)
+        this.detectServerSearch();
+
+        if (this.useServerSearch) {
+            // Server-side search mode: show prompt
+            const listContainer = document.getElementById(`list-${this.uniqueId}`);
+            listContainer.innerHTML = '<div class="no-results" style="color: #999; padding: 20px; text-align: center;">Commencez à taper pour rechercher...</div>';
         } else {
-            this.filteredItems = [...this.items];
-            this.renderList();
+            // Client-side filter mode: load all items
+            if (!this.isLoaded) {
+                await this.loadItems();
+            } else {
+                this.filteredItems = [...this.items];
+                this.renderList();
+            }
+        }
+    }
+
+    detectServerSearch() {
+        // Detect if endpoint is /api/citoyens to use server-side search
+        const endpoint = this.config.apiEndpoint;
+        
+        if (typeof endpoint === 'string') {
+            this.useServerSearch = endpoint.includes('/api/citoyens');
+        } else if (typeof endpoint === 'function') {
+            // For async functions, check the URL in the function body (as string)
+            const fnString = endpoint.toString();
+            this.useServerSearch = fnString.includes('/api/citoyens');
+        }
+    }
+
+    async handleSearch(query) {
+        if (this.useServerSearch) {
+            // Server-side search with debounce
+            if (this.searchTimeout) clearTimeout(this.searchTimeout);
+            
+            this.searchTimeout = setTimeout(() => {
+                this.loadItems(query);
+            }, 300);
+        } else {
+            // Client-side filter
+            this.filterItems(query);
         }
     }
 
@@ -99,17 +142,60 @@ class GenericSelectorModal {
         this.modal.style.display = 'none';
     }
 
-    async loadItems() {
+    async loadItems(searchTerm = '') {
         const listContainer = document.getElementById(`list-${this.uniqueId}`);
-        listContainer.innerHTML = '<div class="loading-spinner">Chargement...</div>';
+        const loader = document.getElementById(`loader-${this.uniqueId}`);
+        
+        if (this.useServerSearch) {
+            // Server-side search mode
+            if (searchTerm && searchTerm.trim().length < 2) {
+                listContainer.innerHTML = '<div class="no-results" style="color: #999; padding: 20px; text-align: center;">Tapez au moins 2 caractères...</div>';
+                if (loader) loader.style.display = 'none';
+                this.items = [];
+                this.isLoading = false;
+                return;
+            }
+            
+            if (!searchTerm || searchTerm.trim().length === 0) {
+                listContainer.innerHTML = '<div class="no-results" style="color: #999; padding: 20px; text-align: center;">Commencez à taper pour rechercher...</div>';
+                if (loader) loader.style.display = 'none';
+                this.items = [];
+                this.isLoading = false;
+                return;
+            }
+        }
+        
+        if (loader) loader.style.display = 'block';
+        if (!this.useServerSearch) {
+            listContainer.innerHTML = '<div class="loading-spinner">Chargement...</div>';
+        }
 
         try {
+            this.isLoading = true;
             let data;
+            
             // Support pour URL ou fonction qui retourne une promesse
             if (typeof this.config.apiEndpoint === 'function') {
-                data = await this.config.apiEndpoint();
+                if (this.useServerSearch && searchTerm) {
+                    // Inject search parameter if it's a citizen endpoint
+                    data = await this.config.apiEndpoint();
+                    
+                    // Re-fetch with search parameter
+                    const res = await fetch(`/api/citoyens?search=${encodeURIComponent(searchTerm.trim())}&limit=100`);
+                    if (!res.ok) throw new Error('Erreur réseau');
+                    data = await res.json();
+                } else {
+                    data = await this.config.apiEndpoint();
+                }
             } else {
-                const res = await fetch(this.config.apiEndpoint);
+                let url = this.config.apiEndpoint;
+                
+                if (this.useServerSearch && searchTerm) {
+                    // Add search parameter
+                    url = `/api/citoyens?search=${encodeURIComponent(searchTerm.trim())}&limit=100`;
+                }
+                
+                const res = await fetch(url);
                 if (!res.ok) throw new Error('Erreur réseau');
                 data = await res.json();
             }
@@ -123,11 +209,15 @@ class GenericSelectorModal {
 
             this.filteredItems = [...this.items];
             this.isLoaded = true;
+            if (loader) loader.style.display = 'none';
             this.renderList();
+            this.isLoading = false;
 
         } catch (err) {
             console.error("Erreur chargement items:", err);
             listContainer.innerHTML = '<div class="error-msg">Erreur de chargement des données.</div>';
+            if (loader) loader.style.display = 'none';
+            this.isLoading = false;
         }
     }
 
@@ -262,9 +352,12 @@ const GenericSelector = {
                         <button class="selector-modal-close" onclick="document.getElementById('${modalId}').remove()">&times;</button>
                     </div>
                     <div class="selector-modal-body">
-                        <input type="text" class="selector-search-input" placeholder="${options.searchPlaceholder || 'Rechercher...'}" autocomplete="off">
+                        <input type="text" class="selector-search-input" placeholder="${options.searchPlaceholder || 'Rechercher... (Minimum 2 caractères)'}" autocomplete="off">
+                        <div class="selector-list-loader" style="display: none; text-align: center; padding: 20px; color: #666; font-size: 14px;">
+                            Recherche en cours...
+                        </div>
                         <div class="selector-list">
-                            <div class="loading-spinner">Chargement...</div>
+                            <div class="no-results" style="color: #999; padding: 20px; text-align: center;">Commencez à taper pour rechercher...</div>
                         </div>
                     </div>
                     <div class="selector-modal-footer">
@@ -279,6 +372,7 @@ const GenericSelector = {
         const modal = document.getElementById(modalId);
         const listContainer = modal.querySelector('.selector-list');
         const searchInput = modal.querySelector('.selector-search-input');
+        const loader = modal.querySelector('.selector-list-loader');
         
         // Handle unregistered button
         if (options.allowUnregistered) {
@@ -292,15 +386,51 @@ const GenericSelector = {
         }
         
         let items = [];
+        let searchTimeout = null;
+        let isLoading = false;
         
-        // Load items
-        const load = async () => {
+        // Load items with server-side search
+        const load = async (searchTerm = '') => {
             try {
-                let data;
+                isLoading = true;
+                if (loader) loader.style.display = 'block';
+                
                 let endpoint = options.apiEndpoint;
                 
+                // Build endpoint with search parameter
                 if (!endpoint && options.type === 'citizen') endpoint = '/api/citoyens';
                 if (!endpoint && options.type === 'officer') endpoint = '/api/officers';
+                
+                // For citizens, use server-side search
+                if (options.type === 'citizen') {
+                    // Don't search if less than 2 characters
+                    if (searchTerm && searchTerm.trim().length < 2) {
+                        listContainer.innerHTML = '<div class="no-results" style="color: #999; padding: 20px; text-align: center;">Tapez au moins 2 caractères...</div>';
+                        if (loader) loader.style.display = 'none';
+                        isLoading = false;
+                        items = [];
+                        return;
+                    }
+                    
+                    if (!searchTerm || searchTerm.trim().length === 0) {
+                        listContainer.innerHTML = '<div class="no-results" style="color: #999; padding: 20px; text-align: center;">Commencez à taper pour rechercher...</div>';
+                        if (loader) loader.style.display = 'none';
+                        isLoading = false;
+                        items = [];
+                        return;
+                    }
+                    
+                    // Use search parameter for server-side filtering
+                    const searchParam = searchTerm ? `search=${encodeURIComponent(searchTerm.trim())}` : '';
+                    endpoint = `/api/citoyens?${searchParam}&limit=100`;
+                } else {
+                    // For non-citizens, keep old logic (remove limit parameter if it exists in the URL)
+                    // Actually, we should encourage server-side search for all types eventually
+                    if (endpoint && endpoint.includes('?limit=')) {
+                        // Remove the limit parameter and let the API use default or add search
+                        endpoint = endpoint.replace(/[?&]limit=\d+/, '');
+                    }
+                }
                 
                 const res = await fetch(endpoint);
                 if (!res.ok) throw new Error('Erreur réseau');
@@ -309,10 +439,14 @@ const GenericSelector = {
                 if (options.type === 'citizen') items = json.citoyens || json;
                 else items = json;
                 
+                if (loader) loader.style.display = 'none';
                 render(items);
+                isLoading = false;
             } catch (e) {
                 console.error(e);
                 listContainer.innerHTML = '<div class="error-msg">Erreur de chargement</div>';
+                if (loader) loader.style.display = 'none';
+                isLoading = false;
             }
         };
         
@@ -344,16 +478,26 @@ const GenericSelector = {
             });
         };
         
+        // Debounced search
         searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filtered = items.filter(item => {
-                // Simple text search on the rendered content or properties
-                const text = (options.renderItem ? divToText(options.renderItem(item)) : (item.nom || item.displayName || '')).toLowerCase();
-                // Fallback to properties if renderItem is complex
-                const props = (item.nom + ' ' + item.prenom + ' ' + item.displayName).toLowerCase();
-                return text.includes(query) || props.includes(query);
-            });
-            render(filtered);
+            const query = e.target.value;
+            
+            if (searchTimeout) clearTimeout(searchTimeout);
+            
+            if (options.type === 'citizen') {
+                // Server-side search with debounce
+                searchTimeout = setTimeout(() => {
+                    load(query);
+                }, 300);
+            } else {
+                // Client-side filter (for backward compatibility)
+                const filtered = items.filter(item => {
+                    const text = (options.renderItem ? divToText(options.renderItem(item)) : (item.nom || item.displayName || '')).toLowerCase();
+                    const props = (item.nom + ' ' + item.prenom + ' ' + item.displayName).toLowerCase();
+                    return text.includes(query.toLowerCase()) || props.includes(query.toLowerCase());
+                });
+                render(filtered);
+            }
         });
         
         // Helper to strip HTML tags for search
@@ -363,6 +507,11 @@ const GenericSelector = {
             return tmp.textContent || tmp.innerText || '';
         };
         
-        load();
+        // Initial load (empty for citizens, showing prompt)
+        if (options.type === 'citizen') {
+            listContainer.innerHTML = '<div class="no-results" style="color: #999; padding: 20px; text-align: center;">Commencez à taper pour rechercher...</div>';
+        } else {
+            load();
+        }
     }
 };

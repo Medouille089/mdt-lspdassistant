@@ -108,6 +108,13 @@
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
+.citoyen-list-loader {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-size: 14px;
+}
+
 .citoyen-list {
     display: flex;
     flex-direction: column;

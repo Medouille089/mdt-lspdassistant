@@ -511,7 +511,8 @@ async function exporterCalcul() {
 
     try {
         // 1. Save to Database
-        const citizenId = document.getElementById('selectedCitizenId').value;
+        const citizenIdElement = document.getElementById('selectedCitizenId');
+        const citizenId = citizenIdElement ? citizenIdElement.value : null;
         const totalAmendesStr = document.getElementById('totalAmendes').textContent;
         const totalPeinesStr = document.getElementById('totalPeines').textContent;
         const totalAmendes = parseInt(totalAmendesStr.replace(/[^0-9]/g, ''));

@@ -57,7 +57,61 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Initialisation des sélecteurs ---
 
-    // 1. Agents Impliqués
+    // Variables pour stocker les sélections multiples
+    let selectedCivils = [];
+    let selectedSuspects = [];
+
+    // Helper pour ajouter un citoyen à une liste
+    function addCitoyenToList(citoyenId, citoyenName, citoyen, listId, hiddenInputId, selectedArray) {
+        // Vérifier si déjà présent
+        if (selectedArray.find(c => c.id === citoyenId)) {
+            showNotification('Ce citoyen est déjà dans la liste', 'warning');
+            return;
+        }
+
+        // Ajouter à la liste
+        selectedArray.push({ id: citoyenId, nom: citoyen.nom, prenom: citoyen.prenom, date_naissance: citoyen.date_naissance });
+
+        // Mettre à jour l'affichage
+        updateCitoyenListDisplay(listId, hiddenInputId, selectedArray);
+    }
+
+    // Helper pour retirer un citoyen d'une liste
+    function removeCitoyenFromList(index, listId, hiddenInputId, selectedArray) {
+        selectedArray.splice(index, 1);
+        updateCitoyenListDisplay(listId, hiddenInputId, selectedArray);
+    }
+
+    // Helper pour mettre à jour l'affichage et le champ caché
+    function updateCitoyenListDisplay(listId, hiddenInputId, selectedArray) {
+        const container = document.getElementById(listId);
+        const input = document.getElementById(hiddenInputId);
+
+        container.innerHTML = '';
+        selectedArray.forEach((citoyen, index) => {
+            const tag = document.createElement('div');
+            tag.className = 'selected-item';
+            tag.innerHTML = `
+                <span>${citoyen.prenom} ${citoyen.nom}</span>
+                <span class="remove-btn" onclick="removeCitoyen${listId}(${index})">&times;</span>
+            `;
+            container.appendChild(tag);
+        });
+
+        // Mettre à jour le champ caché avec le JSON
+        input.value = JSON.stringify(selectedArray);
+    }
+
+    // Fonctions globales pour les boutons de suppression
+    window.removeCitoyenselectedCivils = function(index) {
+        removeCitoyenFromList(index, 'selectedCivils', 'civils_impliques', selectedCivils);
+    };
+
+    window.removeCitoyenselectedSuspects = function(index) {
+        removeCitoyenFromList(index, 'selectedSuspects', 'suspects_impliques', selectedSuspects);
+    };
+
+    // 1. Agents Impliqués (garde GenericSelectorModal pour les officiers)
     new GenericSelectorModal({
         triggerBtnId: 'addAgentBtn',
         containerId: 'selectedAgents',
@@ -77,45 +131,33 @@ document.addEventListener("DOMContentLoaded", () => {
         transformData: (data) => data // L'API renvoie directement un tableau
     });
 
-    // 2. Civils Impliqués
-    new GenericSelectorModal({
-        triggerBtnId: 'addCivilBtn',
-        containerId: 'selectedCivils',
-        hiddenInputId: 'civils_impliques',
-        modalTitle: 'Sélectionner un civil',
-        searchPlaceholder: 'Rechercher un civil (nom, prénom)...',
-        apiEndpoint: '/api/citoyens',
-        itemLabelKey: (item) => {
-            if (item.prenom && item.nom) return `${item.prenom} ${item.nom}`;
-            return item.name || 'Inconnu';
-        },
-        itemValueKey: 'id',
-        renderItem: (item) => {
-            if (item.prenom && item.nom) return `${item.prenom} ${item.nom} (${item.date_naissance || '?'})`;
-            return item.name || 'Inconnu';
-        },
-        transformData: (data) => data.citoyens || [] // L'API renvoie { citoyens: [...] }
-    });
+    // 2. Civils Impliqués - utilise le nouveau sélecteur de citoyens
+    const addCivilBtn = document.getElementById('addCivilBtn');
+    if (addCivilBtn) {
+        addCivilBtn.addEventListener('click', () => {
+            if (citoyenSelectorNoClear) {
+                citoyenSelectorNoClear.open((id, name, citoyen) => {
+                    if (id && name && citoyen) {
+                        addCitoyenToList(id, name, citoyen, 'selectedCivils', 'civils_impliques', selectedCivils);
+                    }
+                });
+            }
+        });
+    }
 
-    // 3. Suspects Impliqués
-    const suspectSelector = new GenericSelectorModal({
-        triggerBtnId: 'addSuspectBtn',
-        containerId: 'selectedSuspects',
-        hiddenInputId: 'suspects_impliques',
-        modalTitle: 'Sélectionner un suspect',
-        searchPlaceholder: 'Rechercher un suspect (nom, prénom)...',
-        apiEndpoint: '/api/citoyens',
-        itemLabelKey: (item) => {
-            if (item.prenom && item.nom) return `${item.prenom} ${item.nom}`;
-            return item.name || 'Inconnu';
-        },
-        itemValueKey: 'id',
-        renderItem: (item) => {
-            if (item.prenom && item.nom) return `${item.prenom} ${item.nom} (${item.date_naissance || '?'})`;
-            return item.name || 'Inconnu';
-        },
-        transformData: (data) => data.citoyens || []
-    });
+    // 3. Suspects Impliqués - utilise le nouveau sélecteur de citoyens
+    const addSuspectBtn = document.getElementById('addSuspectBtn');
+    if (addSuspectBtn) {
+        addSuspectBtn.addEventListener('click', () => {
+            if (citoyenSelectorNoClear) {
+                citoyenSelectorNoClear.open((id, name, citoyen) => {
+                    if (id && name && citoyen) {
+                        addCitoyenToList(id, name, citoyen, 'selectedSuspects', 'suspects_impliques', selectedSuspects);
+                    }
+                });
+            }
+        });
+    }
 
     // 4. Calcul de Peine (Optionnel)
     const selectCalculBtn = document.getElementById('selectCalculPeineBtn');
