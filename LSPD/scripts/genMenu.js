@@ -16,6 +16,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             const rapportRookieBtn = document.querySelector('a[href="/rapport-rookie"]');
             if (rapportRookieBtn) rapportRookieBtn.classList.remove("hidden");
         }
+
+        const divisionEnqueteRoleId = grades.division_enquete_role_id?.trim();
+        if (divisionEnqueteRoleId && user.roles.includes(divisionEnqueteRoleId)) {
+            document.querySelectorAll(".division-enquete-only").forEach(btn => {
+                btn.classList.remove("hidden");
+            });
+        }
         // Sinon, il reste caché (hidden)
     } catch (err) {
         console.error("Impossible de vérifier les rôles de l'utilisateur :", err);

@@ -12,3 +12,6 @@ h3.section-title {
     border-radius: 8px;
 }
 
+#numeroDossierSection label {
+    margin: 0;
+}

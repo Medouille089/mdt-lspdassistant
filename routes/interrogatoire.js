@@ -14,6 +14,7 @@ router.get("/api/rapports-interrogatoire", async (req, res) => {
         const search = req.query.search || '';
         const dateStart = req.query.dateStart || '';
         const dateEnd = req.query.dateEnd || '';
+        const citoyenId = req.query.citoyenId;
         const offset = (page - 1) * limit;
 
         let whereConditions = [];
@@ -28,6 +29,12 @@ router.get("/api/rapports-interrogatoire", async (req, res) => {
                 recit ILIKE $${paramIndex}
             )`);
             params.push(`%${search}%`);
+            paramIndex++;
+        }
+
+        if (citoyenId && !isNaN(parseInt(citoyenId))) {
+            whereConditions.push(`citoyen_id = $${paramIndex}`);
+            params.push(parseInt(citoyenId));
             paramIndex++;
         }
 
@@ -61,6 +68,10 @@ router.get("/api/rapports-interrogatoire", async (req, res) => {
             ORDER BY date_interrogatoire DESC, heure_interrogatoire DESC
             LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
         `;
+        
+        console.log(`[DEBUG-BACK] Query: ${dataQuery}`);
+        console.log(`[DEBUG-BACK] Params:`, params);
+        
         const dataResult = await pool.query(dataQuery, params);
 
         res.json({

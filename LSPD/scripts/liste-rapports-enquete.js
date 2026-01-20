@@ -7,6 +7,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tbody = document.getElementById('enquetesTableBody');
     const paginationInfo = document.getElementById('paginationInfo');
     const paginationControls = document.getElementById('paginationControls');
+    const popover = document.getElementById('listPopover');
+    const popoverTitle = document.getElementById('popoverTitle');
+    const popoverList = document.getElementById('popoverList');
+
+    // Mettre en cache les données des enquêtes pour les popovers
+    const enquetesData = new Map();
+
+    // Fermer le popover au clic ailleurs
+    document.addEventListener('click', (e) => {
+        if (popover && !popover.contains(e.target) && !e.target.closest('.count-badge')) {
+            popover.style.display = 'none';
+        }
+    });
 
     // Initialiser Lucide icons
     if (window.lucide) {
@@ -67,31 +80,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         tbody.innerHTML = enquetes.map(enquete => {
             const dateCreation = new Date(enquete.created_at).toLocaleDateString('fr-FR');
-            const superviseur = enquete.superviseur_prenom && enquete.superviseur_nom
+            const superviseur = (enquete.superviseur_prenom && enquete.superviseur_nom)
                 ? `${enquete.superviseur_prenom} ${enquete.superviseur_nom}`
-                : 'Non assigné';
-
+                : (enquete.superviseur_nom || enquete.superviseur_prenom || 'Superviseur inconnu');
             return `
-                <tr onclick="window.location.href='/view-rapport-enquete?id=${enquete.id}'" style="cursor: pointer;">
-                    <td><strong style="color: var(--lspd-blue);">${enquete.numero_dossier}</strong></td>
+                <tr onclick="window.location.href='/view-rapport-enquete?id=${enquete.id}'">
+                    <td><strong style="color: var(--main-color); hover: underline;">${enquete.numero_dossier}</strong></td>
                     <td>${enquete.sujet}</td>
                     <td>${superviseur}</td>
-                    <td style="text-align: center;">
-                        <span class="badge-info" id="agentsCount-${enquete.id}">
+                    <td style="text-align: center; position: relative;">
+                        <span class="count-badge info" id="agentsCount-${enquete.id}" data-enquete="${enquete.id}" data-type="agents">
                             <i data-lucide="users"></i> ...
                         </span>
                     </td>
-                    <td style="text-align: center;">
-                        <span class="badge-warning" id="suspectsCount-${enquete.id}">
+                    <td style="text-align: center; position: relative;">
+                        <span class="count-badge warning" id="suspectsCount-${enquete.id}" data-enquete="${enquete.id}" data-type="suspects">
                             <i data-lucide="user-x"></i> ...
                         </span>
                     </td>
                     <td>${dateCreation}</td>
-                    <td onclick="event.stopPropagation();" style="text-align: center;">
-                        <button class="btn-icon btn-edit" onclick="window.location.href='/rapport-enquete?edit=${enquete.id}'" title="Modifier">
-                            <i data-lucide="edit"></i>
+                    <td onclick="event.stopPropagation();" class="actions-cell">
+                        <button class="btn-action edit" onclick="window.location.href='/rapport-enquete?edit=${enquete.id}'" title="Modifier">
+                            <i data-lucide="pencil"></i>
                         </button>
-                        <button class="btn-icon btn-delete" onclick="deleteEnquete(${enquete.id}, '${enquete.numero_dossier}')" title="Supprimer">
+                        <button class="btn-action delete" onclick="deleteEnquete(${enquete.id}, '${enquete.numero_dossier}')" title="Supprimer">
                             <i data-lucide="trash-2"></i>
                         </button>
                     </td>
@@ -107,6 +119,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 const agentsCountEl = document.getElementById(`agentsCount-${enquete.id}`);
                 const suspectsCountEl = document.getElementById(`suspectsCount-${enquete.id}`);
+
+                enquetesData.set(String(enquete.id), data);
                 
                 if (agentsCountEl) {
                     agentsCountEl.innerHTML = `<i data-lucide="users"></i> ${data.agents.length}`;
@@ -128,6 +142,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (window.lucide) {
             lucide.createIcons();
         }
+
+        setupPopoverBadges();
     }
 
     function renderPagination(data) {
@@ -148,7 +164,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Bouton précédent
         html += `
-            <button class="pagination-btn" ${page === 1 ? 'disabled' : ''} onclick="changePage(${page - 1})">
+            <button ${page === 1 ? 'disabled' : ''} onclick="changePage(${page - 1})">
                 <i data-lucide="chevron-left"></i>
             </button>
         `;
@@ -157,18 +173,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
                 html += `
-                    <button class="pagination-btn ${i === page ? 'active' : ''}" onclick="changePage(${i})">
+                    <button class="${i === page ? 'active' : ''}" onclick="changePage(${i})">
                         ${i}
                     </button>
                 `;
             } else if (i === page - 3 || i === page + 3) {
-                html += `<span style="padding: 0 5px;">...</span>`;
+                html += `<span style="padding: 0 5px; color: var(--text-muted);">...</span>`;
             }
         }
 
         // Bouton suivant
         html += `
-            <button class="pagination-btn" ${page === totalPages ? 'disabled' : ''} onclick="changePage(${page + 1})">
+            <button ${page === totalPages ? 'disabled' : ''} onclick="changePage(${page + 1})">
                 <i data-lucide="chevron-right"></i>
             </button>
         `;
@@ -185,6 +201,102 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentPage = page;
         loadEnquetes();
     };
+
+    async function handleBadgeClick(event) {
+        event.stopPropagation();
+        const badge = event.currentTarget;
+        const enqueteId = badge.getAttribute('data-enquete');
+        const type = badge.getAttribute('data-type');
+        if (!enqueteId || !type) return;
+
+        const data = await fetchEnqueteData(enqueteId);
+        if (!data) return;
+
+        const items = type === 'agents'
+            ? data.agents.map(agent => ({
+                label: formatAgentLabel(agent),
+                url: agent.agent_id ? `/infos-agent?userId=${agent.agent_id}` : null
+            }))
+            : data.suspects.map(suspect => ({
+                label: formatSuspectLabel(suspect),
+                url: suspect.citoyen_id ? `/view-citoyen?id=${suspect.citoyen_id}` : null
+            }));
+
+        const title = type === 'agents' ? 'Agents assignés' : 'Suspects associés';
+        togglePopover(badge, title, items);
+    }
+
+    function setupPopoverBadges() {
+        document.querySelectorAll('.count-badge').forEach(badge => {
+            badge.addEventListener('click', handleBadgeClick);
+        });
+    }
+
+    async function fetchEnqueteData(id) {
+        const key = String(id);
+        if (enquetesData.has(key)) {
+            return enquetesData.get(key);
+        }
+
+        try {
+            const res = await fetch(`/api/rapports-enquete/${id}`);
+            if (!res.ok) return null;
+            const data = await res.json();
+            enquetesData.set(key, data);
+            return data;
+        } catch (error) {
+            console.error('Erreur chargement détails enquête pour popover', error);
+            return null;
+        }
+    }
+
+    function formatAgentLabel(agent) {
+        return agent.name || agent.nom_complet || `${agent.agent_prenom || agent.prenom || ''} ${agent.agent_nom || agent.nom || ''}`.trim() || 'Agent inconnu';
+    }
+
+    function formatSuspectLabel(suspect) {
+        return `${suspect.citoyen_prenom || suspect.prenom || ''} ${suspect.citoyen_nom || suspect.nom || ''}`.trim() || 'Suspect inconnu';
+    }
+
+    function togglePopover(anchor, title, items) {
+        if (!popover || !popoverList || !popoverTitle) return;
+        const targetKey = `${anchor.getAttribute('data-type')}-${anchor.getAttribute('data-enquete')}`;
+        const alreadyOpen = popover.dataset.openTarget === targetKey && popover.style.display === 'block';
+
+        if (alreadyOpen) {
+            popover.style.display = 'none';
+            popover.dataset.openTarget = '';
+            return;
+        }
+
+        popoverTitle.textContent = title;
+
+        if (items.length === 0) {
+            popoverList.innerHTML = `<li style="color: var(--text-muted);">Aucune entrée</li>`;
+        } else {
+            popoverList.innerHTML = items.map(item => `
+                <li class="popover-item" data-url="${item.url || ''}">
+                    <span>${item.label}</span>
+                </li>
+            `).join('');
+        }
+
+        popover.dataset.openTarget = targetKey;
+        popover.style.display = 'block';
+
+        const rect = anchor.getBoundingClientRect();
+        popover.style.top = `${rect.bottom + window.scrollY + 8}px`;
+        popover.style.left = `${Math.min(Math.max(rect.left + window.scrollX, 10), window.innerWidth - popover.offsetWidth - 10)}px`;
+
+        popoverList.querySelectorAll('.popover-item').forEach(li => {
+            li.addEventListener('click', () => {
+                const url = li.getAttribute('data-url');
+                if (url) {
+                    window.location.href = url;
+                }
+            });
+        });
+    }
 
     window.deleteEnquete = async function(id, numeroDossier) {
         if (!confirm(`Êtes-vous sûr de vouloir supprimer l'enquête ${numeroDossier} ?\n\nCette action est irréversible et nécessite les permissions Command-Staff.`)) {

@@ -51,6 +51,10 @@ body::before {
   }
 }
 
+.hidden {
+  display: none !important;
+}
+
 @media (max-width: 620px) {
   .button-grid {
     grid-template-columns: repeat(2, 150px);

@@ -11,6 +11,106 @@
   <link rel="stylesheet" href="styles/loader.css" />
   <link rel="stylesheet" href="styles/liste-rapports.css" />
   <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <style>
+    .count-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .count-badge.info {
+      background: rgba(52, 152, 219, 0.1);
+      color: #3498db;
+    }
+    .count-badge.warning {
+      background: rgba(230, 126, 34, 0.1);
+      color: #e67e22;
+    }
+    .count-badge i, .count-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+    
+    .count-badge:hover {
+      filter: brightness(0.9);
+      cursor: pointer;
+    }
+
+    /* Popover/Dropdown styles */
+    .popover {
+      position: absolute;
+      background: white;
+      border: 1px solid var(--border-input);
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      padding: 12px;
+      z-index: 1000;
+      min-width: 150px;
+      max-width: 250px;
+      text-align: left;
+      display: none;
+    }
+
+    .popover h4 {
+      margin: 0 0 8px 0;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 4px;
+    }
+
+    .popover ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .popover li {
+      padding: 4px 0;
+      font-size: 13px;
+      color: var(--main-color-dark);
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .popover li:last-child {
+      border-bottom: none;
+    }
+
+    .popover li:before {
+      content: "•";
+      color: var(--main-color);
+    }
+
+    .popover-item {
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 4px;
+    }
+
+    .popover-item:hover {
+      background: rgba(11, 27, 90, 0.05);
+    }
+
+    .pagination {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+    }
+    .pagination-controls {
+      display: flex;
+      gap: 5px;
+    }
+  </style>
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <link rel="stylesheet" href="https://unpkg.com/lucide-static@0.294.0/font/lucide.min.css">
@@ -23,52 +123,58 @@
     <div id="sidebar-container"></div>
     <script src="scripts/instant-sidebar.js"></script>
 
-    <div class="page-header">
-      <h1>Liste des rapports d'enquête</h1>
-      <button class="btn-create" onclick="window.location.href='/rapport-enquete'">
-        <i data-lucide="plus"></i>
-        Nouvelle enquête
-      </button>
-    </div>
+    <h1>Liste des rapports d'enquête</h1>
 
-    <div class="filters-container">
-      <div class="search-box">
-        <i data-lucide="search"></i>
-        <input type="text" id="searchInput" placeholder="Rechercher par numéro, sujet, superviseur...">
+    <div class="content-wrapper">
+      <div class="controls-container">
+        <div class="search-box">
+          <span class="material-symbols-rounded">search</span>
+          <input type="text" id="searchInput" placeholder="Rechercher par numéro, sujet, superviseur..." autocomplete="off">
+        </div>
+        <button class="btn-create" onclick="window.location.href='/rapport-enquete'" style="background: var(--main-color); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500;">
+          <i data-lucide="plus"></i>
+          Nouvelle enquête
+        </button>
       </div>
-    </div>
 
-    <div class="table-container">
-      <table class="reports-table">
-        <thead>
-          <tr>
-            <th>Numéro de dossier</th>
-            <th>Sujet</th>
-            <th>Superviseur</th>
-            <th>Agents</th>
-            <th>Suspects</th>
-            <th>Date création</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="enquetesTableBody">
-          <tr>
-            <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
-              Chargement...
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <div class="table-container">
+        <table class="reports-table" id="reportsTable">
+          <thead>
+            <tr>
+              <th>Numéro de dossier</th>
+              <th>Sujet</th>
+              <th>Superviseur</th>
+              <th>Agents</th>
+              <th>Suspects</th>
+              <th>Date création</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="enquetesTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                Chargement...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    <div class="pagination-container">
-      <div class="pagination-info" id="paginationInfo"></div>
-      <div class="pagination-controls" id="paginationControls"></div>
+      <div class="pagination" id="pagination">
+        <div class="pagination-info" id="paginationInfo"></div>
+        <div class="pagination-controls" id="paginationControls"></div>
+      </div>
     </div>
   </div>
 
   <div id="loaderOverlay" class="loader-overlay" style="display: none;">
     <div class="loader-spinner"></div>
+  </div>
+
+  <!-- Popover for showing lists -->
+  <div id="listPopover" class="popover">
+      <h4 id="popoverTitle">Titre</h4>
+      <ul id="popoverList"></ul>
   </div>
 
   <script src="scripts/loadSidebar.js"></script>

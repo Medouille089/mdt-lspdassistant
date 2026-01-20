@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { EmbedBuilder } = require('discord.js');
+const bot = require('../config/bot');
+const { GUILD_ID } = require('../config/env');
 
 // GET - Liste des enquêtes avec pagination et filtres
 router.get('/api/rapports-enquete', async (req, res) => {
@@ -37,6 +39,30 @@ router.get('/api/rapports-enquete', async (req, res) => {
         params.push(limit, offset);
 
         const result = await pool.query(query, params);
+        
+        // Enrichir avec Discord
+        let guild = null;
+        try {
+            guild = await bot.guilds.fetch(GUILD_ID);
+        } catch (err) {
+            console.warn('Erreur fetch guild pour liste:', err.message);
+        }
+
+        const enquetes = await Promise.all(result.rows.map(async (enquete) => {
+            if (enquete.superviseur_id && guild && (!enquete.superviseur_nom || !enquete.superviseur_prenom)) {
+                try {
+                    const member = await guild.members.fetch(enquete.superviseur_id).catch(() => null);
+                    if (member && member.displayName) {
+                        const parts = member.displayName.split(' ');
+                        enquete.superviseur_prenom = parts[0] || enquete.superviseur_prenom;
+                        enquete.superviseur_nom = parts.slice(1).join(' ') || parts[0] || enquete.superviseur_nom;
+                    }
+                } catch (err) {
+                    console.warn(`Erreur Discord superviseur ${enquete.superviseur_id}:`, err.message);
+                }
+            }
+            return enquete;
+        }));
 
         // Compter le total
         let countQuery = 'SELECT COUNT(*) FROM lspd_rapports_enquete WHERE 1=1';
@@ -63,7 +89,7 @@ router.get('/api/rapports-enquete', async (req, res) => {
         const total = parseInt(countResult.rows[0].count);
 
         res.json({
-            enquetes: result.rows,
+            enquetes,
             total,
             page: parseInt(page),
             totalPages: Math.ceil(total / limit)
@@ -79,6 +105,13 @@ router.get('/api/rapports-enquete/:id', async (req, res) => {
     const client = await pool.connect();
     try {
         const { id } = req.params;
+        let guild = null;
+        
+        try {
+            guild = await bot.guilds.fetch(GUILD_ID);
+        } catch (err) {
+            console.warn('Erreur fetch guild:', err.message);
+        }
 
         // Enquête principale
         const enqueteResult = await client.query(
@@ -91,6 +124,24 @@ router.get('/api/rapports-enquete/:id', async (req, res) => {
         }
 
         const enquete = enqueteResult.rows[0];
+        
+        // Enrichir le superviseur
+        if (enquete.superviseur_id && guild) {
+            try {
+                const member = await guild.members.fetch(enquete.superviseur_id).catch(() => null);
+                if (member && member.displayName) {
+                    const parts = member.displayName.split(' ');
+                    enquete.superviseur_prenom = parts[0] || enquete.superviseur_prenom;
+                    enquete.superviseur_nom = parts.slice(1).join(' ') || parts[0] || enquete.superviseur_nom;
+                    if (member.displayName.includes('[')) {
+                        const matricule = member.displayName.match(/\[(.*?)\]/);
+                        if (matricule) enquete.superviseur_matricule = matricule[1];
+                    }
+                }
+            } catch (err) {
+                console.error('[ERROR] Discord superviseur:', err);
+            }
+        }
 
         // Agents assignés
         const agentsResult = await client.query(
@@ -98,11 +149,48 @@ router.get('/api/rapports-enquete/:id', async (req, res) => {
             [id]
         );
 
-        // Suspects
+        // Enrichir les agents
+        const agents = await Promise.all(agentsResult.rows.map(async (agent) => {
+            if (agent.agent_id && guild) {
+                try {
+                    const member = await guild.members.fetch(agent.agent_id).catch(() => null);
+                    if (member && member.displayName) {
+                        const parts = member.displayName.split(' ');
+                        agent.agent_prenom = parts[0] || agent.agent_prenom;
+                        agent.agent_nom = parts.slice(1).join(' ') || parts[0] || agent.agent_nom;
+                        agent.name = member.displayName;
+                        if (member.displayName.includes('[')) {
+                            const matricule = member.displayName.match(/\[(.*?)\]/);
+                            if (matricule) agent.agent_matricule = matricule[1];
+                        }
+                    }
+                } catch (err) {
+                    console.error(`[ERROR] Discord agent ${agent.agent_id}:`, err);
+                }
+            }
+            // Fallback: construire le name si pas récupéré de Discord
+            if (!agent.name && (agent.agent_prenom || agent.agent_nom)) {
+                agent.name = `${agent.agent_prenom || ''} ${agent.agent_nom || ''}`.trim();
+            }
+            return agent;
+        }));
+
+        // Suspects avec jointure pour les données citoyen fraîches
         const suspectsResult = await client.query(
-            'SELECT * FROM lspd_enquete_suspects WHERE enquete_id = $1',
+            `SELECT es.*, 
+                    c.nom as fresh_nom, 
+                    c.prenom as fresh_prenom
+             FROM lspd_enquete_suspects es
+             LEFT JOIN citoyens c ON es.citoyen_id = c.id
+             WHERE es.enquete_id = $1`,
             [id]
         );
+
+        const suspects = suspectsResult.rows.map(suspect => ({
+            ...suspect,
+            citoyen_nom: suspect.fresh_nom || suspect.citoyen_nom,
+            citoyen_prenom: suspect.fresh_prenom || suspect.citoyen_prenom
+        }));
 
         // Rapports liés
         const rapportsResult = await client.query(
@@ -112,8 +200,8 @@ router.get('/api/rapports-enquete/:id', async (req, res) => {
 
         res.json({
             ...enquete,
-            agents: agentsResult.rows,
-            suspects: suspectsResult.rows,
+            agents,
+            suspects,
             rapports: rapportsResult.rows
         });
     } catch (error) {
@@ -145,6 +233,10 @@ router.post('/api/rapports-enquete', async (req, res) => {
         const numero_dossier = numeroResult.rows[0].generate_numero_dossier;
 
         // Insérer l'enquête principale
+        const superviseur_nom = superviseur?.nom || (superviseur?.displayName ? superviseur.displayName.split(' ').pop() : null);
+        const superviseur_prenom = superviseur?.prenom || (superviseur?.displayName ? superviseur.displayName.split(' ').shift() : null);
+        const superviseur_matricule = superviseur?.matricule || (superviseur?.displayName && superviseur.displayName.includes('[') ? superviseur.displayName.match(/\[(.*?)\]/)?.[1] : null);
+
         const enqueteResult = await client.query(
             `INSERT INTO lspd_rapports_enquete (
                 numero_dossier, superviseur_id, superviseur_nom, superviseur_prenom, 
@@ -153,9 +245,9 @@ router.post('/api/rapports-enquete', async (req, res) => {
             [
                 numero_dossier,
                 superviseur?.id || null,
-                superviseur?.nom || null,
-                superviseur?.prenom || null,
-                superviseur?.matricule || null,
+                superviseur_nom,
+                superviseur_prenom,
+                superviseur_matricule,
                 sujet,
                 motifs,
                 infos_complementaires || null,
@@ -168,11 +260,15 @@ router.post('/api/rapports-enquete', async (req, res) => {
         // Insérer les agents
         if (agents && agents.length > 0) {
             for (const agent of agents) {
+                const agent_nom = agent.nom || (agent.displayName ? agent.displayName.split(' ').pop() : null);
+                const agent_prenom = agent.prenom || (agent.displayName ? agent.displayName.split(' ').shift() : null);
+                const agent_matricule = agent.matricule || (agent.displayName && agent.displayName.includes('[') ? agent.displayName.match(/\[(.*?)\]/)?.[1] : null);
+
                 await client.query(
                     `INSERT INTO lspd_enquete_agents (
                         enquete_id, agent_id, agent_nom, agent_prenom, agent_matricule
                     ) VALUES ($1, $2, $3, $4, $5)`,
-                    [enqueteId, agent.id, agent.nom, agent.prenom, agent.matricule]
+                    [enqueteId, agent.id, agent_nom, agent_prenom, agent_matricule]
                 );
             }
         }
@@ -192,11 +288,22 @@ router.post('/api/rapports-enquete', async (req, res) => {
         // Insérer les rapports liés
         if (rapports && rapports.length > 0) {
             for (const rapport of rapports) {
+                let reportDate = rapport.date;
+                if (reportDate === 'N/A' || !reportDate) {
+                    reportDate = null;
+                } else if (typeof reportDate === 'string' && reportDate.includes('/')) {
+                    const parts = reportDate.split('/');
+                    if (parts.length === 3) {
+                        const [d, m, y] = parts;
+                        reportDate = `${y}-${m}-${d}`;
+                    }
+                }
+
                 await client.query(
                     `INSERT INTO lspd_enquete_rapports (
                         enquete_id, rapport_type, rapport_id, rapport_titre, rapport_date
                     ) VALUES ($1, $2, $3, $4, $5)`,
-                    [enqueteId, rapport.type, rapport.id, rapport.titre, rapport.date]
+                    [enqueteId, rapport.type, rapport.id, rapport.titre, reportDate]
                 );
             }
         }
@@ -262,6 +369,10 @@ router.put('/api/rapports-enquete/:id', async (req, res) => {
         } = req.body;
 
         // Mettre à jour l'enquête principale
+        const superviseur_nom = superviseur?.nom || (superviseur?.displayName ? superviseur.displayName.split(' ').pop() : null);
+        const superviseur_prenom = superviseur?.prenom || (superviseur?.displayName ? superviseur.displayName.split(' ').shift() : null);
+        const superviseur_matricule = superviseur?.matricule || (superviseur?.displayName && superviseur.displayName.includes('[') ? superviseur.displayName.match(/\[(.*?)\]/)?.[1] : null);
+
         await client.query(
             `UPDATE lspd_rapports_enquete SET
                 superviseur_id = $1,
@@ -275,9 +386,9 @@ router.put('/api/rapports-enquete/:id', async (req, res) => {
             WHERE id = $8`,
             [
                 superviseur?.id || null,
-                superviseur?.nom || null,
-                superviseur?.prenom || null,
-                superviseur?.matricule || null,
+                superviseur_nom,
+                superviseur_prenom,
+                superviseur_matricule,
                 sujet,
                 motifs,
                 infos_complementaires || null,
@@ -289,11 +400,15 @@ router.put('/api/rapports-enquete/:id', async (req, res) => {
         await client.query('DELETE FROM lspd_enquete_agents WHERE enquete_id = $1', [id]);
         if (agents && agents.length > 0) {
             for (const agent of agents) {
+                const agent_nom = agent.nom || (agent.displayName ? agent.displayName.split(' ').pop() : null);
+                const agent_prenom = agent.prenom || (agent.displayName ? agent.displayName.split(' ').shift() : null);
+                const agent_matricule = agent.matricule || (agent.displayName && agent.displayName.includes('[') ? agent.displayName.match(/\[(.*?)\]/)?.[1] : null);
+
                 await client.query(
                     `INSERT INTO lspd_enquete_agents (
                         enquete_id, agent_id, agent_nom, agent_prenom, agent_matricule
                     ) VALUES ($1, $2, $3, $4, $5)`,
-                    [id, agent.id, agent.nom, agent.prenom, agent.matricule]
+                    [id, agent.id, agent_nom, agent_prenom, agent_matricule]
                 );
             }
         }
@@ -315,11 +430,24 @@ router.put('/api/rapports-enquete/:id', async (req, res) => {
         await client.query('DELETE FROM lspd_enquete_rapports WHERE enquete_id = $1', [id]);
         if (rapports && rapports.length > 0) {
             for (const rapport of rapports) {
+                let reportDate = rapport.date;
+                console.log(`[DEBUG-PUT] Date avant conversion: "${reportDate}"`);
+                if (reportDate === 'N/A' || !reportDate) {
+                    reportDate = null;
+                } else if (typeof reportDate === 'string' && reportDate.includes('/')) {
+                    const parts = reportDate.split('/');
+                    if (parts.length === 3) {
+                        const [d, m, y] = parts;
+                        reportDate = `${y}-${m}-${d}`;
+                    }
+                }
+                console.log(`[DEBUG-PUT] Date après conversion: "${reportDate}"`);
+
                 await client.query(
                     `INSERT INTO lspd_enquete_rapports (
                         enquete_id, rapport_type, rapport_id, rapport_titre, rapport_date
                     ) VALUES ($1, $2, $3, $4, $5)`,
-                    [id, rapport.type, rapport.id, rapport.titre, rapport.date]
+                    [id, rapport.type, rapport.id, rapport.titre, reportDate]
                 );
             }
         }

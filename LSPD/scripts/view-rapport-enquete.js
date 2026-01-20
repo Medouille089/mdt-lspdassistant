@@ -45,22 +45,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Afficher le superviseur
         const selectedSuperviseurContainer = document.getElementById('selectedSuperviseur');
-        if (enquete.superviseur_prenom && enquete.superviseur_nom) {
+        
+        if (enquete.superviseur_id) {
+            const div = document.createElement('div');
+            div.className = 'selected-item';
+            div.style.cursor = 'pointer';
+            const superviseurName = (enquete.superviseur_prenom && enquete.superviseur_nom)
+                ? `${enquete.superviseur_prenom} ${enquete.superviseur_nom}`
+                : (enquete.superviseur_nom || enquete.superviseur_prenom || 'Superviseur inconnu');
+            div.innerHTML = `<span>${superviseurName}</span>`;
+            div.onclick = () => {
+                window.location.href = `/infos-agent?userId=${enquete.superviseur_id}`;
+            };
+            selectedSuperviseurContainer.appendChild(div);
+        } else {
             selectedSuperviseurContainer.innerHTML = `
                 <div class="selected-item">
-                    <span>${enquete.superviseur_prenom} ${enquete.superviseur_nom}</span>
+                    <span style="color: #7f8c8d;">Non assigné</span>
                 </div>
             `;
         }
 
         // Afficher les agents
         const selectedAgentsContainer = document.getElementById('selectedAgents');
-        if (enquete.agents.length > 0) {
-            selectedAgentsContainer.innerHTML = enquete.agents.map(agent => `
-                <div class="selected-item">
-                    <span>${agent.agent_prenom} ${agent.agent_nom}</span>
-                </div>
-            `).join('');
+        
+        if (enquete.agents && enquete.agents.length > 0) {
+            enquete.agents.forEach(agent => {
+                const div = document.createElement('div');
+                div.className = 'selected-item';
+                div.style.cursor = 'pointer';
+                const label = agent.name || agent.nom_complet || 'Agent inconnu';
+                div.innerHTML = `<span>${label}</span>`;
+                
+                if (agent.agent_id) {
+                    div.onclick = () => {
+                        window.location.href = `/infos-agent?userId=${agent.agent_id}`;
+                    };
+                }
+                
+                selectedAgentsContainer.appendChild(div);
+            });
         } else {
             selectedAgentsContainer.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Aucun agent assigné</p>';
         }
@@ -84,14 +108,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 let typeLabel = '';
                 let url = '';
                 if (rapport.rapport_type === 'arrestation') {
-                    typeLabel = '📋 Arrestation';
+                    typeLabel = 'Arrestation';
                     url = `/view-rapport-arrestation?id=${rapport.rapport_id}`;
                 } else if (rapport.rapport_type === 'interrogatoire') {
-                    typeLabel = '💬 Interrogatoire';
+                    typeLabel = 'Interrogatoire';
                     url = `/view-rapport-interrogatoire?id=${rapport.rapport_id}`;
                 } else if (rapport.rapport_type === 'incident') {
-                    typeLabel = '⚠️ Incident';
-                    url = `/view-incident?id=${rapport.rapport_id}`;
+                    typeLabel = 'Incident';
+                    url = `/viewIncident?id=${rapport.rapport_id}`;
                 }
 
                 const date = new Date(rapport.rapport_date).toLocaleDateString('fr-FR');

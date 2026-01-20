@@ -1354,7 +1354,12 @@ async function loadCitizenReports(citizenId) {
         const resSuspect = await fetch(`/api/rapports-arrestation?suspectId=${citizenId}&limit=100`);
         if (resSuspect.ok) {
             const data = await resSuspect.json();
-            const reports = data.reports.map(r => ({ ...r, reportType: 'arrestation' }));
+            // Strict check: the suspect list must contain our citizenId
+            const validReports = (data.reports || []).filter(r => {
+                const suspects = r.suspects_impliques || [];
+                return suspects.some(s => String(s.id) === String(citizenId));
+            });
+            const reports = validReports.map(r => ({ ...r, reportType: 'arrestation' }));
             renderReports(arrestationSuspectContainer, reports, 'arrestation-suspect');
         }
 
@@ -1362,7 +1367,12 @@ async function loadCitizenReports(citizenId) {
         const resImplique = await fetch(`/api/rapports-arrestation?civilId=${citizenId}&limit=100`);
         if (resImplique.ok) {
             const data = await resImplique.json();
-            const reports = data.reports.map(r => ({ ...r, reportType: 'arrestation' }));
+            // Strict check: the civil list must contain our citizenId
+            const validReports = (data.reports || []).filter(r => {
+                const civils = r.civils_impliques || [];
+                return civils.some(c => String(c.id) === String(citizenId));
+            });
+            const reports = validReports.map(r => ({ ...r, reportType: 'arrestation' }));
             renderReports(arrestationImpliqueContainer, reports, 'arrestation-implique');
         }
 
@@ -1370,7 +1380,9 @@ async function loadCitizenReports(citizenId) {
         const resInterrogatoire = await fetch(`/api/rapports-interrogatoire?citoyenId=${citizenId}&limit=100`);
         if (resInterrogatoire.ok) {
             const data = await resInterrogatoire.json();
-            const reports = data.reports.map(r => ({ ...r, reportType: 'interrogatoire' }));
+            // Double vérification côté client pour s'assurer que le rapport concerne bien ce citoyen
+            const validReports = (data.reports || []).filter(r => String(r.citoyen_id) === String(citizenId));
+            const reports = validReports.map(r => ({ ...r, reportType: 'interrogatoire' }));
             renderReports(interrogatoireContainer, reports, 'interrogatoire');
         }
 

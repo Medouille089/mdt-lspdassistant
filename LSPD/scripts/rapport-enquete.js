@@ -46,9 +46,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        const name = superviseur.displayName || 
+                     (superviseur.prenom && superviseur.nom ? `${superviseur.prenom} ${superviseur.nom}` : superviseur.nom) || 
+                     'Inconnu';
+        const gradeStr = superviseur.grade ? ` - ${superviseur.grade}` : '';
+
         selectedSuperviseurContainer.innerHTML = `
             <div class="selected-item">
-                <span>${superviseur.displayName} - ${superviseur.grade}</span>
+                <span>${name}${gradeStr}</span>
                 <span class="remove-btn" onclick="window.removeSuperviseur()">&times;</span>
             </div>
         `;
@@ -89,12 +94,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        selectedAgentsContainer.innerHTML = agents.map((agent, index) => `
-            <div class="selected-item">
-                <span>${agent.displayName} - ${agent.grade}</span>
-                <span class="remove-btn" onclick="window.removeAgent(${index})">&times;</span>
-            </div>
-        `).join('');
+        selectedAgentsContainer.innerHTML = agents.map((agent, index) => {
+            const name = agent.displayName || 
+                         (agent.prenom && agent.nom ? `${agent.prenom} ${agent.nom}` : agent.nom) || 
+                         'Inconnu';
+            const gradeStr = agent.grade ? ` - ${agent.grade}` : '';
+            return `
+                <div class="selected-item">
+                    <span>${name}${gradeStr}</span>
+                    <span class="remove-btn" onclick="window.removeAgent(${index})">&times;</span>
+                </div>
+            `;
+        }).join('');
     }
 
     window.removeAgent = function(index) {
@@ -108,17 +119,125 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (selectSuspectsBtn) {
         selectSuspectsBtn.addEventListener('click', () => {
-            openCitoyenSelector((selectedCitoyen) => {
-                if (selectedCitoyen && selectedCitoyen.id) {
-                    if (!suspects.find(s => s.id === selectedCitoyen.id)) {
-                        suspects.push(selectedCitoyen);
+            openCitoyenSelector((id, fullName, citoyen) => {
+                if (id) {
+                    // S'assurer que citoyen est bien l'objet complet
+                    const citoyenObj = citoyen || { id, nom: fullName.split(' ').pop(), prenom: fullName.split(' ')[0] };
+                    
+                    if (!suspects.find(s => s.id === id)) {
+                        suspects.push(citoyenObj);
                         updateSuspectsDisplay();
+                        
+                        // Proposer d'ajouter les rapports liés
+                        addLinkedReportsForSuspect(citoyenObj);
                     } else {
                         showNotification('Ce citoyen est déjà dans la liste des suspects', 'warning');
                     }
                 }
             });
         });
+    }
+
+    async function addLinkedReportsForSuspect(citoyen) {
+        const modal = document.getElementById('confirmAutoReportsModal');
+        const textElement = document.getElementById('confirmAutoReportsText');
+        const confirmBtn = document.getElementById('confirmAutoBtn');
+        const declineBtn = document.getElementById('declineAutoBtn');
+
+        if (!modal || !textElement || !confirmBtn || !declineBtn) {
+            if (confirm(`Voulez-vous ajouter automatiquement tous les dossiers liés à ${citoyen.prenom} ${citoyen.nom} ?`)) {
+                executeAutoAdd(citoyen);
+            }
+            return;
+        }
+
+        textElement.textContent = `Voulez-vous ajouter automatiquement tous les rapports d'arrestation et d'interrogatoire liés à ${citoyen.prenom} ${citoyen.nom} ?`;
+        modal.style.display = 'flex';
+
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        const newDeclineBtn = declineBtn.cloneNode(true);
+        declineBtn.parentNode.replaceChild(newDeclineBtn, declineBtn);
+
+        newConfirmBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            executeAutoAdd(citoyen);
+        });
+
+        newDeclineBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    async function executeAutoAdd(citoyen) {
+        if (!citoyen.id) {
+            console.error('[DEBUG-FRONT] Erreur: citoyen.id est manquant', citoyen);
+            return;
+        }
+        console.log(`[DEBUG-FRONT] Lancement executeAutoAdd pour suspect ID: ${citoyen.id}`, citoyen);
+        
+        if (loaderOverlay) loaderOverlay.style.display = 'flex';
+
+        try {
+            // Fetch arrestations
+            const resArrest = await fetch(`/api/rapports-arrestation?suspectId=${citoyen.id}&limit=100`);
+            const dataArrest = await resArrest.json();
+            const arrestations = dataArrest.reports || [];
+            console.log(`[DEBUG-FRONT] Arrestations reçues (${arrestations.length}):`, arrestations);
+
+            // Fetch interrogatoires
+            const resInterro = await fetch(`/api/rapports-interrogatoire?citoyenId=${citoyen.id}&limit=100`);
+            const dataInterro = await resInterro.json();
+            const interrogatoires = dataInterro.reports || (Array.isArray(dataInterro) ? dataInterro : []);
+            console.log(`[DEBUG-FRONT] Interrogatoires reçus (${interrogatoires.length}):`, interrogatoires);
+
+            let addedCount = 0;
+
+            // Add arrestations (double vérification ID côté client)
+            arrestations.forEach(rapport => {
+                const suspectsInRapport = Array.isArray(rapport.suspects_impliques) ? rapport.suspects_impliques : JSON.parse(rapport.suspects_impliques || '[]');
+                const isConcerned = suspectsInRapport.some(s => String(s.id) === String(citoyen.id));
+
+                if (isConcerned && !rapports.find(r => r.type === 'arrestation' && r.id === rapport.id)) {
+                    rapports.push({
+                        type: 'arrestation',
+                        id: rapport.id,
+                        titre: rapport.titre_rapport || `Rapport #${rapport.id}`,
+                        date: new Date(rapport.date_arrestation).toLocaleDateString('fr-FR')
+                    });
+                    addedCount++;
+                }
+            });
+
+            // Add interrogatoires (double vérification ID côté client)
+            interrogatoires.forEach(rapport => {
+                const isConcerned = String(rapport.citoyen_id) === String(citoyen.id);
+                console.log(`[DEBUG-FRONT] Vérif interro ID ${rapport.id}: citoyen_id=${rapport.citoyen_id} VS suspect_id=${citoyen.id} => matches: ${isConcerned}`);
+
+                if (isConcerned && !rapports.find(r => r.type === 'interrogatoire' && r.id === rapport.id)) {
+                    rapports.push({
+                        type: 'interrogatoire',
+                        id: rapport.id,
+                        titre: `Interrogatoire de ${rapport.citoyen_prenom} ${rapport.citoyen_nom}`,
+                        date: new Date(rapport.date_interrogatoire).toLocaleDateString('fr-FR')
+                    });
+                    addedCount++;
+                }
+            });
+
+            if (addedCount > 0) {
+                updateRapportsDisplay();
+                showNotification(`${addedCount} rapport(s) lié(s) ajouté(s)`, 'success');
+            } else {
+                showNotification(`Aucun nouveau rapport lié trouvé pour ce citoyen`, 'info');
+            }
+
+        } catch (error) {
+            console.error('Erreur ajout rapports auto:', error);
+            showNotification('Erreur lors de la récupération des rapports liés', 'error');
+        } finally {
+            if (loaderOverlay) loaderOverlay.style.display = 'none';
+        }
     }
 
     function updateSuspectsDisplay() {
@@ -201,12 +320,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                         titre = `Interrogatoire de ${rapport.citoyen_prenom} ${rapport.citoyen_nom}`;
                         date = new Date(rapport.date_interrogatoire).toLocaleDateString('fr-FR');
                     } else if (type === 'incident') {
-                        rapportId = rapport.incident_id || rapport.id;
-                        titre = rapport.description || `Incident #${rapportId}`;
-                        // Format: date_incident (YYYY-MM-DD) + heure_incident (HH:MM)
-                        const dateStr = rapport.date_incident;
-                        if (dateStr) {
-                            const [y, m, d] = dateStr.split('-');
+                        rapportId = rapport.id;
+                        titre = rapport.recit ? (rapport.recit.substring(0, 50) + '...') : `Incident #${rapportId}`;
+                        date = rapport.date; // Déjà au format YYYY-MM-DD
+                        if (date) {
+                            const [y, m, d] = date.split('-');
                             date = `${d}/${m}/${y}`;
                         } else {
                             date = 'N/A';
@@ -387,7 +505,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 type: r.rapport_type,
                 id: r.rapport_id,
                 titre: r.rapport_titre,
-                date: new Date(r.rapport_date).toLocaleDateString('fr-FR')
+                date: r.rapport_date ? new Date(r.rapport_date).toLocaleDateString('fr-FR') : 'N/A'
             }));
             updateRapportsDisplay();
 
