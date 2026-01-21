@@ -28,7 +28,7 @@
         <h1>Nouveau rapport</h1>
 
         <div class="grid-wrapper">
-            <div class="button-grid">
+            <div class="button-grid" id="rapportGrid">
                 <a href="/incident" class="send-button">
                     <div class="icon-wrapper"><i data-lucide="alert-triangle" class="icon"></i></div>
                     <span class="label">Incident</span>
@@ -45,7 +45,7 @@
                     <div class="icon-wrapper"><i data-lucide="mail" class="icon"></i></div>
                     <span class="label">Convocation</span>
                 </a>
-                <a href="/rapport-rookie" class="send-button hidden">
+                <a href="/rapport-rookie" class="send-button hidden" id="rapportRookieBtn">
                     <div class="icon-wrapper"><i data-lucide="graduation-cap" class="icon"></i></div>
                     <span class="label">Rookie</span>
                 </a>
@@ -59,6 +59,46 @@
                 </a> -->
             </div>
         </div>
+        <style>
+            /* Permet d'adapter dynamiquement la grille à 4 ou 5 colonnes */
+            .button-grid.dynamic-4 {
+                grid-template-columns: repeat(4, 180px) !important;
+                max-width: 780px !important;
+            }
+            @media (max-width: 980px) {
+                .button-grid.dynamic-4 {
+                    grid-template-columns: repeat(3, 180px) !important;
+                    max-width: 620px !important;
+                }
+            }
+            @media (max-width: 620px) {
+                .button-grid.dynamic-4 {
+                    grid-template-columns: repeat(2, 150px) !important;
+                    max-width: 320px !important;
+                }
+            }
+            @media (max-width: 400px) {
+                .button-grid.dynamic-4 {
+                    grid-template-columns: 1fr !important;
+                    max-width: 100% !important;
+                }
+            }
+        </style>
+        <script>
+            // Adapter la grille selon la visibilité du bouton rapport rookie
+            document.addEventListener('DOMContentLoaded', function() {
+                var rookieBtn = document.getElementById('rapportRookieBtn');
+                var grid = document.getElementById('rapportGrid');
+                if (rookieBtn && grid) {
+                    var isHidden = rookieBtn.classList.contains('hidden');
+                    if (isHidden) {
+                        grid.classList.add('dynamic-4');
+                    } else {
+                        grid.classList.remove('dynamic-4');
+                    }
+                }
+            });
+        </script>
     </div>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/genMenu.js"></script>

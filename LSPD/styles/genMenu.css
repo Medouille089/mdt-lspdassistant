@@ -98,13 +98,6 @@ body::before {
 
 .send-button:hover {
   transform: translateY(-6px);
-  background: linear-gradient(145deg,
-    color-mix(in srgb, var(--sidebar-bg) 70%, white) 0%,
-    color-mix(in srgb, var(--sidebar-bg) 90%, black) 50%,
-    color-mix(in srgb, var(--sidebar-bg) 75%, black) 100%);
-  box-shadow:
-    0 16px 48px rgba(11, 27, 90, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .send-button:hover .icon-wrapper {

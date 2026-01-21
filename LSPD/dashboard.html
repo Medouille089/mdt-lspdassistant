@@ -42,7 +42,7 @@
         <div class="dashboard-container">
             <!-- Top widgets -->
             <div class="stats-cards">
-                <div class="card stat" id="interventionCard">
+                <div class="card stat" id="interventionCard" style="cursor:pointer" tabindex="0">
                     <div class="stat-icon"><i data-lucide="file-text"></i></div>
                     <div class="stat-content">
                         <div class="title">Rapports</div>
@@ -50,7 +50,7 @@
                         <div class="info" id="interventionInfo">+0 aujourd'hui</div>
                     </div>
                 </div>
-                <div class="card stat" id="braceletCard">
+                <div class="card stat" id="braceletCard" style="cursor:pointer" tabindex="0">
                     <div class="stat-icon"><i data-lucide="watch"></i></div>
                     <div class="stat-content">
                         <div class="title">Bracelets</div>
@@ -58,7 +58,7 @@
                         <div class="info" id="braceletInfo">Actifs</div>
                     </div>
                 </div>
-                <div class="card stat" id="patrouilleCard">
+                <div class="card stat" id="patrouilleCard" style="cursor:pointer" tabindex="0">
                     <div class="stat-icon"><i data-lucide="wallet"></i></div>
                     <div class="stat-content">
                         <div class="title">Salaire</div>
@@ -118,6 +118,38 @@
     <script src="scripts/liveUserHeartbeat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>lucide.createIcons();</script>
+    <script>
+        // Redirections sur les cards du dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            var rapport = document.getElementById('interventionCard');
+            var bracelet = document.getElementById('braceletCard');
+            var salaire = document.getElementById('patrouilleCard');
+            if (rapport) {
+                rapport.addEventListener('click', function() {
+                    window.location.href = '/menu-rapports';
+                });
+                rapport.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') window.location.href = '/menu-rapports';
+                });
+            }
+            if (bracelet) {
+                bracelet.addEventListener('click', function() {
+                    window.location.href = '/liste-bracelets';
+                });
+                bracelet.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') window.location.href = '/liste-bracelets';
+                });
+            }
+            if (salaire) {
+                salaire.addEventListener('click', function() {
+                    window.location.href = '/pointeuse';
+                });
+                salaire.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') window.location.href = '/pointeuse';
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
