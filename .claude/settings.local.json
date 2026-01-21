@@ -7,7 +7,12 @@
       "Bash(dir:*)",
       "Bash(findstr:*)",
       "Bash(node --check:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(powershell -Command \"Get-ChildItem -Recurse -Filter ''*.html'' | ForEach-Object { \\(Get-Content $_FullName -Raw\\) -replace ''← Retour'', ''<span class=\"\"material-symbols-rounded\"\">arrow_back</span> Retour'' | Set-Content $_FullName -NoNewline }\")",
+      "Bash(powershell -Command:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File replace-backlink.ps1)",
+      "Bash(node replace-backlink.js:*)",
+      "Bash(del replace-backlink.ps1 replace-backlink.js)"
     ]
   }
 }
