@@ -151,7 +151,20 @@ body.collapsed .main-content {
   transition: 0.4s ease;
 }
 
+/* Lucide icons dans le toggler et menu button */
+.sidebar-header .sidebar-toggler svg,
+.sidebar-menu-button svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.5;
+  transition: 0.4s ease;
+}
+
 .sidebar.collapsed .sidebar-header .sidebar-toggler span {
+  transform: rotate(180deg);
+}
+
+.sidebar.collapsed .sidebar-header .sidebar-toggler svg {
   transform: rotate(180deg);
 }
 
@@ -203,6 +216,22 @@ body.collapsed .main-content {
   transition: 0.4s ease;
 }
 
+/* Lucide icons dans la navigation */
+.sidebar-nav .nav-item .nav-link svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
+  flex-shrink: 0;
+  transition: 0.4s ease;
+}
+
+/* Dropdown icon Lucide */
+.sidebar-nav .dropdown-container .dropdown-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
+}
+
 .sidebar-nav .nav-item:is(:hover, .open) > .nav-link:not(.dropdown-title) {
   color: var(--sidebar-text);
   background: var(--main-header-bg);
@@ -252,7 +281,8 @@ body.collapsed .main-content {
   pointer-events: none;
 }
 
-.sidebar.collapsed .nav-link .dropdown-icon {
+.sidebar.collapsed .nav-link .dropdown-icon,
+.sidebar.collapsed .nav-link i.dropdown-icon {
   transition: opacity 0.3s 0s ease;
 }
 

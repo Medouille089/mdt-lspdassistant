@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="styles/dashboard/dashboard.css" />
     <link rel="stylesheet" href="styles/context-menu.css" />
     <link rel="stylesheet" href="styles/annonce-popup.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="scripts/context-menu.js"></script>
 </head>
 
@@ -42,19 +43,28 @@
             <!-- Top widgets -->
             <div class="stats-cards">
                 <div class="card stat" id="interventionCard">
-                    <div class="title">Rapports</div>
-                    <div class="number" id="interventionCount">0</div>
-                    <div class="info" id="interventionInfo">+0 aujourd'hui</div>
+                    <div class="stat-icon"><i data-lucide="file-text"></i></div>
+                    <div class="stat-content">
+                        <div class="title">Rapports</div>
+                        <div class="number" id="interventionCount">0</div>
+                        <div class="info" id="interventionInfo">+0 aujourd'hui</div>
+                    </div>
                 </div>
                 <div class="card stat" id="braceletCard">
-                    <div class="title">Bracelets</div>
-                    <div class="number blink-red" id="braceletCount">0</div>
-                    <div class="info" id="braceletInfo">Actifs</div>
+                    <div class="stat-icon"><i data-lucide="watch"></i></div>
+                    <div class="stat-content">
+                        <div class="title">Bracelets</div>
+                        <div class="number blink-red" id="braceletCount">0</div>
+                        <div class="info" id="braceletInfo">Actifs</div>
+                    </div>
                 </div>
                 <div class="card stat" id="patrouilleCard">
-                    <div class="title">Salaire</div>
-                    <div class="number" id="patrouilleCount">0$</div>
-                    <div class="info" id="patrouilleInfo">Semaine</div>
+                    <div class="stat-icon"><i data-lucide="wallet"></i></div>
+                    <div class="stat-content">
+                        <div class="title">Salaire</div>
+                        <div class="number" id="patrouilleCount">0$</div>
+                        <div class="info" id="patrouilleInfo">Semaine</div>
+                    </div>
                 </div>
             </div>
             <!-- Middle section -->
@@ -107,6 +117,7 @@
     <script src="scripts/dashboard.js"></script>
     <script src="scripts/liveUserHeartbeat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>lucide.createIcons();</script>
 </body>
 
 </html>

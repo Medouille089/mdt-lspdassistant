@@ -5,7 +5,7 @@
     if (!container) return;
 
     // Version du cache - incrémenter pour invalider l'ancien cache lors de changements structurels
-    const CACHE_VERSION = 2;
+    const CACHE_VERSION = 3; // Migration vers Lucide icons
 
     try {
         const cached = localStorage.getItem('lspd_cache_sidebar-html');

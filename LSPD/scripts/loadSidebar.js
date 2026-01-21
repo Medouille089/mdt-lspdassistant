@@ -2,13 +2,20 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('sidebar-container');
 
+    // Fonction pour initialiser les icônes Lucide
+    function initLucideIcons() {
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+    }
+
     if (container) {
         try {
             // Clé de cache pour la sidebar HTML
             const SIDEBAR_HTML_CACHE_KEY = 'lspd_cache_sidebar-html';
             const SIDEBAR_TYPE_CACHE_KEY = 'lspd_cache_sidebar-type';
             const CACHE_TTL = 1800; // 30 minutes
-            const CACHE_VERSION = 2; // Doit correspondre à instant-sidebar.js
+            const CACHE_VERSION = 3; // Incrémenté pour invalider l'ancien cache (migration Lucide)
 
             // Fonction pour charger depuis le cache
             function loadFromCache() {
@@ -31,10 +38,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 return false;
             }
-            
+
             // Charger immédiatement depuis le cache si disponible
             const loadedFromCache = loadFromCache();
-            
+
             // Charger le script sidebar.js immédiatement (même avec le cache)
             if (loadedFromCache) {
                 const script = document.createElement('script');
@@ -42,6 +49,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.body.appendChild(script);
                 document.body.classList.remove('sidebar-loading');
                 document.dispatchEvent(new Event('sidebar:ready'));
+                // Initialiser les icônes Lucide après chargement depuis le cache
+                initLucideIcons();
             }
             
             // En arrière-plan, vérifier si on doit mettre à jour
@@ -86,6 +95,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     document.body.classList.remove('sidebar-loading');
                     document.dispatchEvent(new Event('sidebar:ready'));
                 }
+                // Initialiser les icônes Lucide après mise à jour
+                initLucideIcons();
             }
 
         } catch (err) {
@@ -100,6 +111,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.body.appendChild(script);
             document.body.classList.remove('sidebar-loading');
             document.dispatchEvent(new Event('sidebar:ready'));
+            // Initialiser les icônes Lucide après fallback
+            initLucideIcons();
         }
     }
 });

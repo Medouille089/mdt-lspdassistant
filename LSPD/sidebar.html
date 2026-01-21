@@ -11,11 +11,8 @@
     <link rel="stylesheet" href="styles/context-menu.css" />
     <title>LSPD Assistant</title>
 
-    <!-- Google Fonts for Icons -->
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* Cacher les menus admin par défaut, ils seront affichés par JS si l'utilisateur a les permissions */
         .onlySupervisor,
@@ -52,7 +49,7 @@
     <script src="scripts/annonce-popup.js"></script>
     <!-- Mobile Sidebar Menu Button -->
     <button class="sidebar-menu-button">
-        <span class="material-symbols-rounded">menu</span>
+        <i data-lucide="menu"></i>
     </button>
 
     <aside class="sidebar">
@@ -63,7 +60,7 @@
             </a>
             <!-- Sidebar toggler restored: allows collapsing/expanding the sidebar -->
             <button class="sidebar-toggler" aria-label="Toggle sidebar" title="Toggle sidebar">
-                <span class="material-symbols-rounded">chevron_left</span>
+                <i data-lucide="chevron-left"></i>
             </button>
         </header>
 
@@ -72,7 +69,7 @@
             <ul class="nav-list primary-nav">
                 <li class="nav-item">
                     <a href="/dashboard" class="nav-link">
-                        <span class="material-symbols-rounded">dashboard</span>
+                        <i data-lucide="layout-dashboard"></i>
                         <span class="nav-label">Dashboard</span>
                     </a>
                     <ul class="dropdown-menu">
@@ -82,7 +79,7 @@
 
                 <li class="nav-item">
                     <a href="/trello/index" class="nav-link">
-                        <span class="material-symbols-rounded">view_kanban</span>
+                        <i data-lucide="kanban"></i>
                         <span class="nav-label">Trello</span>
                     </a>
                     <ul class="dropdown-menu">
@@ -92,7 +89,7 @@
 
                 <li class="nav-item">
                     <a href="/documentation" class="nav-link">
-                        <span class="material-symbols-rounded">document_search</span>
+                        <i data-lucide="book-open"></i>
                         <span class="nav-label">Documentation</span>
                     </a>
                     <ul class="dropdown-menu">
@@ -102,17 +99,17 @@
 
                 <li class="nav-item">
                     <a href="/pointeuse" class="nav-link">
-                        <span class="material-symbols-rounded">wallet</span>
+                        <i data-lucide="clock"></i>
                         <span class="nav-label">Pointeuse</span>
                     </a>
                     <ul class="dropdown-menu">
                         <li class="nav-item"><a class="nav-link dropdown-title">Pointeuse</a></li>
                     </ul>
                 </li>
-                
+
                 <!-- <li class="nav-item">
                     <a href="/menu-mdt" class="nav-link">
-                        <span class="material-symbols-rounded">person</span>
+                        <i data-lucide="user"></i>
                         <span class="nav-label">Menu MDT</span>
                     </a>
                     <ul class="dropdown-menu">
@@ -122,7 +119,7 @@
 
                 <li class="nav-item">
                     <a href="/menu-rapports" class="nav-link">
-                        <span class="material-symbols-rounded">add_circle</span>
+                        <i data-lucide="plus-circle"></i>
                         <span class="nav-label">Nouveau rapport</span>
                     </a>
                     <ul class="dropdown-menu">
@@ -134,9 +131,9 @@
                 <!-- Dropdown Liste -->
                 <li class="nav-item dropdown-container">
                     <a href="#" class="nav-link dropdown-toggle">
-                        <span class="material-symbols-rounded">files</span>
+                        <i data-lucide="folder-open"></i>
                         <span class="nav-label">Liste</span>
-                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
+                        <i data-lucide="chevron-down" class="dropdown-icon"></i>
                     </a>
                     <ul class="dropdown-menu">
                         <li class="nav-item"><a class="nav-link dropdown-title">Liste</a></li>
@@ -151,12 +148,12 @@
                     </ul>
                 </li>
 
-                <!-- Dropdown Liste -->
+                <!-- Dropdown Archives -->
                 <li class="nav-item dropdown-container">
                     <a href="#" class="nav-link dropdown-toggle">
-                        <span class="material-symbols-rounded">archive</span>
+                        <i data-lucide="archive"></i>
                         <span class="nav-label">Archives</span>
-                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
+                        <i data-lucide="chevron-down" class="dropdown-icon"></i>
                     </a>
                     <ul class="dropdown-menu">
                         <li class="nav-item"><a class="nav-link dropdown-title">Liste</a></li>
@@ -168,9 +165,9 @@
 
                 <li class="nav-item dropdown-container">
                     <a href="#" class="nav-link dropdown-toggle">
-                        <span class="material-symbols-rounded">accessibility_new</span>
+                        <i data-lucide="user-cog"></i>
                         <span class="nav-label">Gestion</span>
-                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
+                        <i data-lucide="chevron-down" class="dropdown-icon"></i>
                     </a>
                     <ul class="dropdown-menu">
                         <li class="nav-item"><a class="nav-link dropdown-title">Gestion personnelle</a></li>
@@ -184,9 +181,9 @@
 
                 <li class="nav-item dropdown-container">
                     <a href="#" class="nav-link dropdown-toggle">
-                        <span class="material-symbols-rounded">bookmark</span>
+                        <i data-lucide="wrench"></i>
                         <span class="nav-label">Outils</span>
-                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
+                        <i data-lucide="chevron-down" class="dropdown-icon"></i>
                     </a>
                     <ul class="dropdown-menu">
                         <li class="nav-item"><a href="/menu-annexes" class="nav-link dropdown-link">Annexes</a>
@@ -202,7 +199,7 @@
 
                 <li class="nav-item onlySupervisor">
                     <a href="/menu-superviseur" class="nav-link">
-                        <span class="material-symbols-rounded">brightness_alert</span>
+                        <i data-lucide="shield-alert"></i>
                         <span class="nav-label">Superviseur</span>
                     </a>
                     <ul class="dropdown-menu">
@@ -211,7 +208,7 @@
                 </li>
                 <li class="nav-item onlyCommandStaff">
                     <a href="/menu-admin" class="nav-link">
-                        <span class="material-symbols-rounded">admin_panel_settings</span>
+                        <i data-lucide="shield-check"></i>
                         <span class="nav-label">Admin</span>
                     </a>
                     <ul class="dropdown-menu">
@@ -229,7 +226,7 @@
                 </li>
                 <li class="nav-item">
                     <a href="/logout" class="nav-link">
-                        <span class="material-symbols-rounded">logout</span>
+                        <i data-lucide="log-out"></i>
                         <span class="nav-label">Déconnexion</span>
                     </a>
                     <ul class="dropdown-menu">
