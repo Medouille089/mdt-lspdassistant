@@ -41,13 +41,19 @@ body {
 
 @keyframes kenBurnsZoom {
   0% {
-    transform: scale(1);
+    transform: scale(1) translate(0, 0);
+  }
+  25% {
+    transform: scale(1.07) translate(0.3%, -0.2%);
   }
   50% {
-    transform: scale(1.15);
+    transform: scale(1.15) translate(-0.2%, 0.3%);
+  }
+  75% {
+    transform: scale(1.07) translate(-0.3%, -0.2%);
   }
   100% {
-    transform: scale(1);
+    transform: scale(1) translate(0, 0);
   }
 }
 
@@ -98,18 +104,20 @@ body::before {
 .connect-button {
   display: flex;
   align-items: center;
-  /* aligne verticalement le texte et l'image */
+  justify-content: center;
   gap: 10px;
-  /* espace entre logo et texte */
-  padding: 10px 18px;
-  background: linear-gradient(180deg, #5865f2 0%, #4752c4 100%); /* Discord blurple */
+  padding: 12px 20px;
+  background: linear-gradient(180deg, #5865f2 0%, #4752c4 100%);
   color: #ffffff;
-  border: 1px solid rgba(0,0,0,0.15);
-  border-radius: 8px; /* same as Se connecter */
+  border: none;
+  border-radius: 12px;
   font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.1);
   z-index: 1;
 }
 
@@ -117,12 +125,15 @@ body::before {
   width: 18px;
   height: 18px;
   display: block;
-  filter: brightness(0) invert(1); /* make icon white */
+  filter: brightness(0) invert(1);
 }
 
 .connect-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(88, 101, 242, 0.5);
+  transform: translateY(-3px);
+  box-shadow:
+    0 10px 30px rgba(88, 101, 242, 0.4),
+    0 4px 10px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(180deg, #6b77f5 0%, #5865f2 100%);
 }
 
 .watermark {
@@ -238,7 +249,7 @@ button[id^="toggle"]:hover .material-symbols-outlined {
   padding: 12px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border-radius: 12px;
   color: #fff;
   font-size: 1em;
   transition: all 0.3s ease;
@@ -259,13 +270,11 @@ button[id^="toggle"]:hover .material-symbols-outlined {
 .login-button {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(
-    135deg,
-    var(--main-color, #5865f2) 0%,
-    #4752c4 100%
-  );
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--sidebar-bg, #1a1f2e) 90%, white) 0%,
+    var(--sidebar-bg, #1a1f2e) 100%);
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   color: #fff;
   font-size: 1em;
   font-weight: 600;
@@ -273,11 +282,19 @@ button[id^="toggle"]:hover .material-symbols-outlined {
   transition: all 0.3s ease;
   position: relative;
   z-index: 10;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .login-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(88, 101, 242, 0.5);
+  transform: translateY(-3px);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25),
+    0 4px 10px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--sidebar-bg, #1a1f2e) 80%, white) 0%,
+    color-mix(in srgb, var(--sidebar-bg, #1a1f2e) 95%, white) 100%);
 }
 
 .login-button:disabled {
