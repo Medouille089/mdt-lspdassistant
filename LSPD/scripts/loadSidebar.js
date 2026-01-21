@@ -8,19 +8,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             const SIDEBAR_HTML_CACHE_KEY = 'lspd_cache_sidebar-html';
             const SIDEBAR_TYPE_CACHE_KEY = 'lspd_cache_sidebar-type';
             const CACHE_TTL = 1800; // 30 minutes
-            
+            const CACHE_VERSION = 2; // Doit correspondre à instant-sidebar.js
+
             // Fonction pour charger depuis le cache
             function loadFromCache() {
                 // Si déjà chargé par instant-sidebar.js, ne rien faire
                 if (window.__sidebarLoadedFromCache) {
                     return true;
                 }
-                
+
                 try {
                     const cached = localStorage.getItem(SIDEBAR_HTML_CACHE_KEY);
                     if (cached) {
                         const data = JSON.parse(cached);
-                        if (data && data.value && Date.now() <= data.expiry) {
+                        if (data && data.value && data.version === CACHE_VERSION && Date.now() <= data.expiry) {
                             container.innerHTML = data.value;
                             return true;
                         }
@@ -64,12 +65,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     container.innerHTML = html;
                 }
                 
-                // Mettre en cache
+                // Mettre en cache avec version
                 try {
                     localStorage.setItem(SIDEBAR_HTML_CACHE_KEY, JSON.stringify({
                         value: html,
                         expiry: Date.now() + (CACHE_TTL * 1000),
-                        created: Date.now()
+                        created: Date.now(),
+                        version: CACHE_VERSION
                     }));
                     localStorage.setItem(SIDEBAR_TYPE_CACHE_KEY, sidebarFile);
                 } catch (e) {

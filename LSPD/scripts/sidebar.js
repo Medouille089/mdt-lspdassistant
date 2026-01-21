@@ -215,16 +215,22 @@ async function fetchUser() {
         <span class="profile-inline" style="display:flex;align-items:center;gap:10px;">
     <img class=\"profile-avatar\" src=\"${avatarUrl}\" alt=\"Avatar\" data-user-id=\"${user.id}\" style=\"width:40px;height:40px;border-radius:50%;border:1px solid #FFFFFF;transition:border-color .18s;flex-shrink:0;object-fit:cover;\">
           <span class=\"profile-texts\" style=\"display:flex;flex-direction:column;line-height:1.15;\">
-            <span class=\"profile-username\" style=\"font-weight:700;font-size:${fontSize};color:#FFFFFF;transition:color .18s;\">${user.username}</span>
-            <span class=\"profile-grade\" style=\"font-weight:500;font-size:0.8rem;color:#CCCCCC;transition:color .18s;\">${user.grade}</span>
+            <span class=\"profile-username\" style=\"font-weight:700;font-size:${fontSize};transition:color .18s;\">${user.username}</span>
+            <span class=\"profile-grade\" style=\"font-weight:500;font-size:0.8rem;transition:color .18s;\">${user.grade}</span>
           </span>
         </span>`;
     }
 
-    const navLinkAnchor = container.closest('a.nav-link');
-    if (navLinkAnchor && !navLinkAnchor.hasAttribute('data-listeners-attached')) {
-      // Initialiser les event listeners
-      initProfileListeners();
+    // Configurer le lien du profil
+    const profileLink = document.getElementById('profileLink') || container.closest('a.nav-link');
+    if (profileLink && !profileLink.hasAttribute('data-profile-initialized')) {
+      profileLink.id = 'profileLink';
+      profileLink.setAttribute('data-profile-initialized', 'true');
+      profileLink.style.cursor = 'pointer';
+      profileLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = `/infos-agent?userId=${user.id}`;
+      });
     }
 
     // Appliquer les permissions depuis l'API (toujours, pas de cache)

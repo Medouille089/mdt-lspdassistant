@@ -263,6 +263,20 @@ body.collapsed .main-content {
   background: var(--sidebar-bg);
 }
 
+/* Style hover pour le bouton profil */
+.sidebar-nav .secondary-nav .nav-item:first-child .nav-link {
+  cursor: pointer;
+}
+
+.sidebar-nav .secondary-nav .nav-item:first-child:hover > .nav-link {
+  color: var(--sidebar-text);
+  background: var(--main-header-bg);
+  box-shadow:
+    0 4px 12px rgba(11, 27, 90, 0.3),
+    0 0 20px rgba(11, 27, 90, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 .sidebar-nav .nav-item {
   position: relative;
 }
