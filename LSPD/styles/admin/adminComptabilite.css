@@ -121,7 +121,9 @@ table {
 }
 
 thead {
-    background-color: rgba(20, 40, 80, 0.9);
+    background: linear-gradient(180deg,
+        color-mix(in srgb, var(--sidebar-bg) 90%, white) 0%,
+        var(--sidebar-bg) 100%);
 }
 
 thead th {

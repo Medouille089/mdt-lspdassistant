@@ -25,9 +25,13 @@ body {
   z-index: 10;
   width: 270px;
   height: 100%;
-  background: var(--sidebar-bg);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--sidebar-bg) 90%, white) 0%,
+    var(--sidebar-bg) 100%);
+  box-shadow:
+    6px 0 20px rgba(0, 0, 0, 0.15),
+    2px 0 6px rgba(0, 0, 0, 0.1);
   transition: all 0.4s ease;
-  /* Effet glow Apple-style */
 }
 
 body,
@@ -195,40 +199,37 @@ body.collapsed .main-content {
   padding: 11px 15px;
   align-items: center;
   text-decoration: none;
-  border: 1px solid var(--sidebar-bg);
+  border: none;
   transition: 0.4s ease;
 }
 
 .sidebar-nav .nav-item:is(:hover, .open) > .nav-link:not(.dropdown-title) {
   color: var(--sidebar-text);
   background: var(--main-header-bg);
-  box-shadow: 
+  box-shadow:
     0 4px 12px rgba(11, 27, 90, 0.3),
     0 0 20px rgba(11, 27, 90, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Style pour la page active - même apparence que le hover */
 .sidebar-nav .nav-item > .nav-link.active:not(.dropdown-title) {
   color: var(--sidebar-text);
   background: var(--main-header-bg);
-  box-shadow: 
+  box-shadow:
     0 4px 12px rgba(11, 27, 90, 0.3),
     0 0 20px rgba(11, 27, 90, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Style pour les dropdown-toggle actifs (quand une sous-page est active) */
 .sidebar-nav .nav-item.dropdown-container > .nav-link.dropdown-toggle.active {
   color: var(--sidebar-text);
   background: var(--main-header-bg);
-  box-shadow: 
+  box-shadow:
     0 4px 12px rgba(11, 27, 90, 0.3),
     0 0 20px rgba(11, 27, 90, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Style pour les liens actifs dans les dropdown menus */

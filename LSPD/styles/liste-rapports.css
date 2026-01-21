@@ -121,7 +121,9 @@ table {
 }
 
 th {
-    background: var(--main-color);
+    background: linear-gradient(180deg,
+        color-mix(in srgb, var(--sidebar-bg) 90%, white) 0%,
+        var(--sidebar-bg) 100%);
     color: white;
     padding: 15px 20px;
     text-align: left;

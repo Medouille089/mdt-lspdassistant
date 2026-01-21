@@ -79,7 +79,9 @@ table {
 }
 
 thead {
-  background: var(--table-header-bg);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--sidebar-bg) 90%, white) 0%,
+    var(--sidebar-bg) 100%);
 }
 
 thead th {
@@ -298,7 +300,9 @@ button:hover {
 }
 
 .sessions-table th {
-  background: var(--main-color-dark);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--sidebar-bg) 90%, white) 0%,
+    var(--sidebar-bg) 100%);
   color: var(--white);
   padding: 12px 8px;
   text-align: left;
