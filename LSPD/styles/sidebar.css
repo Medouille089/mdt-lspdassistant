@@ -56,9 +56,15 @@ body.collapsed .main-container {
   text-align: center;
   margin-bottom: 30px;
   color: var(--main-header-bg);
-  background-color: var(--sidebar-bg);
-  padding: 10px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--sidebar-bg) 90%, white) 0%,
+    var(--sidebar-bg) 100%);
+  padding: 14px 24px;
   font-size: 175%;
+  border-radius: 12px;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .container {

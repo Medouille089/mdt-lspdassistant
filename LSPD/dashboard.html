@@ -60,8 +60,15 @@
             <!-- Middle section -->
             <div class="middle-section">
                 <div class="card chart">
-                    <h3>Activité Hebdomadaire</h3>
-                    <canvas id="activityChart" height="120"></canvas>
+                    <div class="chart-header">
+                        <h3>Activité</h3>
+                        <div class="period-selector">
+                            <button class="period-btn" data-period="day">Jour</button>
+                            <button class="period-btn" data-period="week">Semaine</button>
+                            <button class="period-btn active" data-period="month">Mois</button>
+                        </div>
+                    </div>
+                    <canvas id="activityChart"></canvas>
                 </div>
 
                 <div class="right-panel">
