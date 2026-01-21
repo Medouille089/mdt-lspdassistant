@@ -19,6 +19,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        h1 {
+            box-shadow: none !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -33,7 +38,8 @@
     </div>
     <script src="scripts/annonce-popup.js"></script>
     <div class="main-container">
-        <div id="sidebar-container"></div>    <script src="scripts/instant-sidebar.js"></script>
+        <div id="sidebar-container"></div>
+        <script src="scripts/instant-sidebar.js"></script>
         <h1>Documentation</h1>
         <div class="faq-container" id="faq-container">
             <!-- FAQ dynamique ici -->
@@ -44,7 +50,7 @@
     </div>
 
     <script>
-        (function(){
+        (function () {
             const overlay = document.getElementById('loaderOverlay');
             if (!overlay) return;
             // Show overlay immediately
