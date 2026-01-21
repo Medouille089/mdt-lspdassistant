@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="styles/warning.css" />
     <link rel="stylesheet" href="styles/admin/admin.css" />
     <link rel="stylesheet" href="styles/context-menu.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
   </head>
 
   <body>
@@ -28,7 +31,7 @@
         type="button"
         aria-label="Retour"
       >
-        ← Retour
+        <i data-lucide="arrow-left"></i> Retour
       </button>
 
       <div class="warning-modern">
@@ -90,6 +93,11 @@
           ><br />
           <label>Chief : <input type="text" name="chief_role_id" /></label
           ><br />
+        </fieldset>
+
+        <fieldset style="margin-top: 20px;">
+          <legend>&nbsp;&nbsp;Grades Discord de division&nbsp;&nbsp;</legend>
+          <label>Division Enquête : <input type="text" name="division_enquete_role_id" /></label><br />
         </fieldset>
 
         <br />

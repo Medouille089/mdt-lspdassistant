@@ -552,7 +552,7 @@ async function displayProfile(profile) {
     document.getElementById('date_naissance').value = formatDateForInput(profile.date_naissance);
     document.getElementById('nationalite').value = profile.nationalite || '';
     document.getElementById('genre').value = profile.genre || '';
-    document.getElementById('telephone').value = profile.telephone || '';
+    document.getElementById('telephone').value = formatPhoneNumber(profile.telephone) || '';
     document.getElementById('emploi').value = profile.emploi || '';
     document.getElementById('adresse').value = profile.adresse || '';
     document.getElementById('gang_affilie').value = profile.gang_affilie || '';
@@ -872,7 +872,7 @@ function cancelEdit() {
     document.getElementById('date_naissance').value = originalData.date_naissance;
     document.getElementById('nationalite').value = originalData.nationalite;
     document.getElementById('genre').value = originalData.genre;
-    document.getElementById('telephone').value = originalData.telephone;
+    document.getElementById('telephone').value = formatPhoneNumber(originalData.telephone);
     // Correction : le champ "emploi" n'existe pas, on ignore ou on utilise "emploi" si présent
     if (document.getElementById('emploi')) {
         document.getElementById('emploi').value = originalData.emploi || '';
@@ -1343,33 +1343,54 @@ function showAllVehiclesModal(vehicules) {
 
 // Fonction pour charger les rapports impliquant le citoyen
 async function loadCitizenReports(citizenId) {
-    const suspectContainer = document.getElementById('rapports-suspect-list');
-    const autreContainer = document.getElementById('rapports-autre-list');
+    const arrestationSuspectContainer = document.getElementById('rapports-arrestation-suspect-list');
+    const arrestationImpliqueContainer = document.getElementById('rapports-arrestation-implique-list');
+    const interrogatoireContainer = document.getElementById('rapports-interrogatoire-list');
     
-    if (!suspectContainer || !autreContainer) return;
-
-    suspectContainer.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>';
-    autreContainer.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>';
+    if (!arrestationSuspectContainer || !arrestationImpliqueContainer || !interrogatoireContainer) return;
 
     try {
-        // Charger les rapports où le citoyen est suspect (on en prend plus pour le "Voir plus")
+        // Charger les rapports d'arrestation où le citoyen est suspect
         const resSuspect = await fetch(`/api/rapports-arrestation?suspectId=${citizenId}&limit=100`);
         if (resSuspect.ok) {
             const data = await resSuspect.json();
-            renderReports(suspectContainer, data.reports, 'suspect');
+            // Strict check: the suspect list must contain our citizenId
+            const validReports = (data.reports || []).filter(r => {
+                const suspects = r.suspects_impliques || [];
+                return suspects.some(s => String(s.id) === String(citizenId));
+            });
+            const reports = validReports.map(r => ({ ...r, reportType: 'arrestation' }));
+            renderReports(arrestationSuspectContainer, reports, 'arrestation-suspect');
         }
 
-        // Charger les rapports où le citoyen est impliqué (victime/témoin)
-        const resAutre = await fetch(`/api/rapports-arrestation?civilId=${citizenId}&limit=100`);
-        if (resAutre.ok) {
-            const data = await resAutre.json();
-            renderReports(autreContainer, data.reports, 'autre');
+        // Charger les rapports d'arrestation où le citoyen est impliqué (victime/témoin)
+        const resImplique = await fetch(`/api/rapports-arrestation?civilId=${citizenId}&limit=100`);
+        if (resImplique.ok) {
+            const data = await resImplique.json();
+            // Strict check: the civil list must contain our citizenId
+            const validReports = (data.reports || []).filter(r => {
+                const civils = r.civils_impliques || [];
+                return civils.some(c => String(c.id) === String(citizenId));
+            });
+            const reports = validReports.map(r => ({ ...r, reportType: 'arrestation' }));
+            renderReports(arrestationImpliqueContainer, reports, 'arrestation-implique');
+        }
+
+        // Charger les rapports d'interrogatoire
+        const resInterrogatoire = await fetch(`/api/rapports-interrogatoire?citoyenId=${citizenId}&limit=100`);
+        if (resInterrogatoire.ok) {
+            const data = await resInterrogatoire.json();
+            // Double vérification côté client pour s'assurer que le rapport concerne bien ce citoyen
+            const validReports = (data.reports || []).filter(r => String(r.citoyen_id) === String(citizenId));
+            const reports = validReports.map(r => ({ ...r, reportType: 'interrogatoire' }));
+            renderReports(interrogatoireContainer, reports, 'interrogatoire');
         }
 
     } catch (err) {
         console.error("Erreur loadCitizenReports:", err);
-        suspectContainer.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur.</p>';
-        autreContainer.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur.</p>';
+        arrestationSuspectContainer.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur.</p>';
+        arrestationImpliqueContainer.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur.</p>';
+        interrogatoireContainer.innerHTML = '<p style="color: #e74c3c; font-size: 14px;">Erreur.</p>';
     }
 }
 
@@ -1404,9 +1425,13 @@ function renderReports(container, reports, type) {
     if (count > maxDisplay) {
         const seeAllBtn = document.createElement('div');
         seeAllBtn.className = 'see-all-reports-btn';
+        let typeLabel = '';
+        if (type === 'arrestation-suspect') typeLabel = 'suspect';
+        else if (type === 'arrestation-implique') typeLabel = 'impliqué';
+        else if (type === 'interrogatoire') typeLabel = 'interrogatoire';
         seeAllBtn.innerHTML = `
             <span class="material-symbols-rounded">expand_more</span>
-            Voir les ${count - maxDisplay} autres rapports (${type === 'suspect' ? 'suspect' : 'autres'})
+            Voir les ${count - maxDisplay} autres rapports (${typeLabel})
         `;
         seeAllBtn.style.cssText = `
             margin-top: 8px;
@@ -1445,8 +1470,13 @@ function renderReports(container, reports, type) {
 }
 
 function createReportItem(report, type) {
-    const dateObj = new Date(report.date_arrestation);
+    // Déterminer la date selon le type de rapport
+    const dateObj = new Date(report.date_arrestation || report.date_interrogatoire);
     const dateStr = dateObj.toLocaleDateString('fr-FR');
+    
+    // Déterminer le type de rapport pour l'affichage
+    const reportTypeLabel = report.reportType === 'interrogatoire' ? 'Interrogatoire' : 'Arrestation';
+    const reportTypeColor = report.reportType === 'interrogatoire' ? '#9b59b6' : '#3498db';
     
     const item = document.createElement('div');
     item.className = 'equipment-item';
@@ -1457,7 +1487,11 @@ function createReportItem(report, type) {
     item.style.alignItems = 'center';
     item.style.transition = 'all 0.3s ease';
     
-    item.onclick = () => window.location.href = `/view-rapport-arrestation?id=${report.id}`;
+    // Rediriger vers la bonne page selon le type de rapport
+    const viewUrl = report.reportType === 'interrogatoire' 
+        ? `/view-rapport-interrogatoire?id=${report.id}`
+        : `/view-rapport-arrestation?id=${report.id}`;
+    item.onclick = () => window.location.href = viewUrl;
     
     let detailText = '';
     if (report.titre_rapport && report.titre_rapport.trim() !== '') {
@@ -1488,8 +1522,20 @@ function createReportItem(report, type) {
 }
 
 function showAllReportsModal(reports, type) {
-    const title = type === 'suspect' ? 'Rapports (Suspect)' : 'Rapports (Autre)';
-    const icon = type === 'suspect' ? 'gavel' : 'folder_shared';
+    let title, icon;
+    if (type === 'arrestation-suspect') {
+        title = 'Rapports d\'arrestation (Suspect)';
+        icon = 'gavel';
+    } else if (type === 'arrestation-implique') {
+        title = 'Rapports d\'arrestation (Impliqué)';
+        icon = 'folder_shared';
+    } else if (type === 'interrogatoire') {
+        title = 'Rapports d\'interrogatoire';
+        icon = 'question_answer';
+    } else {
+        title = 'Rapports';
+        icon = 'description';
+    }
 
     const modal = document.createElement('div');
     modal.className = 'reports-modal-overlay';
@@ -1816,9 +1862,7 @@ function generateAndDownloadPNG(delitTypeMap) {
         <div style="padding: 40px; background: #f5f5f5;">
             <!-- Header with LSPD logo -->
             <div style="text-align: center; margin-bottom: 30px;">
-                <div style="width: 150px; height: 150px; margin: 0 auto 20px; background: #003366; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 8px solid #c9b037;">
-                    <div style="color: white; font-weight: bold; font-size: 48px;">LSPD</div>
-                </div>
+                <img src="data/images/lspd.png" alt="LSPD Logo" style="width: 150px; height: 150px; margin: 0 auto 20px; display: block;" crossorigin="anonymous" />
                 <div style="font-size: 11px; color: #666; letter-spacing: 3px; margin-bottom: 5px;">⭐⭐⭐⭐⭐</div>
                 <div style="font-size: 11px; color: #666; letter-spacing: 1px;">LOS SANTOS POLICE DEPARTMENT</div>
                 <div style="font-size: 9px; color: #999; margin-top: 3px;">• TO PROTECT AND TO SERVE •</div>
@@ -1866,13 +1910,7 @@ function generateAndDownloadPNG(delitTypeMap) {
             
             <!-- Footer with second logo -->
             <div style="margin-top: 50px; text-align: center; padding-top: 30px; border-top: 2px solid #ddd;">
-                <div style="width: 120px; height: 120px; margin: 0 auto 15px; background: #003366; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; border: 6px solid #c9b037;">
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 14px; text-align: center; line-height: 1.3;">
-                        <div>LOS SANTOS</div>
-                        <div>POLICE</div>
-                        <div>DEPARTMENT</div>
-                    </div>
-                </div>
+                <img src="data/images/patchchief.png" alt="LSPD Chief Patch" style="width: 120px; height: 120px; margin: 0 auto 15px; display: block;" crossorigin="anonymous" />
                 <div style="font-size: 9px; color: #666; letter-spacing: 2px; margin-bottom: 3px;">⭐⭐⭐</div>
                 <div style="font-size: 9px; color: #666; margin-top: 5px; line-height: 1.5;">
                     LOS SANTOS POLICE DEPARTMENT - 2026 OFFICIAL REPORT<br>
@@ -2086,7 +2124,28 @@ async function addTagToCitizen(tagId) {
     }
 }
 
-// Formatage automatique du téléphone
+// Fonction pour formater un numéro de téléphone au format 555-XXXX
+function formatPhoneNumber(phone) {
+    if (!phone) return '';
+    
+    // Extraire uniquement les chiffres
+    const digits = phone.replace(/\D/g, '');
+    
+    // Si moins de 4 chiffres, retourner tel quel
+    if (digits.length < 4) return digits;
+    
+    // Prendre les 7 derniers chiffres si plus de 7
+    const cleaned = digits.slice(-7);
+    
+    // Formater : 555-XXXX (3 premiers chiffres, tiret, 4 derniers)
+    if (cleaned.length <= 3) {
+        return cleaned;
+    } else {
+        return cleaned.substring(0, 3) + '-' + cleaned.substring(3, 7);
+    }
+}
+
+// Formatage automatique du téléphone (format 555-XXXX)
 function setupPhoneFormatting() {
     const telephoneInput = document.getElementById('telephone');
     if (telephoneInput) {
@@ -2095,17 +2154,14 @@ function setupPhoneFormatting() {
             let value = this.value.replace(/\D/g, '');
             const oldLength = this.value.length;
 
-            if (value.length > 10) value = value.slice(0, 10);
+            // Limiter à 7 chiffres (555-XXXX)
+            if (value.length > 7) value = value.slice(0, 7);
 
             let formatted = '';
             if (value.length > 0) {
-                formatted = '(';
-                formatted += value.substring(0, 3);
+                formatted = value.substring(0, 3);
                 if (value.length >= 4) {
-                    formatted += ') ' + value.substring(3, 6);
-                }
-                if (value.length >= 7) {
-                    formatted += '-' + value.substring(6, 10);
+                    formatted += '-' + value.substring(3, 7);
                 }
             }
 
@@ -2118,7 +2174,7 @@ function setupPhoneFormatting() {
             }
             this.setSelectionRange(cursorPos, cursorPos);
         });
-        telephoneInput.setAttribute('maxlength', '14');
+        telephoneInput.setAttribute('maxlength', '8');
     }
 }
 

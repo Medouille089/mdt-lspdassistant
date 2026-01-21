@@ -36,6 +36,27 @@ function calculateAge(dateStr) {
     return age;
 }
 
+// Formatte un numéro de téléphone au format 555-XXXX
+function formatPhoneNumber(phone) {
+    if (!phone) return '-';
+    
+    // Extraire uniquement les chiffres
+    const digits = phone.replace(/\D/g, '');
+    
+    // Si moins de 4 chiffres, retourner tel quel
+    if (digits.length < 4) return digits || '-';
+    
+    // Prendre les 7 derniers chiffres si plus de 7
+    const cleaned = digits.slice(-7);
+    
+    // Formater : 555-XXXX (3 premiers chiffres, tiret, 4 derniers)
+    if (cleaned.length <= 3) {
+        return cleaned;
+    } else {
+        return cleaned.substring(0, 3) + '-' + cleaned.substring(3, 7);
+    }
+}
+
 // Charge les données depuis l'API
 async function loadCitoyens() {
     const loader = document.getElementById('loaderOverlay');
@@ -129,7 +150,7 @@ function renderTable() {
             <td>${item.prenom}</td>
             <td>${dateNaissanceDisplay}</td>
             <td>${item.nationalite}</td>
-            <td>${item.telephone || '-'}</td>
+            <td>${formatPhoneNumber(item.telephone)}</td>
             <td>${item.emploi || '-'}</td>
             <td>${tagsHtml}</td>
             <td>${mandatBadge}</td>

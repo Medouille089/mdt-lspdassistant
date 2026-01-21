@@ -146,62 +146,92 @@ router.get('/api/connected-agents', async (req, res) => {
 
 router.get('/api/activity', async (req, res) => {
   try {
-    const startDate = moment().tz('Europe/Paris').subtract(29, 'days').startOf('day');
+    const period = req.query.period || 'month'; // day, week, month
+
+    if (period === 'day') {
+      // Aujourd'hui, groupé par heure
+      const todayStart = moment().tz('Europe/Paris').startOf('day');
+      const todayEnd = moment().tz('Europe/Paris').endOf('day');
+
+      const buildHourQuery = (field, table, timeField = null) => {
+        const hourExpr = timeField
+          ? `EXTRACT(HOUR FROM ${timeField}::time)::int`
+          : `EXTRACT(HOUR FROM ${field}::timestamp)::int`;
+        return `
+          SELECT ${hourExpr} AS hour, COUNT(*) AS count
+          FROM ${table}
+          WHERE ${field}::date = $1::date
+          GROUP BY ${hourExpr}
+          ORDER BY hour
+        `;
+      };
+
+      const [incidentsRes, arrestationsRes, braceletsRes, convocationsRes, avisRechercheRes, rapportsArrestationRes] = await Promise.all([
+        pool.query(`
+          SELECT EXTRACT(HOUR FROM heure_incident::time)::int AS hour, COUNT(*) AS count
+          FROM incidents
+          WHERE date_incident::date = $1::date
+          GROUP BY hour
+          ORDER BY hour
+        `, [todayStart.format('YYYY-MM-DD')]),
+        pool.query(buildHourQuery('date_arrestation', 'lspd_arrestations'), [todayStart.format('YYYY-MM-DD')]),
+        pool.query(buildHourQuery('date_debut', 'bracelets'), [todayStart.format('YYYY-MM-DD')]),
+        pool.query(buildHourQuery('date', 'lspd_convocations'), [todayStart.format('YYYY-MM-DD')]),
+        pool.query(buildHourQuery('created_at', 'lspd_avis_recherche'), [todayStart.format('YYYY-MM-DD')]),
+        pool.query(buildHourQuery('created_at', 'lspd_rapports_arrestation'), [todayStart.format('YYYY-MM-DD')])
+      ]);
+
+      const mapByHour = {};
+      for (let h = 0; h < 24; h++) {
+        mapByHour[h] = { hour: h, incidents: 0, arrestations: 0, bracelets: 0, convocations: 0, avisRecherche: 0, rapportsArrestation: 0 };
+      }
+
+      incidentsRes.rows.forEach(r => {
+        if (mapByHour[r.hour]) mapByHour[r.hour].incidents = parseInt(r.count, 10);
+      });
+      arrestationsRes.rows.forEach(r => {
+        if (mapByHour[r.hour]) mapByHour[r.hour].arrestations = parseInt(r.count, 10);
+      });
+      braceletsRes.rows.forEach(r => {
+        if (mapByHour[r.hour]) mapByHour[r.hour].bracelets = parseInt(r.count, 10);
+      });
+      convocationsRes.rows.forEach(r => {
+        if (mapByHour[r.hour]) mapByHour[r.hour].convocations = parseInt(r.count, 10);
+      });
+      avisRechercheRes.rows.forEach(r => {
+        if (mapByHour[r.hour]) mapByHour[r.hour].avisRecherche = parseInt(r.count, 10);
+      });
+      rapportsArrestationRes.rows.forEach(r => {
+        if (mapByHour[r.hour]) mapByHour[r.hour].rapportsArrestation = parseInt(r.count, 10);
+      });
+
+      return res.json({ period: 'day', data: Object.values(mapByHour) });
+    }
+
+    // Semaine (7 jours) ou Mois (30 jours)
+    const daysToFetch = period === 'week' ? 7 : 30;
+    const startDate = moment().tz('Europe/Paris').subtract(daysToFetch - 1, 'days').startOf('day');
     const endDate = moment().tz('Europe/Paris').endOf('day');
 
+    const buildQuery = (field, table) => `
+      SELECT ${field}::date AS date, COUNT(*) AS count
+      FROM ${table}
+      WHERE ${field}::date BETWEEN $1::date AND $2::date
+      GROUP BY ${field}::date
+      ORDER BY date
+    `;
+
     const [incidentsRes, arrestationsRes, braceletsRes, convocationsRes, avisRechercheRes, rapportsArrestationRes] = await Promise.all([
-      pool.query(`
-        SELECT date_incident::date AS date, COUNT(*) AS count
-        FROM incidents
-        WHERE date_incident::date BETWEEN $1::date AND $2::date
-        GROUP BY date
-        ORDER BY date
-      `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
-
-      pool.query(`
-        SELECT date_arrestation::date AS date, COUNT(*) AS count
-        FROM lspd_arrestations
-        WHERE date_arrestation::date BETWEEN $1::date AND $2::date
-        GROUP BY date
-        ORDER BY date
-      `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
-
-      pool.query(`
-        SELECT date_debut::date AS date, COUNT(*) AS count
-        FROM bracelets
-        WHERE date_debut::date BETWEEN $1::date AND $2::date
-        GROUP BY date
-        ORDER BY date
-      `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
-
-      pool.query(`
-        SELECT date::date AS date, COUNT(*) AS count
-        FROM lspd_convocations
-        WHERE date::date BETWEEN $1::date AND $2::date
-        GROUP BY date
-        ORDER BY date
-      `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
-
-      pool.query(`
-        SELECT created_at::date AS date, COUNT(*) AS count
-        FROM lspd_avis_recherche
-        WHERE created_at::date BETWEEN $1::date AND $2::date
-        GROUP BY date
-        ORDER BY date
-      `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
-
-      pool.query(`
-        SELECT date_arrestation::date AS date, COUNT(*) AS count
-        FROM lspd_rapports_arrestation
-        WHERE date_arrestation::date BETWEEN $1::date AND $2::date
-        GROUP BY date
-        ORDER BY date
-      `, [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')])
+      pool.query(buildQuery('date_incident', 'incidents'), [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
+      pool.query(buildQuery('date_arrestation', 'lspd_arrestations'), [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
+      pool.query(buildQuery('date_debut', 'bracelets'), [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
+      pool.query(buildQuery('date', 'lspd_convocations'), [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
+      pool.query(buildQuery('created_at', 'lspd_avis_recherche'), [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')]),
+      pool.query(buildQuery('date_arrestation', 'lspd_rapports_arrestation'), [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')])
     ]);
 
     const mapByDate = {};
-
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < daysToFetch; i++) {
       const d = startDate.clone().add(i, 'days').format('YYYY-MM-DD');
       mapByDate[d] = { date: d, incidents: 0, arrestations: 0, bracelets: 0, convocations: 0, avisRecherche: 0, rapportsArrestation: 0 };
     }
@@ -210,33 +240,28 @@ router.get('/api/activity', async (req, res) => {
       const date = moment(r.date).format('YYYY-MM-DD');
       if (mapByDate[date]) mapByDate[date].incidents = parseInt(r.count, 10);
     });
-
     arrestationsRes.rows.forEach(r => {
       const date = moment(r.date).format('YYYY-MM-DD');
       if (mapByDate[date]) mapByDate[date].arrestations = parseInt(r.count, 10);
     });
-
     braceletsRes.rows.forEach(r => {
       const date = moment(r.date).format('YYYY-MM-DD');
       if (mapByDate[date]) mapByDate[date].bracelets = parseInt(r.count, 10);
     });
-
     convocationsRes.rows.forEach(r => {
       const date = moment(r.date).format('YYYY-MM-DD');
       if (mapByDate[date]) mapByDate[date].convocations = parseInt(r.count, 10);
     });
-
     avisRechercheRes.rows.forEach(r => {
       const date = moment(r.date).format('YYYY-MM-DD');
       if (mapByDate[date]) mapByDate[date].avisRecherche = parseInt(r.count, 10);
     });
-
     rapportsArrestationRes.rows.forEach(r => {
       const date = moment(r.date).format('YYYY-MM-DD');
       if (mapByDate[date]) mapByDate[date].rapportsArrestation = parseInt(r.count, 10);
     });
 
-    res.json(Object.values(mapByDate));
+    res.json({ period, data: Object.values(mapByDate) });
   } catch (err) {
     console.error("Erreur chargement activité :", err);
     res.status(500).json({ error: "Erreur chargement activité" });

@@ -8,25 +8,53 @@
     <link rel="icon" href="data/images/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/colors.css" />
     <title>DOJ - Assistant</title>
-    <!-- Google Fonts for Icons -->
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <style>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style id="default-permissions">
         /* Cacher les menus admin par défaut, ils seront affichés par JS si l'utilisateur a les permissions */
         .onlySupervisor,
         .onlyCommandStaff {
             display: none;
         }
     </style>
+    <!-- Affichage instantané des boutons admin depuis le cache (DOIT être dans le head, après le style par défaut) -->
+    <script>
+        (function() {
+            try {
+                var permsStr = localStorage.getItem('userPermissions');
+                if (!permsStr) return;
+
+                var perms = JSON.parse(permsStr);
+                var MAX_AGE = 24 * 60 * 60 * 1000; // 24h
+                if (!perms.timestamp || (Date.now() - perms.timestamp) >= MAX_AGE) return;
+
+                window.__permissionsPreloaded = true;
+                window.__cachedPermissions = perms;
+
+                // Remplacer le style par défaut par les permissions en cache
+                var defaultStyle = document.getElementById('default-permissions');
+                if (defaultStyle) {
+                    var css = '';
+                    var canSeeSupervisor = perms.isSupervisor || perms.isCommandStaff || perms.isSuperAdmin;
+                    var canSeeAdmin = perms.isCommandStaff || perms.isSuperAdmin;
+
+                    css += '.onlySupervisor { display: ' + (canSeeSupervisor ? 'block' : 'none') + '; }';
+                    css += '.onlyCommandStaff { display: ' + (canSeeAdmin ? 'block' : 'none') + '; }';
+
+                    defaultStyle.textContent = css;
+                }
+            } catch (e) {
+                console.warn('permissions cache error:', e);
+            }
+        })();
+    </script>
 </head>
 
 <body>
     <script src="scripts/annonce-popup.js"></script>
     <!-- Mobile Sidebar Menu Button -->
     <button class="sidebar-menu-button">
-        <span class="material-symbols-rounded">menu</span>
+        <i data-lucide="menu"></i>
     </button>
 
     <aside class="sidebar">
@@ -36,7 +64,7 @@
                 <img src="data/images/lspd.png" alt="DOJ Logo" />
             </a>
             <!-- <button class="sidebar-toggler">
-                <span class="material-symbols-rounded">chevron_left</span>
+                <i data-lucide="chevron-left"></i>
             </button> -->
         </header>
 
@@ -46,7 +74,7 @@
                 <!-- Dashboard -->
                 <li class="nav-item">
                     <a href="/dashboard" class="nav-link">
-                        <span class="material-symbols-rounded">gavel</span>
+                        <i data-lucide="gavel"></i>
                         <span class="nav-label">DOJ Dashboard</span>
                     </a>
                     <ul class="dropdown-menu">
@@ -57,27 +85,27 @@
                 <!-- Dropdown Consulter -->
                 <li class="nav-item dropdown-container">
                     <a href="#" class="nav-link dropdown-toggle">
-                        <span class="material-symbols-rounded">visibility</span>
+                        <i data-lucide="eye"></i>
                         <span class="nav-label">Consulter</span>
-                        <span class="dropdown-icon material-symbols-rounded">keyboard_arrow_down</span>
+                        <i data-lucide="chevron-down" class="dropdown-icon"></i>
                     </a>
                     <ul class="dropdown-menu">
                         <li class="nav-item"><a class="nav-link dropdown-title">Consulter</a></li>
                         <li class="nav-item">
                             <a href="/liste-incidents" class="nav-link dropdown-link">
-                                <span class="material-symbols-rounded">report</span>
+                                <i data-lucide="alert-triangle"></i>
                                 <span class="nav-label">Incidents</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="/liste-arrestations" class="nav-link dropdown-link">
-                                <span class="material-symbols-rounded">person_off</span>
+                                <i data-lucide="user-x"></i>
                                 <span class="nav-label">Arrestations</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="/liste-convocations" class="nav-link dropdown-link">
-                                <span class="material-symbols-rounded">event</span>
+                                <i data-lucide="calendar"></i>
                                 <span class="nav-label">Convocations</span>
                             </a>
                         </li>
@@ -94,7 +122,7 @@
                 </li>
                 <li class="nav-item">
                     <a href="/logout" class="nav-link">
-                        <span class="material-symbols-rounded">logout</span>
+                        <i data-lucide="log-out"></i>
                         <span class="nav-label">Déconnexion</span>
                     </a>
                     <ul class="dropdown-menu">
@@ -111,6 +139,12 @@
 
     <!-- Script -->
     <script src="scripts/sidebar.js"></script>
+    <!-- Initialiser les icônes Lucide -->
+    <script>
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+    </script>
 </body>
 
 </html>

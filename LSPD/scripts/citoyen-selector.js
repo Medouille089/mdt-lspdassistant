@@ -1,84 +1,122 @@
 /* Modal de sélection de citoyen - Composant réutilisable */
 
 class CitoyenSelectorModal {
-    constructor() {
+    constructor(options = {}) {
         this.modal = null;
         this.selectedCitoyenId = null;
         this.selectedCitoyenName = null;
         this.onSelectCallback = null;
         this.citoyens = [];
-        this.filteredCitoyens = [];
+        this.searchTimeout = null;
+        this.isLoading = false;
+        this.showClearButton = options.showClearButton !== undefined ? options.showClearButton : true;
+        this.uniqueId = options.uniqueId || 'default';
     }
 
     async init() {
         // Créer la structure HTML du modal
         this.createModalHTML();
-        // Charger les citoyens
-        await this.loadCitoyens();
+        // Charger les citoyens initiaux (vide au départ)
+        await this.loadCitoyens('');
         // Ajouter les event listeners
         this.attachEventListeners();
     }
 
     createModalHTML() {
         const modalHTML = `
-      <div id="citoyenSelectorModal" class="citoyen-modal" style="display: none;">
+      <div id="citoyenSelectorModal-${this.uniqueId}" class="citoyen-modal" style="display: none;">
         <div class="citoyen-modal-content">
           <div class="citoyen-modal-header">
             <h2>Sélectionner un citoyen</h2>
-            <button class="citoyen-modal-close" id="closeCitoyenModal">&times;</button>
+            <button class="citoyen-modal-close" id="closeCitoyenModal-${this.uniqueId}">&times;</button>
           </div>
           <div class="citoyen-modal-body">
             <input 
               type="text" 
-              id="citoyenSearchInput" 
+              id="citoyenSearchInput-${this.uniqueId}" 
               class="citoyen-search-input" 
-              placeholder="Rechercher par nom, prénom ou téléphone..."
+              placeholder="Rechercher par nom, prénom ou téléphone... (Minimum 2 caractères)"
               autocomplete="off"
             />
-            <div id="citoyenList" class="citoyen-list">
-              <!-- Liste des citoyens sera injectée ici -->
+            <div id="citoyenListLoader-${this.uniqueId}" class="citoyen-list-loader" style="display: none; text-align: center; padding: 20px;">
+              <div style="font-size: 14px; color: #666;">Recherche en cours...</div>
+            </div>
+            <div id="citoyenList-${this.uniqueId}" class="citoyen-list">
+              <p class="no-results" style="color: #999; padding: 20px; text-align: center;">Commencez à taper pour rechercher un citoyen...</p>
             </div>
           </div>
           <div class="citoyen-modal-footer">
-            <button id="clearCitoyenSelection" class="btn-secondary">Aucun propriétaire</button>
-            <button id="confirmCitoyenSelection" class="btn-primary">Confirmer</button>
+            ${this.showClearButton ? `<button id="clearCitoyenSelection-${this.uniqueId}" class="btn-secondary">Non Recensé</button>` : ''}
+            <button id="confirmCitoyenSelection-${this.uniqueId}" class="btn-primary">Confirmer</button>
           </div>
         </div>
       </div>
     `;
 
         // Injecter dans le body s'il n'existe pas déjà
-        if (!document.getElementById('citoyenSelectorModal')) {
+        if (!document.getElementById(`citoyenSelectorModal-${this.uniqueId}`)) {
             document.body.insertAdjacentHTML('beforeend', modalHTML);
         }
 
-        this.modal = document.getElementById('citoyenSelectorModal');
+        this.modal = document.getElementById(`citoyenSelectorModal-${this.uniqueId}`);
     }
 
-    async loadCitoyens() {
+    async loadCitoyens(searchTerm = '') {
         try {
-            const res = await fetch('/api/citoyens?limit=1000');
+            this.isLoading = true;
+            const loader = document.getElementById(`citoyenListLoader-${this.uniqueId}`);
+            const listContainer = document.getElementById(`citoyenList-${this.uniqueId}`);
+            
+            if (loader) loader.style.display = 'block';
+            
+            // Ne charger que si on a au moins 2 caractères OU si on cherche à vider (pour réinitialiser)
+            let url = '/api/citoyens?limit=50';
+            
+            if (searchTerm && searchTerm.trim().length >= 2) {
+                url = `/api/citoyens?search=${encodeURIComponent(searchTerm.trim())}&limit=100`;
+            } else if (searchTerm === '') {
+                // Cas initial : on affiche un message, pas de requête
+                listContainer.innerHTML = '<p class="no-results" style="color: #999; padding: 20px; text-align: center;">Commencez à taper pour rechercher un citoyen...</p>';
+                if (loader) loader.style.display = 'none';
+                this.isLoading = false;
+                this.citoyens = [];
+                return;
+            } else {
+                // Moins de 2 caractères
+                listContainer.innerHTML = '<p class="no-results" style="color: #999; padding: 20px; text-align: center;">Tapez au moins 2 caractères...</p>';
+                if (loader) loader.style.display = 'none';
+                this.isLoading = false;
+                this.citoyens = [];
+                return;
+            }
+            
+            const res = await fetch(url);
             if (!res.ok) throw new Error('Erreur chargement citoyens');
             const data = await res.json();
             this.citoyens = data.citoyens || [];
-            this.filteredCitoyens = [...this.citoyens];
+            
+            if (loader) loader.style.display = 'none';
             this.renderCitoyenList();
+            this.isLoading = false;
         } catch (error) {
             console.error('Erreur lors du chargement des citoyens:', error);
             showNotification('Erreur lors du chargement des citoyens', 'error');
+            const loader = document.getElementById('citoyenListLoader');
+            if (loader) loader.style.display = 'none';
+            this.isLoading = false;
         }
     }
 
     renderCitoyenList() {
-        const listContainer = document.getElementById('citoyenList');
+        const listContainer = document.getElementById(`citoyenList-${this.uniqueId}`);
         listContainer.innerHTML = '';
 
-        if (this.filteredCitoyens.length === 0) {
+        if (this.citoyens.length === 0) {
             listContainer.innerHTML = '<p class="no-results">Aucun citoyen trouvé</p>';
             return;
         }
 
-        this.filteredCitoyens.forEach(citoyen => {
+        this.citoyens.forEach(citoyen => {
             const item = document.createElement('div');
             item.className = 'citoyen-list-item';
             if (this.selectedCitoyenId === citoyen.id) {
@@ -96,7 +134,7 @@ class CitoyenSelectorModal {
           <div class="citoyen-name">${citoyen.nom} ${citoyen.prenom}</div>
           <div class="citoyen-details">
             ${age} ans • ${citoyen.nationalite}
-            ${citoyen.telephone ? ` • ${citoyen.telephone}` : ''}
+            ${citoyen.telephone ? ` • ${this.formatPhone(citoyen.telephone)}` : ''}
           </div>
         </div>
       `;
@@ -132,29 +170,33 @@ class CitoyenSelectorModal {
         return age;
     }
 
-    filterCitoyens(searchTerm) {
-        const search = searchTerm.toLowerCase().trim();
+    formatPhone(phone) {
+        if (!phone) return '';
+        // Extraire uniquement les chiffres
+        const digits = phone.replace(/\D/g, '');
+        // Format: 555-XXXX (3 premiers chiffres - 4 derniers chiffres)
+        if (digits.length >= 7) {
+            return `${digits.slice(0, 3)}-${digits.slice(3, 7)}`;
+        }
+        return phone; // Retourner le numéro original si format incorrect
+    }
 
-        if (!search) {
-            this.filteredCitoyens = [...this.citoyens];
-        } else {
-            this.filteredCitoyens = this.citoyens.filter(citoyen => {
-                return (
-                    citoyen.nom.toLowerCase().includes(search) ||
-                    citoyen.prenom.toLowerCase().includes(search) ||
-                    (citoyen.telephone && citoyen.telephone.toLowerCase().includes(search))
-                );
-            });
+    async searchCitoyens(searchTerm) {
+        // Debounce : attendre 300ms après la dernière frappe
+        if (this.searchTimeout) {
+            clearTimeout(this.searchTimeout);
         }
 
-        this.renderCitoyenList();
+        this.searchTimeout = setTimeout(async () => {
+            await this.loadCitoyens(searchTerm);
+        }, 300);
     }
 
     attachEventListeners() {
-        const closeBtn = document.getElementById('closeCitoyenModal');
-        const confirmBtn = document.getElementById('confirmCitoyenSelection');
-        const clearBtn = document.getElementById('clearCitoyenSelection');
-        const searchInput = document.getElementById('citoyenSearchInput');
+        const closeBtn = document.getElementById(`closeCitoyenModal-${this.uniqueId}`);
+        const confirmBtn = document.getElementById(`confirmCitoyenSelection-${this.uniqueId}`);
+        const clearBtn = document.getElementById(`clearCitoyenSelection-${this.uniqueId}`);
+        const searchInput = document.getElementById(`citoyenSearchInput-${this.uniqueId}`);
 
         // Fermer le modal
         closeBtn.addEventListener('click', () => this.close());
@@ -171,22 +213,32 @@ class CitoyenSelectorModal {
             if (this.selectedCitoyenId && this.onSelectCallback) {
                 const citoyen = this.citoyens.find(c => c.id === this.selectedCitoyenId);
                 console.log('Sélection confirmée:', citoyen);
-                this.onSelectCallback(citoyen.id, `${citoyen.nom || ''} ${citoyen.prenom || ''}`.trim());
+                if (citoyen) {
+                    this.onSelectCallback(citoyen.id, `${citoyen.nom || ''} ${citoyen.prenom || ''}`.trim(), citoyen);
+                } else {
+                    showNotification('Erreur: citoyen non trouvé', 'error');
+                    return;
+                }
+            } else {
+                //showNotification('Veuillez sélectionner un citoyen', 'warning');
+                return;
             }
             this.close();
         });
 
-        // Effacer la sélection (aucun propriétaire)
-        clearBtn.addEventListener('click', () => {
-            if (this.onSelectCallback) {
-                this.onSelectCallback(null, null);
-            }
-            this.close();
-        });
+        // Effacer la sélection (aucun propriétaire) - seulement si le bouton existe
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                if (this.onSelectCallback) {
+                    this.onSelectCallback(null, null, null);
+                }
+                this.close();
+            });
+        }
 
         // Recherche
         searchInput.addEventListener('input', (e) => {
-            this.filterCitoyens(e.target.value);
+            this.searchCitoyens(e.target.value);
         });
 
         // Fermer avec Escape
@@ -203,9 +255,14 @@ class CitoyenSelectorModal {
         this.selectedCitoyenName = null;
 
         // Réinitialiser la recherche
-        document.getElementById('citoyenSearchInput').value = '';
-        this.filteredCitoyens = [...this.citoyens];
-        this.renderCitoyenList();
+        document.getElementById(`citoyenSearchInput-${this.uniqueId}`).value = '';
+        this.citoyens = [];
+        
+        // Afficher le message initial
+        const listContainer = document.getElementById(`citoyenList-${this.uniqueId}`);
+        if (listContainer) {
+            listContainer.innerHTML = '<p class="no-results" style="color: #999; padding: 20px; text-align: center;">Commencez à taper pour rechercher un citoyen...</p>';
+        }
 
         this.modal.style.display = 'flex';
     }
@@ -217,11 +274,33 @@ class CitoyenSelectorModal {
     }
 }
 
-// Instance globale
-let citoyenSelector = null;
+// Instances globales
+let citoyenSelector = null; // Avec bouton "Aucun propriétaire"
+let citoyenSelectorNoClear = null; // Sans bouton "Aucun propriétaire"
 
-// Initialiser le sélecteur au chargement de la page
+// Initialiser les sélecteurs au chargement de la page
 document.addEventListener('DOMContentLoaded', async () => {
-    citoyenSelector = new CitoyenSelectorModal();
+    citoyenSelector = new CitoyenSelectorModal({ showClearButton: true });
     await citoyenSelector.init();
+    
+    citoyenSelectorNoClear = new CitoyenSelectorModal({ showClearButton: false });
+    await citoyenSelectorNoClear.init();
 });
+
+// Fonction helper pour ouvrir le sélecteur de citoyen (sans bouton "Aucun propriétaire")
+function openCitoyenSelector(callback, currentCitoyenId = null) {
+    if (citoyenSelectorNoClear) {
+        citoyenSelectorNoClear.open(callback, currentCitoyenId);
+    } else {
+        console.error('Le sélecteur de citoyen n\'est pas encore initialisé');
+    }
+}
+
+// Fonction helper pour ouvrir le sélecteur de citoyen (avec bouton "Aucun propriétaire")
+function openCitoyenSelectorWithClear(callback, currentCitoyenId = null) {
+    if (citoyenSelector) {
+        citoyenSelector.open(callback, currentCitoyenId);
+    } else {
+        console.error('Le sélecteur de citoyen n\'est pas encore initialisé');
+    }
+}

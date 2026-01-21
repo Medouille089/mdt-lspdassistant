@@ -29,7 +29,7 @@
     <div class="main-container">
         <h1>Sanctions</h1>
         <div class="backlink-row">
-            <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">← Retour</button>
+            <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour"><i data-lucide="arrow-left"></i> Retour</button>
         </div>
         <div class="grid-wrapper">
             <div class="button-grid">
@@ -43,6 +43,25 @@
                 </a>
             </div>
         </div>
+        <style>
+            /* Override for menu-sanctions: 2 columns grid */
+            .button-grid {
+                grid-template-columns: repeat(2, 180px) !important;
+                max-width: 380px !important;
+            }
+            @media (max-width: 620px) {
+                .button-grid {
+                    grid-template-columns: repeat(2, 150px) !important;
+                    max-width: 320px !important;
+                }
+            }
+            @media (max-width: 400px) {
+                .button-grid {
+                    grid-template-columns: 1fr !important;
+                    max-width: 100% !important;
+                }
+            }
+        </style>
     </div>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/genMenu.js"></script>

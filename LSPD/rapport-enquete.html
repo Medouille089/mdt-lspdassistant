@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <link rel="stylesheet" href="styles/annonce-popup.css" />
+  <meta charset="UTF-8" />
+  <title>Rapport d'enquête - LSPD Assistant</title>
+  <link rel="icon" href="data/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/colors.css" />
+  <link rel="stylesheet" href="styles/loader.css" />
+  <link rel="stylesheet" href="styles/checkmark.css">
+  <link rel="stylesheet" href="styles/warning.css">
+  <link rel="stylesheet" href="styles/incident/incident.css" />
+  <link rel="stylesheet" href="styles/citoyen-selector.css" />
+  <link rel="stylesheet" href="styles/context-menu.css" />
+  <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <link rel="stylesheet" href="styles/generic-selector.css" />
+  <link rel="stylesheet" href="styles/ri.css" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+  <script src="scripts/annonce-popup.js"></script>
+  <script src="scripts/liveUserHeartbeat.js"></script>
+  <div class="main-container">
+    <div id="sidebar-container"></div>
+    <script src="scripts/instant-sidebar.js"></script>
+    <h1>Rapport d'enquête</h1>
+    <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
+      <i data-lucide="arrow-left"></i> Retour
+    </button>
+
+    <div class="incident-container">
+      <div class="header">
+        <img src="data/images/lspd.png" alt="Logo LSPD" />
+        <div class="header-title">
+          <h2>LOS SANTOS POLICE DEPARTMENT</h2>
+          <h3>RAPPORT D'ENQUÊTE</h3>
+        </div>
+        <div style="width: 60px;"></div>
+      </div>
+
+      <form id="enqueteForm">
+        <!-- Numéro de dossier (auto-généré ou affiché en mode édition) -->
+        <div id="numeroDossierSection" style="display: none; margin-bottom: 20px; padding: 15px; background: rgba(11, 27, 90, 0.1); border-radius: 8px;">
+          <label style="font-weight: 600; color: var(--lspd-blue);">Numéro de dossier</label>
+          <div id="numeroDossierDisplay" style="font-size: 18px; font-weight: 700; color: var(--lspd-gold); margin-top: 5px;"></div>
+        </div>
+
+        <!-- Superviseur -->
+        <h3 class="section-title">Superviseur en charge</h3>
+        <div class="selector-container">
+          <button type="button" id="selectSuperviseurBtn" class="custom-file-upload">
+            Sélectionner un superviseur
+          </button>
+        </div>
+        <div id="selectedSuperviseur" class="selected-list"></div>
+        <input type="hidden" id="superviseur_id" name="superviseur_id" />
+
+        <!-- Agents assignés -->
+        <h3 class="section-title">Agents assignés à l'enquête</h3>
+        <div class="selector-container">
+          <button type="button" id="selectAgentsBtn" class="custom-file-upload">
+            Ajouter un agent
+          </button>
+        </div>
+        <div id="selectedAgents" class="selected-list"></div>
+
+        <!-- Sujet de l'enquête -->
+        <label for="sujet">Sujet/Titre de l'enquête <span style="color: red;">*</span></label>
+        <input type="text" id="sujet" name="sujet" required placeholder="Ex: Enquête sur trafic de stupéfiants" />
+
+        <!-- Motifs -->
+        <label for="motifs">Motifs de l'ouverture de l'enquête <span style="color: red;">*</span></label>
+        <textarea id="motifs" name="motifs" required style="height: 150px; resize: vertical; min-height: 100px;" 
+          placeholder="Détaillez les raisons ayant conduit à l'ouverture de cette enquête..."></textarea>
+
+        <!-- Suspects -->
+        <h3 class="section-title">Citoyens suspectés</h3>
+        <div class="selector-container">
+          <button type="button" id="selectSuspectsBtn" class="custom-file-upload">
+            Ajouter un suspect
+          </button>
+        </div>
+        <div id="selectedSuspects" class="selected-list"></div>
+
+        <!-- Rapports liés -->
+        <h3 class="section-title">Rapports liés à l'enquête</h3>
+        <div class="selector-container">
+          <button type="button" id="selectRapportsBtn" class="custom-file-upload">
+            Ajouter un rapport
+          </button>
+        </div>
+        <div id="selectedRapports" class="selected-list"></div>
+
+        <!-- Informations complémentaires -->
+        <label for="infos_complementaires">Informations complémentaires</label>
+        <textarea id="infos_complementaires" name="infos_complementaires" 
+          style="height: 150px; resize: vertical; min-height: 100px;" 
+          placeholder="Toute information supplémentaire pertinente..."></textarea>
+
+      </form>
+      
+      <div class="image-container">
+        <img src="data/images/patchchief.png" alt="Logo Chief" class="footer-logo" />
+      </div>
+    </div>
+
+    <div class="button-container">
+      <button type="submit" form="enqueteForm" class="send-button">
+        <span class="material-symbols-rounded">send</span>
+        Envoyer le rapport
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal de sélection des rapports -->
+  <div id="rapportSelectorModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto;">
+      <h2>Sélectionner un rapport</h2>
+      
+      <div style="margin-bottom: 20px;">
+        <label>Type de rapport</label>
+        <select id="rapportTypeSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+          <option value="">-- Choisir un type --</option>
+          <option value="arrestation">Rapport d'arrestation</option>
+          <option value="interrogatoire">Rapport d'interrogatoire</option>
+          <option value="incident">Rapport d'incident</option>
+        </select>
+      </div>
+
+      <div id="rapportListContainer" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px;"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" id="cancelRapportBtn" class="btn-secondary">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmation automatique -->
+  <div id="confirmAutoReportsModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10001; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+      <div style="margin-bottom: 20px;">
+        <span class="material-symbols-rounded" style="font-size: 48px;">auto_awesome</span>
+      </div>
+      <h2 style="margin-bottom: 15px; color: #333;">Rapports liés trouvés</h2>
+      <p id="confirmAutoReportsText" style="color: #666; font-size: 16px; line-height: 1.5; margin-bottom: 30px;"></p>
+      
+      <div style="display: flex; justify-content: center; gap: 15px;">
+        <button type="button" id="declineAutoBtn" class="btn-secondary" style="padding: 10px 20px; min-width: 120px;">Non, merci</button>
+        <button type="button" id="confirmAutoBtn" class="btn-primary" style="padding: 10px 20px; min-width: 120px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Oui, ajouter tout</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loaderOverlay" class="loader-overlay" style="display: none;">
+    <div class="loader-spinner"></div>
+  </div>
+
+  <script src="scripts/loadSidebar.js"></script>
+  <script src="scripts/custom-notifications.js"></script>
+  <script src="scripts/citoyen-selector.js"></script>
+  <script src="scripts/generic-selector.js"></script>
+  <script src="scripts/rapport-enquete.js"></script>
+</body>
+
+</html>

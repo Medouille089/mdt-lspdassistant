@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.25.0](https://github.com/Medouille089/lspdassistant/compare/v1.24.0...v1.25.0) (2026-01-21)
+
+
+### Features
+
+* Add background slideshow and enhance button styles across forms ([a138dea](https://github.com/Medouille089/lspdassistant/commit/a138dea504cb2a195609039758c7fb269c378dfc))
+* Add interrogatory report management system ([058af1b](https://github.com/Medouille089/lspdassistant/commit/058af1bb54c1c97ff2255324311658b21b775399))
+* Add investigation report feature with CRUD operations and database migration ([8cd72e1](https://github.com/Medouille089/lspdassistant/commit/8cd72e10ef1f00dd1ffaa417574f288941ceb9af))
+* **dashboard:** Implement activity chart with period selection and responsive design ([dc62819](https://github.com/Medouille089/lspdassistant/commit/dc62819bd2d3c56e2ce39457674670ff3c74440e))
+* enhance citizen selection and formatting features ([895c355](https://github.com/Medouille089/lspdassistant/commit/895c35527cdf48deda70b07b55917316cc6d88bb))
+* Enhance dashboard interactivity and improve button grid responsiveness ([0b8420a](https://github.com/Medouille089/lspdassistant/commit/0b8420a289a1b4980a283ce1319615f8674e6cbd))
+* Enhance menu permissions handling and improve send-button styles ([9391234](https://github.com/Medouille089/lspdassistant/commit/939123400a46d3eeef5992a8fa5cf3e108940782))
+* **enquete:** Enhance report handling with Discord integration and popover features ([7137b1d](https://github.com/Medouille089/lspdassistant/commit/7137b1d590cb59cb059630ffc60746100036599b))
+* Migrate to Lucide icons and enhance sidebar styles for improved UI ([bdc4217](https://github.com/Medouille089/lspdassistant/commit/bdc421723d642bcb4315cb25faa0aeb598cd127b))
+
+
+### Bug Fixes
+
+* profil link + hover on mini profile ([2d8f3be](https://github.com/Medouille089/lspdassistant/commit/2d8f3be1a1f332ecb25f903a897985528aedc362))
+* update lspd.png image file ([1af355e](https://github.com/Medouille089/lspdassistant/commit/1af355e611738af97b28847b144b153b3301b3b4))
+* update style 2.0 + nouveau background de connexion ([bcf988a](https://github.com/Medouille089/lspdassistant/commit/bcf988ad21ea860d785afee71380b495ae454df8))
+
 ## [1.24.0](https://github.com/Medouille089/lspdassistant/compare/v1.23.0...v1.24.0) (2026-01-13)
 
 

@@ -16,6 +16,8 @@
   <link rel="stylesheet" href="styles/tags.css" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
@@ -26,7 +28,7 @@
 
   <div class="main-container">
     <button id="backlinkBtn" class="backlink-btn" type="button" aria-label="Retour">
-      ← Retour
+      <i data-lucide="arrow-left"></i> Retour
     </button>
     <div class="agent-profile-container">
       <!-- Header avec photo et nom -->
@@ -84,7 +86,7 @@
             </div>
             <div class="form-group">
               <label for="telephone">Téléphone</label>
-              <input type="tel" id="telephone" placeholder="(000) 000-0000" maxlength="14">
+              <input type="tel" id="telephone" placeholder="555-0000" maxlength="8">
             </div>
             <div class="form-group">
               <label for="emploi">Métier</label>
@@ -174,18 +176,26 @@
             Dossiers associés
           </h3>
           <div class="equipment-grid">
-            <!-- Rapports en tant que Suspect -->
+            <!-- Rapports d'arrestation (Suspect) -->
             <div class="equipment-category">
-              <h4>Rapports (Suspect)</h4>
-              <div id="rapports-suspect-list" class="equipment-list">
+              <h4>Rapports d'arrestation (Suspect)</h4>
+              <div id="rapports-arrestation-suspect-list" class="equipment-list">
                 <p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>
               </div>
             </div>
 
-            <!-- Rapports en tant que Victime/Témoin -->
+            <!-- Rapports d'arrestation (Impliqué) -->
             <div class="equipment-category">
-              <h4>Rapports (Autre)</h4>
-              <div id="rapports-autre-list" class="equipment-list">
+              <h4>Rapports d'arrestation (Impliqué)</h4>
+              <div id="rapports-arrestation-implique-list" class="equipment-list">
+                <p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>
+              </div>
+            </div>
+
+            <!-- Rapports d'interrogatoire -->
+            <div class="equipment-category">
+              <h4>Rapports d'interrogatoire</h4>
+              <div id="rapports-interrogatoire-list" class="equipment-list">
                 <p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>
               </div>
             </div>

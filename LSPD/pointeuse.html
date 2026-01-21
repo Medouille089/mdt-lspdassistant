@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="styles/annonce-popup.css" />
     <link rel="stylesheet" href="styles/outils/pointeuse.css" />
     <link rel="stylesheet" href="styles/context-menu.css" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
@@ -66,8 +68,11 @@
 
             <!-- Graphique mensuel -->
             <h2>Activité du mois</h2>
-            <div class="card full-width">
-                <canvas id="monthlyChart" height="120"></canvas>
+            <div class="card full-width chart-card">
+                <div class="chart-header">
+                    <h3>Heures travaillées ce mois</h3>
+                </div>
+                <canvas id="monthlyChart" height="260"></canvas>
             </div>
 
             <!-- Historique (3 dernières semaines) -->

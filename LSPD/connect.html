@@ -65,6 +65,9 @@
   </head>
 
   <body>
+    <!-- Background Slideshow -->
+    <div class="background-slideshow" id="backgroundSlideshow"></div>
+
     <div class="header">
       <img src="data/images/lspd.png" alt="LSPD Logo" class="logo" />
       <div class="slogan">To protect and serve.</div>
@@ -162,5 +165,53 @@
 
     <script src="scripts/connect.js"></script>
     <script src="scripts/context-menu.js"></script>
+    <script>
+      // Background Slideshow - Défilement aléatoire avec fondu
+      (function() {
+        const backgrounds = [
+          'data/images/backgrounds/2.png',
+          'data/images/backgrounds/3.png',
+          'data/images/backgrounds/4.png',
+          'data/images/backgrounds/5.png',
+          'data/images/backgrounds/6.png',
+          'data/images/backgrounds/7.png',
+          'data/images/backgrounds/8.png',
+          'data/images/backgrounds/9.png',
+          'data/images/backgrounds/10.png',
+          'data/images/backgrounds/fond.png',
+        ];
+
+        // Mélanger le tableau de manière aléatoire (Fisher-Yates)
+        function shuffle(array) {
+          const arr = [...array];
+          for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+          }
+          return arr;
+        }
+
+        const slideshow = document.getElementById('backgroundSlideshow');
+        const shuffledBackgrounds = shuffle(backgrounds);
+        let currentIndex = 0;
+
+        // Créer les éléments slide
+        shuffledBackgrounds.forEach((bg, index) => {
+          const slide = document.createElement('div');
+          slide.className = 'slide' + (index === 0 ? ' active' : '');
+          slide.style.backgroundImage = `url('${bg}')`;
+          slideshow.appendChild(slide);
+        });
+
+        const slides = slideshow.querySelectorAll('.slide');
+
+        // Changer de slide toutes les 8 secondes
+        setInterval(() => {
+          slides[currentIndex].classList.remove('active');
+          currentIndex = (currentIndex + 1) % slides.length;
+          slides[currentIndex].classList.add('active');
+        }, 8000);
+      })();
+    </script>
   </body>
 </html>

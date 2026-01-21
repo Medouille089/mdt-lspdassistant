@@ -1,0 +1,17 @@
+h3.section-title {
+    margin-top:30px;
+    margin-bottom:15px;
+    font-size: 18px;
+    color: var(--main-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+.selector-container button{
+    width: 100%;
+    border-radius: 8px;
+}
+
+#numeroDossierSection label {
+    margin: 0;
+}

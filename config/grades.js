@@ -34,7 +34,8 @@ router.put('/api/grades', checkAuth, async (req, res) => {
     lieutenant_chef_role_id,
     capitaine_role_id,
     commandant_role_id,
-    chief_role_id
+    chief_role_id,
+    division_enquete_role_id
   } = req.body;
 
   try {
@@ -46,17 +47,20 @@ router.put('/api/grades', checkAuth, async (req, res) => {
     const previous = await pool.query('SELECT * FROM lspd_grades LIMIT 1');
     const oldGrades = previous.rows[0] || {};
 
+    console.log('--- REQ.BODY ---', req.body);
+    console.log('--- DIVISION_ENQUETE_ROLE_ID ---', division_enquete_role_id);
+
     await pool.query(`
       INSERT INTO lspd_grades (
-        rookie_role_id, officier_1_role_id, officier_2_role_id, officier_3_role_id,
+        id, rookie_role_id, officier_1_role_id, officier_2_role_id, officier_3_role_id,
         slo_role_id, sergent_1_role_id, sergent_2_role_id, sergent_chef_role_id,
         lieutenant_role_id, lieutenant_chef_role_id, capitaine_role_id,
-        commandant_role_id, chief_role_id
+        commandant_role_id, chief_role_id, division_enquete_role_id
       ) VALUES (
-        $1, $2, $3, $4,
+        1, $1, $2, $3, $4,
         $5, $6, $7, $8,
         $9, $10, $11,
-        $12, $13
+        $12, $13, $14
       )
       ON CONFLICT (id)
       DO UPDATE SET
@@ -72,7 +76,8 @@ router.put('/api/grades', checkAuth, async (req, res) => {
         lieutenant_chef_role_id = $10,
         capitaine_role_id = $11,
         commandant_role_id = $12,
-        chief_role_id = $13
+        chief_role_id = $13,
+        division_enquete_role_id = $14
     `, [
       rookie_role_id,
       officier_1_role_id,
@@ -86,7 +91,8 @@ router.put('/api/grades', checkAuth, async (req, res) => {
       lieutenant_chef_role_id,
       capitaine_role_id,
       commandant_role_id,
-      chief_role_id
+      chief_role_id,
+      division_enquete_role_id
     ]);
 
     // Log Discord si changement
@@ -103,7 +109,8 @@ router.put('/api/grades', checkAuth, async (req, res) => {
       lieutenant_chef_role_id: "Lieutenant Chef",
       capitaine_role_id: "Capitaine",
       commandant_role_id: "Commandant",
-      chief_role_id: "Chief"
+      chief_role_id: "Chief",
+      division_enquete_role_id: "Division Enquête"
     };
 
     for (const key in labels) {

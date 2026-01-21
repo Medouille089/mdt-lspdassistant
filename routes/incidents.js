@@ -10,15 +10,32 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Recherche d'incidents par officier ou ID
 router.get('/api/incidents/search', async (req, res) => {
   const query = (req.query.name || '').trim();
-  if (!query || query.length < 2) return res.json([]);
+  const limit = parseInt(req.query.limit) || 100;
+  
   try {
-    const result = await pool.query(
-      `SELECT id, incident_id, date_incident, heure_incident, officier_redacteur, lieu_incident
-       FROM incidents
-       WHERE LOWER(officier_redacteur) LIKE LOWER($1) OR LOWER(incident_id) LIKE LOWER($1)
-       ORDER BY date_incident DESC LIMIT 10`,
-      [`%${query}%`]
-    );
+    let result;
+    
+    // Si pas de query ou query trop courte, retourner tous les incidents récents
+    if (!query || query.length < 2) {
+      result = await pool.query(
+        `SELECT id, incident_id, date_incident, heure_incident, officier_redacteur, lieu_incident, description
+         FROM incidents
+         ORDER BY date_incident DESC, heure_incident DESC
+         LIMIT $1`,
+        [limit]
+      );
+    } else {
+      // Recherche filtrée
+      result = await pool.query(
+        `SELECT id, incident_id, date_incident, heure_incident, officier_redacteur, lieu_incident, description
+         FROM incidents
+         WHERE LOWER(officier_redacteur) LIKE LOWER($1) OR LOWER(incident_id) LIKE LOWER($1)
+         ORDER BY date_incident DESC, heure_incident DESC
+         LIMIT $2`,
+        [`%${query}%`, limit]
+      );
+    }
+    
     // Ajoute un champ 'nom' pour l'affichage si absent
     const rows = result.rows.map(row => ({
       ...row,

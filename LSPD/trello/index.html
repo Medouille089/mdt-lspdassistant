@@ -17,12 +17,15 @@
     <script src="../scripts/context-menu.js"></script>
     <link rel="stylesheet" href="../styles/context-menu.css" />
     <script src="../scripts/liveUserHeartbeat.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 
 <body data-theme="black">
     <div class="main-container">
         <div id="sidebar-container"></div>
+        <script src="../scripts/instant-sidebar.js"></script>
         <h1>Trello</h1>
         <div class="board-header">
             <button class="rookie-patrols-btn" id="rookiePatrolsBtn">🎓 Patrouilles avec Rookies</button>
@@ -75,26 +78,74 @@
             // loadSidebar.js adapté pour Trello
             document.addEventListener('DOMContentLoaded', () => {
                 const container = document.getElementById('sidebar-container');
+                if (!container) return;
 
-                if (container) {
-                    fetch('/sidebar')
-                        .then(res => res.text())
-                        .then(html => {
-                            // Make image paths absolute so they resolve correctly from /trello/
-                            html = html.replace(/src="data\/images\//g, 'src="/data/images/');
-
-                            // Inject sidebar
-                            container.innerHTML = html;
-
-                            // Charger les fonctionnalités JS du sidebar
-                            const script = document.createElement('script');
-                            script.src = '/scripts/sidebar.js';
-                            document.body.appendChild(script);
-                            // Notify that sidebar has been injected
-                            try { document.dispatchEvent(new Event('sidebar:ready')); } catch (e) { }
-                        })
-                        .catch(err => console.error("Erreur chargement sidebar :", err));
+                // Fonctions pour appliquer le cache
+                function applyPermissionsFromCache() {
+                    try {
+                        const permsStr = localStorage.getItem('userPermissions');
+                        if (!permsStr) return;
+                        const perms = JSON.parse(permsStr);
+                        const MAX_AGE = 24 * 60 * 60 * 1000;
+                        if (!perms.timestamp || (Date.now() - perms.timestamp) >= MAX_AGE) return;
+                        const canSeeSupervisor = perms.isSupervisor || perms.isCommandStaff || perms.isSuperAdmin;
+                        const canSeeAdmin = perms.isCommandStaff || perms.isSuperAdmin;
+                        container.querySelectorAll('.onlySupervisor').forEach(el => el.style.display = canSeeSupervisor ? 'block' : 'none');
+                        container.querySelectorAll('.onlyCommandStaff').forEach(el => el.style.display = canSeeAdmin ? 'block' : 'none');
+                    } catch (e) { console.warn('Erreur permissions:', e); }
                 }
+
+                function applyMiniProfileFromCache() {
+                    try {
+                        const profileStr = localStorage.getItem('userMiniProfile');
+                        if (!profileStr) return;
+                        const profile = JSON.parse(profileStr);
+                        const MAX_AGE = 24 * 60 * 60 * 1000;
+                        if (!profile.timestamp || (Date.now() - profile.timestamp) >= MAX_AGE) return;
+                        const userProfileEl = container.querySelector('#userProfile');
+                        if (!userProfileEl) return;
+                        let fontSize = '16px';
+                        if (profile.username.length > 15) fontSize = '13px';
+                        if (profile.username.length > 20) fontSize = '11px';
+                        userProfileEl.innerHTML =
+                            '<span class="profile-inline" style="display:flex;align-items:center;gap:10px;">' +
+                            '<img class="profile-avatar" src="' + profile.avatarUrl + '" alt="Avatar" data-user-id="' + profile.userId + '" style="width:40px;height:40px;border-radius:50%;border:1px solid #FFFFFF;flex-shrink:0;object-fit:cover;">' +
+                            '<span class="profile-texts" style="display:flex;flex-direction:column;line-height:1.15;">' +
+                            '<span class="profile-username" style="font-weight:700;font-size:' + fontSize + ';">' + profile.username + '</span>' +
+                            '<span class="profile-grade" style="font-weight:500;font-size:0.8rem;">' + profile.grade + '</span>' +
+                            '</span></span>';
+                    } catch (e) { console.warn('Erreur profil:', e); }
+                }
+
+                // Si déjà chargé par instant-sidebar.js, juste charger le JS
+                if (window.__sidebarLoadedFromCache) {
+                    const script = document.createElement('script');
+                    script.src = '/scripts/sidebar.js';
+                    document.body.appendChild(script);
+                    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+                    try { document.dispatchEvent(new Event('sidebar:ready')); } catch (e) { }
+                    return;
+                }
+
+                // Sinon, fetch depuis le réseau
+                fetch('/sidebar')
+                    .then(res => res.text())
+                    .then(html => {
+                        html = html.replace(/src="data\/images\//g, 'src="/data/images/');
+                        container.innerHTML = html;
+
+                        // Appliquer le cache immédiatement
+                        applyPermissionsFromCache();
+                        applyMiniProfileFromCache();
+
+                        const script = document.createElement('script');
+                        script.src = '/scripts/sidebar.js';
+                        document.body.appendChild(script);
+
+                        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+                        try { document.dispatchEvent(new Event('sidebar:ready')); } catch (e) { }
+                    })
+                    .catch(err => console.error("Erreur chargement sidebar :", err));
             });
         </script>
 
