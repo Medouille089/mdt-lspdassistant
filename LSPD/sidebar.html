@@ -13,18 +13,51 @@
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
+    <style id="default-permissions">
         /* Cacher les menus admin par défaut, ils seront affichés par JS si l'utilisateur a les permissions */
         .onlySupervisor,
         .onlyCommandStaff {
             display: none;
         }
+    </style>
+    <!-- Affichage instantané des boutons admin depuis le cache (DOIT être dans le head, après le style par défaut) -->
+    <script>
+        (function() {
+            try {
+                var permsStr = localStorage.getItem('userPermissions');
+                if (!permsStr) return;
+
+                var perms = JSON.parse(permsStr);
+                var MAX_AGE = 24 * 60 * 60 * 1000; // 24h
+                if (!perms.timestamp || (Date.now() - perms.timestamp) >= MAX_AGE) return;
+
+                window.__permissionsPreloaded = true;
+                window.__cachedPermissions = perms;
+
+                // Remplacer le style par défaut par les permissions en cache
+                var defaultStyle = document.getElementById('default-permissions');
+                if (defaultStyle) {
+                    var css = '';
+                    var canSeeSupervisor = perms.isSupervisor || perms.isCommandStaff || perms.isSuperAdmin;
+                    var canSeeAdmin = perms.isCommandStaff || perms.isSuperAdmin;
+
+                    css += '.onlySupervisor { display: ' + (canSeeSupervisor ? 'block' : 'none') + '; }';
+                    css += '.onlyCommandStaff { display: ' + (canSeeAdmin ? 'block' : 'none') + '; }';
+
+                    defaultStyle.textContent = css;
+                }
+            } catch (e) {
+                console.warn('permissions cache error:', e);
+            }
+        })();
+    </script>
+    <style>
         /* La sidebar est toujours visible, pas de flash */
         .sidebar {
             opacity: 1;
             visibility: visible;
         }
-        
+
         /* Pré-cache les éléments pendant le chargement initial pour éviter le FOUC */
         .sidebar-nav .primary-nav {
             min-height: 200px; /* Réserver l'espace pour éviter le saut */
@@ -45,6 +78,7 @@
         } catch (e) {
             console.warn('sidebar state not applied early:', e);
         }
+
     </script>
     <script src="scripts/annonce-popup.js"></script>
     <!-- Mobile Sidebar Menu Button -->
@@ -245,6 +279,12 @@
     <script src="scripts/clientCache.js"></script>
     <script src="scripts/sidebar.js"></script>
     <script src="scripts/context-menu.js"></script>
+    <!-- Initialiser les icônes Lucide -->
+    <script>
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+    </script>
 </body>
 
 </html>

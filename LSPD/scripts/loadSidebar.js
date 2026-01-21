@@ -9,6 +9,63 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Fonction pour appliquer les permissions depuis le cache
+    function applyPermissionsFromCache() {
+        if (!container) return;
+        try {
+            const permsStr = localStorage.getItem('userPermissions');
+            if (!permsStr) return;
+
+            const perms = JSON.parse(permsStr);
+            const MAX_AGE = 24 * 60 * 60 * 1000; // 24h
+            if (!perms.timestamp || (Date.now() - perms.timestamp) >= MAX_AGE) return;
+
+            const canSeeSupervisor = perms.isSupervisor || perms.isCommandStaff || perms.isSuperAdmin;
+            const canSeeAdmin = perms.isCommandStaff || perms.isSuperAdmin;
+
+            container.querySelectorAll('.onlySupervisor').forEach(function(el) {
+                el.style.display = canSeeSupervisor ? 'block' : 'none';
+            });
+            container.querySelectorAll('.onlyCommandStaff').forEach(function(el) {
+                el.style.display = canSeeAdmin ? 'block' : 'none';
+            });
+        } catch (e) {
+            console.warn('Erreur application permissions:', e);
+        }
+    }
+
+    // Fonction pour afficher le mini profil depuis le cache
+    function applyMiniProfileFromCache() {
+        if (!container) return;
+        try {
+            const profileStr = localStorage.getItem('userMiniProfile');
+            if (!profileStr) return;
+
+            const profile = JSON.parse(profileStr);
+            const MAX_AGE = 24 * 60 * 60 * 1000; // 24h
+            if (!profile.timestamp || (Date.now() - profile.timestamp) >= MAX_AGE) return;
+
+            const userProfileEl = container.querySelector('#userProfile');
+            if (!userProfileEl) return;
+
+            // Taille police dynamique
+            let fontSize = '16px';
+            if (profile.username.length > 15) fontSize = '13px';
+            if (profile.username.length > 20) fontSize = '11px';
+
+            userProfileEl.innerHTML =
+                '<span class="profile-inline" style="display:flex;align-items:center;gap:10px;">' +
+                '<img class="profile-avatar" src="' + profile.avatarUrl + '" alt="Avatar" data-user-id="' + profile.userId + '" style="width:40px;height:40px;border-radius:50%;border:1px solid #FFFFFF;transition:border-color .18s;flex-shrink:0;object-fit:cover;">' +
+                '<span class="profile-texts" style="display:flex;flex-direction:column;line-height:1.15;">' +
+                '<span class="profile-username" style="font-weight:700;font-size:' + fontSize + ';transition:color .18s;">' + profile.username + '</span>' +
+                '<span class="profile-grade" style="font-weight:500;font-size:0.8rem;transition:color .18s;">' + profile.grade + '</span>' +
+                '</span>' +
+                '</span>';
+        } catch (e) {
+            console.warn('Erreur application mini profil:', e);
+        }
+    }
+
     if (container) {
         try {
             // Clé de cache pour la sidebar HTML
@@ -72,6 +129,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Mettre à jour seulement si différent
                 if (container.innerHTML !== html) {
                     container.innerHTML = html;
+                    // Appliquer les permissions et profil immédiatement après injection
+                    applyPermissionsFromCache();
+                    applyMiniProfileFromCache();
                 }
                 
                 // Mettre en cache avec version
@@ -105,6 +165,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const fallbackResponse = await fetch('/sidebar');
             const fallbackHtml = await fallbackResponse.text();
             container.innerHTML = fallbackHtml;
+            // Appliquer les permissions et profil immédiatement après injection
+            applyPermissionsFromCache();
+            applyMiniProfileFromCache();
 
             const script = document.createElement('script');
             script.src = 'scripts/sidebar.js';

@@ -92,10 +92,14 @@ function applySidebarStateFromStorage() {
 function updateTogglerIcon(collapsed) {
   const toggler = document.querySelector('.sidebar-toggler');
   if (!toggler) return;
-  const icon = toggler.querySelector('.material-symbols-rounded');
+  const icon = toggler.querySelector('[data-lucide]');
   if (!icon) return;
   // When collapsed, show chevron_right (indicating expand), else chevron_left
-  icon.textContent = collapsed ? 'chevron_right' : 'chevron_left';
+  icon.setAttribute('data-lucide', collapsed ? 'chevron-right' : 'chevron-left');
+  // Re-render Lucide icons after changing the attribute
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
 }
 
 // Initialize sidebar state on DOMContentLoaded to ensure elements exist
@@ -129,6 +133,63 @@ document.querySelectorAll('.sidebar-toggler, .sidebar-menu-button').forEach((but
   });
 });
 
+// Fonction pour sauvegarder les permissions dans le cache
+function savePermissionsToCache(user) {
+  try {
+    const perms = {
+      isSupervisor: user.isSupervisor || false,
+      isCommandStaff: user.isCommandStaff || false,
+      isSuperAdmin: user.isSuperAdmin || false,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('userPermissions', JSON.stringify(perms));
+  } catch (e) {
+    console.warn('Unable to cache permissions:', e);
+  }
+}
+
+// Fonction pour sauvegarder le profil mini dans le cache
+function saveMiniProfileToCache(userId, username, grade, avatarUrl) {
+  try {
+    const profile = {
+      userId: userId,
+      username: username,
+      grade: grade,
+      avatarUrl: avatarUrl,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('userMiniProfile', JSON.stringify(profile));
+  } catch (e) {
+    console.warn('Unable to cache mini profile:', e);
+  }
+}
+
+// Fonction pour appliquer les permissions (avec mise à jour du cache si différent)
+function applyPermissions(user) {
+  const canSeeSupervisor = user.isSupervisor || user.isCommandStaff || user.isSuperAdmin;
+  const canSeeAdmin = user.isCommandStaff || user.isSuperAdmin;
+
+  // Mettre à jour le style global (utilisé par le cache inline dans le head)
+  const defaultStyle = document.getElementById('default-permissions');
+  if (defaultStyle) {
+    let css = '';
+    css += '.onlySupervisor { display: ' + (canSeeSupervisor ? 'block' : 'none') + '; }';
+    css += '.onlyCommandStaff { display: ' + (canSeeAdmin ? 'block' : 'none') + '; }';
+    defaultStyle.textContent = css;
+  } else {
+    // Fallback: appliquer directement sur les éléments
+    document.querySelectorAll('.onlySupervisor').forEach(el => {
+      el.style.display = canSeeSupervisor ? 'block' : 'none';
+    });
+    document.querySelectorAll('.onlyCommandStaff').forEach(el => {
+      el.style.display = canSeeAdmin ? 'block' : 'none';
+    });
+  }
+
+  // Sauvegarder dans le cache pour le prochain chargement
+  savePermissionsToCache(user);
+}
+
 async function fetchUser() {
   try {
     // Vérifier si le profil est réellement affiché (pas juste le flag)
@@ -141,7 +202,7 @@ async function fetchUser() {
       initProfileListeners();
       // Continuer pour charger les permissions (ne pas return)
     }
-    
+
     let user;
     
     // TTL augmenté à 30 minutes pour garder les données en cache pendant toute la session
@@ -221,6 +282,9 @@ async function fetchUser() {
         </span>`;
     }
 
+    // Sauvegarder le mini profil dans le cache pour affichage instantané
+    saveMiniProfileToCache(user.id, user.username, user.grade, avatarUrl);
+
     // Configurer le lien du profil
     const profileLink = document.getElementById('profileLink') || container.closest('a.nav-link');
     if (profileLink && !profileLink.hasAttribute('data-profile-initialized')) {
@@ -233,14 +297,8 @@ async function fetchUser() {
       });
     }
 
-    // Appliquer les permissions depuis l'API (toujours, pas de cache)
-    document.querySelectorAll('.onlySupervisor').forEach(el => {
-      el.style.display = (user.isSupervisor || user.isCommandStaff || user.isSuperAdmin) ? 'block' : 'none';
-    });
-
-    document.querySelectorAll('.onlyCommandStaff').forEach(el => {
-      el.style.display = (user.isCommandStaff || user.isSuperAdmin) ? 'block' : 'none';
-    });
+    // Appliquer les permissions depuis l'API et mettre à jour le cache
+    applyPermissions(user);
 
   } catch (error) {
     console.error('An error occurred while processing the user profile:', error);
@@ -248,13 +306,25 @@ async function fetchUser() {
     const container = document.getElementById('userProfile');
     if (container) container.style.display = 'none';
 
-    document.querySelectorAll('.onlySupervisor').forEach(el => {
-      el.style.display = 'none';
-    });
+    // Invalider le cache et cacher les boutons admin
+    try {
+      localStorage.removeItem('userPermissions');
+    } catch (e) {
+      // ignore storage errors
+    }
 
-    document.querySelectorAll('.onlyCommandStaff').forEach(el => {
-      el.style.display = 'none';
-    });
+    // Mettre à jour le style global pour cacher les boutons
+    const defaultStyle = document.getElementById('default-permissions');
+    if (defaultStyle) {
+      defaultStyle.textContent = '.onlySupervisor { display: none; } .onlyCommandStaff { display: none; }';
+    } else {
+      document.querySelectorAll('.onlySupervisor').forEach(el => {
+        el.style.display = 'none';
+      });
+      document.querySelectorAll('.onlyCommandStaff').forEach(el => {
+        el.style.display = 'none';
+      });
+    }
 
     // Optionally, show a user-friendly message
     const errorBanner = document.getElementById('errorBanner');

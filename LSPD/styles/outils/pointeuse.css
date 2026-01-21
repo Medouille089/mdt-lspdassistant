@@ -267,8 +267,8 @@ input[type="number"]:focus {
   box-shadow: 0 0 8px var(--main-color-dark);
 }
 
-/* Boutons dans tableaux (rôles, etc) */
-button {
+/* Boutons dans tableaux (rôles, etc) - excluant la sidebar */
+.main-container button:not(.sidebar-toggler):not(.sidebar-menu-button) {
   padding: 0.3rem 1.1rem;
   font-size: 0.95rem;
   background-color: var(--button-bg);
@@ -279,7 +279,7 @@ button {
   transition: background-color 0.3s ease;
 }
 
-button:hover {
+.main-container button:not(.sidebar-toggler):not(.sidebar-menu-button):hover {
   background-color: var(--button-bg-hover);
 }
 
