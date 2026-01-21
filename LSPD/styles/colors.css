@@ -158,6 +158,12 @@
   font-size: 18px !important;
 }
 
+.backlink-btn [data-lucide] {
+  width: 18px !important;
+  height: 18px !important;
+  stroke-width: 2.5 !important;
+}
+
 .backlink-btn:hover {
   background: var(--button-bg-hover) !important;
 }
