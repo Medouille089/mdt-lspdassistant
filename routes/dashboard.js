@@ -124,7 +124,7 @@ router.get('/api/connected-agents', async (req, res) => {
     const DOJ_ROLE = config.id_doj ? String(config.id_doj).trim() : null;
     const REQUIRED_ROLE = config.required_role_id ? String(config.required_role_id).trim() : null;
 
-    const TEST_MODE = true; 
+    const TEST_MODE = false; 
 
     let agentsToProcess = [];
 
