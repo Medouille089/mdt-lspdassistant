@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.25.2](https://github.com/Medouille089/lspdassistant/compare/v1.25.1...v1.25.2) (2026-01-22)
+
+
+### Bug Fixes
+
+* removed test_mode ([1b007d4](https://github.com/Medouille089/lspdassistant/commit/1b007d4a74cc4c82808244cd3bb86c0d7712e951))
+* repassage sur l'ancienne liste ([3fe209b](https://github.com/Medouille089/lspdassistant/commit/3fe209be147ca8b6b4ba73daf361de2175d297dc))
+
 ### [1.25.1](https://github.com/Medouille089/lspdassistant/compare/v1.25.0...v1.25.1) (2026-01-21)
 
 ## [1.25.0](https://github.com/Medouille089/lspdassistant/compare/v1.24.0...v1.25.0) (2026-01-21)
