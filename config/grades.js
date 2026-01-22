@@ -42,7 +42,16 @@ router.put('/api/grades', checkAuth, async (req, res) => {
     const bot = getBot();
     const config = await pool.query('SELECT * FROM configlspd LIMIT 1');
     const logsChannelId = config.rows[0]?.logs_channel;
-    const logsChannel = logsChannelId ? await bot.channels.fetch(logsChannelId) : null;
+    let logsChannel = null;
+    if (logsChannelId) {
+      try {
+        logsChannel = await bot.channels.fetch(logsChannelId);
+      } catch (err) {
+        console.error(`Impossible de récupérer le salon de logs (${logsChannelId}) :`, err.message);
+      }
+    }
+
+    console.log(logsChannel);
 
     const previous = await pool.query('SELECT * FROM lspd_grades LIMIT 1');
     const oldGrades = previous.rows[0] || {};
