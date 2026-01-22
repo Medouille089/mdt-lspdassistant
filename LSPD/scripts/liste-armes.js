@@ -160,21 +160,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPages = Math.ceil(totalArmes / pageSize);
         if (totalPages <= 1) return;
 
-        // Create wrapper for modern design
         const wrapper = document.createElement('div');
         wrapper.className = 'pagination-wrapper';
 
         // Previous button
         const prevBtn = document.createElement('button');
         prevBtn.className = 'page-nav';
-        prevBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+        prevBtn.innerHTML = '‹ Précédent';
         prevBtn.disabled = currentPage === 1;
-        prevBtn.title = 'Page précédente';
         prevBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                loadArmes();
-            }
+            if (currentPage > 1) { currentPage--; loadArmes(); }
         });
         wrapper.appendChild(prevBtn);
 
@@ -194,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (startPage > 2) {
                 const dots = document.createElement('span');
                 dots.className = 'page-ellipsis';
-                dots.textContent = '...';
+                dots.textContent = '···';
                 wrapper.appendChild(dots);
             }
         }
@@ -213,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (endPage < totalPages - 1) {
                 const dots = document.createElement('span');
                 dots.className = 'page-ellipsis';
-                dots.textContent = '...';
+                dots.textContent = '···';
                 wrapper.appendChild(dots);
             }
             const lastBtn = document.createElement('button');
@@ -225,26 +220,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Next button
         const nextBtn = document.createElement('button');
         nextBtn.className = 'page-nav';
-        nextBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+        nextBtn.innerHTML = 'Suivant ›';
         nextBtn.disabled = currentPage === totalPages;
-        nextBtn.title = 'Page suivante';
         nextBtn.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                loadArmes();
-            }
+            if (currentPage < totalPages) { currentPage++; loadArmes(); }
         });
         wrapper.appendChild(nextBtn);
 
         paginationEl.appendChild(wrapper);
-
-        // Page info
-        const start = (currentPage - 1) * pageSize + 1;
-        const end = Math.min(currentPage * pageSize, totalArmes);
-        const info = document.createElement('span');
-        info.className = 'pagination-info';
-        info.textContent = `${start}-${end} sur ${totalArmes}`;
-        paginationEl.appendChild(info);
     }
 
     searchInput.addEventListener('input', () => {

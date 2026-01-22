@@ -182,54 +182,73 @@ document.addEventListener('DOMContentLoaded', async () => {
         paginationContainer.innerHTML = '';
         if (totalPages <= 1) return;
 
+        const wrapper = document.createElement('div');
+        wrapper.className = 'pagination-wrapper';
+
         // Bouton précédent
         const prevBtn = document.createElement('button');
-        prevBtn.textContent = '‹';
+        prevBtn.className = 'page-nav';
+        prevBtn.innerHTML = '‹ Précédent';
         prevBtn.disabled = currentPage === 1;
         prevBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                loadReports();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+            if (currentPage > 1) { currentPage--; loadReports(); }
         });
-        paginationContainer.appendChild(prevBtn);
+        wrapper.appendChild(prevBtn);
 
-        // Afficher au maximum 5 pages
         const maxPagesToShow = 5;
         let startPage = Math.max(1, currentPage - 2);
         let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
         if (endPage - startPage < maxPagesToShow - 1) {
             startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        // First page + ellipsis
+        if (startPage > 1) {
+            const firstBtn = document.createElement('button');
+            firstBtn.textContent = '1';
+            firstBtn.addEventListener('click', () => { currentPage = 1; loadReports(); });
+            wrapper.appendChild(firstBtn);
+            if (startPage > 2) {
+                const dots = document.createElement('span');
+                dots.className = 'page-ellipsis';
+                dots.textContent = '···';
+                wrapper.appendChild(dots);
+            }
         }
 
         for (let i = startPage; i <= endPage; i++) {
             const btn = document.createElement('button');
             btn.textContent = i;
-            if (i === currentPage) {
-                btn.classList.add('active');
+            if (i === currentPage) btn.classList.add('active');
+            btn.addEventListener('click', () => { currentPage = i; loadReports(); });
+            wrapper.appendChild(btn);
+        }
+
+        // Last page + ellipsis
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                const dots = document.createElement('span');
+                dots.className = 'page-ellipsis';
+                dots.textContent = '···';
+                wrapper.appendChild(dots);
             }
-            btn.addEventListener('click', () => {
-                currentPage = i;
-                loadReports();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-            paginationContainer.appendChild(btn);
+            const lastBtn = document.createElement('button');
+            lastBtn.textContent = totalPages;
+            lastBtn.addEventListener('click', () => { currentPage = totalPages; loadReports(); });
+            wrapper.appendChild(lastBtn);
         }
 
         // Bouton suivant
         const nextBtn = document.createElement('button');
-        nextBtn.textContent = '›';
+        nextBtn.className = 'page-nav';
+        nextBtn.innerHTML = 'Suivant ›';
         nextBtn.disabled = currentPage === totalPages;
         nextBtn.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                loadReports();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+            if (currentPage < totalPages) { currentPage++; loadReports(); }
         });
-        paginationContainer.appendChild(nextBtn);
+        wrapper.appendChild(nextBtn);
+
+        paginationContainer.appendChild(wrapper);
     }
 
     loadReports();

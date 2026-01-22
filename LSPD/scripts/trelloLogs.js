@@ -353,20 +353,19 @@ function renderLogDetails(logType, details) {
     return html;
 }
 
-// Nouvelle fonction de pagination simplifiée
+// Pagination Amazon style
 function renderPagination(paginationData) {
     const paginationDiv = document.getElementById('pagination');
     if (!paginationDiv) {
         console.error('Élément pagination introuvable');
         return;
     }
-    
+
     paginationDiv.innerHTML = '';
-    
+
     const { currentPage: page, totalPages, totalLogs } = paginationData;
-    
+
     if (totalPages <= 1) {
-        // Afficher quand même un message avec le nombre total de logs
         const info = document.createElement('div');
         info.style.textAlign = 'center';
         info.style.padding = '1rem';
@@ -376,137 +375,95 @@ function renderPagination(paginationData) {
         paginationDiv.appendChild(info);
         return;
     }
-    
-    // Container flex
-    const container = document.createElement('div');
-    container.style.display = 'flex';
-    container.style.justifyContent = 'center';
-    container.style.alignItems = 'center';
-    container.style.gap = '0'; // Coller tous les boutons
-    // Séparer Précédent
-    const prevWrapper = document.createElement('div');
-    prevWrapper.style.marginRight = '1.5rem';
-    const prevBtn = createPaginationButton('‹', page === 1, () => {
-        currentPage--;
-        loadLogs();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'pagination-wrapper';
+
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-nav';
+    prevBtn.innerHTML = '‹ Précédent';
+    prevBtn.disabled = page === 1;
+    prevBtn.addEventListener('click', () => {
+        if (page > 1) {
+            currentPage--;
+            loadLogs();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     });
-    prevWrapper.appendChild(prevBtn);
-    container.appendChild(prevWrapper);
-    
-    // Calcul des pages à afficher
-    const maxPages = 5;
-    let startPage = Math.max(1, page - Math.floor(maxPages / 2));
-    let endPage = Math.min(totalPages, startPage + maxPages - 1);
-    
-    if (endPage - startPage < maxPages - 1) {
-        startPage = Math.max(1, endPage - maxPages + 1);
+    wrapper.appendChild(prevBtn);
+
+    const maxButtons = 5;
+    let startPage = Math.max(1, page - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    if (endPage - startPage < maxButtons - 1) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
     }
-    
-    // Première page + "..."
+
+    // First page + ellipsis
     if (startPage > 1) {
-        // Si on affiche "1 ...", le bouton 1 est arrondi à gauche
-        container.appendChild(createPaginationButton('1', false, () => {
+        const firstBtn = document.createElement('button');
+        firstBtn.textContent = '1';
+        firstBtn.addEventListener('click', () => {
             currentPage = 1;
             loadLogs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, false, '8px 0 0 8px'));
+        });
+        wrapper.appendChild(firstBtn);
         if (startPage > 2) {
-            const dotsBtn = createPaginationButton('...', false, null, false, '0');
-            dotsBtn.style.background = '#0b1b5a';
-            dotsBtn.style.color = 'white';
-            dotsBtn.style.cursor = 'default';
-            container.appendChild(dotsBtn);
+            const dots = document.createElement('span');
+            dots.className = 'page-ellipsis';
+            dots.textContent = '···';
+            wrapper.appendChild(dots);
         }
     }
-    
-    // Pages numérotées
+
+    // Page buttons
     for (let i = startPage; i <= endPage; i++) {
-        const isActive = i === page;
-        let radius = '0';
-        // Si c'est le premier bouton visible ET il n'y a pas de "1 ..." avant
-        if (i === startPage && startPage === 1) radius = '8px 0 0 8px';
-        // Si c'est le dernier bouton visible ET il n'y a pas de "... 27" après
-        if (i === endPage && endPage === totalPages) radius = '0 8px 8px 0';
-        const btn = createPaginationButton(String(i), isActive, () => {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        if (i === page) btn.classList.add('active');
+        btn.addEventListener('click', () => {
             currentPage = i;
             loadLogs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, isActive, radius);
-        container.appendChild(btn);
+        });
+        wrapper.appendChild(btn);
     }
-    
-    // "..." + dernière page
+
+    // Last page + ellipsis
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
-            const dotsBtn = createPaginationButton('...', false, null, false, '0');
-            dotsBtn.style.background = '#0b1b5a';
-            dotsBtn.style.color = 'white';
-            dotsBtn.style.cursor = 'default';
-            container.appendChild(dotsBtn);
+            const dots = document.createElement('span');
+            dots.className = 'page-ellipsis';
+            dots.textContent = '···';
+            wrapper.appendChild(dots);
         }
-        // Si on affiche "... 27", le bouton 27 est arrondi à droite
-        container.appendChild(createPaginationButton(String(totalPages), false, () => {
+        const lastBtn = document.createElement('button');
+        lastBtn.textContent = totalPages;
+        lastBtn.addEventListener('click', () => {
             currentPage = totalPages;
             loadLogs();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, false, '0 8px 8px 0'));
+        });
+        wrapper.appendChild(lastBtn);
     }
-    
-    // Séparer Suivant
-    const nextWrapper = document.createElement('div');
-    nextWrapper.style.marginLeft = '1.5rem';
-    const nextBtn = createPaginationButton('›', page === totalPages, () => {
-        currentPage++;
-        loadLogs();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-    nextWrapper.appendChild(nextBtn);
-    container.appendChild(nextWrapper);
-    
-    paginationDiv.appendChild(container);
-}
 
-// Fonction helper pour créer un bouton de pagination
-function createPaginationButton(text, disabled, onClick, isActive = false) {
-    const btn = document.createElement('button');
-    btn.textContent = text;
-    btn.disabled = disabled;
-    // Styles de base
-    btn.style.padding = '0.7rem 1.2rem';
-    btn.style.border = 'none';
-    // borderRadius param
-    let borderRadius = arguments[4] || '0';
-    // Même radius sur les 4 coins pour Précédent/Suivant
-    if (text === '‹' || text === '›') borderRadius = '8px';
-    btn.style.borderRadius = borderRadius;
-    btn.style.fontWeight = '600';
-    btn.style.fontSize = '0.95rem';
-    btn.style.transition = 'all 0.2s';
-    btn.style.fontFamily = '"Segoe UI", sans-serif';
-    if (disabled || isActive) {
-        btn.style.background = isActive ? '#344863' : '#d1d5db';
-        btn.style.color = 'white';
-        btn.style.cursor = 'not-allowed';
-        btn.style.opacity = isActive ? '1' : '0.6';
-    } else {
-        btn.style.background = '#0b1b5a';
-        btn.style.color = 'white';
-        btn.style.cursor = 'pointer';
-        btn.style.boxShadow = '0 2px 4px rgba(11, 27, 90, 0.2)';
-        btn.addEventListener('click', onClick);
-        btn.addEventListener('mouseenter', () => {
-            btn.style.background = '#091442';
-            btn.style.transform = 'scale(1.08)';
-            btn.style.boxShadow = '0 4px 8px rgba(11, 27, 90, 0.3)';
-        });
-        btn.addEventListener('mouseleave', () => {
-            btn.style.background = '#0b1b5a';
-            btn.style.transform = 'scale(1)';
-            btn.style.boxShadow = '0 2px 4px rgba(11, 27, 90, 0.2)';
-        });
-    }
-    return btn;
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-nav';
+    nextBtn.innerHTML = 'Suivant ›';
+    nextBtn.disabled = page === totalPages;
+    nextBtn.addEventListener('click', () => {
+        if (page < totalPages) {
+            currentPage++;
+            loadLogs();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+    wrapper.appendChild(nextBtn);
+
+    paginationDiv.appendChild(wrapper);
 }
 
 (function () {

@@ -140,9 +140,6 @@
   margin: -20px 0 12px 5px !important;
   padding: 8px 12px !important;
   background: var(--main-color) !important;
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--sidebar-bg) 90%, white) 0%,
-    var(--sidebar-bg) 100%) !important;
   color: white !important;
   border: none !important;
   text-decoration: none !important;

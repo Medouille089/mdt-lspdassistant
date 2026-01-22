@@ -213,22 +213,19 @@ function renderPagination() {
     const totalPages = Math.ceil(filteredVehicules.length / ITEMS_PER_PAGE);
     if (totalPages <= 1) return;
 
-    // Create wrapper for modern design
     const wrapper = document.createElement('div');
     wrapper.className = 'pagination-wrapper';
 
     // Previous button
     const prevBtn = document.createElement('button');
     prevBtn.className = 'page-nav';
-    prevBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+    prevBtn.innerHTML = '‹ Précédent';
     prevBtn.disabled = currentPage === 1;
-    prevBtn.title = 'Page précédente';
     prevBtn.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
             renderTable();
             renderPagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
     wrapper.appendChild(prevBtn);
@@ -236,7 +233,6 @@ function renderPagination() {
     const maxButtons = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-
     if (endPage - startPage < maxButtons - 1) {
         startPage = Math.max(1, endPage - maxButtons + 1);
     }
@@ -245,18 +241,12 @@ function renderPagination() {
     if (startPage > 1) {
         const firstBtn = document.createElement('button');
         firstBtn.textContent = '1';
-        firstBtn.addEventListener('click', () => {
-            currentPage = 1;
-            renderTable();
-            renderPagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        firstBtn.addEventListener('click', () => { currentPage = 1; renderTable(); renderPagination(); });
         wrapper.appendChild(firstBtn);
-
         if (startPage > 2) {
             const dots = document.createElement('span');
             dots.className = 'page-ellipsis';
-            dots.textContent = '...';
+            dots.textContent = '···';
             wrapper.appendChild(dots);
         }
     }
@@ -265,15 +255,8 @@ function renderPagination() {
     for (let i = startPage; i <= endPage; i++) {
         const btn = document.createElement('button');
         btn.textContent = i;
-        if (i === currentPage) {
-            btn.classList.add('active');
-        }
-        btn.addEventListener('click', () => {
-            currentPage = i;
-            renderTable();
-            renderPagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        if (i === currentPage) btn.classList.add('active');
+        btn.addEventListener('click', () => { currentPage = i; renderTable(); renderPagination(); });
         wrapper.appendChild(btn);
     }
 
@@ -282,33 +265,25 @@ function renderPagination() {
         if (endPage < totalPages - 1) {
             const dots = document.createElement('span');
             dots.className = 'page-ellipsis';
-            dots.textContent = '...';
+            dots.textContent = '···';
             wrapper.appendChild(dots);
         }
-
         const lastBtn = document.createElement('button');
         lastBtn.textContent = totalPages;
-        lastBtn.addEventListener('click', () => {
-            currentPage = totalPages;
-            renderTable();
-            renderPagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        lastBtn.addEventListener('click', () => { currentPage = totalPages; renderTable(); renderPagination(); });
         wrapper.appendChild(lastBtn);
     }
 
     // Next button
     const nextBtn = document.createElement('button');
     nextBtn.className = 'page-nav';
-    nextBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+    nextBtn.innerHTML = 'Suivant ›';
     nextBtn.disabled = currentPage === totalPages;
-    nextBtn.title = 'Page suivante';
     nextBtn.addEventListener('click', () => {
         if (currentPage < totalPages) {
             currentPage++;
             renderTable();
             renderPagination();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
     wrapper.appendChild(nextBtn);
