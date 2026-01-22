@@ -20,7 +20,6 @@ router.get('/api/dashboard', async (req, res) => {
     const braceletsRes = await pool.query('SELECT COUNT(*) FROM bracelets');
     const braceletCount = parseInt(braceletsRes.rows[0].count, 10);
 
-    // --- Rapports aujourd'hui ---
     const incidentsTodayRes = await pool.query(`
       SELECT COUNT(*) AS count FROM incidents
       WHERE date_incident::date BETWEEN $1::date AND $2::date
@@ -47,7 +46,6 @@ router.get('/api/dashboard', async (req, res) => {
       parseInt(avisRechercheTodayRes.rows[0].count, 10) +
       parseInt(rapportsArrestationTodayRes.rows[0].count, 10);
 
-    // --- Rapports totaux ---
     const incidentsTotalRes = await pool.query(`SELECT COUNT(*) AS count FROM incidents`);
     const arrestationsTotalRes = await pool.query(`SELECT COUNT(*) AS count FROM lspd_arrestations`);
     const avisRechercheTotalRes = await pool.query(`SELECT COUNT(*) AS count FROM lspd_avis_recherche`);
@@ -59,7 +57,6 @@ router.get('/api/dashboard', async (req, res) => {
       parseInt(avisRechercheTotalRes.rows[0].count, 10) +
       parseInt(rapportsArrestationTotalRes.rows[0].count, 10);
 
-    // --- Derniers rapports ---
     const lastReportsRes = await pool.query(`
       SELECT incident_id AS id, date_incident AS date, heure_incident AS heure, officier_redacteur AS officier_name, 'Incident' AS type
       FROM incidents
@@ -106,7 +103,7 @@ router.get('/api/dashboard', async (req, res) => {
       latestReports
     };
 
-    cache.set(cacheKey, dashboardData, 120); // 120 secondes
+    cache.set(cacheKey, dashboardData, 120); 
 
     res.json(dashboardData);
   } catch (err) {
@@ -118,26 +115,119 @@ router.get('/api/dashboard', async (req, res) => {
 
 router.get('/api/connected-agents', async (req, res) => {
   try {
-    const query = `
-      SELECT l.user_id, l.display_name, l.last_seen, p.photo_url
-      FROM lspd_live_users l
-      LEFT JOIN lspd_agent_profiles p ON l.user_id = p.discord_id
-      WHERE l.last_seen > NOW() - INTERVAL '10 minutes'
-      ORDER BY l.display_name ASC
-    `;
+    const { getConfig } = require('../config/config');
+    const bot = require('../config/bot');
+    const { GUILD_ID } = require('../config/env');
 
-    const { rows } = await pool.query(query);
+    const config = await getConfig();
+    const SUPER_ADMIN_ROLE = config.id_superadmin ? String(config.id_superadmin).trim() : null;
+    const DOJ_ROLE = config.id_doj ? String(config.id_doj).trim() : null;
+    const REQUIRED_ROLE = config.required_role_id ? String(config.required_role_id).trim() : null;
 
-    // Ajoute avatar Discord par défaut si photo_url manquante
-    const agents = rows.map(agent => {
-      let avatar = agent.photo_url;
-      if (!avatar && agent.user_id) {
-        avatar = `https://cdn.discordapp.com/embed/avatars/${parseInt(agent.user_id.slice(-3), 10) % 5}.png`;
+    const TEST_MODE = false; 
+
+    let agentsToProcess = [];
+
+    if (TEST_MODE && REQUIRED_ROLE) {
+      const guild = await bot.guilds.fetch(GUILD_ID);
+
+      const allMembers = await guild.members.fetch({ query: '', limit: 1000 });
+      const membersWithRole = allMembers.filter(m => m.roles.cache.has(REQUIRED_ROLE));
+
+      agentsToProcess = membersWithRole.map(m => ({
+        user_id: m.user.id,
+        display_name: m.displayName,
+        _member: m
+      }));
+    } else {
+      const query = `
+        SELECT l.user_id, l.display_name, p.photo_url
+        FROM lspd_live_users l
+        LEFT JOIN lspd_agent_profiles p ON l.user_id = p.discord_id
+        WHERE l.last_seen > NOW() - INTERVAL '10 minutes'
+      `;
+      const { rows } = await pool.query(query);
+      agentsToProcess = rows;
+    }
+
+    const gradesConfig = await pool.query('SELECT * FROM lspd_grades LIMIT 1');
+    const gradeConfig = gradesConfig.rows[0] || {};
+
+    const gradeHierarchy = [
+      { nom: 'Chief', role_id: gradeConfig.chief_role_id, ordre: 13 },
+      { nom: 'Commandant', role_id: gradeConfig.commandant_role_id, ordre: 12 },
+      { nom: 'Capitaine', role_id: gradeConfig.capitaine_role_id, ordre: 11 },
+      { nom: 'Lieutenant Chef', role_id: gradeConfig.lieutenant_chef_role_id, ordre: 10 },
+      { nom: 'Lieutenant', role_id: gradeConfig.lieutenant_role_id, ordre: 9 },
+      { nom: 'Sergent Chef', role_id: gradeConfig.sergent_chef_role_id, ordre: 8 },
+      { nom: 'Sergent II', role_id: gradeConfig.sergent_2_role_id, ordre: 7 },
+      { nom: 'Sergent I', role_id: gradeConfig.sergent_1_role_id, ordre: 6 },
+      { nom: 'SLO', role_id: gradeConfig.slo_role_id, ordre: 5 },
+      { nom: 'Officier III', role_id: gradeConfig.officier_3_role_id, ordre: 4 },
+      { nom: 'Officier II', role_id: gradeConfig.officier_2_role_id, ordre: 3 },
+      { nom: 'Officier I', role_id: gradeConfig.officier_1_role_id, ordre: 2 },
+      { nom: 'Rookie', role_id: gradeConfig.rookie_role_id, ordre: 1 }
+    ].filter(g => g.role_id && g.role_id.trim() !== '');
+
+    const guild = await bot.guilds.fetch(GUILD_ID);
+    const filteredAgents = [];
+
+    for (const agent of agentsToProcess) {
+      try {
+        const member = agent._member || await guild.members.fetch({ user: agent.user_id, force: true });
+
+        const isSuperAdmin = SUPER_ADMIN_ROLE ? member.roles.cache.has(SUPER_ADMIN_ROLE) : false;
+        const isDOJ = DOJ_ROLE ? member.roles.cache.has(DOJ_ROLE) : false;
+
+        if (!isSuperAdmin && !isDOJ) {
+          let avatar = agent.photo_url || null;
+          if (!avatar) {
+            if (member.user.avatar) {
+              avatar = `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png?size=128`;
+            } else {
+              const hashIdx = parseInt(member.user.id.slice(-3), 10) % 5;
+              avatar = `https://cdn.discordapp.com/embed/avatars/${hashIdx}.png`;
+            }
+          }
+
+          const userRoles = member.roles.cache.map(r => r.id);
+          let gradeNom = 'Agent';
+          let gradeOrdre = 0;
+          let gradeColor = '#5865F2';
+
+          for (const grade of gradeHierarchy) {
+            if (userRoles.includes(grade.role_id)) {
+              gradeNom = grade.nom;
+              gradeOrdre = grade.ordre;
+              const role = member.roles.cache.get(grade.role_id);
+              if (role) {
+                gradeColor = role.hexColor !== '#000000' ? role.hexColor : '#5865F2';
+              }
+              break;
+            }
+          }
+
+          filteredAgents.push({
+            user_id: agent.user_id,
+            display_name: agent.display_name,
+            avatar,
+            grade: gradeNom,
+            grade_ordre: gradeOrdre,
+            grade_color: gradeColor
+          });
+        }
+      } catch {
       }
-      return { ...agent, avatar };
+    }
+
+    filteredAgents.sort((a, b) => {
+      if (b.grade_ordre !== a.grade_ordre) {
+        return b.grade_ordre - a.grade_ordre;
+      }
+      return a.display_name.localeCompare(b.display_name, 'fr');
     });
 
-    res.json({ agents });
+    res.json({ agents: filteredAgents });
   } catch (err) {
     console.error("Erreur récupération agents connectés :", err);
     res.status(500).json({ error: "Erreur serveur" });
@@ -146,10 +236,9 @@ router.get('/api/connected-agents', async (req, res) => {
 
 router.get('/api/activity', async (req, res) => {
   try {
-    const period = req.query.period || 'month'; // day, week, month
+    const period = req.query.period || 'month'; 
 
     if (period === 'day') {
-      // Aujourd'hui, groupé par heure
       const todayStart = moment().tz('Europe/Paris').startOf('day');
       const todayEnd = moment().tz('Europe/Paris').endOf('day');
 
@@ -208,7 +297,6 @@ router.get('/api/activity', async (req, res) => {
       return res.json({ period: 'day', data: Object.values(mapByHour) });
     }
 
-    // Semaine (7 jours) ou Mois (30 jours)
     const daysToFetch = period === 'week' ? 7 : 30;
     const startDate = moment().tz('Europe/Paris').subtract(daysToFetch - 1, 'days').startOf('day');
     const endDate = moment().tz('Europe/Paris').endOf('day');

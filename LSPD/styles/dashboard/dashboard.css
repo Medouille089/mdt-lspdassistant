@@ -462,6 +462,7 @@ body.in-iframe #overlay.hide {
   overflow-y: auto;
   padding-right: 8px;
   scrollbar-width: thin;
+  margin-top: 20px !important;
   scrollbar-color: var(--main-color) transparent;
 }
 

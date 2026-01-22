@@ -173,13 +173,14 @@ async function fetchConnectedAgents() {
       const defaultAvatar = 'https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc=';
       img.src = agent.avatar || defaultAvatar;
       img.alt = 'PP';
-      img.style.width = '32px';
-      img.style.height = '32px';
+      img.style.width = '38px';
+      img.style.height = '38px';
       img.style.borderRadius = '50%';
       img.style.objectFit = 'cover';
       img.onerror = function() { this.src = defaultAvatar; };
       li.appendChild(img);
       const span = document.createElement('span');
+      span.style.fontSize = '14px';
       span.textContent = agent.display_name;
       li.appendChild(span);
       listEl.appendChild(li);
@@ -445,4 +446,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
 fetchConnectedAgents();
 setInterval(fetchConnectedAgents, 5000);
-

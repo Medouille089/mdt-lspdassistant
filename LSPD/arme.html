@@ -41,9 +41,20 @@
         <div class="inline-fields">
           <div>
             <label for="model_select">Modèle d'arme :</label>
-            <select id="model_select" required>
-              <option value="">-- Sélectionner un modèle --</option>
-            </select>
+            <div class="custom-weapon-select" id="weaponSelectContainer">
+              <div class="custom-select-trigger" id="weaponSelectTrigger">
+                <span class="select-placeholder">-- Sélectionner un modèle --</span>
+              </div>
+              <div class="custom-select-dropdown" id="weaponSelectDropdown">
+                <div class="custom-select-search">
+                  <input type="text" id="weaponSearchInput" placeholder="Rechercher une arme..." autocomplete="off">
+                </div>
+                <div class="custom-select-options" id="weaponSelectOptions">
+                  <!-- Options populated by JS -->
+                </div>
+              </div>
+              <input type="hidden" id="model_select" name="model_select" required>
+            </div>
           </div>
           <div>
             <label for="calibre">Calibre :</label>

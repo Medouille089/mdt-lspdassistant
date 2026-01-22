@@ -160,41 +160,44 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        let html = '';
+        let html = '<div class="pagination-wrapper">';
 
         // Bouton précédent
-        html += `
-            <button ${page === 1 ? 'disabled' : ''} onclick="changePage(${page - 1})">
-                <i data-lucide="chevron-left"></i>
-            </button>
-        `;
+        html += `<button class="page-nav" ${page === 1 ? 'disabled' : ''} onclick="changePage(${page - 1})">‹ Précédent</button>`;
 
-        // Pages
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
-                html += `
-                    <button class="${i === page ? 'active' : ''}" onclick="changePage(${i})">
-                        ${i}
-                    </button>
-                `;
-            } else if (i === page - 3 || i === page + 3) {
-                html += `<span style="padding: 0 5px; color: var(--text-muted);">...</span>`;
+        const maxButtons = 5;
+        let startPage = Math.max(1, page - Math.floor(maxButtons / 2));
+        let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+        if (endPage - startPage < maxButtons - 1) {
+            startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+
+        // First page + ellipsis
+        if (startPage > 1) {
+            html += `<button onclick="changePage(1)">1</button>`;
+            if (startPage > 2) {
+                html += `<span class="page-ellipsis">···</span>`;
             }
         }
 
-        // Bouton suivant
-        html += `
-            <button ${page === totalPages ? 'disabled' : ''} onclick="changePage(${page + 1})">
-                <i data-lucide="chevron-right"></i>
-            </button>
-        `;
-
-        paginationControls.innerHTML = html;
-
-        // Réinitialiser les icônes Lucide
-        if (window.lucide) {
-            lucide.createIcons();
+        // Pages
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="${i === page ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
         }
+
+        // Last page + ellipsis
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                html += `<span class="page-ellipsis">···</span>`;
+            }
+            html += `<button onclick="changePage(${totalPages})">${totalPages}</button>`;
+        }
+
+        // Bouton suivant
+        html += `<button class="page-nav" ${page === totalPages ? 'disabled' : ''} onclick="changePage(${page + 1})">Suivant ›</button>`;
+
+        html += '</div>';
+        paginationControls.innerHTML = html;
     }
 
     window.changePage = function(page) {

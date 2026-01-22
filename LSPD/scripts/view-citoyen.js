@@ -225,10 +225,12 @@ async function displayProfile(profile) {
             { key: 'permis_asd', label: 'License ASD', icon: 'verified_user' }
         ];
 
-        // Créer le conteneur avec bordure arrondie (style véhicules)
+        // Créer le conteneur avec bordure arrondie (style collé)
         const list = document.createElement('div');
         list.style.display = 'flex';
         list.style.flexDirection = 'column';
+        list.style.border = '1px solid #e0e0e0';
+        list.style.borderRadius = '8px';
         list.style.overflow = 'hidden';
         list.style.background = '#fff';
 
@@ -1095,49 +1097,56 @@ async function loadVehicules() {
             return;
         }
 
-        // Déterminer le mode d'affichage selon le nombre de véhicules
+        // Affichage en liste simple (une colonne)
         const count = vehicules.length;
-        let displayMode = 'list'; // Par défaut : liste
-        let maxDisplay = count;
+        const maxDisplay = count >= 6 ? 5 : count;
 
-        if (count >= 7) {
-            displayMode = 'grid-compact';
-            maxDisplay = 6; // Afficher 6, puis "Voir tous"
-        } else if (count >= 4) {
-            displayMode = 'grid';
-        }
-
-        // Appliquer le style selon le mode
-        vehiculesListEl.className = `equipment-list vehicules-${displayMode}`;
         vehiculesListEl.innerHTML = '';
+
+        // Créer le conteneur de liste avec bordures liées (style collé)
+        const listWrapper = document.createElement('div');
+        listWrapper.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        `;
 
         // Afficher les véhicules (limité si beaucoup)
         const displayVehicules = vehicules.slice(0, maxDisplay);
 
-        displayVehicules.forEach(vehicule => {
-            const item = createVehiculeItem(vehicule, displayMode);
-            vehiculesListEl.appendChild(item);
+        displayVehicules.forEach((vehicule, idx) => {
+            const item = createVehiculeItem(vehicule);
+            // Bordure top sauf premier élément
+            if (idx > 0) {
+                item.style.borderTop = '1px solid #e0e0e0';
+            }
+            listWrapper.appendChild(item);
         });
+
+        vehiculesListEl.appendChild(listWrapper);
 
         // Si plus de véhicules que la limite, ajouter un bouton "Voir tous"
         if (count > maxDisplay) {
             const seeAllBtn = document.createElement('div');
-            seeAllBtn.className = 'see-all-vehicles-btn';
             seeAllBtn.innerHTML = `
                 <span class="material-symbols-rounded">expand_more</span>
                 Voir les ${count - maxDisplay} autres véhicules
             `;
             seeAllBtn.style.cssText = `
-                grid-column: 1 / -1;
+                margin-top: 8px;
                 padding: 12px;
-                background: rgba(11, 27, 90, 0.1);
-                border: 1px dashed var(--lspd-blue);
+                background: rgba(11, 27, 90, 0.05);
+                border: 1px dashed var(--main-color, #002147);
                 border-radius: 8px;
                 text-align: center;
                 cursor: pointer;
-                color: var(--lspd-blue);
+                color: var(--main-color, #002147);
                 font-weight: 600;
-                transition: all 0.3s ease;
+                font-size: 13px;
+                transition: background 0.2s;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1145,13 +1154,11 @@ async function loadVehicules() {
             `;
 
             seeAllBtn.addEventListener('mouseenter', () => {
-                seeAllBtn.style.background = 'rgba(11, 27, 90, 0.15)';
-                seeAllBtn.style.borderColor = 'var(--lspd-gold)';
+                seeAllBtn.style.background = 'rgba(11, 27, 90, 0.1)';
             });
 
             seeAllBtn.addEventListener('mouseleave', () => {
-                seeAllBtn.style.background = 'rgba(11, 27, 90, 0.1)';
-                seeAllBtn.style.borderColor = 'var(--lspd-blue)';
+                seeAllBtn.style.background = 'rgba(11, 27, 90, 0.05)';
             });
 
             seeAllBtn.addEventListener('click', () => {
@@ -1160,8 +1167,6 @@ async function loadVehicules() {
 
             vehiculesListEl.appendChild(seeAllBtn);
         }
-
-        // Rien à faire ici, les items sont déjà ajoutés à vehiculesListEl
 
     } catch (error) {
         console.error('Erreur chargement véhicules:', error);
@@ -1172,67 +1177,52 @@ async function loadVehicules() {
 // Fonction pour créer un élément véhicule selon le mode d'affichage
 function createVehiculeItem(vehicule, displayMode = 'list') {
     const item = document.createElement('div');
-    item.className = 'equipment-item';
+    item.className = 'vehicle-item';
     item.style.cursor = 'pointer';
-    item.style.transition = 'all 0.3s ease';
+    item.style.transition = 'background 0.2s ease';
+    item.style.display = 'flex';
+    item.style.alignItems = 'center';
+    item.style.padding = '12px 14px';
+    item.style.background = '#fff';
+    item.style.borderRadius = '0';
 
     const mandatBadge = vehicule.mandat_actif
         ? '<span style="color: #e74c3c; font-weight: 600; margin-left: 8px; font-size: 12px;">⚠️</span>'
         : '';
 
-    // Mode compact pour grille
-    if (displayMode === 'grid' || displayMode === 'grid-compact') {
-        item.style.padding = '10px 12px';
-        item.innerHTML = `
-            <div style="flex: 1; min-width: 0;">
-                <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 2px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    ${vehicule.modele || 'Modèle inconnu'}${mandatBadge}
-                </div>
-                <div style="font-size: 12px; color: #7f8c8d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    ${vehicule.plaque || 'N/A'}
-                </div>
+    item.innerHTML = `
+        <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 2px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${vehicule.modele || 'Modèle inconnu'}${mandatBadge}
             </div>
-            <span class="material-symbols-rounded" style="color: var(--lspd-gold); font-size: 18px; flex-shrink: 0;">
-                chevron_right
-            </span>
-        `;
-    } else {
-        // Mode liste normal (original)
-        item.innerHTML = `
-            <div style="flex: 1;">
-                <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">
-                    ${vehicule.modele || 'Modèle inconnu'}${mandatBadge}
-                </div>
-                <div style="font-size: 13px; color: #7f8c8d;">
-                    Plaque: ${vehicule.plaque || 'N/A'}
-                </div>
+            <div style="font-size: 12px; color: #7f8c8d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${vehicule.plaque || 'N/A'}
             </div>
-            <span class="material-symbols-rounded" style="color: var(--lspd-gold); font-size: 20px;">
-                chevron_right
-            </span>
-        `;
-    }
+        </div>
+        <span class="material-symbols-rounded" style="color: #7f8c8d; font-size: 20px; flex-shrink: 0; transition: color 0.2s;">
+            chevron_right
+        </span>
+    `;
 
     item.addEventListener('click', () => {
         window.location.href = `/view-vehicule.html?id=${vehicule.id}`;
     });
 
     item.addEventListener('mouseenter', () => {
-        item.style.background = 'rgba(255, 255, 255, 0.08)';
-        item.style.borderColor = 'var(--lspd-gold)';
+        item.style.background = '#f8f9fa';
+        item.querySelector('.material-symbols-rounded').style.color = 'var(--main-color, #002147)';
     });
 
     item.addEventListener('mouseleave', () => {
-        item.style.background = 'rgba(255, 255, 255, 0.03)';
-        item.style.borderColor = 'var(--border-color)';
+        item.style.background = '#fff';
+        item.querySelector('.material-symbols-rounded').style.color = '#7f8c8d';
     });
 
     return item;
 }
 
-// Fonction pour afficher la modale avec tous les véhicules
+// Fonction pour afficher la modale avec tous les véhicules (style identique aux rapports)
 function showAllVehiclesModal(vehicules) {
-    // Créer la modale
     const modal = document.createElement('div');
     modal.className = 'vehicles-modal-overlay';
     modal.style.cssText = `
@@ -1251,7 +1241,7 @@ function showAllVehiclesModal(vehicules) {
     modalContent.style.cssText = `
         background: white;
         border-radius: 12px;
-        max-width: 800px;
+        max-width: 600px;
         width: 90%;
         max-height: 80vh;
         overflow: hidden;
@@ -1270,7 +1260,7 @@ function showAllVehiclesModal(vehicules) {
     `;
     modalHeader.innerHTML = `
         <h3 style="margin: 0; color: var(--lspd-blue); display: flex; align-items: center; gap: 10px;">
-            <span class="material-symbols-rounded">garage</span>
+            <span class="material-symbols-rounded">directions_car</span>
             Tous les véhicules (${vehicules.length})
         </h3>
         <button class="modal-close-btn" style="background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; transition: background 0.2s;">
@@ -1285,26 +1275,30 @@ function showAllVehiclesModal(vehicules) {
         flex: 1;
     `;
 
-    const vehiculesGrid = document.createElement('div');
-    vehiculesGrid.className = 'equipment-list vehicules-grid';
-    vehiculesGrid.style.cssText = `
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 12px;
+    // Liste en style collé (comme les rapports)
+    const list = document.createElement('div');
+    list.className = 'vehicles-list';
+    list.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
     `;
 
-    vehicules.forEach(vehicule => {
-        const item = createVehiculeItem(vehicule, 'grid');
-        vehiculesGrid.appendChild(item);
+    vehicules.forEach((vehicule, idx) => {
+        const item = createVehiculeItem(vehicule);
+        if (idx !== 0) item.style.borderTop = '1px solid #e0e0e0';
+        list.appendChild(item);
     });
 
-    modalBody.appendChild(vehiculesGrid);
+    modalBody.appendChild(list);
     modalContent.appendChild(modalHeader);
     modalContent.appendChild(modalBody);
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
 
-    // Fermer la modale
     const closeBtn = modalHeader.querySelector('.modal-close-btn');
     const closeModal = () => {
         modal.style.animation = 'fadeOut 0.2s ease';
@@ -1312,33 +1306,9 @@ function showAllVehiclesModal(vehicules) {
     };
 
     closeBtn.addEventListener('click', closeModal);
-    closeBtn.addEventListener('mouseenter', () => {
-        closeBtn.style.background = 'rgba(0, 0, 0, 0.05)';
-    });
-    closeBtn.addEventListener('mouseleave', () => {
-        closeBtn.style.background = 'none';
-    });
-
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeModal();
     });
-
-    // Animations CSS
-    if (!document.getElementById('vehicles-modal-animations')) {
-        const style = document.createElement('style');
-        style.id = 'vehicles-modal-animations';
-        style.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes fadeOut {
-                from { opacity: 1; }
-                to { opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
 }
 
 // Fonction pour charger les rapports impliquant le citoyen
@@ -1406,12 +1376,14 @@ function renderReports(container, reports, type) {
     const count = reports.length;
     const displayReports = reports.slice(0, maxDisplay);
 
-    // Créer une liste groupée
+    // Créer une liste groupée avec bordures liées
     const list = document.createElement('div');
     list.style.display = 'flex';
     list.style.flexDirection = 'column';
     list.style.overflow = 'hidden';
     list.style.background = '#fff';
+    list.style.border = '1px solid #e0e0e0';
+    list.style.borderRadius = '8px';
 
     displayReports.forEach((report, idx) => {
         const item = createReportItem(report, type);
@@ -1473,19 +1445,21 @@ function createReportItem(report, type) {
     // Déterminer la date selon le type de rapport
     const dateObj = new Date(report.date_arrestation || report.date_interrogatoire);
     const dateStr = dateObj.toLocaleDateString('fr-FR');
-    
+
     // Déterminer le type de rapport pour l'affichage
     const reportTypeLabel = report.reportType === 'interrogatoire' ? 'Interrogatoire' : 'Arrestation';
     const reportTypeColor = report.reportType === 'interrogatoire' ? '#9b59b6' : '#3498db';
-    
+
     const item = document.createElement('div');
-    item.className = 'equipment-item';
+    item.className = 'report-item';
     item.style.cursor = 'pointer';
-    item.style.padding = '10px 12px';
+    item.style.padding = '12px 14px';
     item.style.display = 'flex';
     item.style.justifyContent = 'space-between';
     item.style.alignItems = 'center';
-    item.style.transition = 'all 0.3s ease';
+    item.style.transition = 'background 0.2s ease';
+    item.style.background = '#fff';
+    item.style.borderRadius = '0';
     
     // Rediriger vers la bonne page selon le type de rapport
     const viewUrl = report.reportType === 'interrogatoire' 

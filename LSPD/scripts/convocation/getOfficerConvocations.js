@@ -63,25 +63,71 @@ function renderPagination() {
     const totalPages = Math.ceil(convocations.length / ITEMS_PER_PAGE);
     paginationDiv.innerHTML = '';
     if (totalPages <= 1) return;
-    if (currentPage > 1) {
-        const prevBtn = document.createElement('button');
-        prevBtn.textContent = '← Précédent';
-        prevBtn.onclick = () => { currentPage--; renderTable(); renderPagination(); };
-        paginationDiv.appendChild(prevBtn);
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'pagination-wrapper';
+
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-nav';
+    prevBtn.innerHTML = '‹ Précédent';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderTable(); renderPagination(); } };
+    wrapper.appendChild(prevBtn);
+
+    const maxButtons = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    if (endPage - startPage < maxButtons - 1) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
     }
-    for (let i = 1; i <= totalPages; i++) {
-        const pageBtn = document.createElement('button');
-        pageBtn.textContent = i;
-        pageBtn.className = i === currentPage ? 'active' : '';
-        pageBtn.onclick = () => { currentPage = i; renderTable(); renderPagination(); };
-        paginationDiv.appendChild(pageBtn);
+
+    // First page + ellipsis
+    if (startPage > 1) {
+        const firstBtn = document.createElement('button');
+        firstBtn.textContent = '1';
+        firstBtn.onclick = () => { currentPage = 1; renderTable(); renderPagination(); };
+        wrapper.appendChild(firstBtn);
+        if (startPage > 2) {
+            const dots = document.createElement('span');
+            dots.className = 'page-ellipsis';
+            dots.textContent = '···';
+            wrapper.appendChild(dots);
+        }
     }
-    if (currentPage < totalPages) {
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = 'Suivant →';
-        nextBtn.onclick = () => { currentPage++; renderTable(); renderPagination(); };
-        paginationDiv.appendChild(nextBtn);
+
+    // Page buttons
+    for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        if (i === currentPage) btn.classList.add('active');
+        btn.onclick = () => { currentPage = i; renderTable(); renderPagination(); };
+        wrapper.appendChild(btn);
     }
+
+    // Last page + ellipsis
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const dots = document.createElement('span');
+            dots.className = 'page-ellipsis';
+            dots.textContent = '···';
+            wrapper.appendChild(dots);
+        }
+        const lastBtn = document.createElement('button');
+        lastBtn.textContent = totalPages;
+        lastBtn.onclick = () => { currentPage = totalPages; renderTable(); renderPagination(); };
+        wrapper.appendChild(lastBtn);
+    }
+
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-nav';
+    nextBtn.innerHTML = 'Suivant ›';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderTable(); renderPagination(); } };
+    wrapper.appendChild(nextBtn);
+
+    paginationDiv.appendChild(wrapper);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
