@@ -127,9 +127,25 @@ function renderTable() {
     pageItems.forEach(item => {
         const tr = document.createElement('tr');
 
-        const photoCell = item.photo
-            ? `<td class="photo-cell"><img src="${item.photo}" alt="${item.modele}"></td>`
-            : `<td class="photo-cell no-photo">🚗</td>`;
+        // Create photo cell with fallback handling
+        const photoCell = document.createElement('td');
+        photoCell.className = 'photo-cell';
+
+        if (item.photo) {
+            const img = document.createElement('img');
+            img.src = item.photo;
+            img.alt = item.modele;
+            img.onerror = function() {
+                // Replace broken image with default vehicle icon
+                this.style.display = 'none';
+                photoCell.classList.add('no-photo');
+                photoCell.innerHTML = '<span class="default-vehicle-icon">🚗</span>';
+            };
+            photoCell.appendChild(img);
+        } else {
+            photoCell.classList.add('no-photo');
+            photoCell.innerHTML = '<span class="default-vehicle-icon">🚗</span>';
+        }
 
         const proprietaireDisplay = item.proprietaire_nom
             ? `${item.proprietaire_nom} ${item.proprietaire_prenom}`
@@ -139,19 +155,31 @@ function renderTable() {
             ? '<span class="badge-mandat actif">OUI</span>'
             : '<span class="badge-mandat inactif">NON</span>';
 
-        tr.innerHTML = `
-            ${photoCell}
-            <td>${item.modele}</td>
-            <td><span class="plaque-cell">${item.plaque}</span></td>
-            <td>${item.couleur || '-'}</td>
-            <td>${proprietaireDisplay}</td>
-            <td>${mandatBadge}</td>
-        `;
+        tr.appendChild(photoCell);
+
+        const modeleTd = document.createElement('td');
+        modeleTd.textContent = item.modele;
+        tr.appendChild(modeleTd);
+
+        const plaqueTd = document.createElement('td');
+        plaqueTd.innerHTML = `<span class="plaque-cell">${item.plaque}</span>`;
+        tr.appendChild(plaqueTd);
+
+        const couleurTd = document.createElement('td');
+        couleurTd.textContent = item.couleur || '-';
+        tr.appendChild(couleurTd);
+
+        const proprietaireTd = document.createElement('td');
+        proprietaireTd.textContent = proprietaireDisplay;
+        tr.appendChild(proprietaireTd);
+
+        const mandatTd = document.createElement('td');
+        mandatTd.innerHTML = mandatBadge;
+        tr.appendChild(mandatTd);
 
         tr.addEventListener('click', () => {
             window.location.href = `/view-vehicule.html?id=${item.id}`;
         });
-
 
         tr.dataset.vehiculeId = item.id;
         tr.dataset.vehiculePlaque = item.plaque;
@@ -185,9 +213,16 @@ function renderPagination() {
     const totalPages = Math.ceil(filteredVehicules.length / ITEMS_PER_PAGE);
     if (totalPages <= 1) return;
 
+    // Create wrapper for modern design
+    const wrapper = document.createElement('div');
+    wrapper.className = 'pagination-wrapper';
+
+    // Previous button
     const prevBtn = document.createElement('button');
-    prevBtn.textContent = '‹';
+    prevBtn.className = 'page-nav';
+    prevBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
     prevBtn.disabled = currentPage === 1;
+    prevBtn.title = 'Page précédente';
     prevBtn.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
@@ -196,7 +231,7 @@ function renderPagination() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
-    paginationDiv.appendChild(prevBtn);
+    wrapper.appendChild(prevBtn);
 
     const maxButtons = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
@@ -206,6 +241,7 @@ function renderPagination() {
         startPage = Math.max(1, endPage - maxButtons + 1);
     }
 
+    // First page + ellipsis
     if (startPage > 1) {
         const firstBtn = document.createElement('button');
         firstBtn.textContent = '1';
@@ -215,16 +251,17 @@ function renderPagination() {
             renderPagination();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-        paginationDiv.appendChild(firstBtn);
+        wrapper.appendChild(firstBtn);
 
         if (startPage > 2) {
             const dots = document.createElement('span');
+            dots.className = 'page-ellipsis';
             dots.textContent = '...';
-            dots.style.padding = '8px';
-            paginationDiv.appendChild(dots);
+            wrapper.appendChild(dots);
         }
     }
 
+    // Page buttons
     for (let i = startPage; i <= endPage; i++) {
         const btn = document.createElement('button');
         btn.textContent = i;
@@ -237,15 +274,16 @@ function renderPagination() {
             renderPagination();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-        paginationDiv.appendChild(btn);
+        wrapper.appendChild(btn);
     }
 
+    // Last page + ellipsis
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
             const dots = document.createElement('span');
+            dots.className = 'page-ellipsis';
             dots.textContent = '...';
-            dots.style.padding = '8px';
-            paginationDiv.appendChild(dots);
+            wrapper.appendChild(dots);
         }
 
         const lastBtn = document.createElement('button');
@@ -256,12 +294,15 @@ function renderPagination() {
             renderPagination();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-        paginationDiv.appendChild(lastBtn);
+        wrapper.appendChild(lastBtn);
     }
 
+    // Next button
     const nextBtn = document.createElement('button');
-    nextBtn.textContent = '›';
+    nextBtn.className = 'page-nav';
+    nextBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
     nextBtn.disabled = currentPage === totalPages;
+    nextBtn.title = 'Page suivante';
     nextBtn.addEventListener('click', () => {
         if (currentPage < totalPages) {
             currentPage++;
@@ -270,7 +311,17 @@ function renderPagination() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
-    paginationDiv.appendChild(nextBtn);
+    wrapper.appendChild(nextBtn);
+
+    paginationDiv.appendChild(wrapper);
+
+    // Page info
+    const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+    const end = Math.min(currentPage * ITEMS_PER_PAGE, filteredVehicules.length);
+    const info = document.createElement('span');
+    info.className = 'pagination-info';
+    info.textContent = `${start}-${end} sur ${filteredVehicules.length}`;
+    paginationDiv.appendChild(info);
 }
 
 searchInput.addEventListener('input', applyFilters);

@@ -90,22 +90,32 @@
         const form = document.getElementById('vehiculeForm');
         const selectProprietaireBtn = document.getElementById('selectProprietaireBtn');
         const proprietaireInput = document.getElementById('proprietaire');
+        const proprietaireIdInput = document.getElementById('proprietaire_id');
         form.addEventListener('submit', submitForm);
 
-        selectProprietaireBtn.addEventListener('click', () => {
-            if (citoyenSelector) {
-                citoyenSelector.open((citoyenId, citoyenName) => {
-                    if (citoyenId && citoyenName) {
-                        selectedProprietaireId = citoyenId;
-                        proprietaireInput.value = citoyenName;
-                        document.getElementById('proprietaire_id').value = citoyenId;
-                    } else {
-                        selectedProprietaireId = null;
-                        proprietaireInput.value = '';
-                        document.getElementById('proprietaire_id').value = '';
-                    }
-                }, selectedProprietaireId);
+        // Create our own CitoyenSelectorModal instance for reliable behavior
+        let localCitoyenSelector = null;
+
+        selectProprietaireBtn.addEventListener('click', async () => {
+            // Initialize selector on first click
+            if (!localCitoyenSelector) {
+                localCitoyenSelector = new CitoyenSelectorModal({ showClearButton: true, uniqueId: 'vehicule' });
+                await localCitoyenSelector.init();
             }
+
+            // Set callback and open modal
+            localCitoyenSelector.onSelectCallback = (id, name) => {
+                if (id && name) {
+                    selectedProprietaireId = id;
+                    proprietaireInput.value = name;
+                    proprietaireIdInput.value = id;
+                } else {
+                    selectedProprietaireId = null;
+                    proprietaireInput.value = '';
+                    proprietaireIdInput.value = '';
+                }
+            };
+            localCitoyenSelector.modal.style.display = 'flex';
         });
 
         const plaqueInput = document.getElementById('plaque');

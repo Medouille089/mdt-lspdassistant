@@ -1,18 +1,42 @@
-.stats { display: flex; gap: 20px; margin-bottom: 20px; }
-.stat-card { flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-.stat-card h3 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 14px; font-weight: 600; text-transform: uppercase; }
-.stat-card .value { font-size: 32px; font-weight: 700; color: #2c3e50; }
-.filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-.filters input[type="text"] { padding: 12px 15px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; background: white; height: 44px; box-sizing: border-box; }
-.filters input[type="text"]:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
-.add-btn { padding: 12px 24px; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; height: 44px; box-sizing: border-box; font-size: 14px; }
-.add-btn:hover { background: #229954; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(39,174,96,0.3); }
-.filters select { padding: 12px 15px; border: 2px solid #dfe6e9; border-radius: 6px; font-size: 14px; background: white; cursor: pointer; transition: all 0.3s ease; height: 44px; box-sizing: border-box; }
-.filters select:hover { border-color: #3498db; }
-.filters select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
-.photo-cell { width: 80px; text-align: center; }
-.photo-cell img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; border: 2px solid #ecf0f1; }
-.photo-cell.no-photo { font-size: 28px; color: #bdc3c7; }
-#armeTable tbody tr { height: 60px; }
-#armeTable tbody td { padding: 8px 12px; }
-.serial-cell { font-family: 'Courier New', monospace; font-weight: 700; font-size: 14px; background: #2c3e50; color: white; padding: 4px 12px; border-radius: 4px; display: inline-block; }
+/* Liste Armes - Styles spécifiques */
+/* Note: Les styles principaux sont dans liste-rapports.css */
+
+/* Photo cell */
+.photo-cell {
+    width: 80px;
+    text-align: center;
+}
+
+.photo-cell img {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 2px solid #ecf0f1;
+}
+
+.photo-cell.no-photo {
+    font-size: 28px;
+    color: #bdc3c7;
+}
+
+/* Table rows */
+#armeTable tbody tr {
+    height: 60px;
+}
+
+#armeTable tbody td {
+    padding: 8px 12px;
+}
+
+/* Serial number cell */
+.serial-cell {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    background: #2c3e50;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    display: inline-block;
+}

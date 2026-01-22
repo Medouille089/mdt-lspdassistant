@@ -181,3 +181,185 @@
 .color-option.selected {
   border-color: #333;
 }
+
+/* ============================================
+   Listes liées (collées) - Style cohérent
+   ============================================ */
+
+/* Container de liste liée */
+.linked-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Items de liste liée */
+.linked-list .linked-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  border: none;
+  border-radius: 0 !important;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.linked-list .linked-item:not(:last-child) {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.linked-list .linked-item:hover {
+  background: #f8f9fa;
+}
+
+/* Véhicules en mode grille - style cohérent */
+.vehicles-grid-linked {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.vehicles-grid-linked .vehicle-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+.vehicles-grid-linked .vehicle-item:hover {
+  background: #f8f9fa;
+}
+
+/* Bordures intérieures pour la grille */
+.vehicles-grid-linked .vehicle-item:nth-child(odd) {
+  border-right: 1px solid #e0e0e0 !important;
+}
+
+.vehicles-grid-linked .vehicle-item:nth-child(n+3) {
+  border-top: 1px solid #e0e0e0 !important;
+}
+
+/* Rapports - Style liste liée */
+.reports-linked-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.reports-linked-list .report-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+.reports-linked-list .report-item:not(:last-child) {
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.reports-linked-list .report-item:hover {
+  background: #f8f9fa;
+}
+
+.reports-linked-list .report-item .report-info {
+  flex: 1;
+}
+
+.reports-linked-list .report-item .report-title {
+  font-weight: 600;
+  color: var(--text-dark, #222);
+  font-size: 14px;
+}
+
+.reports-linked-list .report-item .report-date {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-top: 2px;
+}
+
+.reports-linked-list .report-item .report-chevron {
+  color: #7f8c8d;
+  font-size: 20px;
+  transition: color 0.2s;
+}
+
+.reports-linked-list .report-item:hover .report-chevron {
+  color: var(--main-color, #002147);
+}
+
+/* Bouton "Voir plus" cohérent */
+.see-more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(11, 27, 90, 0.05);
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  color: var(--main-color, #002147);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 0 !important;
+}
+
+.see-more-btn:hover {
+  background: rgba(11, 27, 90, 0.1);
+}
+
+/* Override pour tous les items de listes liées dans view-citoyen */
+#vehicules-list .vehicle-item,
+#weapons-list .equipment-item,
+#permis-list .equipment-item,
+#permis-list .permis-item,
+.report-item,
+.vehicle-item {
+  border-radius: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Bordures entre les items (style collé) */
+#permis-list .permis-item:not(:first-child),
+#vehicules-list .vehicle-item:not(:first-child),
+#weapons-list > div > div:not(:first-child) {
+  border-top: 1px solid #e0e0e0 !important;
+}
+
+/* Responsive pour grille véhicules */
+@media (max-width: 600px) {
+  .vehicles-grid-linked {
+    grid-template-columns: 1fr;
+  }
+
+  .vehicles-grid-linked .vehicle-item:nth-child(odd) {
+    border-right: none !important;
+  }
+
+  .vehicles-grid-linked .vehicle-item:nth-child(n+2) {
+    border-top: 1px solid #e0e0e0 !important;
+  }
+}

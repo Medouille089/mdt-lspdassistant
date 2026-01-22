@@ -164,17 +164,23 @@ function renderTable() {
     });
 }
 
-// Affiche la pagination
+// Affiche la pagination - Design moderne
 function renderPagination() {
     paginationDiv.innerHTML = '';
 
     const totalPages = Math.ceil(filteredCitoyens.length / ITEMS_PER_PAGE);
-    if (totalPages <= 1) return; // Pas besoin de pagination
+    if (totalPages <= 1) return;
 
-    // Bouton précédent
+    // Create wrapper for modern design
+    const wrapper = document.createElement('div');
+    wrapper.className = 'pagination-wrapper';
+
+    // Previous button
     const prevBtn = document.createElement('button');
-    prevBtn.textContent = '‹';
+    prevBtn.className = 'page-nav';
+    prevBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
     prevBtn.disabled = currentPage === 1;
+    prevBtn.title = 'Page précédente';
     prevBtn.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
@@ -183,17 +189,16 @@ function renderPagination() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
-    paginationDiv.appendChild(prevBtn);
+    wrapper.appendChild(prevBtn);
 
-    // Boutons de pages (max 5 boutons visibles)
     const maxButtons = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-    
     if (endPage - startPage < maxButtons - 1) {
         startPage = Math.max(1, endPage - maxButtons + 1);
     }
 
+    // First page + ellipsis
     if (startPage > 1) {
         const firstBtn = document.createElement('button');
         firstBtn.textContent = '1';
@@ -203,39 +208,37 @@ function renderPagination() {
             renderPagination();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-        paginationDiv.appendChild(firstBtn);
-
+        wrapper.appendChild(firstBtn);
         if (startPage > 2) {
             const dots = document.createElement('span');
+            dots.className = 'page-ellipsis';
             dots.textContent = '...';
-            dots.style.padding = '8px';
-            paginationDiv.appendChild(dots);
+            wrapper.appendChild(dots);
         }
     }
 
+    // Page buttons
     for (let i = startPage; i <= endPage; i++) {
         const btn = document.createElement('button');
         btn.textContent = i;
-        if (i === currentPage) {
-            btn.classList.add('active');
-        }
+        if (i === currentPage) btn.classList.add('active');
         btn.addEventListener('click', () => {
             currentPage = i;
             renderTable();
             renderPagination();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-        paginationDiv.appendChild(btn);
+        wrapper.appendChild(btn);
     }
 
+    // Last page + ellipsis
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
             const dots = document.createElement('span');
+            dots.className = 'page-ellipsis';
             dots.textContent = '...';
-            dots.style.padding = '8px';
-            paginationDiv.appendChild(dots);
+            wrapper.appendChild(dots);
         }
-
         const lastBtn = document.createElement('button');
         lastBtn.textContent = totalPages;
         lastBtn.addEventListener('click', () => {
@@ -244,13 +247,15 @@ function renderPagination() {
             renderPagination();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-        paginationDiv.appendChild(lastBtn);
+        wrapper.appendChild(lastBtn);
     }
 
-    // Bouton suivant
+    // Next button
     const nextBtn = document.createElement('button');
-    nextBtn.textContent = '›';
+    nextBtn.className = 'page-nav';
+    nextBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
     nextBtn.disabled = currentPage === totalPages;
+    nextBtn.title = 'Page suivante';
     nextBtn.addEventListener('click', () => {
         if (currentPage < totalPages) {
             currentPage++;
@@ -259,7 +264,17 @@ function renderPagination() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
-    paginationDiv.appendChild(nextBtn);
+    wrapper.appendChild(nextBtn);
+
+    paginationDiv.appendChild(wrapper);
+
+    // Page info
+    const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+    const end = Math.min(currentPage * ITEMS_PER_PAGE, filteredCitoyens.length);
+    const info = document.createElement('span');
+    info.className = 'pagination-info';
+    info.textContent = `${start}-${end} sur ${filteredCitoyens.length}`;
+    paginationDiv.appendChild(info);
 }
 
 // Event listeners
