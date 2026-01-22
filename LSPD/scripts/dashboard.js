@@ -151,38 +151,48 @@ fetchUser().then(loadDashboardStats).catch(err => {
 });
 
 async function fetchConnectedAgents() {
+  console.log('[DEBUG] fetchConnectedAgents called');
   try {
     const response = await fetch('/api/connected-agents', { cache: "no-store" });
+    console.log('[DEBUG] Response status:', response.status);
     if (!response.ok) throw new Error('Erreur fetch agents connectés');
     const data = await response.json();
+    console.log('[DEBUG] Data received:', data);
 
     const listEl = document.getElementById('connectedAgentsList');
     listEl.innerHTML = '';
 
     if (data.agents.length === 0) {
-      listEl.innerHTML = '<li>Aucun agent connecté</li>';
+      listEl.innerHTML = '<li class="no-agents">Aucun agent connecté</li>';
       return;
     }
 
+    // Les agents sont déjà triés par l'API (grade desc, puis nom asc)
     data.agents.forEach(agent => {
-      const li = document.createElement('li');
-      li.style.display = 'flex';
-      li.style.alignItems = 'center';
-      li.style.gap = '10px';
+      const card = document.createElement('li');
+      card.className = 'agent-card';
+      card.style.backgroundColor = agent.grade_color || '#5865F2';
+      card.title = `${agent.display_name} - ${agent.grade} (clic pour copier)`;
+      card.onclick = () => {
+        navigator.clipboard.writeText(`<@${agent.user_id}>`);
+        showNotification('ID Copié dans le presse-papier', 'success');
+      };
+
+      const defaultAvatar = 'https://cdn.discordapp.com/embed/avatars/0.png';
+
       const img = document.createElement('img');
-      const defaultAvatar = 'https://media.istockphoto.com/id/1016744004/fr/vectoriel/image-despace-r%C3%A9serv%C3%A9-de-profil-gray-ne-silhouette-aucune-photo.jpg?s=612x612&w=0&k=20&c=7OLCKLuDpDHaXywnkaGuK-bKQS9lnivwYDYnGqD60bc=';
+      img.className = 'agent-card-avatar';
       img.src = agent.avatar || defaultAvatar;
-      img.alt = 'PP';
-      img.style.width = '32px';
-      img.style.height = '32px';
-      img.style.borderRadius = '50%';
-      img.style.objectFit = 'cover';
+      img.alt = agent.display_name;
       img.onerror = function() { this.src = defaultAvatar; };
-      li.appendChild(img);
-      const span = document.createElement('span');
-      span.textContent = agent.display_name;
-      li.appendChild(span);
-      listEl.appendChild(li);
+      card.appendChild(img);
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'agent-card-name';
+      nameSpan.textContent = agent.display_name;
+      card.appendChild(nameSpan);
+
+      listEl.appendChild(card);
     });
   } catch (err) {
     console.error(err);
@@ -445,4 +455,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
 fetchConnectedAgents();
 setInterval(fetchConnectedAgents, 5000);
+
+// Notification toast
+function showNotification(message, type) {
+  const existing = document.querySelector(".dashboard-notification");
+  if (existing) existing.remove();
+
+  const notification = document.createElement("div");
+  notification.className = `dashboard-notification ${type}`;
+  notification.textContent = message;
+
+  Object.assign(notification.style, {
+    position: "fixed",
+    top: "20px",
+    right: "20px",
+    padding: "15px 20px",
+    borderRadius: "8px",
+    color: "white",
+    fontWeight: "600",
+    zIndex: "10000",
+    animation: "slideInRight 0.3s ease",
+    backgroundColor: type === "success" ? "#28a745" : "#dc3545",
+  });
+
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    notification.remove();
+  }, 2000);
+}
+
+// Styles pour l'animation
+const notifStyles = document.createElement('style');
+notifStyles.textContent = `
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+`;
+document.head.appendChild(notifStyles);
 
