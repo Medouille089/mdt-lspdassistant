@@ -246,7 +246,7 @@ async function loadAgentProfile() {
 
         agentProfile = await res.json();
         await displayProfile(agentProfile);
-        
+
         // Charger les rapports d'arrestation
         await loadAgentReports(agentProfile.discord_id || currentUserId);
 
@@ -786,9 +786,9 @@ async function loadAgentReports(agentId) {
     container.innerHTML = '<p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>';
 
     try {
-        const res = await fetch(`/api/rapports-arrestation?agentId=${agentId}&limit=5`);
+        const res = await fetch(`/api/agent-reports/${agentId}?limit=10`);
         if (!res.ok) throw new Error('Erreur chargement rapports');
-        
+
         const data = await res.json();
         const reports = data.reports;
 
@@ -797,39 +797,47 @@ async function loadAgentReports(agentId) {
             return;
         }
 
+        // Configuration des badges par type de rapport
+        const typeConfig = {
+            'arrestation': { icon: '', color: '#e74c3c', label: 'Arrestation' },
+            'incident': { icon: '', color: '#f39c12', label: 'Incident' },
+            'interrogatoire': { icon: '', color: '#3498db', label: 'Interrogatoire' },
+            'enquete': { icon: '', color: '#9b59b6', label: 'Enquête' }
+        };
+
         container.innerHTML = '';
         reports.forEach(report => {
-            const dateObj = new Date(report.date_arrestation);
+            const config = typeConfig[report.type] || { icon: '📄', color: '#95a5a6', label: 'Rapport' };
+
+            const dateObj = new Date(report.date);
             const dateStr = dateObj.toLocaleDateString('fr-FR');
-            
-            let suspects = 'Aucun';
-            try {
-                const suspArr = typeof report.suspects_impliques === 'string' ? JSON.parse(report.suspects_impliques) : report.suspects_impliques;
-                if (suspArr && suspArr.length > 0) {
-                    suspects = suspArr.map(s => s.name).join(', ');
-                }
-            } catch (e) {}
 
             const div = document.createElement('div');
             div.className = 'equipment-item';
             div.style.cursor = 'pointer';
-            div.onclick = () => window.location.href = `/view-rapport-arrestation?id=${report.id}`;
-            
-            let titre = (report.titre_rapport && report.titre_rapport.trim() !== '') ? report.titre_rapport : `Rapport #${report.id}`;
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.gap = '10px';
+            div.onclick = () => window.location.href = report.url;
+
             div.innerHTML = `
-                <span class="equipment-name">${titre} - ${dateStr}</span>
-                <span class="equipment-detail">Suspect(s): ${suspects}</span>
-            `;
+        <span class="report-badge" style="
+          background-color: ${config.color};
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 600;
+          white-space: nowrap;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        ">${config.icon} ${config.label}</span>
+        <span class="equipment-name" style="flex: 1; font-weight: 500;">${report.titre} - ${dateStr}</span>
+        <span class="equipment-detail" style="color: #7f8c8d; font-size: 13px;">${report.details}</span>
+      `;
             container.appendChild(div);
         });
-
-        if (data.totalPages > 1) {
-            const moreDiv = document.createElement('div');
-            moreDiv.style.textAlign = 'center';
-            moreDiv.style.marginTop = '10px';
-            moreDiv.innerHTML = `<a href="/liste-rapports-arrestation?search=${agentId}" style="color: var(--main-color); text-decoration: none; font-size: 14px;">Voir tous les rapports</a>`;
-            container.appendChild(moreDiv);
-        }
 
     } catch (err) {
         console.error("Erreur loadAgentReports:", err);
