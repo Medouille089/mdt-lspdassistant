@@ -72,6 +72,38 @@ document.addEventListener("DOMContentLoaded", () => {
   loadSituations();
 });
 
+// ============ Sélecteur d'agents avec GenericSelectorModal ============
+let agentsSelector;
+let selectedAgentsData = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialiser le sélecteur d'agents
+  agentsSelector = new GenericSelectorModal({
+    triggerBtnId: 'selectAgentsBtn',
+    containerId: 'selectedAgents',
+    hiddenInputId: 'agents_impliques_json',
+    modalTitle: 'Sélectionner un agent',
+    searchPlaceholder: 'Rechercher un agent LSPD...',
+    apiEndpoint: '/api/discord/members',
+    itemLabelKey: 'displayName',
+    itemValueKey: 'id',
+    renderItem: (agent) => {
+      const matricule = agent.displayName.match(/\[(\d+)\]/);
+      const matriculeText = matricule ? `[${matricule[1]}] ` : '';
+      const nom = agent.displayName.replace(/\[\d+\]\s*/, '');
+      return `${matriculeText}${nom}`;
+    }
+  });
+
+  // Créer un input caché pour stocker les agents en JSON
+  const hiddenInput = document.createElement('input');
+  hiddenInput.type = 'hidden';
+  hiddenInput.id = 'agents_impliques_json';
+  hiddenInput.name = 'agents_impliques_json';
+  document.querySelector('form').appendChild(hiddenInput);
+});
+
+
 async function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -326,7 +358,26 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
     formData.append("heure", document.getElementById("heure").value);
     formData.append("officier", document.getElementById("officier").value);
     formData.append("recit", document.getElementById("recit").value);
-    formData.append("implique", document.getElementById("implique").value);
+    formData.append("implique", ""); // Garder pour compatibilité mais vide maintenant
+
+    // Récupérer les agents sélectionnés depuis le GenericSelectorModal
+    const agentsInput = document.getElementById('agents_impliques_json');
+    let agentsData = [];
+    if (agentsInput && agentsInput.value) {
+      try {
+        const agentsFromSelector = JSON.parse(agentsInput.value);
+        agentsData = agentsFromSelector.map(agent => ({
+          id: agent.id,
+          nom: agent.name.split(' ').slice(1).join(' ') || agent.name,
+          prenom: agent.name.split(' ')[0] || '',
+          matricule: agent.name.match(/\[(\d+)\]/)?.[1] || ''
+        }));
+      } catch (e) {
+        console.error('Erreur parsing agents:', e);
+      }
+    }
+    formData.append("agents_impliques", JSON.stringify(agentsData));
+
     formData.append("type", document.getElementById("type").value);
     formData.append("lieu", document.getElementById("lieu").value);
     formData.append("grade", document.getElementById("grade").value);
@@ -373,11 +424,6 @@ document.querySelector(".send-button").addEventListener("click", async (e) => {
   }
 });
 
-document.getElementById('implique').addEventListener('input', function (e) {
-  let input = e.target.value.replace(/\D/g, '');
-  let formatted = input.match(/.{1,2}/g);
-  e.target.value = formatted ? formatted.join(', ') : '';
-});
 
 function showAnimation(type = 'success') {
   return new Promise((resolve) => {

@@ -13,8 +13,12 @@
   <link rel="stylesheet" href="styles/checkmark.css">
   <link rel="stylesheet" href="styles/warning.css">
   <link rel="stylesheet" href="styles/incident/incident.css" />
+  <link rel="stylesheet" href="styles/citoyen-selector.css" />
+  <link rel="stylesheet" href="styles/generic-selector.css" />
+  <link rel="stylesheet" href="styles/ri.css" />
   <link rel="stylesheet" href="styles/context-menu.css" />
   <link rel="stylesheet" href="styles/custom-notifications.css" />
+  <link rel="stylesheet" href="styles/generic-selector.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -80,10 +84,16 @@
           </div>
         </div>
 
-        <div class="matricule-spacer"></div>
 
-        <label for="implique">Matricules des officiers impliqués</label>
-        <input type="text" id="implique" name="implique" />
+
+        <!-- Agents impliqués -->
+        <h3 class="section-title">Agents impliqués</h3>
+        <div class="selector-container">
+          <button type="button" id="selectAgentsBtn" class="custom-file-upload">
+            Ajouter un agent
+          </button>
+        </div>
+        <div id="selectedAgents" class="selected-list"></div>
 
         <div class="inline-fields">
           <div>
@@ -130,6 +140,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="scripts/custom-notifications.js"></script>
+  <script src="scripts/generic-selector.js"></script>
   <script src="scripts/incident/incident.js"></script>
   <script src="scripts/loadSidebar.js"></script>
   <script src="scripts/context-menu.js"></script>
