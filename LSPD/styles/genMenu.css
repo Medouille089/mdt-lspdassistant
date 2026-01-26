@@ -70,6 +70,7 @@ body::before {
 }
 
 .send-button {
+  background-color: var(--sidebar-bg);
   background: linear-gradient(145deg,
     color-mix(in srgb, var(--sidebar-bg) 75%, white) 0%,
     color-mix(in srgb, var(--sidebar-bg) 95%, black) 50%,

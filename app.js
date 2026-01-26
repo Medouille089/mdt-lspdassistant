@@ -284,6 +284,7 @@ const avisRechercheRoute = require('./routes/avisRecherche');
 const tagsRoute = require('./routes/tags');
 const interrogatoireRoute = require('./routes/interrogatoire');
 const enqueteRoute = require('./routes/enquete');
+const agentAllReportsRoute = require('./routes/agent-all-reports');
 
 const githubPushRoute = require('./routes/githubPush');
 
@@ -300,6 +301,7 @@ app.use(avisRechercheRoute);
 app.use(tagsRoute);
 app.use(interrogatoireRoute);
 app.use(enqueteRoute);
+app.use(agentAllReportsRoute);
 app.use(arrestationRoute);
 app.use(convocationRoute);
 app.use(convocationsRoute);

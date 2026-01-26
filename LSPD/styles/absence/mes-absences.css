@@ -862,6 +862,7 @@ p {
 .week-day-header {
   text-align: center;
   padding: 15px 10px;
+  background-color: var(--sidebar-bg);
   background: linear-gradient(180deg,
     color-mix(in srgb, var(--sidebar-bg) 90%, white) 0%,
     var(--sidebar-bg) 100%);

@@ -11,10 +11,10 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.get('/api/incidents/search', async (req, res) => {
   const query = (req.query.name || '').trim();
   const limit = parseInt(req.query.limit) || 100;
-  
+
   try {
     let result;
-    
+
     // Si pas de query ou query trop courte, retourner tous les incidents récents
     if (!query || query.length < 2) {
       result = await pool.query(
@@ -35,7 +35,7 @@ router.get('/api/incidents/search', async (req, res) => {
         [`%${query}%`, limit]
       );
     }
-    
+
     // Ajoute un champ 'nom' pour l'affichage si absent
     const rows = result.rows.map(row => ({
       ...row,
@@ -101,8 +101,9 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
   const logsChannelId = conf.logs_incidents;
 
   try {
-    const { date, heure, officier, grade, recit, implique, type, lieu, situations } = req.body;
+    const { date, heure, officier, grade, recit, implique, type, lieu, situations, agents_impliques } = req.body;
     const situationsArray = JSON.parse(situations || "[]");
+    const agentsImpliquesArray = agents_impliques ? JSON.parse(agents_impliques) : [];
 
     const forum = await bot.channels.fetch(forumChannelId);
     const situationsChannel = await bot.channels.fetch(situationForumChannelId);
@@ -163,16 +164,37 @@ router.post("/api/incident", upload.array("pieces"), async (req, res) => {
 
     thread.setLocked(true);
 
-    // ⚡ Enregistrer en base **avec le récit**
-    await pool.query(`
+    // ⚡ Enregistrer en base **avec le récit et l'ID Discord du rédacteur**
+    const officierRedacteurId = req.user?.id || null;
+    const insertResult = await pool.query(`
       INSERT INTO incidents 
-      (incident_id, date_incident, heure_incident, officier_redacteur, grade, recit, officier_implique, type_rapport, lieu_incident, discord_thread_id, discord_message_id)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      (incident_id, date_incident, heure_incident, officier_redacteur, officier_redacteur_id, grade, recit, officier_implique, type_rapport, lieu_incident, discord_thread_id, discord_message_id)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+      RETURNING id
     `, [
-      incidentId, date, heure, officier, grade,
+      incidentId, date, heure, officier, officierRedacteurId, grade,
       recit || '', // obligatoire pour NOT NULL
       implique, type, lieu, thread.id, thread.lastMessageId
     ]);
+
+    const incidentDbId = insertResult.rows[0].id;
+
+    // ⚡ Insérer les agents impliqués dans la table incident_agents
+    if (agentsImpliquesArray.length > 0) {
+      for (const agent of agentsImpliquesArray) {
+        await pool.query(`
+          INSERT INTO incident_agents (incident_id, agent_discord_id, agent_nom, agent_prenom, agent_matricule, role)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          incidentDbId,
+          agent.id || agent.discord_id,
+          agent.nom || null,
+          agent.prenom || null,
+          agent.matricule || null,
+          'implique'
+        ]);
+      }
+    }
 
     // ⚡ Log Discord
     const logsChannel = await bot.channels.fetch(logsChannelId);
@@ -247,14 +269,30 @@ router.get('/api/getIncident', async (req, res) => {
         threadExists = false;
       }
 
+      // Récupérer les agents impliqués depuis la table incident_agents
+      let agents_impliques = [];
+      if (row.id) {
+        try {
+          const agentsResult = await pool.query(
+            'SELECT agent_discord_id, agent_nom, agent_prenom, agent_matricule, role FROM incident_agents WHERE incident_id = $1',
+            [row.id]
+          );
+          agents_impliques = agentsResult.rows;
+        } catch (err) {
+          console.warn(`Erreur récupération agents pour incident ${row.id}:`, err);
+        }
+      }
+
       return {
         id: row.incident_id,
         date: row.date_incident.toISOString().split('T')[0],
         heure: row.heure_incident,
         officier: row.officier_redacteur,
+        officier_redacteur_id: row.officier_redacteur_id,
         grade: row.grade,
         recit: row.recit,
         implique: row.officier_implique,
+        agents_impliques: agents_impliques,
         type: row.type_rapport,
         lieu: row.lieu_incident,
         threadId: threadExists ? row.discord_thread_id : null,
@@ -297,7 +335,7 @@ router.get('/api/getSituations', async (req, res) => {
 });
 
 router.put('/api/updateIncident', upload.array('pieces'), async (req, res) => {
-const { formatDateFR } = require('../utils/formatDate');
+  const { formatDateFR } = require('../utils/formatDate');
   const conf = await config.getConfig();
   const bot = getBot();
   const situationsChannelId = conf.situations_thread_id;
@@ -306,13 +344,20 @@ const { formatDateFR } = require('../utils/formatDate');
   try {
     const {
       incidentId, date, heure, officier, grade,
-      recit, implique, type, lieu, discord_thread_id, editBy
+      recit, implique, type, lieu, discord_thread_id, editBy, agents_impliques
     } = req.body;
+
+    const agentsImpliquesArray = agents_impliques ? JSON.parse(agents_impliques) : [];
 
     const files = req.files || [];
     const imageFiles = files.filter(f => f.mimetype.startsWith("image/"));
 
     if (!incidentId) return res.status(400).json({ error: 'incidentId manquant' });
+
+    // Récupérer l'ID de la base de données de l'incident
+    const incidentDbResult = await pool.query('SELECT id FROM incidents WHERE incident_id = $1', [incidentId]);
+    if (incidentDbResult.rows.length === 0) return res.status(404).json({ error: 'Incident non trouvé' });
+    const incidentDbId = incidentDbResult.rows[0].id;
 
     // Mise à jour en base
     await pool.query(`
@@ -321,6 +366,24 @@ const { formatDateFR } = require('../utils/formatDate');
           officier_implique=$6, type_rapport=$7, lieu_incident=$8
       WHERE incident_id=$9
     `, [date, heure, officier, grade, recit, implique, type, lieu, incidentId]);
+
+    // Mettre à jour les agents impliqués : supprimer et réinsérer
+    await pool.query('DELETE FROM incident_agents WHERE incident_id = $1 AND role = $2', [incidentDbId, 'implique']);
+    if (agentsImpliquesArray.length > 0) {
+      for (const agent of agentsImpliquesArray) {
+        await pool.query(`
+          INSERT INTO incident_agents (incident_id, agent_discord_id, agent_nom, agent_prenom, agent_matricule, role)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          incidentDbId,
+          agent.id || agent.discord_id,
+          agent.nom || null,
+          agent.prenom || null,
+          agent.matricule || null,
+          'implique'
+        ]);
+      }
+    }
 
     if (!discord_thread_id || discord_thread_id === 'null' || discord_thread_id === 'undefined') {
       return res.json({ message: "Incident mis à jour avec succès (sans Discord)." });
@@ -340,7 +403,7 @@ const { formatDateFR } = require('../utils/formatDate');
 
     // Formatage date JJ/MM/AAAA et heure HH:MM
     const formattedDate = formatDateFR(date);
-    const formattedHeure = (heure && heure.length >= 5) ? heure.slice(0,5) : heure;
+    const formattedHeure = (heure && heure.length >= 5) ? heure.slice(0, 5) : heure;
 
     // Crée un nouvel embed pour l'update
     const embed = new EmbedBuilder()

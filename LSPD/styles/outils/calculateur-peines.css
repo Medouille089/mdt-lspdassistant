@@ -288,6 +288,7 @@ table {
 }
 
 thead {
+  background-color: var(--sidebar-bg);
   background: linear-gradient(180deg,
     #23326b 0%,
     var(--sidebar-bg) 100%);
