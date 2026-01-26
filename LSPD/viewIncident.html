@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="styles/checkmark.css">
     <link rel="stylesheet" href="styles/incident/incident.css" />
     <link rel="stylesheet" href="styles/incident/viewincident.css" />
+    <link rel="stylesheet" href="styles/citoyen-selector.css" />
+    <link rel="stylesheet" href="styles/generic-selector.css" />
+    <link rel="stylesheet" href="styles/ri.css" />
     <link rel="stylesheet" href="styles/annonce-popup.css" />
     <link rel="stylesheet" href="styles/context-menu.css" />
     <link rel="stylesheet" href="styles/custom-notifications.css" />
@@ -63,8 +66,16 @@
                 <label for="recit">Récit</label>
                 <textarea id="recit" name="recit"></textarea>
 
-                <label for="implique">Matricules des officiers impliqués</label>
-                <input type="text" id="implique" name="implique" />
+                <!-- Agents impliqués (nouveau système) ou matricules (ancien système) -->
+                <label>Agents impliqués</label>
+                <div class="selector-container">
+                    <button type="button" id="selectAgentsBtn" class="custom-file-upload">
+                        Ajouter un agent
+                    </button>
+                </div>
+                <div id="agents-impliques-container" style="margin-bottom: 20px;">
+                    <p style="color: #7f8c8d; font-size: 14px;">Chargement...</p>
+                </div>
 
                 <div class="inline-fields">
                     <div>
@@ -104,6 +115,7 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="scripts/loadSidebar.js"></script>
     <script src="scripts/custom-notifications.js"></script>
+    <script src="scripts/generic-selector.js"></script>
     <script src="scripts/incident/viewincident.js"></script>
     <script src="scripts/annonce-popup.js"></script>
     <script src="scripts/context-menu.js"></script>
