@@ -6,8 +6,6 @@ const mandatFilter = document.getElementById('mandatFilter');
 const tableBody = document.querySelector('#citoyenTable tbody');
 const paginationDiv = document.getElementById('pagination');
 const addCitoyenBtn = document.getElementById('addCitoyenBtn');
-const totalCitoyensEl = document.getElementById('totalCitoyens');
-const totalMandatsEl = document.getElementById('totalMandats');
 
 let allCitoyens = [];
 let filteredCitoyens = [];
@@ -39,16 +37,16 @@ function calculateAge(dateStr) {
 // Formatte un numéro de téléphone au format 555-XXXX
 function formatPhoneNumber(phone) {
     if (!phone) return '-';
-    
+
     // Extraire uniquement les chiffres
     const digits = phone.replace(/\D/g, '');
-    
+
     // Si moins de 4 chiffres, retourner tel quel
     if (digits.length < 4) return digits || '-';
-    
+
     // Prendre les 7 derniers chiffres si plus de 7
     const cleaned = digits.slice(-7);
-    
+
     // Formater : 555-XXXX (3 premiers chiffres, tiret, 4 derniers)
     if (cleaned.length <= 3) {
         return cleaned;
@@ -66,7 +64,6 @@ async function loadCitoyens() {
         if (!res.ok) throw new Error('Erreur chargement');
         const data = await res.json();
         allCitoyens = data.citoyens || [];
-        updateStats();
         applyFilters();
     } catch (e) {
         tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#f66;">Erreur de chargement.</td></tr>`;
@@ -75,13 +72,6 @@ async function loadCitoyens() {
     } finally {
         loader.style.display = 'none';
     }
-}
-
-// Mettre à jour les statistiques
-function updateStats() {
-    totalCitoyensEl.textContent = allCitoyens.length;
-    const mandatsActifs = allCitoyens.filter(c => c.mandat_actif).length;
-    totalMandatsEl.textContent = mandatsActifs;
 }
 
 // Appliquer filtres et pagination
@@ -128,19 +118,19 @@ function renderTable() {
 
     pageItems.forEach(item => {
         const tr = document.createElement('tr');
-        
-        const photoCell = item.photo 
+
+        const photoCell = item.photo
             ? `<td class="photo-cell"><img src="${item.photo}" alt="${item.nom}"></td>`
             : `<td class="photo-cell no-photo">👤</td>`;
-        
+
         const age = calculateAge(item.date_naissance);
         const dateNaissanceDisplay = `${formatDate(item.date_naissance)} (${age} ans)`;
-        
-        const mandatBadge = item.mandat_actif 
+
+        const mandatBadge = item.mandat_actif
             ? '<span class="badge-mandat actif">OUI</span>'
             : '<span class="badge-mandat inactif">NON</span>';
 
-        const tagsHtml = `<div class="mini-tags">` + (item.tags || []).map(tag => 
+        const tagsHtml = `<div class="mini-tags">` + (item.tags || []).map(tag =>
             `<span class="mini-tag-pill" style="background: ${tag.color};" title="${tag.name}">${tag.name}</span>`
         ).join('') + `</div>`;
 
@@ -155,11 +145,11 @@ function renderTable() {
             <td>${tagsHtml}</td>
             <td>${mandatBadge}</td>
         `;
-        
+
         tr.addEventListener('click', () => {
             window.location.href = `/view-citoyen.html?id=${item.id}`;
         });
-        
+
         tableBody.appendChild(tr);
     });
 }
