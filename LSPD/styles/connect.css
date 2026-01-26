@@ -112,6 +112,7 @@ body::before {
   justify-content: center;
   gap: 10px;
   padding: 12px 20px;
+  background-color: #5865f2;
   background: linear-gradient(180deg, #5865f2 0%, #4752c4 100%);
   color: #ffffff;
   border: none;
@@ -275,6 +276,7 @@ button[id^="toggle"]:hover .material-symbols-outlined {
 .login-button {
   width: 100%;
   padding: 14px;
+  background-color: var(--sidebar-bg, #1a1f2e);
   background: linear-gradient(180deg,
     color-mix(in srgb, var(--sidebar-bg, #1a1f2e) 90%, white) 0%,
     var(--sidebar-bg, #1a1f2e) 100%);
