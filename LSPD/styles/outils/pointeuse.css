@@ -72,6 +72,7 @@ h2 {
 .pointeuse #weekRangeCard.card,
 .pointeuse #last-weeks-cards .card,
 .pointeuse .dashboard-container .card.full-width {
+  background-color: var(--main-color);
   background: linear-gradient(135deg, var(--main-color), var(--main-color-normal));
   color: var(--white);
 }
@@ -199,6 +200,7 @@ table {
 }
 
 thead {
+  background-color: var(--sidebar-bg);
   background: linear-gradient(180deg,
     color-mix(in srgb, var(--sidebar-bg) 90%, white) 0%,
     var(--sidebar-bg) 100%);

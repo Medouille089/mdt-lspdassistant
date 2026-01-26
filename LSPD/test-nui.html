@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test NUI FiveM</title>
+  <style>
+    * { margin: 0; padding: 0; }
+    body {
+      width: 100vw;
+      height: 100vh;
+      /* Simule le jeu GTA derriere */
+      background: url('https://i.imgur.com/3ZCXQZK.jpg') center/cover;
+      font-family: Arial, sans-serif;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+    }
+
+    /* Controles de test */
+    .controls {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 9999;
+      background: rgba(0,0,0,0.8);
+      padding: 15px;
+      border-radius: 8px;
+      color: white;
+      font-size: 13px;
+    }
+    .controls h3 {
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .controls label {
+      display: block;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    .controls input[type="text"] {
+      width: 100%;
+      padding: 5px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: none;
+    }
+    .controls button {
+      margin-top: 10px;
+      padding: 8px 15px;
+      background: #5865f2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .controls button:hover {
+      background: #4752c4;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <h3>Test NUI FiveM</h3>
+    <label>
+      <input type="radio" name="bg" value="gta" checked onchange="changeBg(this.value)">
+      Fond GTA
+    </label>
+    <label>
+      <input type="radio" name="bg" value="checker" onchange="changeBg(this.value)">
+      Damier (transparence)
+    </label>
+    <label>
+      <input type="radio" name="bg" value="red" onchange="changeBg(this.value)">
+      Rouge vif
+    </label>
+    <label>
+      <input type="radio" name="bg" value="green" onchange="changeBg(this.value)">
+      Vert vif
+    </label>
+    <div style="margin-top: 15px;">
+      <label>Page a tester:</label>
+      <input type="text" id="pageUrl" value="/dashboard.html">
+      <button onclick="loadPage()">Charger</button>
+    </div>
+  </div>
+
+  <iframe id="nuiFrame" src="/dashboard.html"></iframe>
+
+  <script>
+    function changeBg(type) {
+      const body = document.body;
+      switch(type) {
+        case 'gta':
+          body.style.background = "url('https://i.imgur.com/3ZCXQZK.jpg') center/cover";
+          break;
+        case 'checker':
+          // Damier pour voir la transparence
+          body.style.background = `
+            repeating-conic-gradient(#808080 0% 25%, #fff 0% 50%)
+            50% / 20px 20px
+          `;
+          break;
+        case 'red':
+          body.style.background = '#ff0000';
+          break;
+        case 'green':
+          body.style.background = '#00ff00';
+          break;
+      }
+    }
+
+    function loadPage() {
+      const url = document.getElementById('pageUrl').value;
+      document.getElementById('nuiFrame').src = url;
+    }
+  </script>
+</body>
+</html>
