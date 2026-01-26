@@ -221,7 +221,7 @@ body::before {
 /* Header avec photo et infos principales */
 .agent-header {
   background-color: var(--lspd-blue, var(--main-color));
-  background: linear-gradient(135deg, var(--lspd-blue) 0%, #0f2a75 100%);
+  background-image: linear-gradient(135deg, var(--lspd-blue) 0%, #0f2a75 100%);
   padding: 40px;
   display: flex;
   align-items: center;
@@ -973,7 +973,7 @@ h4::before {
 
 .btn-primary {
   background-color: var(--lspd-blue, var(--main-color));
-  background: linear-gradient(135deg, var(--lspd-blue) 0%, #0f2a75 100%);
+  background-image: linear-gradient(135deg, var(--lspd-blue) 0%, #0f2a75 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(11, 27, 90, 0.3);
 }
@@ -996,7 +996,7 @@ h4::before {
 
 .btn-danger {
   background-color: #e74c3c;
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  background-image: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
