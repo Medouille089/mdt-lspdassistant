@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles/checkmark.css">
   <link rel="stylesheet" href="styles/warning.css">
   <link rel="stylesheet" href="styles/sanction/sanctions.css" />
+  <link rel="stylesheet" href="styles/licenses.css" />
   <link rel="stylesheet" href="styles/context-menu.css" />
   <link rel="stylesheet" href="styles/custom-notifications.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -51,7 +52,7 @@
 
         <!-- Tags Section -->
         <div class="tags-section">
-          <label>Tags du citoyen</label>
+          <label class="not-label">Tags du citoyen</label>
           <div id="tagsContainer" class="tags-container">
             <!-- Tags will be injected here -->
           </div>
@@ -133,36 +134,54 @@
 
         <div class="equipment-category">
           <h4>Permis</h4>
-          <div class="equipment-list" style="display: flex; flex-wrap: wrap; gap: 18px;">
-            <div class="checkbox-wrapper-34">
-              <input class="tgl tgl-ios" id="permis_A" type="checkbox">
-              <label class="tgl-btn" for="permis_A"></label>
-              <span style="margin-left:8px;">Permis A</span>
+          <div class="licenses-grid">
+            <div class="license-card" data-license="permis_A">
+              <input type="checkbox" id="permis_A" class="license-checkbox">
+              <label for="permis_A" class="license-label">
+                <div class="license-icon"><i data-lucide="bike"></i></div>
+                <div class="license-name">Permis A</div>
+                <div class="license-check"><i data-lucide="check"></i></div>
+              </label>
             </div>
-            <div class="checkbox-wrapper-34">
-              <input class="tgl tgl-ios" id="permis_B" type="checkbox">
-              <label class="tgl-btn" for="permis_B"></label>
-              <span style="margin-left:8px;">Permis B</span>
+            <div class="license-card" data-license="permis_B">
+              <input type="checkbox" id="permis_B" class="license-checkbox">
+              <label for="permis_B" class="license-label">
+                <div class="license-icon"><i data-lucide="car"></i></div>
+                <div class="license-name">Permis B</div>
+                <div class="license-check"><i data-lucide="check"></i></div>
+              </label>
             </div>
-            <div class="checkbox-wrapper-34">
-              <input class="tgl tgl-ios" id="permis_C" type="checkbox">
-              <label class="tgl-btn" for="permis_C"></label>
-              <span style="margin-left:8px;">Permis C</span>
+            <div class="license-card" data-license="permis_C">
+              <input type="checkbox" id="permis_C" class="license-checkbox">
+              <label for="permis_C" class="license-label">
+                <div class="license-icon"><i data-lucide="truck"></i></div>
+                <div class="license-name">Permis C</div>
+                <div class="license-check"><i data-lucide="check"></i></div>
+              </label>
             </div>
-            <div class="checkbox-wrapper-34">
-              <input class="tgl tgl-ios" id="permis_PPA" type="checkbox">
-              <label class="tgl-btn" for="permis_PPA"></label>
-              <span style="margin-left:8px;">Permis port d'arme</span>
+            <div class="license-card" data-license="permis_PPA">
+              <input type="checkbox" id="permis_PPA" class="license-checkbox">
+              <label for="permis_PPA" class="license-label">
+                <div class="license-icon"><i data-lucide="shield"></i></div>
+                <div class="license-name">Port d'arme</div>
+                <div class="license-check"><i data-lucide="check"></i></div>
+              </label>
             </div>
-            <div class="checkbox-wrapper-34">
-              <input class="tgl tgl-ios" id="permis_BRAVO" type="checkbox">
-              <label class="tgl-btn" for="permis_BRAVO"></label>
-              <span style="margin-left:8px;">License BRAVO</span>
+            <div class="license-card" data-license="permis_BRAVO">
+              <input type="checkbox" id="permis_BRAVO" class="license-checkbox">
+              <label for="permis_BRAVO" class="license-label">
+                <div class="license-icon"><i data-lucide="plane"></i></div>
+                <div class="license-name">License BRAVO</div>
+                <div class="license-check"><i data-lucide="check"></i></div>
+              </label>
             </div>
-            <div class="checkbox-wrapper-34">
-              <input class="tgl tgl-ios" id="permis_ASD" type="checkbox">
-              <label class="tgl-btn" for="permis_ASD"></label>
-              <span style="margin-left:8px;">License ASD</span>
+            <div class="license-card" data-license="permis_ASD">
+              <input type="checkbox" id="permis_ASD" class="license-checkbox">
+              <label for="permis_ASD" class="license-label">
+                <div class="license-icon"><i data-lucide="anchor"></i></div>
+                <div class="license-name">License ASD</div>
+                <div class="license-check"><i data-lucide="check"></i></div>
+              </label>
             </div>
           </div>
         </div>

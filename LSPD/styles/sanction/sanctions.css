@@ -74,7 +74,7 @@ body::before {
   font-size: 13px;
   font-weight: 600;
   color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tag-item .remove-tag {
@@ -112,9 +112,12 @@ body::before {
 /* Tag Selector Modal */
 .tag-selector-modal {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 10001;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,14 +129,21 @@ body::before {
   padding: 20px;
   width: 350px;
   max-width: 90vw;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.tag-options-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 10px 0;
+  padding: 4px;
 }
 
 .tag-option {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 10px 12px;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s;
@@ -141,6 +151,13 @@ body::before {
 
 .tag-option:hover {
   background: #f0f2f5;
+}
+
+.tag-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .color-picker {
@@ -200,6 +217,10 @@ label {
   margin-top: 18px;
   margin-bottom: 6px;
   display: block;
+}
+
+.not-label {
+  margin-top: 0;
 }
 
 select,
