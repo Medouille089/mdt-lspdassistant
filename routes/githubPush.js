@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const bot = require('../config/bot');
+const { GITHUB_PUSH_CHANNEL_ID } = require('../config/env');
 
-// Remplace par l'ID du salon Discord où tu veux envoyer le message
-defaultChannelId = '1409873615226404974'; // À personnaliser
+// ID du salon Discord où envoyer les notifications de push (configuré via .env)
+const defaultChannelId = GITHUB_PUSH_CHANNEL_ID;
 
 router.post('/github-push', async (req, res) => {
   try {

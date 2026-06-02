@@ -4,6 +4,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const bot = require('../config/bot');
 const { EmbedBuilder } = require('discord.js');
+const { RECRUITMENT_CHANNEL_ID, RECRUITMENT_BANNER_URL } = require('../config/env');
 
 const LIMITS = { CHUNK_SAFETY: 3800, CONTENT_MAX: 2000 };
 
@@ -111,13 +112,15 @@ router.post('/forms/recruitment', async (req, res) => {
     let current = '';
     let first = true;
     const ts = new Date();
+    // Bannière : valeur fournie par le client, sinon config serveur (.env)
+    const bannerUrl = body._banner || RECRUITMENT_BANNER_URL || '';
     const pushEmbed = (desc, isLast) => {
       const emb = new EmbedBuilder()
         .setDescription(desc)
         .setColor(0x2c6b9b)
         .setTimestamp(ts);
       if (first) emb.setTitle('📥 Nouvelle Candidature Reçue - LSPD');
-      if (isLast && (body._banner || '')) emb.setImage(body._banner);
+      if (isLast && bannerUrl) emb.setImage(bannerUrl);
       emb.setFooter({ text: 'Recrutement LSPD • Système automatisé' });
       embeds.push(emb);
       first = false;
@@ -134,10 +137,10 @@ router.post('/forms/recruitment', async (req, res) => {
     }
     if (current) pushEmbed(current, true);
 
-    // Send to channel as bot
-    const DEFAULT_CHANNEL = '1422103490666172446';
-    const channelId = (body._channel || DEFAULT_CHANNEL || '').toString().trim();
-    if (!channelId) return res.status(400).send('Missing target channel');
+    // Salon cible : déterminé côté serveur via la config (.env), on ne fait pas
+    // confiance à une valeur fournie par le client.
+    const channelId = (RECRUITMENT_CHANNEL_ID || '').toString().trim();
+    if (!channelId) return res.status(400).send('Missing target channel (RECRUITMENT_CHANNEL_ID non configuré)');
 
     // Persist submission to DB before sending to Discord
     let submissionId = null;
@@ -166,7 +169,7 @@ router.post('/forms/recruitment', async (req, res) => {
         [
           body.discordId || null,
           body.username || null,
-          channelId || DEFAULT_CHANNEL,
+          channelId,
 
           body.fullname || null,
           body.dob || null,

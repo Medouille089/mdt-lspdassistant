@@ -1,192 +1,187 @@
 # 🚓 LSPD Assistant
 
-Plateforme tout-en-un (Site Web + Bot Discord + Board temps réel) pour la gestion opérationnelle et administrative d'un service de police RP (LSPD). 
+All-in-one platform (web app + Discord bot + real-time board) for the operational and administrative management of a roleplay police department (LSPD).
 
-Permet la centralisation des profils agents, rapports, convocations, sanctions, présences, absences, cartes d'équipement, et un tableau de bord collaboratif de type Trello en temps réel.
-
-</div>
-
-## ✨ Principales fonctionnalités
-
-| Domaine | Fonctions clés |
-|---------|----------------|
-| Authentification | Login via Discord OAuth2 + Session sécurisée (Express Session + Passport) |
-| Profils Agents | Création auto, photo, matricule, armes, véhicules, grade dynamique basé sur les rôles Discord |
-| Grades & Formations | Mapping dynamique depuis la base (tables `lspd_grades`, `lspd_formations`) vers les rôles Discord |
-| Convocations / Tickets | Gestion, archivage, consultation |
-| Sanctions / Infractions | Nettoyage automatique (script `cleanSanctions`) + consultation ciblée |
-| Présence & Pointeuse | Suivi, rappels programmés (`rappelPointeuse`) |
-| Absences | Déclaration et administration |
-| Rapport Rookie | Suivi des nouveaux agents |
-| Trello | Temps réel via Socket.IO + persistance PostgreSQL + fallback mémoire |
-| PDF / Export | Génération (via `pdfkit` / `puppeteer` selon modules) |
-| Intégration Discord | Rôles, avatars, webhooks, logs, récupération dynamique des membres |
-| Sécurité | Vérification de rôle requis + SuperAdmin + support DOJ conditionnel |
-
-## 🧱 Stack Technique
-
-- **Runtime**: Node.js (CommonJS)
-- **Serveur**: Express 5
-- **Auth**: Passport + passport-discord
-- **Temps réel**: Socket.IO
-- **Base de données principale**: PostgreSQL (`pg`)
-- **Programmation planifiée**: node-cron
-- **Bot Discord**: discord.js v14
-- **Génération PDF / Rendering**: pdfkit, puppeteer
-- **Front**: HTML/CSS/JS vanilla (pages dans `LSPD/`), Trello module ES + scripts modulaires
-- **Sessions**: express-session (cookie HTTPOnly)
-- **Formats de date**: luxon + moment-timezone
-
-## 🗂️ Structure du projet (vue partielle)
-
-```
-app.js                # Bootstrap serveur, Socket.IO, Trello, routes
-dbSchema.js           # Fonctions pour normaliser / persister Trello (legacy / util)
-routes/               # Routes REST (agents, arrestation, sanctions, etc.)
-config/               # Auth, bot, env, grades, setup, DB pool
-utils/                # Tâches périodiques & helpers (cleanSanctions, rappelPointeuse...)
-LSPD/                 # Frontend (HTML/CSS/JS) + Trello board
-	trello/             # Board temps réel (index.html + scripts)
-	scripts/            # Scripts spécifiques (infosagent.js, dashboard.js ...)
-	styles/             # Feuilles de style
-commands/             # Commandes Discord (si invoquées via bot)
-```
-
-## 🔐 Authentification & Rôles
-
-1. OAuth2 Discord via Passport → création de session.
-2. Middleware global (dans `app.js`) bloque tout sauf pages publiques & assets.
-3. `checkAuth` (et variantes DOJ) vérifie rôle requis (depuis table `configlspd`) ou super admin.
-4. Grade calculé côté route `/api/agent-grade/:userId` en scannant les rôles.
-
-## 🧬 Modèle de données (extraits principaux)
-
-### Base LSPD (exemples de tables utilisées)
-- `configlspd`: configuration dynamique (role requis, logs, ids spéciaux).
-- `lspd_grades`: mapping roles → grade hiérarchique.
-- `lspd_formations`: mapping roles → formations (unités spécialisées).
-- `lspd_agent_profiles`: profils agents (photo_url, armes[], vehicules[], matricule, nom, prenom, is_editing...).
-- `trello_*` tables: `trello_boards`, `trello_lists`, `trello_cards`, `trello_tags`, `trello_card_tags`.
-
-### Profils agents
-`armes` et `vehicules` sont stockés en JSON (string côté DB → parsé côté API). Création automatique si absent lors du premier GET.
-
-## 🔄 Flux Trello temps réel
-
-1. Client charge `/trello` → index + modules ES.
-2. Connexion Socket.IO → envoi `boardSync` (état complet).
-3. Chaque opération (ajout carte, tag, déplacement) produit un diff appliqué via `OperationsManager` + sauvegarde PostgreSQL (avec retry & fallback mémoire).
-4. En absence de `DATABASE_URL`, mode mémoire (non persistant) logué au démarrage.
-
-## ⚙️ Installation & Démarrage
-
-### Prérequis
-- Node.js 18+
-- PostgreSQL (optionnel si juste test local sans persistance Trello)
-- Une application Discord + un bot avec intents appropriés
-
-### Installation
-```bash
-git clone https://github.com/Medouille089/lspdassistant.git
-cd lspdassistant
-npm install
-cp .env.example .env   # (si tu crées un modèle)
-```
-
-### Variables d'environnement (`config/env.js` charge process.env)
-| Nom | Description |
-|-----|-------------|
-| CLIENT_ID | ID OAuth2 Discord |
-| CLIENT_SECRET | Secret OAuth2 |
-| REDIRECT_URI | URL callback (ex: http://localhost:3001/callback) |
-| GUILD_ID | ID du serveur Discord principal |
-| TOKEN | Token du bot Discord |
-| WEBHOOK_BRACELET | Webhook spécifique (bracelet / tracking) |
-| SESSION_SECRET | Secret cryptage session Express |
-| DISCORD_WEBHOOK_LOGS | Webhook logs système |
-| DATABASE_URL | Chaîne connexion PostgreSQL (ssl activé) |
-| PORT | Port HTTP (défaut 3001) |
-
-### Lancer en dev
-```bash
-npm run dev
-```
-Accès principal: `http://localhost:3001/connect.html`  
-Trello board: `http://localhost:3001/trello/`
-
-### Lancer en production
-```bash
-npm start
-```
-Assure-toi d'avoir `DATABASE_URL` pour la persistance Trello.
-
-## 📡 Endpoints API (aperçu non exhaustif)
-
-| Méthode | Route | Description |
-|---------|-------|-------------|
-| GET | /api/user | Infos utilisateur session (id, roles, grade) |
-| GET | /api/agent-profile/:userId | Récupère ou crée profil agent |
-| PUT | /api/agent-profile/:userId | Met à jour profil (armes, vehicules, etc.) |
-| POST | /api/agent-profile/:id/edit-mode | Verrouillage édition |
-| DELETE | /api/agent-profile/:id/edit-mode | Libère le verrou |
-| GET | /api/agent-formations/:userId | Formations déduites des rôles |
-| GET | /api/agent-grade/:userId | Grade le plus haut |
-| (Autres) | arrestation / sanctions / absence / convocation | Domaines métiers spécifiques |
-
-> Pour une cartographie complète, parcourir le dossier `routes/`.
-
-## 🖥️ Pages Front principales
-
-| Fichier | Rôle |
-|---------|------|
-| connect.html | Page d'entrée / login flow |
-| dashboard.html | Vue synthèse (statistiques / navigation) |
-| infos-agent.html | Profil agent (édition inline équipements) |
-| admin*.html | Interfaces d'administration (grades, annonces, pointeuse, absences, sanctions) |
-| trello/index.html | Board collaboratif temps réel |
-
-## 🛡️ Sécurité & Bonnes pratiques
-- Vérification d'auth sur quasi toutes les routes (middleware global + `checkAuth`).
-- Rôle requis configurable depuis DB (table configlspd) pour éviter un hardcode.
-- SuperAdmin bypass pour maintenance.
-- Session HTTPOnly (penser à activer `secure: true` derrière HTTPS en prod).
-- Parsing JSON sécurisé (try/catch) pour champs dynamiques (armes / véhicules).
-
-## 🧪 Tests
-Actuellement aucun test auto (script pm test` placeholder). Recommandations:
-- Ajouter Jest + supertest pour routes critiques.
-- Tests unitaires sur `OperationsManager` pour intégrité des diffs.
-
-## 🚀 Roadmap suggérée
-- [ ] Ajouter fichier `.env.example` livré.
-- [ ] Système de permissions granulaire par fonctionnalité.
-- [ ] Cache Redis pour rôles Discord / profils fréquemment consultés.
-- [ ] Interface d’édition Trello multi-boards.
-- [ ] Export CSV des présences / sanctions.
-- [ ] Refactor front en modules ou migration progressive vers un framework (Vue/React) sans casser l’existant.
-- [ ] Tests automatisés + pipeline CI.
-
-## 🤝 Contribution
-1. Fork & branche de feature.
-2. Respecter style existant (CommonJS, pas d'intro TypeScript sans consensus).
-3. PR descriptive (ajouter captures si UI modifiée).
-
-## 🧩 Dépannage rapide
-| Problème | Cause fréquente | Solution |
-|----------|-----------------|----------|
-| 403 sur /api/... | Rôle requis absent | Vérifier table `configlspd` + rôles Discord |
-| Board vide | Pas de `DATABASE_URL` ou schéma non créé | Vérifier logs démarrage /trello/debug |
-| Grade toujours "Agent" | Rôles grade non configurés | Mettre à jour `lspd_grades` |
-| Avatar manquant | Bot ne fetch pas le membre | Vérifier permissions intents & GUILD_ID |
-
-## 📄 Licence
-MIT – voir `LICENSE.md`.
-
-## 👥 Auteurs
-**Medouille**, **Porka**, **Trello by Hash** – contributions & maintenance.
+It centralizes agent profiles, reports, summons, sanctions, attendance, absences, equipment cards, and a Trello-style collaborative board updated in real time.
 
 ---
 
-Pour support: contacter `medouille_` ou `porka.` sur Discord.
+## ✨ Features
 
+| Area | Highlights |
+|------|-----------|
+| Authentication | Discord OAuth2 login + secure sessions (Passport + express-session) |
+| Agent profiles | Auto-creation, photo, badge number, weapons, vehicles, dynamic grade from Discord roles |
+| Grades & training | Dynamic mapping from DB (`lspd_grades`, `lspd_formations`) to Discord roles |
+| Summons / tickets | Create, archive, browse |
+| Sanctions | Disciplinary records with automatic expiry cleanup (`cleanSanctions`) |
+| Attendance / time clock | Check-in/out tracking and scheduled reminders (`rappelPointeuse`) |
+| Absences | Declaration and administration |
+| Wanted notices | Wanted / missing persons with version history |
+| Rookie patrol | Patrol follow-up with version history |
+| Trello board | Real-time via Socket.IO, persisted in PostgreSQL, in-memory fallback |
+| Recruitment | Public multi-step application form posted to Discord via the bot |
+| PDF export | Generation via `pdfkit` / `puppeteer` |
+| Discord integration | Roles, avatars, webhooks, logs, dynamic member lookup |
 
+## 🧱 Tech stack
+
+- **Runtime:** Node.js 18+ (CommonJS)
+- **Server:** Express 5
+- **Auth:** Passport + passport-discord (OAuth2)
+- **Real-time:** Socket.IO
+- **Database:** PostgreSQL (`pg` pool)
+- **Scheduling:** node-cron
+- **Discord bot:** discord.js v14
+- **PDF / rendering:** pdfkit, puppeteer
+- **Dates:** luxon, moment-timezone
+- **Uploads:** multer (in-memory)
+- **Frontend:** vanilla HTML/CSS/JS + ES modules for the Trello board
+
+## 🗂️ Project structure
+
+```
+app.js                 # Server bootstrap: Express, Socket.IO, Trello, routes, bot
+config/                # env, db pool, passport, bot, dynamic config, middleware
+routes/                # REST API (agents, arrestation, sanctions, recruitment, ...)
+commands/              # Discord slash commands
+discordUtils/          # Discord helpers (embeds, webhooks, presence sheets)
+utils/                 # Scheduled tasks & helpers (cleanSanctions, rappelPointeuse, ...)
+migrations/            # One-off SQL/JS migration scripts
+LSPD/                  # Frontend
+  ├── *.html           # Pages (connect, dashboard, infos-agent, admin*, ...)
+  ├── scripts/         # Page scripts (vanilla JS)
+  ├── styles/          # Stylesheets
+  └── trello/          # Real-time board (ES modules + Socket.IO server)
+```
+
+## 🔐 Authentication & roles
+
+1. Discord OAuth2 via Passport → an Express session is created.
+2. A global middleware in `app.js` blocks everything except the login page and static assets.
+3. `checkAuth` (and the DOJ variant) enforces the required role (from the `configlspd` table) or super-admin bypass.
+4. An agent's grade is computed dynamically by scanning their Discord roles (`GET /api/agent-grade/:userId`).
+
+Most role/channel configuration lives in the **`configlspd`** database table and is managed from the admin UI, so permissions can change without touching the code.
+
+## 🔄 Real-time Trello board
+
+1. The client loads `/trello/` (ES modules).
+2. Socket.IO connects → the server sends `boardSync` (full board state).
+3. Each operation (add card, tag, move, ...) is applied as a diff via `OperationsManager` and persisted to PostgreSQL (with retry).
+4. If `DATABASE_URL` is missing, the board runs in **in-memory mode** (not persisted); the mode is logged at startup.
+
+## ⚙️ Installation & setup
+
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL (optional for a quick local test without Trello persistence)
+- A Discord application + bot with the appropriate gateway intents
+
+### Install
+
+```bash
+git clone https://github.com/Medouille089/mdt-lspdassistant.git
+cd mdt-lspdassistant
+npm install
+cp .env.example .env   # then fill in your own values
+```
+
+### Configuration
+
+All secrets and Discord IDs are loaded from environment variables — **nothing is hardcoded** in the source. Copy `.env.example` to `.env` and fill it in.
+
+Core variables:
+
+| Name | Description |
+|------|-------------|
+| `CLIENT_ID` / `CLIENT_SECRET` | Discord OAuth2 application credentials |
+| `REDIRECT_URI` | OAuth2 callback URL |
+| `TOKEN` | Discord bot token |
+| `GUILD_ID` | Main Discord server ID |
+| `DATABASE_URL` | PostgreSQL connection string (SSL enabled) |
+| `SESSION_SECRET` | Express session secret |
+| `DISCORD_WEBHOOK_LOGS` | System logs webhook |
+| `WEBHOOK_BRACELET` | Bracelet / tracking webhook |
+| `PORT` | HTTP port (default `3001`) |
+| `NODE_ENV` / `IS_LOCAL` / `HTTPS` | Runtime flags |
+
+Discord IDs (channels, roles, categories) used by specific features:
+
+| Name | Used by |
+|------|---------|
+| `DOJ_ROLE_ID` | DOJ access checks |
+| `PRESENCE_ROLE_ID` / `PRESENCE_CHANNEL_ID` | In-game presence board (`routes/presenceig.js`) |
+| `SETROOKIE_AUTHORIZED_ROLES` / `SETROOKIE_ROLES_TO_ADD` / `SETROOKIE_ROLES_TO_REMOVE` | `/setrookie` command (comma-separated ID lists) |
+| `GITHUB_PUSH_CHANNEL_ID` | GitHub push notifications (`routes/githubPush.js`) |
+| `RECRUITMENT_CHANNEL_ID` / `RECRUITMENT_BANNER_URL` | Recruitment applications (`routes/recruitment.js`) |
+| `UPLOAD_GUILD_ID` / `UPLOAD_CATEGORY_ID` | Discord uploader (`routes/discordUploader.js`) |
+| `DISCORD_LOG_CHANNEL_ID` | Investigation logs (`routes/enquete.js`) |
+| `TRELLO_EFFECTIF_LIST_NAME` | Trello reset scheduler |
+
+> See `.env.example` for the complete, commented list. Optional fallbacks
+> (`REQUIRED_ROLE_ID`, `LOGS_CHANNEL`, ...) are only used when the `configlspd`
+> table cannot be loaded.
+
+### Run
+
+```bash
+npm run dev    # development (nodemon)
+npm start      # production
+```
+
+- Main entry: `http://localhost:3001/connect.html`
+- Trello board: `http://localhost:3001/trello/`
+
+For production, set `DATABASE_URL` for persistence and run behind an HTTPS reverse proxy (with `HTTPS=true`). A process manager such as PM2 is recommended.
+
+## 📡 API overview (non-exhaustive)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/api/user` | Session user info (id, roles, grade) |
+| GET | `/api/agent-profile/:userId` | Get or create an agent profile |
+| PUT | `/api/agent-profile/:userId` | Update a profile (weapons, vehicles, ...) |
+| POST | `/api/agent-profile/:id/edit-mode` | Acquire the edit lock |
+| DELETE | `/api/agent-profile/:id/edit-mode` | Release the edit lock |
+| GET | `/api/agent-formations/:userId` | Training derived from roles |
+| GET | `/api/agent-grade/:userId` | Highest grade |
+| POST | `/forms/recruitment` | Public recruitment submission |
+
+> Browse the `routes/` folder for the full map.
+
+## 🖥️ Main frontend pages
+
+| File | Purpose |
+|------|---------|
+| `connect.html` | Login / OAuth2 entry |
+| `dashboard.html` | Main dashboard (stats, navigation) |
+| `infos-agent.html` | Agent profile (inline equipment editing) |
+| `admin*.html` | Administration interfaces (grades, time clock, sanctions, ...) |
+| `trello/index.html` | Real-time collaborative board |
+
+## 🛡️ Security notes
+
+- Auth is enforced on nearly every route (global middleware + `checkAuth`).
+- The required role is configurable from the DB, avoiding hardcoded permissions.
+- JSON fields (weapons / vehicles) are always parsed with `try/catch`.
+- Secrets live only in `.env` (git-ignored) — never commit them.
+- In production, enable `secure` + `sameSite: 'none'` cookies behind HTTPS.
+
+## 🤝 Contributing
+
+1. Fork and create a feature branch.
+2. Follow the existing style (CommonJS, 2-space indent).
+3. Test manually before committing.
+4. Open a descriptive PR (add screenshots for UI changes).
+
+## 📄 License
+
+MIT — see [LICENSE.md](LICENSE.md).
+
+## 👥 Authors
+
+**Medouille** (`medouille_`) · **Porka** (`porka.`)
+
+For support, reach out to the authors on Discord.

@@ -1,4 +1,58 @@
-.env
-/BOT
+# ----- Dépendances -----
 /node_modules
+node_modules/
+
+# ----- Variables d'environnement & secrets -----
+# Ne JAMAIS commiter de secrets. .env.example sert de template (sans valeurs).
+.env
+.env.*
+!.env.example
+*.env
+
+# ----- Bot externe -----
+/BOT
+
+# ----- Config locale (éditeurs / outils) -----
 /.claude
+.claude/
+.vscode/
+.idea/
+*.code-workspace
+
+# ----- Logs -----
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ----- Fichiers temporaires / uploads / générés -----
+uploads/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# ----- Dumps / sauvegardes base de données -----
+*.sql.gz
+*.dump
+*.sqlite
+*.sqlite3
+backup/
+backups/
+
+# ----- Clés / certificats -----
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# ----- Sessions -----
+sessions/
+
+# ----- Spécifique OS -----
+.DS_Store
+Thumbs.db
+desktop.ini

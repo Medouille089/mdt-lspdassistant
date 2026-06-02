@@ -2,10 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-const { GUILD_ID } = require("../config/env");
+const { GUILD_ID, PRESENCE_ROLE_ID, PRESENCE_CHANNEL_ID } = require("../config/env");
 const bot = require("../config/bot");
-
-const ROLE_ID = '1096965866245066801';
 
 
 router.get('/admin', async (req, res) => {
@@ -21,8 +19,8 @@ router.get('/admin', async (req, res) => {
 
         const guild = await bot.guilds.fetch(GUILD_ID);
         const guildMembers = await guild.members.fetch();
-        const roleMembers = guildMembers.filter(m => m.roles.cache.has(ROLE_ID));
-        const channel = guild.channels.cache.get("1166063964380209222");
+        const roleMembers = guildMembers.filter(m => m.roles.cache.has(PRESENCE_ROLE_ID));
+        const channel = guild.channels.cache.get(PRESENCE_CHANNEL_ID);
 
         let m;
         try {

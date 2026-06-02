@@ -1,7 +1,6 @@
 // Client-side multi-step form handling for recrutement.html
 (function () {
-  const CHANNEL_ID = '1422103490666172446';
-  const BANNER_URL = 'https://media.discordapp.net/attachments/1374110088469676163/1409670123387883541/LSPDR.png?raw=true';
+  // Salon cible et bannière sont désormais gérés côté serveur (config .env).
   const LIMITS = { CHUNK_SAFETY: 3800, CONTENT_MAX: 2000 };
 
   function clamp(str, max) {
@@ -137,8 +136,6 @@
       btnSubmit.textContent = 'Envoi en cours...';
 
       const payload = serializeForm();
-      payload._channel = CHANNEL_ID;
-      payload._banner = BANNER_URL;
 
       try {
         const res = await postSubmission(payload);

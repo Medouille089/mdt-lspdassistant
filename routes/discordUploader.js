@@ -13,7 +13,7 @@ router.get('/api/discord/channels', async (req, res) => {
   try {
     const guildId = req.query.guild_id || process.env.UPLOAD_GUILD_ID || process.env.GUILD_ID;
     if (!guildId) return res.status(400).json({ error: 'guild_id manquant' });
-    const categoryId = req.query.category_id || process.env.UPLOAD_CATEGORY_ID || '1427309368306831396';
+    const categoryId = req.query.category_id || process.env.UPLOAD_CATEGORY_ID || null;
 
     const bot = getBot();
     if (!bot) return res.status(500).json({ error: 'Bot Discord non initialisé' });

@@ -12,15 +12,16 @@ module.exports = {
     async execute(interaction) {
         const { EmbedBuilder } = require('discord.js');
         const { getConfig } = require('../config/config');
+        const {
+            SETROOKIE_AUTHORIZED_ROLES,
+            SETROOKIE_ROLES_TO_ADD,
+            SETROOKIE_ROLES_TO_REMOVE,
+        } = require('../config/env');
         const user = interaction.options.getUser('user');
         const member = interaction.guild.members.cache.get(user.id);
 
-        // Role autorisé
-        const authorizedRoles = [
-            '1096965866324770860',
-            '1096965866345746524',
-            '1096965866303787090',
-        ];
+        // Rôles autorisés à exécuter la commande (configurés via .env)
+        const authorizedRoles = SETROOKIE_AUTHORIZED_ROLES;
 
         const config = getConfig();
         const superAdminRoleId = config.id_superadmin?.toString();
@@ -33,21 +34,9 @@ module.exports = {
             return interaction.reply({ content: '❌ Vous n\'avez pas les permissions nécessaires pour utiliser cette commande.', flags: 64 });
         }
 
-        //  Roles à donner
-        const rolesToAdd = [
-
-            '1096965866303787094', // "Rookie"
-            '1096965866303787093', // "Division"
-            '1435226948988047381', // "Formations"
-            '1430483505468411976', // "Autre"
-            '1096965866245066801', // "LSPD"
-            '1166058393442721843', // "Sanctions"
-        ];
-
-        // Rôles à retirer
-        const rolesToRemove = [
-            '1099760263844081664', // "Candidat"
-        ];
+        // Rôles à donner / retirer (configurés via .env)
+        const rolesToAdd = SETROOKIE_ROLES_TO_ADD;
+        const rolesToRemove = SETROOKIE_ROLES_TO_REMOVE;
 
         if (!member) {
             return interaction.reply({ content: '❌ Impossible de trouver ce membre sur le serveur.', flags: 64 });
